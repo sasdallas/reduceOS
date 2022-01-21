@@ -82,14 +82,22 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
 	const size_t index = y * VGA_WIDTH + x;
 	terminal_buffer[index] = vga_entry(c, color);
 }
- 
+void terminal_scroll(){
+    for(int i = 0; i < VGA_HEIGHT; i++){
+        for (int m = 0; m < VGA_WIDTH; m++){
+            terminal_buffer[i * VGA_WIDTH + m] = terminal_buffer[(i + 1) * VGA_WIDTH + m];
+        }
+    }
+}
+
 void terminal_putchar(char c) 
 {
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
 	if (++terminal_column == VGA_WIDTH) {
 		terminal_column = 0;
 		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
+			// terminal_row = 0;
+			terminal_scroll();
 	}
 
 	if (c == '\n') {
@@ -114,7 +122,7 @@ void kernel_main(void)
 	/* Initialize terminal interface */
 	terminal_initialize();
  
-	/* Newline support is left as an exercise. */
+	
 	terminal_writestring("Hello, kernel World!\n");
 
     terminal_writestring("reduceOS v0.1 started.\n");
