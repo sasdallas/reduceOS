@@ -1,5 +1,5 @@
 echo Start build...
-
+mkdir build
 echo [COMPILE] boot.s
 ./i686/bin/i686-elf-as reduceOS/boot.s -o build/boot.o
 echo [DONE] boot.s
