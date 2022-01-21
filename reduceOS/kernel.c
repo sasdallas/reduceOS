@@ -126,4 +126,7 @@ void kernel_main(void)
 	terminal_writestring("Hello, kernel World!\n");
 
     terminal_writestring("reduceOS v0.1 started.\n");
+	for (int i; i<=25; i++) {
+		terminal_writestring("Testing the multiscroll feature!");
+	}
 }
