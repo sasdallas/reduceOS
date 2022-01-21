@@ -94,7 +94,7 @@ void terminal_putchar(char c)
 
 	if (c == '\n') {
 		terminal_row++;
-		terminal_column = 0 // Reset for newline
+		terminal_column = 0; // Reset for newline
 	}
  }
  
