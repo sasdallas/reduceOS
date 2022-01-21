@@ -1,5 +1,9 @@
 # reduceOS
-A small, lightweight OS coded in C++ and Assembly.
+A small, lightweight OS coded in C and Assembly.
+
+# Dev Branch
+Welcome to the dev branch, where I can experiment and release new builds to you!
+
 
 # About
 reduceOS is a small operating system built for people who have a very slow computer. It can do a few different things using barely any memory and disk space. \
