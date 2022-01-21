@@ -5,3 +5,4 @@ i686-elf-tools.sh
 .gitpod.Dockerifle
 .gitpod.yml
 build/*.o
+**/windows
