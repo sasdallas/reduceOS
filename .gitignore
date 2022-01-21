@@ -2,3 +2,5 @@
 i686-elf-tools.sh
 
 .gitpod.*
+.gitpod.Dockerifle
+.gitpod.yml
