@@ -92,18 +92,64 @@ void terminal_scroll(){
 
 void terminal_putchar(char c) 
 {
-	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH) {
+	unsigned char uc = c;
+
+	//terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
+	/* if (++terminal_column == VGA_WIDTH) {
 		terminal_column = 0;
 		if (++terminal_row == VGA_HEIGHT)
 			// terminal_row = 0;
 			terminal_scroll();
-	}
+	} */
+	
+	switch(c) {
+      case '\n':
+        terminal_row++;
+        terminal_column = 0;
+        break;
+
+      case '\t':
+        terminal_write('    ');
+        break;
+
+      default:
+        terminal_putentryat(uc, terminal_color, terminal_column, terminal_row);
+        terminal_column++;
+    }
+
+	if(terminal_column >= VGA_WIDTH) {
+          terminal_column = 0;
+          terminal_row++;
+    }
+
+    // Handle validating terminal_row, and scrolling the screen upwards if necessary.
+    if(terminal_row >= VGA_HEIGHT) {
+        
+        
+
+        
+        // terminal_buffer[(15 * VGA_WIDTH) + 15] = terminal_buffer[(0 * VGA_WIDTH) + 4];
+
+        size_t i, j;
+        for(i = 0; i < VGA_WIDTH-1; i++) {
+            for(j = VGA_HEIGHT-2; j > 0; j--) {
+                terminal_buffer[(j * VGA_WIDTH) + i] = terminal_buffer[((j+1) * VGA_WIDTH) + i];
+            }               
+        }
+
+        // Also clear out the bottom row
+        for(i = 0; i < VGA_WIDTH-1; i++) {
+            terminal_putentryat(' ', terminal_color, i, VGA_HEIGHT-1);
+        }
+
+        terminal_row = VGA_HEIGHT-1;
+    }
 
 	if (c == '\n') {
 		terminal_row++;
 		terminal_column = 0; // Reset for newline
 	}
+	
  }
  
 void terminal_write(const char* data, size_t size) 
