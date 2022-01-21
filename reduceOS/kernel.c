@@ -91,7 +91,12 @@ void terminal_putchar(char c)
 		if (++terminal_row == VGA_HEIGHT)
 			terminal_row = 0;
 	}
-}
+
+	if (c == '\n') {
+		terminal_row++;
+		terminal_column = 0 // Reset for newline
+	}
+ }
  
 void terminal_write(const char* data, size_t size) 
 {
