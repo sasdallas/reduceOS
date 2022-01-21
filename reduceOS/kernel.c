@@ -109,7 +109,7 @@ void terminal_putchar(char c)
         break;
 
       case '\t':
-        terminal_write('    ');
+        terminal_write('    ', strlen('    '));
         break;
 
       default:
@@ -117,33 +117,7 @@ void terminal_putchar(char c)
         terminal_column++;
     }
 
-	if(terminal_column >= VGA_WIDTH) {
-          terminal_column = 0;
-          terminal_row++;
-    }
-
-    // Handle validating terminal_row, and scrolling the screen upwards if necessary.
-    if(terminal_row >= VGA_HEIGHT) {
-        
-        
-
-        
-        // terminal_buffer[(15 * VGA_WIDTH) + 15] = terminal_buffer[(0 * VGA_WIDTH) + 4];
-
-        size_t i, j;
-        for(i = 0; i < VGA_WIDTH-1; i++) {
-            for(j = VGA_HEIGHT-2; j > 0; j--) {
-                terminal_buffer[(j * VGA_WIDTH) + i] = terminal_buffer[((j+1) * VGA_WIDTH) + i];
-            }               
-        }
-
-        // Also clear out the bottom row
-        for(i = 0; i < VGA_WIDTH-1; i++) {
-            terminal_putentryat(' ', terminal_color, i, VGA_HEIGHT-1);
-        }
-
-        terminal_row = VGA_HEIGHT-1;
-    }
+	
 
 	if (c == '\n') {
 		terminal_row++;
@@ -168,11 +142,8 @@ void kernel_main(void)
 	/* Initialize terminal interface */
 	terminal_initialize();
  
-	
-	terminal_writestring("Hello, kernel World!\n");
 
     terminal_writestring("reduceOS v0.1 started.\n");
-	for (int i; i<=25; i++) {
-		terminal_writestring("Testing the multiscroll feature!\n");
-	}
+	terminal_setcolor(VGA_COLOR_BLUE);
+	terminal_writestring("i am blue text\n");
 }
