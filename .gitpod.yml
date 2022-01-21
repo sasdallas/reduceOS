@@ -16,3 +16,4 @@ github:
     addLabel: prebuilt-in-gitpod
 image:
   file: .gitpod.dockerfile
+
