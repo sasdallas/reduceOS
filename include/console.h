@@ -19,4 +19,10 @@ void consoleGoXY(uint16 x, uint16 y);
 void consolePrintString(const char *str);
 void printf(const char *format, ...);
 
+
+// Get string from console
+
+void getString(char *buffer);
+// Get string from console and erase/go back until bound occcurs
+void getStringBound(char *buffer, uint8 bound);
 #endif
