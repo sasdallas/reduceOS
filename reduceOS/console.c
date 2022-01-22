@@ -169,3 +169,36 @@ void printf(const char *format, ...) {
         }
     }
 }
+
+void getString(char *buffer) {
+    if (!buffer) return; // If not a buffer, exit.
+    while (1) {
+        char ch = kb_getchar();
+        if (ch == '\n') {
+            printf("\n");;
+            return ;
+        } else {
+            *buffer++ = ch;
+            printf("%c", ch);
+        }
+    }
+}
+
+void getStringBound(char *buffer, uint8 bound) {
+    /* Basically same code as last time, but with some extra steps */
+    if (!bound) return;
+    while(1) {
+        char ch = kb_getchar();
+        if (ch == '\n') {
+            printf("\n");
+            return;
+        } else if (ch == '\b') {
+            consoleUngetcharBound(bound);
+            buffer--;
+            *buffer = '\0';
+        } else {
+            *buffer++ = ch;
+            printf("%c", ch);
+        }
+    }
+}
