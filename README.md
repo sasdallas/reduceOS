@@ -11,10 +11,10 @@ This project was coded for fun. I don't intend for anyone to actually use this(a
 
 
 # How to compile and run:
-Step 1 - Download the source code.
-Step 2 - Run `make`
-Step 3 - Run `qemu-system-i386 build/reduce.bin`
-Step 4 - Enjoy
+Step 1 - Download the source code.\
+Step 2 - Run `make`\
+Step 3 - Run `qemu-system-i386 build/reduce.bin`\
+Step 4 - Enjoy!
 
 ## Windows builds do not currently work
 
