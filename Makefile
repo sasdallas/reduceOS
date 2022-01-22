@@ -20,17 +20,16 @@ MKDIR= mkdir -p
 CP = cp -r
 DEFINES=
 
-# assembler flags
+# ASM flags
 ASM_FLAGS = -f elf32
-# compiler flags
+# CC flags
 CC_FLAGS = $(INCLUDE) $(DEFINES) -m32 -std=gnu99 -ffreestanding -Wall -Wextra
-# linker flags, for linker add linker.ld file too
+# Linker flags
 LD_FLAGS = -m elf_i386 -T $(CONFIG)/linker.ld -nostdlib
 
-# target file to create in linking
+#BIN file to create
 TARGET=$(OUT)/reduce.bin
-
-# iso file target to create
+#ISO file to create - Not working currently, use bin file.
 TARGET_ISO=$(OUT)/reduce.iso
 ISO_DIR=$(OUT)/isodir
 
@@ -53,7 +52,7 @@ all: $(OBJECTS)
 	$(CP) $(TARGET) $(ISO_DIR)/boot/
 	$(CP) $(CONFIG)/grub.cfg $(ISO_DIR)/boot/grub/
 	$(GRUB) -o $(TARGET_ISO) $(ISO_DIR)
-	
+
 
 $(ASM_OBJ)/boot.o : $(ASM_SRC)/boot.asm
 	@printf "[ $(ASM_SRC)/boot.asm ]\n"
