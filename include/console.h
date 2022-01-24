@@ -33,10 +33,10 @@ void getString(char *buffer);
 // Get string from console and erase/go back until bound occcurs
 void getStringBound(char *buffer, uint8 bound);
 
-<<<<<<< Updated upstream
+
 // Change color of all text
 void setColor(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color);
-=======
+
 
 void draw_generic_box(uint16, uint16, uint16, uint16, 
                             uint8, uint8, uint8, uint8, 
@@ -47,5 +47,5 @@ void draw_box(uint8, uint16, uint16, uint16, uint16,
 
 void fill_box(uint8, uint16, uint16, uint16, uint16, uint8);             
 
->>>>>>> Stashed changes
+
 #endif
