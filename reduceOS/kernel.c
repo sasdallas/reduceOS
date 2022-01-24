@@ -82,8 +82,8 @@ void doTestStuff() {
 
 void guiTest(void) {
 	clearConsole(COLOR_WHITE, COLOR_BLACK);
-	draw_box(BOX_SINGLELINE, 0, 1, 75, 20, COLOR_GREY, COLOR_BLACK);
-	draw_box(BOX_SINGLELINE, 0, 4, 75, 4, COLOR_GREY, COLOR_BLACK);
+	draw_box(BOX_SINGLELINE, 0, 0, 75, 20, COLOR_GREY, COLOR_BLACK);
+	draw_box(BOX_SINGLELINE, 0, 4, 1, 1, COLOR_GREY, COLOR_BLACK);
 
 }
 
