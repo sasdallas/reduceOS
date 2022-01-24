@@ -44,12 +44,20 @@ BOOL is_color(char *b) {
 
 
 void doGUIStuff(void) {
-	clearConsole(COLOR_WHITE, COLOR_BLACK);
-	consoleGoXY((VGA_WIDTH/2), 1);
-	setColor(COLOR_RED, COLOR_BLACK);
+	clearConsole(COLOR_BLUE, COLOR_BLACK);
+	
+	vga_disable_cursor();
+
+	setColor(COLOR_BLUE, COLOR_BLACK);
+	int t = 1;
 	for (int i=0; i<4; i++) {
-		consolePutchar('O');
+		consoleGoXY((VGA_WIDTH/2), t);
+		for (int i=0; i<4; i++) {
+			consolePutchar(' ');
+		}
+		t++;
 	}
+	
 }
 
 
@@ -85,6 +93,7 @@ void kernel_main(void) {
 			setColor(COLOR_RED, COLOR_BLUE);
 		} else if (strcmp(buffer, "test")) { 
 			doGUIStuff();
+
 		}else {
 			printf("Command not found: %s\n", buffer);
 		} 
