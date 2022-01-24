@@ -60,7 +60,7 @@ BOOL is_color(char *b) {
 	return FALSE;
 }
 
-
+/*
 void doGUIStuff(void) {
 	clearConsole(COLOR_BLUE, COLOR_BLACK);
 	
@@ -76,7 +76,7 @@ void doGUIStuff(void) {
 		t++;
 	}
 	
-}
+} */
 
 
 
@@ -110,7 +110,7 @@ void kernel_main(void) {
 		} else if (strcmp(buffer, "setcolor") == 0) {
 			setColor(COLOR_RED, COLOR_BLUE);
 		} else if (strcmp(buffer, "test")) { 
-			doGUIStuff();
+			doTestStuff();
 
 		}else {
 			printf("Command not found: %s\n", buffer);
