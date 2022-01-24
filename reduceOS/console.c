@@ -26,6 +26,8 @@ void setColor(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
     for (uint32 i = 0; i < VGA_TOTAL_ITEMS; i++) {
         g_vga_buffer[i] = vga_item_entry(g_vga_buffer[i], fore_color, back_color);
     }
+    g_fore_color = fore_color;
+
 }
 
 void initConsole(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
@@ -33,6 +35,7 @@ void initConsole(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
     g_fore_color = fore_color, g_back_color = back_color;
     cursorx = 0, cursory = 0;
     clearConsole(fore_color, back_color);
+
 }
 
 static void consoleNewline() {

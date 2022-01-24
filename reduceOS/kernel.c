@@ -35,6 +35,25 @@ BOOL is_echo(char *b) {
     return FALSE;
 }
 
+BOOL is_color(char *b) {
+	if ((b[0]=='s')&&(b[1]=='e')&&(b[2]=='t')&&(b[3]=='c')&&(b[4]=='o')&&(b[5]=='l')&&(b[6]=='o')&&(b[7]=='r'))
+		if (b[8]==' '||b[8]=='\0')
+			return TRUE;
+	return FALSE;
+}
+
+
+void doGUIStuff(void) {
+	clearConsole(COLOR_WHITE, COLOR_BLACK);
+	consoleGoXY((VGA_WIDTH/2), 1);
+	setColor(COLOR_RED, COLOR_BLACK);
+	for (int i=0; i<4; i++) {
+		consolePutchar('O');
+	}
+}
+
+
+
 void kernel_main(void) {
 	gdt_init();
 	idt_init();
@@ -64,9 +83,11 @@ void kernel_main(void) {
 			printf("%s\n", buffer + 5);
 		} else if (strcmp(buffer, "setcolor") == 0) {
 			setColor(COLOR_RED, COLOR_BLUE);
-		}	else {
+		} else if (strcmp(buffer, "test")) { 
+			doGUIStuff();
+		}else {
 			printf("Command not found: %s\n", buffer);
-		}
+		} 
 	}
 	
 }
