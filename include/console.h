@@ -25,4 +25,7 @@ void printf(const char *format, ...);
 void getString(char *buffer);
 // Get string from console and erase/go back until bound occcurs
 void getStringBound(char *buffer, uint8 bound);
+
+// Change color of all text
+void setColor(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color);
 #endif
