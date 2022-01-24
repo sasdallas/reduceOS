@@ -83,8 +83,8 @@ void doTestStuff() {
 void guiTest(void) {
 	clearConsole(COLOR_WHITE, COLOR_BLACK);
 	draw_box(BOX_SINGLELINE, 0, 0, 75, 20, COLOR_GREY, COLOR_BLACK);
-	draw_box(BOX_SINGLELINE, 0, 2, 75, 1, COLOR_GREY, COLOR_BLACK);
-	consoleGoXY(((VGA_WIDTH/2)-1), 1);
+	draw_box(BOX_SINGLELINE, 0, 2, 75, 0, COLOR_GREY, COLOR_BLACK);
+	consoleGoXY(((VGA_WIDTH/2)-6), 1);
 	consolePrintString("GUI");
 	consoleGoXY(73, 1);
 	consolePrintColorString("X", COLOR_RED, COLOR_BLACK);
@@ -92,7 +92,7 @@ void guiTest(void) {
 	consolePrintColorString("-", COLOR_YELLOW, COLOR_BLACK);
 	consoleGoXY(69, 1);
 	consolePrintColorString("+", COLOR_GREEN, COLOR_BLACK);
-	consoleGoXY((VGA_WIDTH/2)-2,4);
+	consoleGoXY((VGA_WIDTH/2)-7,4);
 	consolePrintColorString("Hello", COLOR_WHITE, COLOR_BLACK);
 	// Done
 }
