@@ -22,6 +22,11 @@ void clearConsole(VGA_COLOR_TYPE color1, VGA_COLOR_TYPE color2) {
     vga_set_cursor_pos(cursorx, cursory);
 }
 
+void setColor(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
+    for (uint32 i = 0; i < VGA_TOTAL_ITEMS; i++) {
+        g_vga_buffer[i] = vga_item_entry(g_vga_buffer[i], fore_color, back_color);
+    }
+}
 
 void initConsole(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
     g_vga_buffer = (uint16 *)VGA_ADDRESS;

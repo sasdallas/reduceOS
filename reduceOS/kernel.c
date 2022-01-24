@@ -4,6 +4,7 @@
 #include "gdt.h" // Global Descriptor Table
 #include "idt.h" // Interrupt Descriptor Table
 #include "keyboard.h" // Keyboard driver
+#include "vga.h"
 
 void __cpuid(uint32 type, uint32 *eax, uint32 *ebx, uint32 *ecx, uint32 *edx) {
 	asm volatile("cpuid"
@@ -61,7 +62,9 @@ void kernel_main(void) {
 			printf("Commands: help, getcpuid, echo, about\n");
 		} else if (is_echo(buffer)) {
 			printf("%s\n", buffer + 5);
-		} else {
+		} else if (strcmp(buffer, "setcolor") == 0) {
+			setColor(COLOR_RED, COLOR_BLUE);
+		}	else {
 			printf("Command not found: %s\n", buffer);
 		}
 	}
