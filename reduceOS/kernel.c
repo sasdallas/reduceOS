@@ -12,6 +12,9 @@ void __cpuid(uint32 type, uint32 *eax, uint32 *ebx, uint32 *ecx, uint32 *edx) {
 				: "0"(type)); // Add type to ea
 }
 
+BOOL loadTest = FALSE;
+
+
 
 void doTestStuff() {
 	clearConsole(COLOR_WHITE, COLOR_BLACK);
@@ -28,6 +31,45 @@ void doTestStuff() {
   	draw_box(BOX_SINGLELINE, 28, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
   	draw_box(BOX_SINGLELINE, 41, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
   	draw_box(BOX_SINGLELINE, 54, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
+	
+	// Draw instructions
+	consoleGoXY(0,0);
+	consolePrintColorString("Tic-Tac-Toe v0.1", COLOR_YELLOW, COLOR_BLACK);
+	consoleGoXY(0,1);
+	consolePrintColorString("Made for reduceOS", COLOR_YELLOW, COLOR_BLACK);
+
+	draw_box(BOX_SINGLELINE, 0, 2, 18, 3, COLOR_GREY, COLOR_BLACK);
+
+	consoleGoXY(1,3);
+	consolePrintColorString("Player 1 moves: ", COLOR_BRIGHT_RED, COLOR_BLACK);
+	consoleGoXY(1,5);
+	consolePrintColorString("Player 2 moves: ", COLOR_CYAN, COLOR_BLACK);
+
+	consoleGoXY(1,7);
+	consolePrintColorString("Turn: ", COLOR_CYAN, COLOR_BLACK);
+	consoleGoXY(8,7);
+	consolePrintColorString("idc enough", COLOR_CYAN, COLOR_BLACK);
+
+	draw_box(BOX_SINGLELINE, 0, 9, 18, 8, COLOR_GREY, COLOR_BLACK);
+
+  	consoleGoXY(1, 9);
+  	consolePrintColorString("Keys", COLOR_WHITE, COLOR_BLACK);
+
+  	consoleGoXY(1, 11);
+  	consolePrintColorString("Arrows", COLOR_WHITE, COLOR_BLACK);
+
+	consoleGoXY(12, 10);
+  	consolePutchar(30);	
+	
+	consoleGoXY(10, 11);
+	consolePutchar(17);
+	
+	consoleGoXY(14, 11);
+	consolePutchar(16);
+
+	consoleGoXY(12, 12);
+	consolePutchar(31);
+
 }
 
 
@@ -110,11 +152,14 @@ void kernel_main(void) {
 		} else if (strcmp(buffer, "setcolor") == 0) {
 			setColor(COLOR_RED, COLOR_BLUE);
 		} else if (strcmp(buffer, "test")) { 
-			doTestStuff();
+			loadTest = TRUE;
+			break;
 
 		}else {
 			printf("Command not found: %s\n", buffer);
 		} 
 	}
-	
+	if (loadTest) {
+		doTestStuff();
+	}
 }

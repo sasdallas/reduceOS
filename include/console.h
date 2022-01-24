@@ -25,7 +25,7 @@ void consoleGoXY(uint16 x, uint16 y);
 void consolePrintString(const char *str);
 void printf(const char *format, ...);
 
-
+void consolePrintColorString(char *str, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color);
 
 // Get string from console
 
