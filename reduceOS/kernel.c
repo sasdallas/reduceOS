@@ -13,6 +13,24 @@ void __cpuid(uint32 type, uint32 *eax, uint32 *ebx, uint32 *ecx, uint32 *edx) {
 }
 
 
+void doTestStuff() {
+	clearConsole(COLOR_WHITE, COLOR_BLACK);
+	draw_box(BOX_SINGLELINE, 28, 1, 38, 20, COLOR_WHITE, COLOR_BLACK);
+
+  	draw_box(BOX_SINGLELINE, 28, 1, 12, 6, COLOR_WHITE, COLOR_BLACK);
+  	draw_box(BOX_SINGLELINE, 41, 1, 12, 6, COLOR_WHITE, COLOR_BLACK);
+  	draw_box(BOX_SINGLELINE, 54, 1, 12, 6, COLOR_WHITE, COLOR_BLACK);
+
+  	draw_box(BOX_SINGLELINE, 28, 8, 12, 6, COLOR_WHITE, COLOR_BLACK);
+  	draw_box(BOX_SINGLELINE, 41, 8, 12, 6, COLOR_WHITE, COLOR_BLACK);
+  	draw_box(BOX_SINGLELINE, 54, 8, 12, 6, COLOR_WHITE, COLOR_BLACK);
+
+  	draw_box(BOX_SINGLELINE, 28, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
+  	draw_box(BOX_SINGLELINE, 41, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
+  	draw_box(BOX_SINGLELINE, 54, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
+}
+
+
 void getCPUIDInfo() {
 	uint32 brand[12];
 	uint32 eax, ebx, ecx, edx;
