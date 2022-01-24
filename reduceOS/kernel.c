@@ -16,8 +16,10 @@ BOOL loadTest = FALSE;
 
 
 
+
+
 void doTestStuff() {
-	clearConsole(COLOR_WHITE, COLOR_BLACK);
+	initConsole(COLOR_WHITE, COLOR_BLACK);
 	draw_box(BOX_SINGLELINE, 28, 1, 38, 20, COLOR_WHITE, COLOR_BLACK);
 
   	draw_box(BOX_SINGLELINE, 28, 1, 12, 6, COLOR_WHITE, COLOR_BLACK);
@@ -69,9 +71,21 @@ void doTestStuff() {
 
 	consoleGoXY(12, 12);
 	consolePutchar(31);
-
+	
+	consoleGoXY(1, 14);
+	consolePrintColorString("Use spacebar to select", COLOR_WHITE, COLOR_BLACK);
+	consoleGoXY(1, 16);
+	consolePrintColorString("Mov White Box", COLOR_GREY, COLOR_BLACK);
+	consoleGoXY(1, 17);
+	consolePrintColorString(" to select cell", COLOR_GREY, COLOR_BLACK);
 }
 
+void guiTest(void) {
+	clearConsole(COLOR_WHITE, COLOR_BLACK);
+	draw_box(BOX_SINGLELINE, 0, 2, 79, 23, COLOR_GREY, COLOR_BLACK);
+	draw_box(BOX_SINGLELINE, 0, 6, 23, 6, COLOR_GREY, COLOR_BLACK);
+
+}
 
 void getCPUIDInfo() {
 	uint32 brand[12];
@@ -151,10 +165,12 @@ void kernel_main(void) {
 			printf("%s\n", buffer + 5);
 		} else if (strcmp(buffer, "setcolor") == 0) {
 			setColor(COLOR_RED, COLOR_BLUE);
-		} else if (strcmp(buffer, "test")) { 
+		} else if (strcmp(buffer, "test") == 0) { 
 			loadTest = TRUE;
 			break;
 
+		} else if (strcmp(buffer, "gui") == 0) {
+			guiTest();
 		}else {
 			printf("Command not found: %s\n", buffer);
 		} 
