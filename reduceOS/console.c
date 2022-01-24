@@ -12,6 +12,18 @@ uint8 g_fore_color = COLOR_WHITE, g_back_color = COLOR_BLACK;
 
 
 
+
+void consolePrintColorString(char *str, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
+    uint8 tmp1 = g_fore_color;
+    uint8 tmp2 = g_back_color;
+    g_fore_color = fore_color;
+    g_back_color = back_color;
+    consolePrintString(str);
+    g_fore_color = tmp1;
+    g_back_color = tmp2;
+    
+}
+
 uint16 get_box_draw_char(uint8 chn, uint8 fore_color, uint8 back_color)
 {
   uint16 ax = 0;
