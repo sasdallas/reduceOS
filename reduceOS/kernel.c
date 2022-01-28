@@ -4,7 +4,12 @@
 #include "gdt.h" // Global Descriptor Table
 #include "idt.h" // Interrupt Descriptor Table
 #include "keyboard.h" // Keyboard driver
-#include "vga.h"
+#include "vga.h" // VGA driver
+#include "timer.h" // IRQ Timer
+#include "sound.h" // Sound driver
+#include "ide.h" // IDE driver
+#include "multiboot.h" // Multiboot parameters and stuff
+
 
 void __cpuid(uint32 type, uint32 *eax, uint32 *ebx, uint32 *ecx, uint32 *edx) {
 	asm volatile("cpuid"
@@ -13,6 +18,11 @@ void __cpuid(uint32 type, uint32 *eax, uint32 *ebx, uint32 *ecx, uint32 *edx) {
 }
 
 BOOL loadTest = FALSE;
+
+
+
+
+
 
 
 
@@ -88,14 +98,58 @@ void guiTest(void) {
 	consolePrintString("GUI");
 	consoleGoXY(73, 1);
 	consolePrintColorString("X", COLOR_RED, COLOR_BLACK);
-	consoleGoXY(71, 1);
+	consoleGoXY(72, 1);
 	consolePrintColorString("-", COLOR_YELLOW, COLOR_BLACK);
-	consoleGoXY(69, 1);
+	consoleGoXY(71, 1);
 	consolePrintColorString("+", COLOR_GREEN, COLOR_BLACK);
 	consoleGoXY((VGA_WIDTH/2)-7,4);
 	consolePrintColorString("Hello", COLOR_WHITE, COLOR_BLACK);
 	// Done
 }
+
+
+void getMemInfo(unsigned long magic, unsigned long addr) {
+	MULTIBOOT_INFO *mboot_info;
+	uint32 i;
+
+	printf("Magic: 0x%x\n", magic);
+	if (magic == MULTIBOOT_BOOTLOADER_MAGIC) { // Magic matches the bootloader magic
+		mboot_info = (MULTIBOOT_INFO *)addr;
+		printf("	flags: 0x%x\n", mboot_info->flags);
+		printf("	low mem: 0x%x KB\n", mboot_info->mem_low);
+		printf("	high mem: 0x%x KB\n", mboot_info->mem_high);
+		printf("	boot device: 0x%x\n", mboot_info->boot_device);
+		printf("	cmdline: %s\n",(char *)mboot_info->cmdline);
+		printf("	modules amnt: %d\n", mboot_info->modules_count);
+		printf("	modules addr: 0x%x\n", mboot_info->modules_addr);
+		printf("	mmap length: %d\n", mboot_info->mmap_length);
+		printf("	mmap addr: 0x%x\n", mboot_info->mmap_addr);
+		printf("	memory map:-\n");
+		for (i = 0; i < mboot_info->mmap_length; i += sizeof(MULTIBOOT_MEMORY_MAP)) {
+            MULTIBOOT_MEMORY_MAP *mmap = (MULTIBOOT_MEMORY_MAP *)(mboot_info->mmap_addr + i);
+            printf("    size: %d, addr: 0x%x%x, len: %d%d, type: %d\n", 
+                    mmap->size, mmap->addr_low, mmap->addr_high, mmap->len_low, mmap->len_high, mmap->type);
+
+            if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
+                /**** Available memory  ****/
+            }
+        }
+		printf("  boot_loader_name: %s\n", (char *)mboot_info->boot_loader_name);
+		// Took up too much space
+        //printf("  vbe_control_info: 0x%x\n", mboot_info->vbe_control_info);
+        //printf("  vbe_mode_info: 0x%x\n", mboot_info->vbe_mode_info);
+        //printf("  framebuffer_addr: 0x%x\n", mboot_info->framebuffer_addr);
+        //printf("  framebuffer_width: %d\n", mboot_info->framebuffer_width);
+        //printf("  framebuffer_height: %d\n", mboot_info->framebuffer_height);
+        //printf("  framebuffer_type: %d\n", mboot_info->framebuffer_type);
+	} else {
+		printf("ERROR: invalid multiboot magic number\n");
+	}
+}
+
+
+
+
 
 void getCPUIDInfo() {
 	uint32 brand[12];
@@ -125,38 +179,32 @@ BOOL is_color(char *b) {
 			return TRUE;
 	return FALSE;
 }
-
-/*
-void doGUIStuff(void) {
-	clearConsole(COLOR_BLUE, COLOR_BLACK);
-	
-	vga_disable_cursor();
-
-	setColor(COLOR_BLUE, COLOR_BLACK);
-	int t = 1;
-	for (int i=0; i<4; i++) {
-		consoleGoXY((VGA_WIDTH/2), t);
-		for (int i=0; i<4; i++) {
-			consolePutchar(' ');
-		}
-		t++;
-	}
-	
-} */
+BOOL is_drive(char *b) {
+	if ((b[0]=='s')&&(b[1]=='e')&&(b[2]=='l')&&(b[3]=='d')&&(b[4]=='r')&&(b[5]=='i')&&(b[6]=='v')&&(b[7]=='e'))
+		if (b[8] == ' '||b[8]=='\0')
+			return TRUE;
+	return FALSE;
+}
 
 
 
-void kernel_main(void) {
+
+
+void kernel_main(unsigned long magic, unsigned long addr) {
 	gdt_init();
 	idt_init();
 	initConsole(COLOR_WHITE, COLOR_BLUE);
 	keyboard_init();
-
+	ata_init();
 	char buffer[255];
 	const char *shell = ">";
 
 	printf("reduceOS v0.2 loaded\n");
 	printf("Type help for help...\n");
+
+
+	int DRIVE = -2; // When a drive is not found, the method get_drive_model_by_model will return -1. So, if the user has not even selected a drive, it will be -2.
+
 	while (1) {
 		printf(shell); // Print basic shell
 		memset(buffer, 0, sizeof(buffer)); // memset buffer to 0
@@ -165,27 +213,40 @@ void kernel_main(void) {
 			continue;
 		if (strcmp(buffer, "about") == 0) {
 			printf("reduceOS v0.2\n");
-			printf("Build 3\n");
+			printf("Build 5\n");
 		} else if (strcmp(buffer, "getcpuid") == 0) {
 			getCPUIDInfo();
 		} else if (strcmp(buffer, "help") == 0) {
 			printf("reduceOS shell v0.1\n");
-			printf("Commands: help, getcpuid, echo, about\n");
+			printf("Commands: help, getcpuid, echo, about, clear, meminfo, listdrives, seldrive\n");
 		} else if (is_echo(buffer)) {
 			printf("%s\n", buffer + 5);
+		} else if (strcmp(buffer, "clear") == 0) {
+			clearConsole(COLOR_WHITE, COLOR_BLUE);
+			printf("Cleared console.\n");
+		} else if (strcmp(buffer, "meminfo") == 0) {
+			getMemInfo(magic, addr);
 		} else if (strcmp(buffer, "setcolor") == 0) {
 			setColor(COLOR_RED, COLOR_BLUE);
-		} else if (strcmp(buffer, "test") == 0) { 
+		} else if (strcmp(buffer, "listdrives") == 0) {
+			listDrives();
+		} else if (is_drive(buffer)) {
+			printf("Checking for drive %s...\n", buffer+9);
+			DRIVE = ata_get_drive_by_model(buffer+9);
+			if (DRIVE == -1) {
+				printf("ERROR: No drive with model %s found.\n");
+			}
+		
+		} else if (strcmp(buffer, "test") == 0) {
 			loadTest = TRUE;
 			break;
-
-		} else if (strcmp(buffer, "gui") == 0) {
-			guiTest();
-		}else {
+		} else {
 			printf("Command not found: %s\n", buffer);
-		} 
+		}
 	}
 	if (loadTest) {
 		doTestStuff();
 	}
+	
+	
 }
