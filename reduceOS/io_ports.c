@@ -1,6 +1,9 @@
 #include "io_ports.h"
 
 
+
+
+
 uint8 inportb(uint16 port) {
     uint8 ret;
     asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
