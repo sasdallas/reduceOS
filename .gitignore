@@ -2,8 +2,6 @@
 i686-elf-tools.sh
 
 .gitpod.*
-.gitpod.Dockerifle
-.gitpod.yml
 build/*.o
 **/windows
 **/.vscode
