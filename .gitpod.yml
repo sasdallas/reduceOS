@@ -15,5 +15,9 @@ github:
     # add a label once the prebuild is ready to pull requests (defaults to false)
     addLabel: prebuilt-in-gitpod
 image:
+<<<<<<< HEAD
   file: .gitpod.Dockerfile
 
+=======
+  file: .gitpod.Dockerfile
+>>>>>>> da3f48d5d6f26bb68e9c71280c20bc2a035973ca
