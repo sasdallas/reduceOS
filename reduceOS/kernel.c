@@ -28,6 +28,8 @@ BOOL loadTest = FALSE;
 
 
 
+
+
 void doTestStuff() {
 	initConsole(COLOR_WHITE, COLOR_BLACK);
 	draw_box(BOX_SINGLELINE, 28, 1, 38, 20, COLOR_WHITE, COLOR_BLACK);
@@ -173,6 +175,8 @@ BOOL is_echo(char *b) {
     return FALSE;
 }
 
+
+
 BOOL is_color(char *b) {
 	if ((b[0]=='s')&&(b[1]=='e')&&(b[2]=='t')&&(b[3]=='c')&&(b[4]=='o')&&(b[5]=='l')&&(b[6]=='o')&&(b[7]=='r'))
 		if (b[8]==' '||b[8]=='\0')
@@ -185,8 +189,52 @@ BOOL is_drive(char *b) {
 			return TRUE;
 	return FALSE;
 }
+BOOL is_writedrive(char *b) {
+	if ((b[0]=='w')&&(b[1]=='r')&&(b[2]=='i')&&(b[3]=='t')&&(b[4]=='e')&&(b[5]=='d')&&(b[6]=='r')&&(b[7]=='i')&&(b[8]=='v')&&(b[9]=='e')) 
+		if (b[10]==' '||b[10]=='\0')
+			return TRUE;
+	return FALSE;
+}
 
 
+
+
+
+void doWriteDrive(char *b, int drive) {
+	if (drive == -2) {
+		printf("Please select a drive first.\n");
+		return;
+	}
+	char *confirm = "Are you sure you wish to write to this drive? [Y/N] ";
+	printf(confirm);
+	char buf[255];
+	memset(buf, 0, sizeof(buf));
+	int idToWriteTo = -1;
+	char *data;
+
+	getStringBound(buf, sizeof(confirm));
+	if (strcmp(buf, "y") == 0) {
+		confirm = "Write to ID: ";
+		printf(confirm);
+		memset(buf,0,sizeof(buf));
+		getStringBound(buf, sizeof(confirm));
+		printf("Writing to ID %s", buf);
+		//idToWriteTo = atoi(buf);
+/*		if (atoi(buf) == 0) {
+			printf("ERROR: Enter a valid ID next time.\n");
+			return;
+
+		}
+
+		confirm = "Data to write: ";
+		printf(confirm);
+		memset(buf,0,sizeof(buf));
+		getStringBound(buf, sizeof(confirm));
+
+		printf("Writing data %s to ID %d..\n", buf, idToWriteTo);
+		*/
+	}
+}
 
 
 
@@ -204,7 +252,7 @@ void kernel_main(unsigned long magic, unsigned long addr) {
 
 
 	int DRIVE = -2; // When a drive is not found, the method get_drive_model_by_model will return -1. So, if the user has not even selected a drive, it will be -2.
-
+	
 	while (1) {
 		printf(shell); // Print basic shell
 		memset(buffer, 0, sizeof(buffer)); // memset buffer to 0
@@ -218,7 +266,7 @@ void kernel_main(unsigned long magic, unsigned long addr) {
 			getCPUIDInfo();
 		} else if (strcmp(buffer, "help") == 0) {
 			printf("reduceOS shell v0.1\n");
-			printf("Commands: help, getcpuid, echo, about, clear, meminfo, listdrives, seldrive\n");
+			printf("Commands: help, getcpuid, echo, about, clear, meminfo, listdrives, seldrive, color, setup\n");
 		} else if (is_echo(buffer)) {
 			printf("%s\n", buffer + 5);
 		} else if (strcmp(buffer, "clear") == 0) {
@@ -235,8 +283,12 @@ void kernel_main(unsigned long magic, unsigned long addr) {
 			DRIVE = ata_get_drive_by_model(buffer+9);
 			if (DRIVE == -1) {
 				printf("ERROR: No drive with model %s found.\n");
-			}
-		
+			} 
+			
+		} else if (strcmp(buffer, "setup") == 0) {
+			printf("Loading reduceOS setup ALPHA...\n");
+		} else if (is_writedrive(buffer)) {
+			doWriteDrive(buffer, DRIVE);
 		} else if (strcmp(buffer, "test") == 0) {
 			loadTest = TRUE;
 			break;
@@ -247,6 +299,5 @@ void kernel_main(unsigned long magic, unsigned long addr) {
 	if (loadTest) {
 		doTestStuff();
 	}
-	
 	
 }
