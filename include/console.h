@@ -3,6 +3,12 @@
 
 #include "vga.h"
 
+#define MAXIMUM_PAGES  16
+
+#define SCROLL_UP     1
+#define SCROLL_DOWN   2
+
+
 #define BOX_MAX_WIDTH 78
 #define BOX_MAX_HEIGHT 23
 
@@ -14,6 +20,8 @@ void clearConsole(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color);
 //initialize console
 void initConsole(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color);
 
+
+void consoleScroll(int line_count);
 void consolePutchar(char ch);
 // revert back the printed character and add 0 to it
 void consoleUngetchar();

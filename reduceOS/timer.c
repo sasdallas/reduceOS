@@ -61,6 +61,7 @@ void timer_init() {
     isr_register_interrupt_handler(IRQ_BASE, timer_handler);
 }
 
+
 void sleep(int sec) {
     uint32 end = g_ticks + sec * g_freq_hz;
     while (g_ticks < end);
