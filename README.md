@@ -17,7 +17,7 @@ Step 4 - Enjoy!
 ## Windows builds do not currently work
 
 # I wanna do this
-Check out [this page](osdev.org) to start creating. I recommend starting from the beginning.
+Check out [this page](https://www.osdev.org) to start creating. I recommend starting from the beginning.
 
 
 # Credits
