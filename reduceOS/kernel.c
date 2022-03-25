@@ -29,85 +29,6 @@ BOOL loadTest = FALSE;
 
 
 
-// Test protocals for creating something.
-void doTestStuff() {
-	initConsole(COLOR_WHITE, COLOR_BLACK);
-	draw_box(BOX_SINGLELINE, 28, 1, 38, 20, COLOR_WHITE, COLOR_BLACK);
-
-  	draw_box(BOX_SINGLELINE, 28, 1, 12, 6, COLOR_WHITE, COLOR_BLACK);
-  	draw_box(BOX_SINGLELINE, 41, 1, 12, 6, COLOR_WHITE, COLOR_BLACK);
-  	draw_box(BOX_SINGLELINE, 54, 1, 12, 6, COLOR_WHITE, COLOR_BLACK);
-
-  	draw_box(BOX_SINGLELINE, 28, 8, 12, 6, COLOR_WHITE, COLOR_BLACK);
-  	draw_box(BOX_SINGLELINE, 41, 8, 12, 6, COLOR_WHITE, COLOR_BLACK);
-  	draw_box(BOX_SINGLELINE, 54, 8, 12, 6, COLOR_WHITE, COLOR_BLACK);
-
-  	draw_box(BOX_SINGLELINE, 28, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
-  	draw_box(BOX_SINGLELINE, 41, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
-  	draw_box(BOX_SINGLELINE, 54, 15, 12, 6, COLOR_WHITE, COLOR_BLACK);
-	
-	// Draw instructions
-	consoleGoXY(0,0);
-	consolePrintColorString("Tic-Tac-Toe v0.1", COLOR_YELLOW, COLOR_BLACK);
-	consoleGoXY(0,1);
-	consolePrintColorString("Made for reduceOS", COLOR_YELLOW, COLOR_BLACK);
-
-	draw_box(BOX_SINGLELINE, 0, 2, 18, 3, COLOR_GREY, COLOR_BLACK);
-
-	consoleGoXY(1,3);
-	consolePrintColorString("Player 1 moves: ", COLOR_BRIGHT_RED, COLOR_BLACK);
-	consoleGoXY(1,5);
-	consolePrintColorString("Player 2 moves: ", COLOR_CYAN, COLOR_BLACK);
-
-	consoleGoXY(1,7);
-	consolePrintColorString("Turn: ", COLOR_CYAN, COLOR_BLACK);
-	consoleGoXY(8,7);
-	consolePrintColorString("idc enough", COLOR_CYAN, COLOR_BLACK);
-
-	draw_box(BOX_SINGLELINE, 0, 9, 18, 8, COLOR_GREY, COLOR_BLACK);
-
-  	consoleGoXY(1, 9);
-  	consolePrintColorString("Keys", COLOR_WHITE, COLOR_BLACK);
-
-  	consoleGoXY(1, 11);
-  	consolePrintColorString("Arrows", COLOR_WHITE, COLOR_BLACK);
-
-	consoleGoXY(12, 10);
-  	consolePutchar(30);	
-	
-	consoleGoXY(10, 11);
-	consolePutchar(17);
-	
-	consoleGoXY(14, 11);
-	consolePutchar(16);
-
-	consoleGoXY(12, 12);
-	consolePutchar(31);
-	
-	consoleGoXY(1, 14);
-	consolePrintColorString("Use spacebar to select", COLOR_WHITE, COLOR_BLACK);
-	consoleGoXY(1, 16);
-	consolePrintColorString("Mov White Box", COLOR_GREY, COLOR_BLACK);
-	consoleGoXY(1, 17);
-	consolePrintColorString(" to select cell", COLOR_GREY, COLOR_BLACK);
-}
-
-void guiTest(void) {
-	clearConsole(COLOR_WHITE, COLOR_BLACK);
-	draw_box(BOX_SINGLELINE, 0, 0, 75, 20, COLOR_GREY, COLOR_BLACK);
-	draw_box(BOX_SINGLELINE, 0, 2, 75, 0, COLOR_GREY, COLOR_BLACK);
-	consoleGoXY(((VGA_WIDTH/2)-6), 1);
-	consolePrintString("GUI");
-	consoleGoXY(73, 1);
-	consolePrintColorString("X", COLOR_RED, COLOR_BLACK);
-	consoleGoXY(72, 1);
-	consolePrintColorString("-", COLOR_YELLOW, COLOR_BLACK);
-	consoleGoXY(71, 1);
-	consolePrintColorString("+", COLOR_GREEN, COLOR_BLACK);
-	consoleGoXY((VGA_WIDTH/2)-7,4);
-	consolePrintColorString("Hello", COLOR_WHITE, COLOR_BLACK);
-	// Done
-}
 
 
 void getMemInfo(unsigned long magic, unsigned long addr) {
@@ -202,7 +123,7 @@ BOOL is_writedrive(char *b) {
 // Function purpose: to test installing an MBR to a sector of a disk
 
 // This test bootloader was written by egormkn, check the code at https://github.com/egormkn/mbr-boot-manager/blob/master/mbr.asm
-/
+
 void installMBR(int DRIVE) {
 	printf("Installing MBR to sector 0...");
 	const uint32 LBA = 0;
@@ -266,6 +187,7 @@ void installMBR(int DRIVE) {
 	
   return 1;
 }
+
 void doWriteDrive(char *b, int drive) {
 	if (drive == -2) {
 		printf("Please select a drive first.\n");
@@ -312,8 +234,9 @@ void kernel_main(unsigned long magic, unsigned long addr) {
 	ata_init();
 	char buffer[255];
 	const char *shell = ">";
+	
 
-	printf("reduceOS v0.2 loaded\n");
+	printf("reduceOS v0.3 loaded\n");
 	printf("Type help for help...\n");
 
 
@@ -368,7 +291,7 @@ void kernel_main(unsigned long magic, unsigned long addr) {
 		}
 	}
 	if (loadTest) {
-		doTestStuff();
+		printf("no");
 	}
 	
 }
