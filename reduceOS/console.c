@@ -10,31 +10,70 @@ static uint32 g_vga_index;
 static uint8 cursorx = 0, cursory = 0;
 uint8 g_fore_color = COLOR_WHITE, g_back_color = COLOR_BLACK;
 
+static uint16 g_temp_pages[MAXIMUM_PAGES][VGA_TOTAL_ITEMS];
+uint32 g_current_temp_page = 0;
+
+
+void consolePrintColorString(char *str, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
+    uint8 tmp1 = g_fore_color;
+    uint8 tmp2 = g_back_color;
+    g_fore_color = fore_color;
+    g_back_color = back_color;
+    consolePrintString(str);
+    g_fore_color = tmp1;
+    g_back_color = tmp2;
+    
+}
+
+
+
 
 void clearConsole(VGA_COLOR_TYPE color1, VGA_COLOR_TYPE color2) {
     
-    for (uint32 i = 0; i < VGA_TOTAL_ITEMS; i++) {
+    uint32 i;
+    for (i = 0; i < VGA_TOTAL_ITEMS; i++) {
         g_vga_buffer[i] = vga_item_entry(NULL, color1, color2);
     }
 
     g_vga_index = 0;
-    cursorx = 0, cursory = 0;
+    cursorx = 0;
+    cursory = 0;
     vga_set_cursor_pos(cursorx, cursory);
 }
 
 
+
+void setColor(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
+    for (uint32 i = 0; i < VGA_TOTAL_ITEMS; i++) {
+        g_vga_buffer[i] = vga_item_entry(g_vga_buffer[i], fore_color, back_color);
+    }
+    g_fore_color = fore_color;
+
+}
+
 void initConsole(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
     g_vga_buffer = (uint16 *)VGA_ADDRESS;
     g_fore_color = fore_color, g_back_color = back_color;
-    cursorx = 0, cursory = 0;
+    cursorx = 0;
+    cursory = 0;
     clearConsole(fore_color, back_color);
+
 }
 
 static void consoleNewline() {
+    uint32 i;
     if (cursory >= VGA_HEIGHT) {
-        cursorx = 0, cursory = 0;
+        for (i = 0; i < VGA_TOTAL_ITEMS; i++)
+             g_temp_pages[g_current_temp_page][i] = g_vga_buffer[i];
+    
+        g_current_temp_page++;
+        cursorx = 0;
+        cursory = 0;
         clearConsole(g_fore_color, g_back_color);
+        
     } else {
+        for (i = 0; i < VGA_TOTAL_ITEMS; i++)
+             g_temp_pages[g_current_temp_page][i] = g_vga_buffer[i];
         g_vga_index += VGA_WIDTH - (g_vga_index % VGA_WIDTH);
         cursorx = 0;
         ++cursory;
