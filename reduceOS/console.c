@@ -25,121 +25,6 @@ void consolePrintColorString(char *str, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYP
     
 }
 
-uint16 get_box_draw_char(uint8 chn, uint8 fore_color, uint8 back_color)
-{
-  uint16 ax = 0;
-  uint8 ah = 0;
-
-  ah = back_color;
-  ah <<= 4;
-  ah |= fore_color;
-  ax = ah;
-  ax <<= 8;
-  ax |= chn;
-
-  return ax;
-}
-
-
-void draw_generic_box(uint16 x, uint16 y, 
-                      uint16 width, uint16 height,
-                      uint8 fore_color, uint8 back_color,
-                      uint8 topleft_ch,
-                      uint8 topbottom_ch,
-                      uint8 topright_ch,
-                      uint8 leftrightside_ch,
-                      uint8 bottomleft_ch,
-                      uint8 bottomright_ch)
-{
-  uint32 i;
-
-  //increase vga_index to x & y location
-  g_vga_index = 80*y;
-  g_vga_index += x;
-
-  //draw top-left box character
-  g_vga_buffer[g_vga_index] = get_box_draw_char(topleft_ch, fore_color, back_color);
-
-  g_vga_index++;
-  //draw box top characters, -
-  for(i = 0; i < width; i++){
-    g_vga_buffer[g_vga_index] = get_box_draw_char(topbottom_ch, fore_color, back_color);
-    g_vga_index++;
-  }
-
-  //draw top-right box character
-  g_vga_buffer[g_vga_index] = get_box_draw_char(topright_ch, fore_color, back_color);
-
-  // increase y, for drawing next line
-  y++;
-  // goto next line
-  g_vga_index = 80*y;
-  g_vga_index += x;
-
-  //draw left and right sides of box
-  for(i = 0; i < height; i++){
-    //draw left side character
-    g_vga_buffer[g_vga_index] = get_box_draw_char(leftrightside_ch, fore_color, back_color);
-    g_vga_index++;
-    //increase g_vga_index to the width of box
-    g_vga_index += width;
-    //draw right side character
-    g_vga_buffer[g_vga_index] = get_box_draw_char(leftrightside_ch, fore_color, back_color);
-    //goto next line
-    y++;
-    g_vga_index = 80*y;
-    g_vga_index += x;
-  }
-  //draw bottom-left box character
-  g_vga_buffer[g_vga_index] = get_box_draw_char(bottomleft_ch, fore_color, back_color);
-  g_vga_index++;
-  //draw box bottom characters, -
-  for(i = 0; i < width; i++){
-    g_vga_buffer[g_vga_index] = get_box_draw_char(topbottom_ch, fore_color, back_color);
-    g_vga_index++;
-  }
-  //draw bottom-right box character
-  g_vga_buffer[g_vga_index] = get_box_draw_char(bottomright_ch, fore_color, back_color);
-
-  g_vga_index = 0;
-}
-
-void draw_box(uint8 boxtype, 
-              uint16 x, uint16 y, 
-              uint16 width, uint16 height,
-              uint8 fore_color, uint8 back_color)
-{
-  switch(boxtype){
-    case BOX_SINGLELINE : 
-      draw_generic_box(x, y, width, height, 
-                      fore_color, back_color, 
-                      218, 196, 191, 179, 192, 217);
-      break;
-
-    case BOX_DOUBLELINE : 
-      draw_generic_box(x, y, width, height, 
-                      fore_color, back_color, 
-                      201, 205, 187, 186, 200, 188);
-      break;
-  }
-}
-
-void fill_box(uint8 ch, uint16 x, uint16 y, uint16 width, uint16 height, uint8 color)
-{
-  uint32 i,j;
-
-  for(i = 0; i < height; i++){
-    //increase g_vga_index to x & y location
-    g_vga_index = 80*y;
-    g_vga_index += x;
-
-    for(j = 0; j < width; j++){
-      g_vga_buffer[g_vga_index] = get_box_draw_char(ch, 0, color);
-      g_vga_index++;
-    }
-    y++;
-  }
-}
 
 
 
@@ -155,28 +40,6 @@ void clearConsole(VGA_COLOR_TYPE color1, VGA_COLOR_TYPE color2) {
     cursory = 0;
     vga_set_cursor_pos(cursorx, cursory);
 }
-
-// Console scrolling function
-void console_scroll(int type) {
-     uint32 i;
-     if (type == SCROLL_UP) {
-         // scroll up
-         if (g_current_temp_page > 0)
-             g_current_temp_page--;
-         g_current_temp_page %= MAXIMUM_PAGES;
-         for (i = 0; i < VGA_TOTAL_ITEMS; i++) {
-             g_vga_buffer[i] = g_temp_pages[g_current_temp_page][i];
-         }
-     } else {
-         // scroll down
-         g_current_temp_page++;
-         g_current_temp_page %= MAXIMUM_PAGES;
-         for (i = 0; i < VGA_TOTAL_ITEMS; i++) {
-             g_vga_buffer[i] = g_temp_pages[g_current_temp_page][i];
-         }
-     }
- }
-
 
 
 
@@ -202,10 +65,12 @@ static void consoleNewline() {
     if (cursory >= VGA_HEIGHT) {
         for (i = 0; i < VGA_TOTAL_ITEMS; i++)
              g_temp_pages[g_current_temp_page][i] = g_vga_buffer[i];
+    
         g_current_temp_page++;
         cursorx = 0;
         cursory = 0;
         clearConsole(g_fore_color, g_back_color);
+        
     } else {
         for (i = 0; i < VGA_TOTAL_ITEMS; i++)
              g_temp_pages[g_current_temp_page][i] = g_vga_buffer[i];
