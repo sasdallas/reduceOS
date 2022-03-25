@@ -32,3 +32,4 @@ void vga_disable_cursor() {
     outportb(0x3D4, 10);
     outportb(0x3D5, 32);
 }
+
