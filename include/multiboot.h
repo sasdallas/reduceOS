@@ -1,56 +1,56 @@
 #ifndef MULTIBOOT_H
 #define MULTIBOOT_H
 
-#include "types.h"
+#include "stdint.h"
 
 #define MULTIBOOT_MAGIC_HEADER      0x1BADB002
 #define MULTIBOOT_BOOTLOADER_MAGIC  0x2BADB002
 
 /* The Multiboot header. */
 typedef struct {
-    uint32 magic;
-    uint32 flags;
-    uint32 checksum;
-    uint32 header_addr;
-    uint32 load_addr;
-    uint32 load_end_addr;
-    uint32 bss_end_addr;
-    uint32 entry_addr;
+    uint32_t magic;
+    uint32_t flags;
+    uint32_t checksum;
+    uint32_t header_addr;
+    uint32_t load_addr;
+    uint32_t load_end_addr;
+    uint32_t bss_end_addr;
+    uint32_t entry_addr;
 } MULTIBOOT_HEADER;
 
 /* The symbol table for a.out. */
 typedef struct {
-    uint32 tabsize;
-    uint32 strsize;
-    uint32 addr;
-    uint32 reserved;
+    uint32_t tabsize;
+    uint32_t strsize;
+    uint32_t addr;
+    uint32_t reserved;
 } AOUT_SYMBOL_TABLE;
 
 /* The section header table for ELF. */
 typedef struct {
-    uint32 num;
-    uint32 size;
-    uint32 addr;
-    uint32 shndx;
+    uint32_t num;
+    uint32_t size;
+    uint32_t addr;
+    uint32_t shndx;
 } ELF_SECTION_HEADER_TABLE;
 
 typedef struct {
     /* required, defined in entry.asm */
-    uint32 flags;
+    uint32_t flags;
 
     /* available low-high memory from BIOS, present if flags[0] is set(MEMINFO in entry.asm) */
-    uint32 mem_low;
-    uint32 mem_high;
+    uint32_t mem_low;
+    uint32_t mem_high;
 
     /* "root" partition, present if flags[1] is set(BOOTDEVICE in entry.asm) */
-    uint32 boot_device;
+    uint32_t boot_device;
 
     /* kernel command line, present if flags[2] is set(CMDLINE in entry.asm) */
-    uint32 cmdline;
+    uint32_t cmdline;
 
     /* no of modules loaded, present if flags[3] is set(MODULECOUNT in entry.asm) */
-    uint32 modules_count;
-    uint32 modules_addr;
+    uint32_t modules_count;
+    uint32_t modules_addr;
 
     /* symbol table info, present if flags[4] & flags[5] is set(SYMT in entry.asm) */
     union {
@@ -59,37 +59,37 @@ typedef struct {
     } u;
 
     /* memory mapping, present if flags[6] is set(MEMMAP in entry.asm) */
-    uint32 mmap_length;
-    uint32 mmap_addr;
+    uint32_t mmap_length;
+    uint32_t mmap_addr;
 
     /* drive info, present if flags[7] is set(DRIVE in entry.asm) */
-    uint32 drives_length;
-    uint32 drives_addr;
+    uint32_t drives_length;
+    uint32_t drives_addr;
 
     /* ROM configuration table, present if flags[8] is set(CONFIGT in entry.asm) */
-    uint32 config_table;
+    uint32_t config_table;
 
     /* boot loader name, present if flags[9] is set(BOOTLDNAME in entry.asm) */
-    uint32 boot_loader_name;
+    uint32_t boot_loader_name;
 
     /* Advanced Power Management(APM) table, present if flags[10] is set(APMT in entry.asm) */
-    uint32 apm_table;
+    uint32_t apm_table;
 
     /* video info, present if flags[11] is set(VIDEO in entry.asm) */
-    uint32 vbe_control_info;
-    uint32 vbe_mode_info;
-    uint16 vbe_mode;
-    uint16 vbe_interface_seg;
-    uint16 vbe_interface_off;
-    uint16 vbe_interface_len;
+    uint32_t vbe_control_info;
+    uint32_t vbe_mode_info;
+    uint16_t vbe_mode;
+    uint16_t vbe_interface_seg;
+    uint16_t vbe_interface_off;
+    uint16_t vbe_interface_len;
 
     /* video framebufer info, present if flags[12] is set(VIDEO_FRAMEBUF in entry.asm)  */
-    uint64 framebuffer_addr;
-    uint32 framebuffer_pitch;
-    uint32 framebuffer_width;
-    uint32 framebuffer_height;
-    uint8 framebuffer_bpp;
-    uint8 framebuffer_type;  // indexed = 0, RGB = 1, EGA = 2
+    uint64_t framebuffer_addr;
+    uint32_t framebuffer_pitch;
+    uint32_t framebuffer_width;
+    uint32_t framebuffer_height;
+    uint8_t framebuffer_bpp;
+    uint8_t framebuffer_type;  // indexed = 0, RGB = 1, EGA = 2
 
 } MULTIBOOT_INFO;
 
@@ -103,11 +103,11 @@ typedef enum {
 } MULTIBOOT_MEMORY_TYPE;
 
 typedef struct {
-    uint32 size;
-    uint32 addr_low;
-    uint32 addr_high;
-    uint32 len_low;
-    uint32 len_high;
+    uint32_t size;
+    uint32_t addr_low;
+    uint32_t addr_high;
+    uint32_t len_low;
+    uint32_t len_high;
     MULTIBOOT_MEMORY_TYPE type;
 } MULTIBOOT_MEMORY_MAP;
 
