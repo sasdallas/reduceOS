@@ -1,7 +1,11 @@
 # reduceOS
 A small, lightweight OS coded in C and Assembly.
 
+## NOTICE: reduceOS updates are very scarce. I am attempting to change a lot of stuff(possibly move to C++ and restructure everything)
+
 ### Note: Please read the credits page
+
+
 
 # About
 reduceOS is a small operating system built for people who have a very slow computer. It can do a few different things using barely any memory and disk space. \
