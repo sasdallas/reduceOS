@@ -1,7 +1,9 @@
 # reduceOS
 A small, lightweight OS coded in C and Assembly.
 
-## NOTICE: reduceOS updates are very scarce. I am attempting to change a lot of stuff(possibly move to C++ and restructure everything)
+# NOTICE! JUNE 2022 - Please read the following!
+### Assembly kernel - reduceOS overall is receiving a massive restructure. A new kernel has been developed that allows for more opportunities and doesn't make use of multiboot. It is unsure whether this update will be applied.
+### C++ development - reduceOS C++ development has began. While I likely will attempt to continue development and possibly restructure the kernel of reduceOS C, reduceOS C may become discontinued soon.
 
 ### Note: Please read the credits page
 
@@ -25,11 +27,14 @@ Check out [this page](osdev.org) to start creating. I recommend starting from th
 
 
 # Credits
-pritamzope - Amazing starter OS code, reduceOS contains a lot of it.\
+pritamzope - Starter OS code, reduceOS contains a lot of it.\
 Go check out his OS repo [here](https://github.com/pritamzope/OS)
 
 OSDev wiki - Lots of base code and tutorials to understand the code.\
 Go check out the wiki [here](https://wiki.osdev.org)
+
+BrokenThorn Entertainment OSdev series - Brand-new kernel source and structure.
+Go check out the OSdev series [here](http://www.brokenthorn.com/Resources/OSDev1.html)
 
 egormkn - basic MBR code
 Go check out the code [here](https://github.com/egormkn/mbr-boot-manager/)
