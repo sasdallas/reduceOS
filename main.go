@@ -7,7 +7,6 @@ import(
 func main(){
 	ticker := time.NewTicker(time.Second*30)
 	done:= make(chan bool)
-
 	go func(){
 		for {
 			select {
