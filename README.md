@@ -1,11 +1,15 @@
 # reduceOS
 A small, lightweight OS coded in C and Assembly.
 
-# NOTICE! JUNE 2022 - Please read the following!
+## NOTICE: SEPTEMBER 2022 - Update on the kernel!
+### New kernel development is going great, BrokenThorn is awesome when it comes to this stuff.
+### I'm still seeing if we don't need to switch to C++ to continue building. Development is still continuing!
+
+## NOTICE: JUNE 2022 - Please read the following!
 ### Assembly kernel - reduceOS overall is receiving a massive restructure. A new kernel has been developed that allows for more opportunities and doesn't make use of multiboot. It is unsure whether this update will be applied.
 ### C++ development - reduceOS C++ development has began. While I likely will attempt to continue development and possibly restructure the kernel of reduceOS C, reduceOS C may become discontinued soon.
 
-### Note: Please read the credits page
+### Note: Please read the credits page!
 
 
 
