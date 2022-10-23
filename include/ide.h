@@ -2,24 +2,24 @@
 #define IDE_H
 
 // https://wiki.osdev.org/PCI_IDE_Controller
-#include "types.h"
+#include "stdint.h"
 
 typedef struct {
-    uint16 base;  // i/o base port
-    uint16 control;  // control port
-    uint16 bm_ide; // bus-master ide port
-    uint16 no_intr; // no interrupt port
+    uint16_t base;  // i/o base port
+    uint16_t control;  // control port
+    uint16_t bm_ide; // bus-master ide port
+    uint16_t no_intr; // no interrupt port
 } IDE_CHANNELS;
 
 typedef struct {
-    uint8 reserved; // 0 or 1 if drive exists or not
-    uint8 channel; // primary(0) or secondary(1)
-    uint8 drive; // master(0) or slave(1)
-    uint16 type; // drive type- ATA(0), ATAPI(1),
-    uint16 signature; // drive signature
-    uint16 features; // drive features
-    uint32 command_sets; // supported command sets
-    uint32 size; // drive size in sectors
+    uint8_t reserved; // 0 or 1 if drive exists or not
+    uint8_t channel; // primary(0) or secondary(1)
+    uint8_t drive; // master(0) or slave(1)
+    uint16_t type; // drive type- ATA(0), ATAPI(1),
+    uint16_t signature; // drive signature
+    uint16_t features; // drive features
+    uint32_t command_sets; // supported command sets
+    uint32_t size; // drive size in sectors
     unsigned char model[41]; // drive name
 } IDE_DEVICE;
 
@@ -121,18 +121,18 @@ sec_channel_base_addr: Secondary channel base address(0x170-0x177)
 sec_channel_control_addr: Secondary channel control base address(0x376)
 bus_master_addr: Bus master address(pass 0 for now)
 */
-void ide_init(uint32 prim_channel_base_addr, uint32 prim_channel_control_base_addr,
-            uint32 sec_channel_base_addr, uint32 sec_channel_control_addr,
-            uint32 bus_master_addr);
+void ide_init(uint32_t prim_channel_base_addr, uint32_t prim_channel_control_base_addr,
+            uint32_t sec_channel_base_addr, uint32_t sec_channel_control_addr,
+            uint32_t bus_master_addr);
 
 void ide_wait_irq();
 void ide_irq();
 
 // start from lba = 0
-int ide_read_sectors(uint8 drive, uint8 num_sectors, uint32 lba, uint32 buffer);
+int ide_read_sectors(uint8_t drive, uint8_t num_sectors, uint32_t lba, uint32_t buffer);
 
 // start from lba = 0
-int ide_write_sectors(uint8 drive, uint8 num_sectors, uint32 lba, uint32 buffer);
+int ide_write_sectors(uint8_t drive, uint8_t num_sectors, uint32_t lba, uint32_t buffer);
 
 
 void ata_init();

@@ -1,7 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "types.h"
+#include "stdint.h"
 
 // See https://wiki.osdev.org/Programmable_Interval_Timer
 // The oscillator used by the PIT chip runs at (roughly) 1.193182 MHz.
@@ -12,7 +12,7 @@
 #define TIMER_COMMAND_PORT    0x43
 
 typedef struct {
-    uint32 timeout; // in millisecond, g_ticks in timer.c reaches there
+    uint32_t timeout; // in millisecond, g_ticks in timer.c reaches there
     void *user;
 } TIMER_FUNC_ARGS;
 
@@ -21,7 +21,7 @@ typedef void (*TIMER_FUNCTION)(TIMER_FUNC_ARGS *);
 #define MAXIMUM_TIMER_FUNCTIONS    32
 
 typedef struct {
-    uint32 current_index;
+    uint32_t current_index;
     // timer functions to be called when that ticks reached in irq handler
     TIMER_FUNCTION functions[MAXIMUM_TIMER_FUNCTIONS];
     // arguments of each above timer functions

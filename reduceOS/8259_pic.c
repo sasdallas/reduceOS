@@ -12,7 +12,7 @@
  * initialize 8259 PIC with default IRQ's defined in isr.h
  */
 void pic8259_init() {
-    uint8 a1, a2;
+    uint8_t a1, a2;
 
     // save mask registers
     a1 = inportb(PIC1_DATA);
@@ -44,7 +44,7 @@ void pic8259_init() {
 /**
  * send end of interrupt command to PIC 8259
  */
-void pic8259_eoi(uint8 irq) {
+void pic8259_eoi(uint8_t irq) {
     if(irq >= 0x28)
         outportb(PIC2, PIC_EOI);
     outportb(PIC1, PIC_EOI);

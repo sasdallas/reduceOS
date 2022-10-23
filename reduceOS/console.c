@@ -1,22 +1,22 @@
 // Console.c - Handles console functions
 #include "console.h"
 #include "string.h"
-#include "types.h"
+#include "stdint.h"
 #include "vga.h"
 #include "keyboard.h"
 
-static uint16 *g_vga_buffer;
-static uint32 g_vga_index;
-static uint8 cursorx = 0, cursory = 0;
-uint8 g_fore_color = COLOR_WHITE, g_back_color = COLOR_BLACK;
+static uint16_t *g_vga_buffer;
+static uint32_t g_vga_index;
+static uint8_t cursorx = 0, cursory = 0;
+uint8_t g_fore_color = COLOR_WHITE, g_back_color = COLOR_BLACK;
 
-static uint16 g_temp_pages[MAXIMUM_PAGES][VGA_TOTAL_ITEMS];
-uint32 g_current_temp_page = 0;
+static uint16_t g_temp_pages[MAXIMUM_PAGES][VGA_TOTAL_ITEMS];
+uint32_t g_current_temp_page = 0;
 
 
 void consolePrintColorString(char *str, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
-    uint8 tmp1 = g_fore_color;
-    uint8 tmp2 = g_back_color;
+    uint8_t tmp1 = g_fore_color;
+    uint8_t tmp2 = g_back_color;
     g_fore_color = fore_color;
     g_back_color = back_color;
     consolePrintString(str);
@@ -30,7 +30,7 @@ void consolePrintColorString(char *str, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYP
 
 void clearConsole(VGA_COLOR_TYPE color1, VGA_COLOR_TYPE color2) {
     
-    uint32 i;
+    uint32_t i;
     for (i = 0; i < VGA_TOTAL_ITEMS; i++) {
         g_vga_buffer[i] = vga_item_entry(NULL, color1, color2);
     }
@@ -44,7 +44,7 @@ void clearConsole(VGA_COLOR_TYPE color1, VGA_COLOR_TYPE color2) {
 
 
 void setColor(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
-    for (uint32 i = 0; i < VGA_TOTAL_ITEMS; i++) {
+    for (uint32_t i = 0; i < VGA_TOTAL_ITEMS; i++) {
         g_vga_buffer[i] = vga_item_entry(g_vga_buffer[i], fore_color, back_color);
     }
     g_fore_color = fore_color;
@@ -52,7 +52,7 @@ void setColor(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
 }
 
 void initConsole(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
-    g_vga_buffer = (uint16 *)VGA_ADDRESS;
+    g_vga_buffer = (uint16_t *)VGA_ADDRESS;
     g_fore_color = fore_color, g_back_color = back_color;
     cursorx = 0;
     cursory = 0;
@@ -61,7 +61,7 @@ void initConsole(VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color) {
 }
 
 static void consoleNewline() {
-    uint32 i;
+    uint32_t i;
     if (cursory >= VGA_HEIGHT) {
         for (i = 0; i < VGA_TOTAL_ITEMS; i++)
              g_temp_pages[g_current_temp_page][i] = g_vga_buffer[i];
@@ -118,7 +118,7 @@ void consoleUngetchar() {
     g_vga_buffer[g_vga_index] = vga_item_entry(0, g_fore_color, g_back_color);
 }
 
-void consoleUngetcharBound(uint8 n) {
+void consoleUngetcharBound(uint8_t n) {
     if(((g_vga_index % VGA_WIDTH) > n) && (n > 0)) {
         g_vga_buffer[g_vga_index--] = vga_item_entry(0, g_fore_color, g_back_color);
         if(cursorx >= n) {
@@ -135,14 +135,14 @@ void consoleUngetcharBound(uint8 n) {
     g_vga_buffer[g_vga_index] = vga_item_entry(0, g_fore_color, g_back_color);
 }
 
-void consoleGoXY(uint16 x, uint16 y) {
+void consoleGoXY(uint16_t x, uint16_t y) {
     g_vga_index = (80*y)+x;
     cursorx = x, cursory = y;
     vga_set_cursor_pos(cursorx, cursory);
 }
 
 void consolePrintString(const char *str) {
-    uint32 index = 0;
+    uint32_t index = 0;
     while (str[index]) {
         if (str[index] == '\n')
             consoleNewline();
@@ -223,7 +223,7 @@ void getString(char *buffer) {
     }
 }
 
-void getStringBound(char *buffer, uint8 bound) {
+void getStringBound(char *buffer, uint8_t bound) {
     /* Basically same code as last time, but with some extra steps */
     if (!bound) return;
     while(1) {

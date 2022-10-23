@@ -1,14 +1,14 @@
 #include "string.h"
 
-#include "types.h"
+#include "stdint.h"
 
-void *memset(void *dst, char c, uint32 n) {
+void *memset(void *dst, char c, uint32_t n) {
     char *temp = dst;
     for (; n != 0; n--) *temp++ = c;
     return dst;
 }
 
-void *memcpy(void *dst, const void *src, uint32 n) {
+void *memcpy(void *dst, const void *src, uint32_t n) {
     char *ret = dst;
     char *p = dst;
     const char *q = src;
@@ -17,7 +17,7 @@ void *memcpy(void *dst, const void *src, uint32 n) {
     return ret;
 }
 
-int memcmp(uint8 *s1, uint8 *s2, uint32 n) {
+int memcmp(uint8_t *s1, uint8_t *s2, uint32_t n) {
     while (n--) {
         if (*s1 != *s2)
             return 0;
