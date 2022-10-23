@@ -31,7 +31,7 @@ Step 4 - Enjoy!
 ## Windows builds do not currently work. You can try installing Mingw-w64 to build it, but you have to modify the makefile.
 
 # I wanna do this
-Check out [this page](osdev.org) to start creating. I recommend starting from the beginning.
+Check out [this page](https://osdev.org) to start creating. I recommend starting from the beginning.
 
 
 # Credits
