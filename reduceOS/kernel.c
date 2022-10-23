@@ -56,13 +56,7 @@ void getMemInfo(unsigned long magic, unsigned long addr) {
             }
         }
 		printf("  boot_loader_name: %s\n", (char *)mboot_info->boot_loader_name);
-		// Took up too much space
-        //printf("  vbe_control_info: 0x%x\n", mboot_info->vbe_control_info);
-        //printf("  vbe_mode_info: 0x%x\n", mboot_info->vbe_mode_info);
-        //printf("  framebuffer_addr: 0x%x\n", mboot_info->framebuffer_addr);
-        //printf("  framebuffer_width: %d\n", mboot_info->framebuffer_width);
-        //printf("  framebuffer_height: %d\n", mboot_info->framebuffer_height);
-        //printf("  framebuffer_type: %d\n", mboot_info->framebuffer_type);
+
 	} else {
 		printf("ERROR: invalid multiboot magic number\n");
 	}
@@ -285,5 +279,6 @@ void kernel_main(unsigned long magic, unsigned long addr) {
 			printf("Command not found: %s\n", buffer);
 		}
 	}
+
 	
 }
