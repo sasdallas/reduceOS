@@ -6,18 +6,16 @@
 #include "keyboard.h" // Keyboard driver
 #include "vga.h" // VGA driver
 #include "timer.h" // IRQ Timer
-#include "sound.h" // Sound driver
 #include "ide.h" // IDE driver
 #include "multiboot.h" // Multiboot parameters and stuff
 
 
-void __cpuid(uint32 type, uint32 *eax, uint32 *ebx, uint32 *ecx, uint32 *edx) {
+void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
 	asm volatile("cpuid"
 				: "=a"(*eax), "=b"(*ebx), "=c"(ecx), "=d"(*edx)
 				: "0"(type)); // Add type to ea
 }
 
-BOOL loadTest = FALSE;
 
 
 
@@ -33,7 +31,7 @@ BOOL loadTest = FALSE;
 
 void getMemInfo(unsigned long magic, unsigned long addr) {
 	MULTIBOOT_INFO *mboot_info;
-	uint32 i;
+	uint32_t i;
 
 	printf("Magic: 0x%x\n", magic);
 	if (magic == MULTIBOOT_BOOTLOADER_MAGIC) { // Magic matches the bootloader magic
@@ -69,14 +67,14 @@ void getMemInfo(unsigned long magic, unsigned long addr) {
 
 
 void getCPUIDInfo() {
-	uint32 brand[12];
-	uint32 eax, ebx, ecx, edx;
-	uint32 type;
+	uint32_t brand[12];
+	uint32_t eax, ebx, ecx, edx;
+	uint32_t type;
 
 	memset(brand, 0, sizeof(brand));
-	__cpuid(0x80000002, (uint32 *)brand+0x0, (uint32 *)brand+0x1, (uint32 *)brand+0x2, (uint32 *)brand+0x3);
-    __cpuid(0x80000003, (uint32 *)brand+0x4, (uint32 *)brand+0x5, (uint32 *)brand+0x6, (uint32 *)brand+0x7);
-    __cpuid(0x80000004, (uint32 *)brand+0x8, (uint32 *)brand+0x9, (uint32 *)brand+0xa, (uint32 *)brand+0xb);
+	__cpuid(0x80000002, (uint32_t *)brand+0x0, (uint32_t *)brand+0x1, (uint32_t *)brand+0x2, (uint32_t *)brand+0x3);
+    __cpuid(0x80000003, (uint32_t *)brand+0x4, (uint32_t *)brand+0x5, (uint32_t *)brand+0x6, (uint32_t *)brand+0x7);
+    __cpuid(0x80000004, (uint32_t *)brand+0x8, (uint32_t *)brand+0x9, (uint32_t *)brand+0xa, (uint32_t *)brand+0xb);
 	printf("System brand: %s\n", brand);
 	for (type = 0; type < 4; type++) {
 		__cpuid(type, &eax, &ebx, &ecx, &edx);
@@ -120,8 +118,8 @@ BOOL is_writedrive(char *b) {
 
 void installMBR(int DRIVE) {
 	printf("Installing MBR to sector 0...");
-	const uint32 LBA = 0;
-    const uint8 NO_OF_SECTORS = 1;
+	const uint32_t LBA = 0;
+    const uint8_t NO_OF_SECTORS = 1;
     
 	char buf[] = {
   0xfa, 0xbc, 0x00, 0x7c, 0x31, 0xc0, 0x8e, 0xd0, 0x8e, 0xc0, 0x8e, 0xd8,
@@ -171,12 +169,12 @@ void installMBR(int DRIVE) {
 	unsigned int mbr_bin_len = 512;
 
 	printf("Writing...\n");
-	ide_write_sectors(DRIVE, NO_OF_SECTORS, LBA, (uint32)buf);
+	ide_write_sectors(DRIVE, NO_OF_SECTORS, LBA, (uint32_t)buf);
 	printf("Written.\n");
 	printf("Testing...\n");
 
 	char buf2[] = {0};
-    ide_read_sectors(DRIVE, NO_OF_SECTORS, LBA, (uint32)buf2);
+    ide_read_sectors(DRIVE, NO_OF_SECTORS, LBA, (uint32_t)buf2);
 
 	
   return 1;

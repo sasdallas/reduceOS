@@ -11,12 +11,12 @@ IDE_DEVICE g_ide_devices[MAXIMUM_IDE_DEVICES];
 
 static volatile unsigned char g_ide_irq_invoked = 0;
 
-static uint8 ide_read_register(uint8 channel, uint8 reg);
-static void ide_write_register(uint8 channel, uint8 reg, uint8 data);
+static uint8_t ide_read_register(uint8_t channel, uint8_t reg);
+static void ide_write_register(uint8_t channel, uint8_t reg, uint8_t data);
 
 // read register value from the given channel
-static uint8 ide_read_register(uint8 channel, uint8 reg) {
-    uint8 ret;
+static uint8_t ide_read_register(uint8_t channel, uint8_t reg) {
+    uint8_t ret;
 
     // write value ata-control to tell irq is ready
     if (reg > 0x07 && reg < 0x0C)
@@ -40,7 +40,7 @@ static uint8 ide_read_register(uint8 channel, uint8 reg) {
 }
 
 // write data to register to the given channel
-static void ide_write_register(uint8 channel, uint8 reg, uint8 data) {
+static void ide_write_register(uint8_t channel, uint8_t reg, uint8_t data) {
     // write value ata-control to tell irq is ready
     if (reg > 0x07 && reg < 0x0C)
         ide_write_register(channel, ATA_REG_CONTROL, 0x80 | g_ide_channels[channel].no_intr);
@@ -61,7 +61,7 @@ static void ide_write_register(uint8 channel, uint8 reg, uint8 data) {
 }
 
 // read long word from reg port for quads times
-void insl(uint16 reg, uint32 *buffer, int quads) {
+void insl(uint16_t reg, uint32_t *buffer, int quads) {
     int index;
     for (index = 0; index < quads; index++) {
         buffer[index] = inportl(reg);
@@ -69,7 +69,7 @@ void insl(uint16 reg, uint32 *buffer, int quads) {
 }
 
 // write long word to reg port for quads times
-void outsl(uint16 reg, uint32 *buffer, int quads) {
+void outsl(uint16_t reg, uint32_t *buffer, int quads) {
     int index;
     for (index = 0; index < quads; index++) {
         outportl(reg, buffer[index]);
@@ -77,7 +77,7 @@ void outsl(uint16 reg, uint32 *buffer, int quads) {
 }
 
 // read collection of value from a channel into given buffer
-void ide_read_buffer(uint8 channel, uint8 reg, uint32 *buffer, uint32 quads) {
+void ide_read_buffer(uint8_t channel, uint8_t reg, uint32_t *buffer, uint32_t quads) {
     if (reg > 0x07 && reg < 0x0C)
         ide_write_register(channel, ATA_REG_CONTROL, 0x80 | g_ide_channels[channel].no_intr);
 
@@ -101,7 +101,7 @@ void ide_read_buffer(uint8 channel, uint8 reg, uint32 *buffer, uint32 quads) {
         ide_write_register(channel, ATA_REG_CONTROL, g_ide_channels[channel].no_intr);
 }
 
-void ide_write_buffer(uint8 channel, uint8 reg, uint32 *buffer, uint32 quads) {
+void ide_write_buffer(uint8_t channel, uint8_t reg, uint32_t *buffer, uint32_t quads) {
     if (reg > 0x07 && reg < 0x0C)
         ide_write_register(channel, ATA_REG_CONTROL, 0x80 | g_ide_channels[channel].no_intr);
 
@@ -126,7 +126,7 @@ void ide_write_buffer(uint8 channel, uint8 reg, uint32 *buffer, uint32 quads) {
 }
 
 // wait until drive is ready, keep polling ide device until it is not busy status
-uint8 ide_polling(uint8 channel, uint8 advanced_check) {
+uint8_t ide_polling(uint8_t channel, uint8_t advanced_check) {
     // (I) Delay 400 nanosecond for BSY to be set:
     for (int i = 0; i < 4; i++)
         // Reading the Alternate Status port wastes 100ns; loop four times.
@@ -138,7 +138,7 @@ uint8 ide_polling(uint8 channel, uint8 advanced_check) {
 
     if (advanced_check) {
         // Read Status Register
-        uint8 state = ide_read_register(channel, ATA_REG_STATUS);
+        uint8_t state = ide_read_register(channel, ATA_REG_STATUS);
 
         // (III) Check For Errors:
         if (state & ATA_SR_ERR)
@@ -157,7 +157,7 @@ uint8 ide_polling(uint8 channel, uint8 advanced_check) {
     return 0;  // No Error.
 }
 
-uint8 ide_print_error(uint32 drive, uint8 err) {
+uint8_t ide_print_error(uint32_t drive, uint8_t err) {
     if (err == 0)
         return err;
 
@@ -166,7 +166,7 @@ uint8 ide_print_error(uint32 drive, uint8 err) {
         printf("- Device Fault\n");
         err = 19;
     } else if (err == 2) {
-        uint8 st = ide_read_register(g_ide_devices[drive].channel, ATA_REG_ERROR);
+        uint8_t st = ide_read_register(g_ide_devices[drive].channel, ATA_REG_ERROR);
         if (st & ATA_ER_AMNF) {
             printf("- No Address Mark Found\n");
             err = 7;
@@ -221,9 +221,9 @@ sec_channel_base_addr: Secondary channel base address(0x170-0x177)
 sec_channel_control_addr: Secondary channel control base address(0x376)
 bus_master_addr: Bus master address(pass 0 for now)
 */
-void ide_init(uint32 prim_channel_base_addr, uint32 prim_channel_control_base_addr,
-              uint32 sec_channel_base_addr, uint32 sec_channel_control_addr,
-              uint32 bus_master_addr) {
+void ide_init(uint32_t prim_channel_base_addr, uint32_t prim_channel_control_base_addr,
+              uint32_t sec_channel_base_addr, uint32_t sec_channel_control_addr,
+              uint32_t bus_master_addr) {
     int i, j, k, count = 0;
     unsigned char ide_buf[2048] = {0};
 
@@ -243,7 +243,7 @@ void ide_init(uint32 prim_channel_base_addr, uint32 prim_channel_control_base_ad
     // 3- Detect ATA-ATAPI Devices:
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 2; j++) {
-            uint8 err = 0, type = IDE_ATA, status;
+            uint8_t err = 0, type = IDE_ATA, status;
             g_ide_devices[count].reserved = 0;  // Assuming that no drive here.
 
             // (I) Select Drive:
@@ -353,15 +353,15 @@ void listDrives() {
         }
 }
 
-uint8 ide_ata_access(uint8 direction, uint8 drive, uint32 lba, uint8 num_sectors, uint32 buffer) {
-    uint8 lba_mode /* 0: CHS, 1:LBA28, 2: LBA48 */, dma /* 0: No DMA, 1: DMA */, cmd;
-    uint8 lba_io[6];
-    uint32 channel = g_ide_devices[drive].channel;  // Read the Channel.
-    uint32 slavebit = g_ide_devices[drive].drive;   // Read the Drive [Master/Slave]
-    uint32 bus = g_ide_channels[channel].base;      // Bus Base, like 0x1F0 which is also data port.
-    uint32 words = 256;                             // Almost every ATA drive has a sector-size of 512-byte.
-    uint16 cyl, i;
-    uint8 head, sect, err;
+uint8_t ide_ata_access(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t num_sectors, uint32_t buffer) {
+    uint8_t lba_mode /* 0: CHS, 1:LBA28, 2: LBA48 */, dma /* 0: No DMA, 1: DMA */, cmd;
+    uint8_t lba_io[6];
+    uint32_t channel = g_ide_devices[drive].channel;  // Read the Channel.
+    uint32_t slavebit = g_ide_devices[drive].drive;   // Read the Drive [Master/Slave]
+    uint32_t bus = g_ide_channels[channel].base;      // Bus Base, like 0x1F0 which is also data port.
+    uint32_t words = 256;                             // Almost every ATA drive has a sector-size of 512-byte.
+    uint16_t cyl, i;
+    uint8_t head, sect, err;
 
     ide_write_register(channel, ATA_REG_CONTROL, g_ide_channels[channel].no_intr = (g_ide_irq_invoked = 0x0) + 0x02);
 
@@ -489,7 +489,7 @@ void ide_irq() {
 }
 
 // start from lba = 0
-int ide_read_sectors(uint8 drive, uint8 num_sectors, uint32 lba, uint32 buffer) {
+int ide_read_sectors(uint8_t drive, uint8_t num_sectors, uint32_t lba, uint32_t buffer) {
     // 1: Check if the drive presents:
     if (drive > MAXIMUM_IDE_DEVICES || g_ide_devices[drive].reserved == 0) {
         printf("IDE ERROR: Drive not found\n");
@@ -502,7 +502,7 @@ int ide_read_sectors(uint8 drive, uint8 num_sectors, uint32 lba, uint32 buffer) 
     }
     // 3: Read in PIO Mode through Polling & IRQs:
     else {
-        uint8 err;
+        uint8_t err;
         if (g_ide_devices[drive].type == IDE_ATA)
             err = ide_ata_access(ATA_READ, drive, lba, num_sectors, buffer);
         // print if any error in reading
@@ -512,7 +512,7 @@ int ide_read_sectors(uint8 drive, uint8 num_sectors, uint32 lba, uint32 buffer) 
 }
 
 // start from lba = 0
-int ide_write_sectors(uint8 drive, uint8 num_sectors, uint32 lba, uint32 buffer) {
+int ide_write_sectors(uint8_t drive, uint8_t num_sectors, uint32_t lba, uint32_t buffer) {
     // 1: Check if the drive presents:
     if (drive > MAXIMUM_IDE_DEVICES || g_ide_devices[drive].reserved == 0) {
         printf("IDE ERROR: Drive not found\n");
@@ -523,7 +523,7 @@ int ide_write_sectors(uint8 drive, uint8 num_sectors, uint32 lba, uint32 buffer)
         printf("IDE ERROR: LBA address(0x%x) is greater than the available drive sectors(0x%x)\n", lba, g_ide_devices[drive].size);
         return -2;
     } else {
-        uint8 err;
+        uint8_t err;
         if (g_ide_devices[drive].type == IDE_ATA)
             err = ide_ata_access(ATA_WRITE, drive, lba, num_sectors, buffer);
         // print if any error in writing

@@ -16,9 +16,9 @@ void consolePutchar(char ch);
 // revert back the printed character and add 0 to it
 void consoleUngetchar();
 // revert back the printed character until n characters
-void consoleUngetcharBound(uint8 n);
+void consoleUngetcharBound(uint8_t n);
 
-void consoleGoXY(uint16 x, uint16 y);
+void consoleGoXY(uint16_t x, uint16_t y);
 
 void consolePrintString(const char *str);
 void printf(const char *format, ...);
@@ -29,7 +29,7 @@ void consolePrintColorString(char *str, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYP
 
 void getString(char *buffer);
 // Get string from console and erase/go back until bound occcurs
-void getStringBound(char *buffer, uint8 bound);
+void getStringBound(char *buffer, uint8_t bound);
 
 
 // Change color of all text

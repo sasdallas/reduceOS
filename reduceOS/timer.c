@@ -5,20 +5,20 @@
 #include "io_ports.h"
 #include "isr.h"
 #include "string.h"
-#include "types.h"
+#include "stdint.h"
 
 // number of ticks since system booted
-uint32 g_ticks = 0;
+uint32_t g_ticks = 0;
 // frequency in hertz
-uint16 g_freq_hz = 0;
+uint16_t g_freq_hz = 0;
 // timer functions to be called when that ticks reached in irq handler
 TIMER_FUNCTION_MANAGER g_timer_function_manager;
 
 
 // See https://wiki.osdev.org/Programmable_Interval_Timer
-void timer_set_frequency(uint16 f) {
+void timer_set_frequency(uint16_t f) {
     g_freq_hz = f;
-    uint16 divisor = TIMER_INPUT_CLOCK_FREQUENCY / f;
+    uint16_t divisor = TIMER_INPUT_CLOCK_FREQUENCY / f;
     // set Mode 3 - Square Wave Mode
     outportb(TIMER_COMMAND_PORT, 0b00110110);
     // set low byte
@@ -29,7 +29,7 @@ void timer_set_frequency(uint16 f) {
 
 
 void timer_handler(REGISTERS* r) {
-    uint32 i;
+    uint32_t i;
     TIMER_FUNC_ARGS *args = NULL;
     g_ticks++;
     //printf("timer triggered at frequency %d\n", g_ticks);
@@ -44,7 +44,7 @@ void timer_handler(REGISTERS* r) {
 }
 
 void timer_register_function(TIMER_FUNCTION function, TIMER_FUNC_ARGS *args) {
-    uint32 index = 0;
+    uint32_t index = 0;
     if (function == NULL || args == NULL) {
         printf("ERROR: failed to register timer function %x\n", function);
         return;
@@ -63,6 +63,6 @@ void timer_init() {
 
 
 void sleep(int sec) {
-    uint32 end = g_ticks + sec * g_freq_hz;
+    uint32_t end = g_ticks + sec * g_freq_hz;
     while (g_ticks < end);
 }

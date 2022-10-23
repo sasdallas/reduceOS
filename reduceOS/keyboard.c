@@ -1,11 +1,10 @@
-#include "keyboard.h"
-
-#include "console.h"
-#include "idt.h"
-#include "io_ports.h"
-#include "isr.h"
-#include "types.h"
-#include "string.h"
+#include "keyboard.h" // Our own header file
+#include "console.h" // Console drivers
+#include "idt.h" // Interrupt Descriptor Table
+#include "io_ports.h" // IO Port read/write
+#include "isr.h" // ISR
+#include "stdint.h" // Replacement stdint.h file
+#include "string.h" // Replacement string.h file
 
 static BOOL g_caps_lock = FALSE;
 static BOOL g_shift_pressed = FALSE;
@@ -65,18 +64,26 @@ char alternate_chars(char ch) {
     }
 }
 
+
+
+
+
+
+ 
 void keyboard_handler(REGISTERS *r) {
-    int scancode;
+    uint8_t scancode;
 
     g_ch = 0;
-    scancode = get_scancode();
+    scancode = inportb(0x60);
     g_scan_code = scancode;
     if (scancode & 0x80) {
-        // key release
+        if (scancode == 0xaa || scancode == 0x2a) {
+            g_shift_pressed = FALSE;
+        }
     } else {
-        // key down
         switch(scancode) {
             case SCAN_CODE_KEY_CAPS_LOCK:
+                
                 if (g_caps_lock == FALSE)
                     g_caps_lock = TRUE;
                 else
@@ -103,8 +110,10 @@ void keyboard_handler(REGISTERS *r) {
                     if (g_shift_pressed) {
                         // replace alternate chars
                         g_ch = alternate_chars(g_ch);
-                    } else
-                        g_ch = upper(g_ch);
+                    } else {
+                        g_ch = upper(g_ch); 
+                        
+                    }
                 } else {
                     if (g_shift_pressed) {
                         if (isalpha(g_ch))
@@ -114,12 +123,12 @@ void keyboard_handler(REGISTERS *r) {
                         g_ch = alternate_chars(g_ch);
                     } else
                         g_ch = g_scan_code_chars[scancode];
-                    g_shift_pressed = FALSE;
+                    
                 }
                 break;
-        }
+       }
     }
-}
+} 
 
 void keyboard_init() {
     isr_register_interrupt_handler(IRQ_BASE + 1, keyboard_handler);
@@ -145,3 +154,5 @@ char kb_get_scancode() {
      g_scan_code = 0;
      return code;
  }
+
+

@@ -1,7 +1,7 @@
 #ifndef VGA_H
 #define VGA_H
 
-#include "types.h"
+#include "stdint.h"
 
 #define VGA_ADDRESS        0xB8000
 #define VGA_TOTAL_ITEMS    2200
@@ -38,13 +38,13 @@ typedef enum {
  * 
  * returns complete item with fore & back color to be placed at VGA address
 */
-uint16 vga_item_entry(uint8 ch, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color);
+uint16_t vga_item_entry(uint8_t ch, VGA_COLOR_TYPE fore_color, VGA_COLOR_TYPE back_color);
 
 /**
  * set cursor position to given (x, y)
  * by writing to CRT controller registers
  */
-void vga_set_cursor_pos(uint8 x, uint8 y);
+void vga_set_cursor_pos(uint8_t x, uint8_t y);
 
 /**
  * disable blinking top-left cursor
