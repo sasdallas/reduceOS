@@ -1,5 +1,8 @@
 # reduceOS
 A small, lightweight OS coded in C and Assembly.
+## SECOND OCTOBER UPDATE
+### Good news! The new kernel being developed has received linux compatibility, I wrote a custom bootloader for it.
+### Development is progressingly smoothly, currently working on getting to reduceOS C code.
 
 ## NOTICE: OCTOBER 2022 - Slow development
 ### Balancing school and code is difficult, but I am trying to keep this up!
