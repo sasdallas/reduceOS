@@ -1,0 +1,2 @@
+No kernel source code has been made yet.
+NOTE: If you're looking for the bootloader and ASM kernel code, check the boot directory!!!
