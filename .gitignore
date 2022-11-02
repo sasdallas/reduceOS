@@ -1,6 +1,0 @@
-**/i686
-i686-elf-tools.sh
-
-build/*.o
-**/windows
-**/.vscode
