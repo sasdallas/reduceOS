@@ -17,4 +17,4 @@ My apologies, the code is currently still in testing phase, meaning there is bar
 # Credits
 BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. reduceOS rewrite is highly structured on them. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
 
-StackOverflow - Could never have gotten Linux support without them. Links coming soon.
+StackOverflow - Could never have gotten Linux support without them. Question link [here](https://stackoverflow.com/questions/74172118/how-to-read-sector-into-memory-and-jump-to-it-for-os?noredirect=1#comment131168294_74172118)
