@@ -2,8 +2,8 @@
 A small, lightweight OS coded in C and Assembly.
 
 ## NOVEMBER UPDATE
-### I'm likely going to push a small branch where the current ASM kernel & loader will go very soon. PLEASE NOTE: This is not the final loader or code! Just the in progress builds.
-### Another note: Linux support is being worked on a little more with the help of StackOverflow. Should be done soon.
+### A branch has been pushed with new code!
+### Linux support has been confirmed thanks to StackOverflow(question link in branch credits)
 
 ## OCTOBER UPDATE
 ### Good news! The new kernel being developed has received linux compatibility with a custom bootloader!
