@@ -1,8 +1,8 @@
 ; ===============================================
 ; 32-bit kernel for reduceOS
 ; ===============================================
-; Loaded in by loader.asm at 0x500,
-; With <3 and thanks to the BrokenThorn Entertainment
+; Loaded in by loader.asm at 0x0600,
+; With <3 and thanks to the BrokenThorn Entertainment and StackOverflow
 
 bits 16                                 ; Beginning at 16-bits, switching to 32-bit later            
 org  0x0600                             ; Starting at address 0x0600, loaded in by loader.asm
@@ -11,8 +11,8 @@ org  0x0600                             ; Starting at address 0x0600, loaded in 
 jmp  main
 ; ---------------------------------------
 ; Includes
-; ---------------------------------------
-
+; --------------------------------------
+-
 %include "include/stdio.inc"
 %include "include/gdt.inc"
 %include "include/a20.inc"
@@ -68,4 +68,4 @@ main32:
     cli
     hlt
 
-buildNum db 0x0A, 0x0A, 0x0A, "reduceOS test build", 0
+buildNum db 0x0A, 0x0A, 0x0A, "reduceOS Test Build now loading. Please wait...", 0
