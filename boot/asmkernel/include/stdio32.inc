@@ -1,17 +1,17 @@
 ; ==================================================
 ; stdio32.inc - Handles 32-bit graphics
 ; ==================================================
+; Thanks to BrokenThorn Entertainment and Sep Roland!
 
 %ifndef __GFX_INC_67343546FDCC56AAB872_INCLUDED__
 %define __GFX_INC_67343546FDCC56AAB872_INCLUDED__
 
-bits 32                                         ; 32-bits
+bits 32
 
-%define VIDEO_MEMORY 0xB8000                    ; Video memory address
-%define COLS 80                                 ; Width of the screen
-%define LINES 25                                ; Height of the string
-%define CHARACTER_ATTRIBURE 63                  ; White text on Cyan background
-
+%define VIDEO_MEMORY 0xB8000  ; Video memory address
+%define COLS 80               ; Width of the screen
+%define LINES 25              ; Height of the screen
+%define ATTRIB 0x3F           ; WhiteOnCyan
 _CurrentXPos db 0
 _CurrentYPos db 0
 
@@ -21,50 +21,27 @@ _CurrentYPos db 0
 ; ---------------------------------------------------------
 
 char32:
-    pusha                                       ; Save registers
-    mov edi, VIDEO_MEMORY                       ; Get the pointer to the video memory
-
-    ; Get current position
-    xor eax, eax                                ; Zero-out EAX
-
-    mov ecx, COLS*2                             ; Mode 7 has 2 bytes per character - and so COLS*2 bytes per line.
-    mov al, byte [_CurrentYPos]                 ; Get Y position
-    mul ecx                                     ; Multiply COLS * Y
-    push eax                                    ; Save EAX--the multiplication
-
-    mov al, byte [_CurrentXPos]                 ; Multiply _CurrentXPos by 2 because 2 bytes per char(Mode 7)
-    mov cl, 2
-    mul cl
-    pop ecx                                     ; Pop Y*COLS result
-    add eax, ecx
-    
-    xor ecx, ecx
-    add edi, eax                                ; Add to base address
-
-    ; Watch for a new line!
-    cmp bl, 0x0A                                ; 0x0A - newline character.
-    je .row                                     ; Jump to .row if newline char
-
-    ; Print the character
-    mov dl, bl                                  ; Get character
-    mov dh, CHARACTER_ATTRIBURE                 ; Change DH to Character Attribute
-    mov word [edi], dx                          ; Write to video memory
-    
-    ; Update next pos
-    inc byte [_CurrentXPos]                     ; Go to next character
-    ;cmp byte [_CurrentXPos], COLS               ; EOL?
-    ;je .row                                     ; Yep - move to next row
-    jmp .done                                   ; Nope - BAIL!
-.row:
-    ; Goto next row.
-    mov byte [_CurrentXPos], 0                  ; Return to col 0
-    inc byte [_CurrentYPos]                     ; Go to next row.
-
-.done:
-    ; Return
-    popa
+    cmp   bl, 10
+    je    .row
+    push  eax
+    push  edi
+    movzx edi, byte [_CurrentYPos]
+    imul  edi, COLS*2
+    movzx eax, byte [_CurrentXPos]
+    lea   edi, [VIDEO_MEMORY + edi + eax * 2]
+    mov   al, bl
+    mov   ah, ATTRIB
+    mov   [edi], ax
+    pop   edi
+    pop   eax
+    inc   byte [_CurrentXPos]
+    cmp   byte [_CurrentXPos], COLS               ; EOL?
+    je    .row
     ret
-
+.row:
+    mov   byte [_CurrentXPos], 0
+    inc   byte [_CurrentYPos]
+    ret
 
 ; ---------------------------------------------------------
 ; puts32 - print a null terminated string
@@ -73,100 +50,66 @@ char32:
 
 puts32:
 
-    ; Store registers(EBX and EDI)
-    pusha                                       ; Save registers
-    push ebx                                    ; Copy string
-    pop edi
-
+    push  ebx
+    push  edi
+    mov   edi, ebx
+    jmp   .start
 .loop:
-    
-    mov bl, byte [edi]                          ; Get next character
-    cmp bl, 0                                   ; Check if it's null
-    je .done                                    ; It is - done printing.
-
-    call char32                                 ; It isn't - print the character
-
-    inc edi                                     ; Increment EDI for next character
-    jmp .loop                                   ; Restart loop
-
-.done:
-    ; Update the hardware cursor
-
-    mov bh, byte [_CurrentXPos]                 ; BH and BL are the params for movecursor
-    mov bl, byte [_CurrentYPos]                 
-    call movecursor                             ; Update cursor position
-
-    popa                                        ; Restore registers
-    ret                                         ; Return!
-
-bits 32
+    call  char32
+    inc   edi
+.start:
+    mov   bl, [edi]
+    test  bl, bl
+    jnz   .loop
+    movzx ebx, word [_CurrentXPos] ; Load XPos and YPos together!
+    call  movecursor               ; Update hardware cursor
+    pop   edi
+    pop   ebx
+    ret
 
 ; ---------------------------------------------------------
 ; movecursor - Move the cursor to an X and Y position
-;   BH - X position
-;   BL - Y position
+;   BL - X position
+;   BH - Y position
+;   BH and BL are relative to the current position on screen
 ; ---------------------------------------------------------
 
 movecursor:
-    
-    pusha                                       ; Save registers
-
-    ; Get current position(BH and BL are relative to the current position on screen, not memory)
-
-    xor eax, eax                                ; Clear EAX
-    mov ecx, COLS                               ; Store COLS in ECX for multiplication
-    mov al, bh                                  ; Get Y position
-    mul ecx                                     ; Multiply Y by cols
-    add al, bl                                  ; Add X
-    mov ebx, eax
-
+    pushad
+    movzx eax, bh             ; BH * COLS + BL
+    imul  eax, COLS
+    movzx ebx, bl
+    add   ebx, eax
     ; Set low byte index to VGA register
-
-    mov al, 0x0f
-    mov dx, 0x03D4
-    out dx, al
-
-    mov al, bl
-    mov dx, 0x03D5
-    out dx, al
-
+    mov   al, 0x0F
+    mov   dx, 0x03D4
+    out   dx, al
+    mov   al, bl
+    inc   dx
+    out   dx, al
     ; Do the same but for high byte
-
-    xor eax, eax
-    
-    mov al, 0x0e
-    mov dx, 0x03D4
-    out dx, al
-
-    mov al, bl
-    mov dx, 0x03D5
-    out dx, al
-
-    popa                                        ; Restore registers
-    ret                                         ; Return
-
-
+    mov   al, 0x0E
+    dec   dx
+    out   dx, al
+    mov   al, bh
+    inc   dx
+    out   dx, al
+    popad
+    ret
 
 ; ---------------------------------------------------------
 ; clear32 - clearing the screen
 ; ---------------------------------------------------------
 
 clear32:
-    pusha                                       ; Save registers
-
-    cld
-    mov edi, VIDEO_MEMORY                       ; Set EDI to video memory
-    mov cx, 2000                                
-    mov ah, CHARACTER_ATTRIBURE                 ; Clear screen with character attribute
-    mov al, ' '                                 ; Replace all chars with space
-    rep stosw
-
-    mov byte [_CurrentXPos], 0                  ; Reset X and Y position
-    mov byte [_CurrentYPos], 0
-    popa                                        ; Restore registers
+    pushad
+    mov   edi, VIDEO_MEMORY
+    mov   ecx, 1000            ; 2000 words
+    mov   eax, ((ATTRIB * 256 + 32) * 256 + ATTRIB) * 256 + 32
+    rep stosd
+    mov   [_CurrentXPos], cx   ; Reset XPos and YPos together!
+    popad
     ret
-
-    
 
 ; ---------------------------------------------------------
 ; gotoxy - Set X and Y position
@@ -175,10 +118,7 @@ clear32:
 ; ---------------------------------------------------------
 
 gotoxy:
-    pusha
-    mov [_CurrentXPos], al                      ; Set X and Y position
-    mov [_CurrentYPos], ah                      
-    popa
+    mov   [_CurrentXPos], ax   ; Set XPos and YPos together!
     ret
 
 %endif ;__STDIO_INC_67343546FDCC56AAB872_INCLUDED__
