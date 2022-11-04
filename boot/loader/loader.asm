@@ -1,5 +1,8 @@
-; A note to all viewing this file:
-; This file is subject to recommentation and cleanup later, sorry for the mess!
+; ==================================================
+; loader.asm - reduceOS custom bootloader
+; ==================================================
+
+
 bits 16
 org  0x7C00
 
@@ -18,18 +21,18 @@ donePrint:
     ret
 
 main:
-    cli
-    xor  ax, ax
+    cli                ; Clear interrupts
+    xor  ax, ax        ; Zero-out AX and set all pointers to AX for low end of stack
     mov  ds, ax
     mov  es, ax
     mov  fs, ax
     mov  gs, ax
     mov  ax, 0x8000    ; Stack between 0x8000:0x0000
     mov  ss, ax        ;           and 0x8000:0xFFFF (64KB)
-    xor  sp, sp
+    xor  sp, sp     
     sti
 
-    mov  si, LOADING
+    mov  si, LOADING   ; Print our loading string.
     call print
 
 readSector:
@@ -55,7 +58,7 @@ good:
 
 LOADING     db 13, 10, "Booting loader...", 13, 10, 0
 FAILURE_MSG db 13, 10, "ERROR: Press any key to reboot.", 10, 0
-LOADOK      db 13, 10, "load ok", 10, 0
+LOADOK      db 13, 10, "Loading completed.", 10, 0
 
 TIMES 510 - ($-$$) DB 0
 DW 0xAA55
