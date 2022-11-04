@@ -1,8 +1,7 @@
-; ==================================================
-; stdio32.inc - Handles 32-bit graphics
-; ==================================================
+; ======================================================
+; stdio32.inc - Handles 32-bit graphics for reduceOS
+; ======================================================
 ; Thanks to BrokenThorn Entertainment and Sep Roland!
-
 %ifndef __GFX_INC_67343546FDCC56AAB872_INCLUDED__
 %define __GFX_INC_67343546FDCC56AAB872_INCLUDED__
 
