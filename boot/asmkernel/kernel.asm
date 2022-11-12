@@ -12,7 +12,7 @@ jmp  main
 ; ---------------------------------------
 ; Includes
 ; --------------------------------------
--
+
 %include "include/stdio.inc"
 %include "include/gdt.inc"
 %include "include/a20.inc"
@@ -21,8 +21,9 @@ jmp  main
 ; Data and strings
 ; ---------------------------------------
 
-kernel_loaded db "Kernel loaded successfully.", 0x0D, 0x0A, 0x00
-preparing db "Preparing to load reduceOS...", 0x0D, 0x0A, 0x00
+
+preparing db "Loading reduceOS", 0x0D, 0x0A, 0x00
+readErrorStr db "FAIL", 0x0D, 0x0A, 0x00
 
 ; ---------------------------------------
 ; main - 16-bit entry point
@@ -32,10 +33,13 @@ preparing db "Preparing to load reduceOS...", 0x0D, 0x0A, 0x00
 main:
     call installGDT
     call enableA20_KKbrd_Out
-    mov  si, kernel_loaded
-    call print16
     mov  si, preparing
     call print16
+
+    ; Before we enter protected mode, we need to load stage 3.
+
+
+EnablePmode:
 
     ; Enter protected mode
     cli
@@ -51,6 +55,9 @@ bits 32                   ; We are now 32 bit!
 
 %include "include/stdio32.inc"
 
+
+
+
 main32:
     ; Set registers up
     mov  ax, DATA_DESC
@@ -64,8 +71,14 @@ main32:
     call clear32          ; Clear screen
     mov  ebx, buildNum
     call puts32           ; Call puts32 to print
+    
+    mov ebx, kernOK
+    call puts32
 
     cli
     hlt
+    
 
-buildNum db 0x0A, 0x0A, 0x0A, "reduceOS Test Build now loading. Please wait...", 0
+
+buildNum db 0x0A, 0x0A, 0x0A, "                         reduceOS Development Build", 0
+kernOK db 0x0A, 0x0A, "                        Kernel is okay, system loaded successfully!", 0
