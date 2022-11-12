@@ -10,55 +10,74 @@ jmp  main
 
 ; args: SI
 print:
-    lodsb
-    or   al, al
-    jz   donePrint
-    mov  bx, 0007h
-    mov  ah, 0Eh
-    int  10h
-    jmp  print
+    lodsb                       ; Load character
+    or   al, al                 ; Is the character 0?
+    jz   donePrint              ; If so, return.
+    mov  bx, 0007h              ; If not, continue printing.
+    mov  ah, 0Eh                ; 0Eh = teletype output
+    int  10h                    ; Call BIOS
+    jmp  print                  ; We know we're not done printing yet, so repeat the function.
 donePrint:
     ret
 
+
+
+; =====================================================
+; readSector - reads a sector from disk
+; Jumps to loadGood if sector OK, halts if not.
+; Parameters: CX, BX, AX
+; =====================================================
+readSector:
+    mov ah, 2h                  ; AH = second function of int 13h
+    mov al, 2                   ; Reading 2 sectors.
+    mov ch, 0                   ; Cylinder 0
+    mov cl, 2                   ; Starting from sector 2(begins from 1 not 0)
+    mov dh, 0                   ; Drive #0
+    mov bx, 0x0600              ; Read to 0x0000:0x0600
+    int  13h                    ; Read!
+    jnc loadGood                ; Return if it's good.
+
+fail:
+    mov  si, FAILURE_MSG
+    call print
+stop:
+    cli
+    hlt
+    jmp  stop
+
+
+loadGood:
+    mov  si, LOADOK 
+    call print
+    ret
+
 main:
-    cli                ; Clear interrupts
-    xor  ax, ax        ; Zero-out AX and set all pointers to AX for low end of stack
+    cli
+    xor  ax, ax
     mov  ds, ax
     mov  es, ax
     mov  fs, ax
     mov  gs, ax
     mov  ax, 0x8000    ; Stack between 0x8000:0x0000
     mov  ss, ax        ;           and 0x8000:0xFFFF (64KB)
-    xor  sp, sp     
+    xor  sp, sp
     sti
 
-    mov  si, LOADING   ; Print our loading string.
+    mov  si, LOADING
     call print
 
-readSector:
-    mov  dh, 0
-    mov  cx, 0002h
-    mov  bx, 0x0600     ; Sector buffer at 0x0000:0x0600
-    mov  ax, 0201h
-    int  13h
-    jnc  good
-    
-fail:
-    mov  si, FAILURE_MSG
-    call print
-end:
-    cli
-    hlt
-    jmp  end
-    
-good:
-    mov  si, LOADOK 
-    call print
-    jmp  0x0000:0x0600  ; Start second stage
 
+    call readSector
+    jmp  0x0000:0x0600  ; Jump to second stage
+
+    
+
+    
+
+    
 LOADING     db 13, 10, "Booting loader...", 13, 10, 0
 FAILURE_MSG db 13, 10, "ERROR: Press any key to reboot.", 10, 0
-LOADOK      db 13, 10, "Loading completed.", 10, 0
+LOADOK      db "Sector load OK."
 
 TIMES 510 - ($-$$) DB 0
 DW 0xAA55
