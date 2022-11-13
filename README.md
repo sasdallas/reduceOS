@@ -9,12 +9,14 @@ I've switched off multiboot in favor of a custom assembly bootloader and kernel.
 More info coming soon.
 
 # Why does it look so messy?
-My apologies, the code is currently still in testing phase, meaning there is barely any commentation in the kernel and bootloader. This will be fixed later.
+The assembly code shouldn't look that messy. If it is, start a pull request/contact me and I will update it.
 
  
 
 
 # Credits
-BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. reduceOS rewrite is highly structured on them. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
+BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. reduceOS rewrite's basic design is mainly built off their code. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
 
 StackOverflow - Could never have gotten Linux support without them. Question link [here](https://stackoverflow.com/questions/74172118/how-to-read-sector-into-memory-and-jump-to-it-for-os?noredirect=1#comment131168294_74172118)
+
+OSDev Wiki - Great resource for anyone looking into OS development. Helped with a ton of the basic principles and code. Link [here](https://wiki.osdev.org/)
