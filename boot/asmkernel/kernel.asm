@@ -36,7 +36,7 @@ main:
     mov  si, preparing
     call print16
 
-    ; Before we enter protected mode, we need to load stage 3.
+    
 
 
 EnablePmode:
