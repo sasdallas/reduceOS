@@ -22,8 +22,39 @@ jmp  main
 ; ---------------------------------------
 
 
-preparing db "Loading reduceOS", 0x0D, 0x0A, 0x00
-readErrorStr db "FAIL", 0x0D, 0x0A, 0x00
+preparing db "Loading reduceOS...", 0x0D, 0x0A, 0x00
+readErrorStr db "Error reading sectors.", 0x0D, 0x0A, 0x00
+kernelOffset equ 0x1000
+
+
+
+
+; -------------------------------------------------------------------
+; readSector - Purpose is to load the actual C kernel to 0x1000
+; Parameters: CL, ES, BX, AL
+; -------------------------------------------------------------------
+
+readSector:
+    mov ah, 2h                  
+    mov dh, 0
+    mov ch, 0
+    int 13h
+    jnc loadGood
+    
+fail:  
+    mov si, readErrorStr
+    call print16
+    int 0x16
+stop:
+    cli
+    hlt
+    jmp stop
+
+loadGood:
+    mov si, preparing
+    call print16
+    ret
+
 
 ; ---------------------------------------
 ; main - 16-bit entry point
@@ -31,11 +62,22 @@ readErrorStr db "FAIL", 0x0D, 0x0A, 0x00
 ; ---------------------------------------
 
 main:
-    call installGDT
-    call enableA20_KKbrd_Out
-    mov  si, preparing
+    ; The loader has successfully loaded us to 0x0600! Continue with execution to protected mode!
+
+    call installGDT                             ; Install the GDT
+    call enableA20_KKbrd_Out                    ; Enable A20
+   
+    mov si, preparing                           ; Print our preparing string
     call print16
 
+
+    ; Before we enter protected mode, we need to load our C kernel. 
+    ; BIOS interrupts aren't supported in pmode, so we do it here. 
+    ; ES is already set to the proper values.
+    mov al, 7                                   ; AL - sector amount to read
+    mov bx, kernelOffset                        ; Read to 0x1000 (remember it reads to ES:BX)
+    mov cl, 4                                   ; Starting from sector 4, which in our case is 0x600(where the code is located)
+    call readSector                             ; Read the sector
     
 
 
@@ -47,16 +89,13 @@ EnablePmode:
     or   eax, 1
     mov  cr0, eax
 
-    jmp  CODE_DESC:main32 ; Far jump to fix CS
+    jmp  CODE_DESC:main32                       ; Far jump to fix CS
     
 
 
-bits 32                   ; We are now 32 bit!
+bits 32                                         ; We are now 32 bit!
 
 %include "include/stdio32.inc"
-
-
-
 
 main32:
     ; Set registers up
@@ -65,20 +104,20 @@ main32:
     mov  es, ax
     mov  fs, ax
     mov  gs, ax
-    mov  ss, ax           ; Stack between 0x00000000
-    mov  esp, 0x00090000  ;           and 0x0008FFFF (576KB)
+    mov  ss, ax                                 ; Stack between 0x00000000
+    mov  esp, 0x00090000                        ;           and 0x0008FFFF (576KB)
 
-    call clear32          ; Clear screen
+    call clear32                                ; Clear screen
     mov  ebx, buildNum
-    call puts32           ; Call puts32 to print
+    call puts32                                 ; Call puts32 to print
     
-    mov ebx, kernOK
-    call puts32
+    mov ebx, kernOK                             ; Print our kernel okay message
+    call puts32           
 
-    cli
-    hlt
+    call kernelOffset                           ; The kernel is located at 
+    jmp $
+
     
-
 
 buildNum db 0x0A, 0x0A, 0x0A, "                         reduceOS Development Build", 0
-kernOK db 0x0A, 0x0A, "                        Kernel is okay, system loaded successfully!", 0
+kernOK db 0x0A, 0x0A, 0x0A, "                              Loading C kernel...", 0
