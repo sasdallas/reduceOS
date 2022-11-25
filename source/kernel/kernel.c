@@ -16,6 +16,7 @@
 
 void kmain() {
     initTerminal();
-    printf("Hello world from the C kernel!");
+    printf("Hello world from the C kernel!\n");
+    printf("Please wait while the system initializes...\n");
     
 }
