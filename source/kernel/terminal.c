@@ -59,22 +59,49 @@ void terminalDeleteLastLine() {
     }
 }
 
+// clearScreen() - clears the screen 
+void clearScreen() {
+    for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
+        for (size_t x = 0; x < SCREEN_WIDTH; x++) {
+            terminalPutcharXY(' ', terminalColor, x, y); // Reset all characters to be ' '. Obviously initTerminal() already does this, but we want to reimplement it without all the setup stuff.
+        }
+    }
+
+    terminalX = 0; // Reset X & Y values
+    terminalY = 0; 
+    return;
+}
 
 // terminalPutchar(char c) - This is the recommended function to use (besides printf, that'll be later) as it incorporates scrollTerminal and terminalDeleteLastLine.
 void terminalPutchar(char c) {
     int line;
     unsigned char uc = c; // terminalPutcharXY() requires an unsigned char.
 
-    terminalPutcharXY(uc, terminalColor, terminalX, terminalY); // Place an entry at terminal X and Y.
 
-    // Perform the scrolling stuff
-    if (++terminalX == SCREEN_WIDTH) {
+    // Checking if c is a newline or not.
+    if (c == '\n') {
+        terminalY++; // Increment terminal Y
+        terminalX = 0; // Increment terminal X
+    } else {
+        terminalPutcharXY(uc, terminalColor, terminalX, terminalY); // Place an entry at terminal X and Y.
+        terminalX++;
+    }
+
+
+    // Perform the scrolling stuff for X
+    if (terminalX == SCREEN_WIDTH) {
         terminalX = 0;
-        if (++terminalY == SCREEN_HEIGHT) {
-            for (line = 1; line <= SCREEN_HEIGHT - 1; line++) { scrollTerminal(line); }
-            terminalDeleteLastLine();
-            terminalY = SCREEN_HEIGHT - 1;
+        terminalY++;
+    }
+
+    // Perform the scrolling stuff for Y
+    if (terminalY == SCREEN_HEIGHT) {
+        for (line = 1; line < SCREEN_HEIGHT - 1; line++) {
+            scrollTerminal(line);
         }
+
+        terminalDeleteLastLine();
+        terminalY = SCREEN_HEIGHT - 1;
     }
 }
 
@@ -107,65 +134,72 @@ int putc(int ic) {
 static bool print(const char *data, size_t length) {
     const unsigned char* bytes = (const unsigned char*) data;
     for (size_t i = 0; i < length; i++) {
-        if (putc(bytes[i]) == -1) return false;
+        if (putc(bytes[i]) == EOF) return false;
     }
     return true;
 }
 
 // Now we move to the actual main function, printf.
 
-// printf(const char* format, ...) - The most recommended function to use. Don't know why I didn't opt for a libc file but whatever. This prints something but has formatting options and multiple arguments.
+// printf(const char* format, ...) - The most recommended function to use. Don't know why I didn't opt to put this in a libc/ file but whatever. This prints something but has formatting options and multiple arguments.
 int printf(const char* restrict format, ...) {
+    // printf uses VA macros to make handing the ... easier. These are defined in stdarg.h and the va_list is in va_list.h
+    va_list args; // Define the arguments list
+    va_start(args, format); // Begin reading the arguments to the right of format into args (we will use va_arg to cycle between them.)
+
     int charsWritten = 0;
-    char **arg = (char **)&format; // This references the arguments in printf. It will increment to go to the next argument (as we don't have a name for it)
 
-    while (*format != '\0') { // Continue the while loop until c = \0, signaling the end of the string.
-        size_t maxrem = INT_MAX - charsWritten; // maxrem helps prevent overflow errors (for security and for bugs)
+    while (*format != '\0') { // We will loop until we see a \0, signifying the end
+        size_t maxrem = INT_MAX - charsWritten; // Maximum amount we have until an overflow error occurs.
 
-        // Handling percents in the string. Following if statements are about %s, %c, etc.
         if (format[0] != '%' || format[1] == '%') {
             if (format[0] == '%') format++;
+
             size_t amnt = 1;
-            while (format[amnt] && format[amnt] != '%') amnt++;
+            while (format[amnt] && format[amnt] != '%') amnt++; // amnt is the amount of characters needed to print before a % ocurrs.
 
-            if (maxrem < amnt) return -1; // Overflow
-            if (!print(format, amnt)) return -1; // Print error.
+            if (maxrem < amnt) return -1; // If maxrem < amnt, prevent a buffer overflow.
+            if (!print(format, amnt)) return -1; // If the print failed, return -1.
 
-            format += amnt;
-            charsWritten += amnt;
-            continue;
+            format += amnt; // Increment format to amount (right after the percent)
+            charsWritten += amnt; // Increment charsWritten to amount.
         }
         
-        const char* formatStartsAt = format++;
+        // Moving on to percent handling (%c, %s)
 
-        
-        if (*format == 'c') { // Taking care of %c
+        const char* formatBegunAt = format++;
+
+        if (*format == 'c') {
+            format++; // Increment format
+            char c = (char) va_arg(args, int); // (char promotes to int) Get the next variable in the arguments.
+
+            if (!maxrem) return -1; // Overflow error!
+            if (!print(&c, sizeof(c))) return -1; // Print error!
+
+            charsWritten++; // Increment charsWritten
+        } else if (*format == 's') {
             format++;
-            char c = (char) arg++;
-            if (!maxrem) return -1; // Overflow
-            if (!print(&c, sizeof(c))) return -1; // Print error.
-
-        } else if (*format == 's') { // Taking care of %s
-            format++;
-            const char* str = *arg++;
-            size_t len = strlen(str);
-
-            if (maxrem < len) return -1; // Overflow
-            if (!print(str, len)) return -1; // Print error.
-
-        } else { // If there are no modifiers at all.
-            format = formatStartsAt;
-            size_t len = strlen(format);
+            const char* str = va_arg(args, const char*); // Get the next variable in the arguments (in this case, a string).
+            size_t len = strlen(str); // Get the length of the string
             
-            if (maxrem < len) return -1; // Overflow
-            if (!print(format, len)) return -1; // Print error.
+            if (maxrem < len) return -1; // Overflow error!
+            if (!print(str, len)) return -1; // Print error!
+            
+            charsWritten += len; // Increment charsWritten by length.
+        } else {
+            format = formatBegunAt;
+            size_t len = strlen(format);
 
-            charsWritten += len;
-            format += len;
+            if (maxrem < len) return -1; // Overflow error!
+            if (!print(format, len)) return -1; // Print error!
+
+            charsWritten += len; // Increment charsWritten by length
+            format += len; // Increment format by length
         }
-        
+
     }
 
+    va_end(args);
     return charsWritten;
 } 
 
