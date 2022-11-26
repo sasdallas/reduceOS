@@ -36,15 +36,21 @@ void terminalPutcharXY(unsigned char c, uint8_t color, size_t x, size_t y) {
     terminalBuffer[index] = vgaEntry(c, color);
 }
 
-// Unlike the alpha, this one has terminal scrolling (wiki.osdev.org)!
-// scrollTerminal(int line) - Scrolls a line downwards.
-void scrollTerminal(int line) {
-    int *loop;
-    char c;
+// terminalGotoXY(size_t x, size_t y) - Changes the terminal position to X and Y
+void terminalGotoXY(size_t x, size_t y) { 
+    terminalX = x;
+    terminalY = y;
+}
 
-    for (loop = line * (SCREEN_WIDTH * 2) + VIDEO_MEM; loop < SCREEN_WIDTH * 2; loop++) {
-        c = *loop;
-        *(loop - (SCREEN_WIDTH * 2)) = c;
+
+
+
+// Unlike the alpha, this one has terminal scrolling!
+// scrollTerminal() - Scrolls the terminal
+void scrollTerminal() {
+    for (int i = 0; SCREEN_HEIGHT-1; ++i) {
+                memmove(&terminalBuffer[i*SCREEN_WIDTH],
+                        &terminalBuffer[(i+1)*SCREEN_WIDTH], SCREEN_WIDTH);
     }
 }
 
@@ -59,8 +65,8 @@ void terminalDeleteLastLine() {
     }
 }
 
-// clearScreen() - clears the screen 
-void clearScreen() {
+// clearScreen(uint8_t color) - clears the screen 
+void clearScreen(uint8_t color) {
     for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
         for (size_t x = 0; x < SCREEN_WIDTH; x++) {
             terminalPutcharXY(' ', terminalColor, x, y); // Reset all characters to be ' '. Obviously initTerminal() already does this, but we want to reimplement it without all the setup stuff.
@@ -96,11 +102,7 @@ void terminalPutchar(char c) {
 
     // Perform the scrolling stuff for Y
     if (terminalY == SCREEN_HEIGHT) {
-        for (line = 1; line < SCREEN_HEIGHT - 1; line++) {
-            scrollTerminal(line);
-        }
-
-        terminalDeleteLastLine();
+        scrollTerminal();
         terminalY = SCREEN_HEIGHT - 1;
     }
 }
@@ -114,6 +116,19 @@ void terminalWrite(const char *data, size_t size) {
 // terminalWriteString() - The exact same as terminal write, but shorter with no len option (we use strlen). Not recommended for use, use printf (further down in the file)!
 void terminalWriteString(const char *data) { terminalWrite(data, strlen(data)); }
 
+
+void terminalWriteStringXY(const char *data, size_t x, size_t y) {
+    size_t previousX = terminalX;
+    size_t previousY = terminalY; // Store terminalX and terminalY in temporary variables
+
+    terminalX = x; // Update terminalX & terminalY
+    terminalY = y;
+
+    terminalWriteString(data); // Write the string to the X & Y.
+
+    terminalX = previousX; // Restore terminalX & terminalY to their previous values.
+    terminalY = previousY;
+}
 
 // *************************************************************************************************
 // Some of the following functions are helper functions to printf, as they need to return a value. 
@@ -142,65 +157,104 @@ static bool print(const char *data, size_t length) {
 // Now we move to the actual main function, printf.
 
 // printf(const char* format, ...) - The most recommended function to use. Don't know why I didn't opt to put this in a libc/ file but whatever. This prints something but has formatting options and multiple arguments.
-int printf(const char* restrict format, ...) {
+int printf(const char*  format, ...) {
+
+    if (!format) return 0; // Don't bother if there is no string
+
     // printf uses VA macros to make handing the ... easier. These are defined in stdarg.h and the va_list is in va_list.h
     va_list args; // Define the arguments list
     va_start(args, format); // Begin reading the arguments to the right of format into args (we will use va_arg to cycle between them.)
 
-    int charsWritten = 0;
+    int charsWritten = 0; // This is the value that will be returned on finish
 
-    while (*format != '\0') { // We will loop until we see a \0, signifying the end
-        size_t maxrem = INT_MAX - charsWritten; // Maximum amount we have until an overflow error occurs.
+    for (int i = 0; i < strlen(format); i++) {
 
-        if (format[0] != '%' || format[1] == '%') {
-            if (format[0] == '%') format++;
+        switch (format[i]) { // Take the i character of our string format and determine whether it needs special handling.
 
-            size_t amnt = 1;
-            while (format[amnt] && format[amnt] != '%') amnt++; // amnt is the amount of characters needed to print before a % ocurrs.
+            case '%': // In the case that it's a percent sign, check what character is after it.
 
-            if (maxrem < amnt) return -1; // If maxrem < amnt, prevent a buffer overflow.
-            if (!print(format, amnt)) return -1; // If the print failed, return -1.
+                switch(format[i+1]) {
+                    // There are a few possible characters after this, mainly %c, %s, %d, %x, and %i.
+                    
+                    // %c is for characters.
+                    case 'c': {
+                        char c = va_arg(args, char); // We need to get the next argument that is a character.
+                        
+                        
+                        if (!print(c, 1)) return -1; // Print error!
 
-            format += amnt; // Increment format to amount (right after the percent)
-            charsWritten += amnt; // Increment charsWritten to amount.
-        }
-        
-        // Moving on to percent handling (%c, %s)
+                        charsWritten++; // Increment charsWritten.
+                        i++; // Increment i.
+                        break;
+                    }
 
-        const char* formatBegunAt = format++;
+                    // %s is for strings (or address of).
+                    case 's': {
+                        const char *c = va_arg(args, const char *); // Char promotes to integer, and we're trying to get the address of the string.
+                        char str[64] = {0}; // The array where the character will go.
 
-        if (*format == 'c') {
-            format++; // Increment format
-            char c = (char) va_arg(args, int); // (char promotes to int) Get the next variable in the arguments.
+                        strcpy(str, (const char*)c); // Copy c to str (dest is the first parameter)
 
-            if (!maxrem) return -1; // Overflow error!
-            if (!print(&c, sizeof(c))) return -1; // Print error!
+                        
+                        if (!print(str, strlen(str))) return -1; // Print error!
 
-            charsWritten++; // Increment charsWritten
-        } else if (*format == 's') {
-            format++;
-            const char* str = va_arg(args, const char*); // Get the next variable in the arguments (in this case, a string).
-            size_t len = strlen(str); // Get the length of the string
+                        charsWritten++; // Increment charsWritten
+                        i++; // Increment i.
+                        break;
+                    }
+                    
+                    // %d or %i is for integers
+                    case 'd':
+                    case 'i': {
+                        int c = va_arg(args, int); // We need to get the next integer in the parameters.
+                        char str[32] = {0}; // String buffer where the integer will go.
+
+                        // itoa() takes care of all the negative stuff already.
+                        itoa(c, str, 10); // Convert the integer to a string
+                        
+                        
+                        if (!print(str, strlen(str))) return -1; // Print error!
+
+                        charsWritten++; // Increment charsWritten
+                        i++; // Increment i
+                        break;
+
+                    }
+
+                    // %x or %X is for hexadecimal
+                    case 'X':
+                    case 'x': {
+                        int c = va_arg(args, int); // We need to get the next integer (it will be converted to hexadecimal when we use itoa.) from the parameters.
+                        char str[32] = {0}; // String buffer where the hexadecimal will go.
+
+                        // itoa() will convert the integer to base-16 or hex.
+                        itoa(c, str, 16); // Convert the integer to a hex string.
+
+                        if (!print(str, strlen(str))) return -1; // Print error!
+
+                        charsWritten++; // Increment charsWritten
+                        i++; // Increment i.
+                        break;
+                    }
+
+                    default:
+                        terminalPutchar(format[i]); // If else place the character
+                        break;
+                }
+
+                break;
             
-            if (maxrem < len) return -1; // Overflow error!
-            if (!print(str, len)) return -1; // Print error!
-            
-            charsWritten += len; // Increment charsWritten by length.
-        } else {
-            format = formatBegunAt;
-            size_t len = strlen(format);
+            default:
+                terminalPutchar(format[i]);
+                break;
 
-            if (maxrem < len) return -1; // Overflow error!
-            if (!print(format, len)) return -1; // Print error!
-
-            charsWritten += len; // Increment charsWritten by length
-            format += len; // Increment format by length
         }
-
     }
 
+    
+
+    
     va_end(args);
     return charsWritten;
 } 
-
 
