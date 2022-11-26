@@ -15,20 +15,18 @@
 // Macros
 
 // VA_SIZE(TYPE) - Round up width of objects pushed on stack.
-#define VA_SIZE(TYPE)   \
-    ((sizeof(TYPE) + sizeof(STACKITEM)) \
-        & ~(sizeof(STACKITEM) - 1)) // The expression before '&' ensures we get 0 for objects of size 0.
+#define	VA_SIZE(TYPE)					\
+	((sizeof(TYPE) + sizeof(STACKITEM) - 1)	\
+		& ~(sizeof(STACKITEM) - 1))
 
 // va_start(AP, LASTARG) - Initializes 'AP' to retrieve additional arguments after LASTARG (the leftmost argument, before the '...')
-#define va_start(AP, LASTARG)   \
-    (AP=((va_list)&(LASTARG) + VA_SIZE(LASTARG)))
+#define	va_start(AP, LASTARG)	\
+	(AP=((va_list)&(LASTARG) + VA_SIZE(LASTARG)))
 
 // va_end(AP) - Nothing lol
 #define va_end(AP)
 
 // va_arg(AP, TYPE) - Retrieve the next argument of type 'TYPE' in va_list 'AP'
-#define va_arg(AP, TYPE)    \
-    (AP += VA_SIZE(TYPE), *((TYPE *)(AP - VA_SIZE(TYPE))))
-
-
+#define va_arg(AP, TYPE)	\
+	(AP += VA_SIZE(TYPE), *((TYPE *)(AP - VA_SIZE(TYPE))))
 #endif
