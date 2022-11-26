@@ -12,8 +12,7 @@ More info coming soon.
 The assembly code shouldn't look that messy. If it is, start a pull request/contact me and I will update it.
 
 # What's the current stage?
-Currently I'm working with stackoverflow again to get text printing through the C code. The C kernel will be added when we're done.
- 
+Getting IDT, GDT, and HAL up and running
 
 
 # Credits
