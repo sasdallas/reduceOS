@@ -56,6 +56,17 @@ void* memmove(void* destination, const void* source, size_t n) {
 }
 
 
+// memset() - Set a buffer in memory to a given value.
+// Three parameters - buffer, value, amount of times to set
+
+void* memset(void *buf, int c, size_t n) {
+    unsigned char* ubuf = buf;
+    
+    while (n--) { *ubuf++ = (unsigned char)c; }
+    return buf;
+
+}
+
 // strlen() - Returns the length of a string(size_t)
 // One parameter - str(const char*)
 size_t strlen(const char* str) {
@@ -65,42 +76,45 @@ size_t strlen(const char* str) {
 }
 
 // itoa() - converts an integer to a string
-// Three parameters - Integer, string buffer, integer base (1-10)
-// Torn straight from the old reduceOS.
-char* itoa(int num, char *buffer, int base) {
-    char *p = buffer;
-    char *p1, *p2;
-    unsigned long ud = num;
-    int divisor = 10;
+// Three parameters - Integer, string buffer, integer base (1-16)
+void itoa(int num, char *buffer, int base) {
+    char bchars[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}; // int -> char conversion thingy
+    char tbuf[32]; // Temporary buffer
+    int pos = 0;
+    int opos = 0;
+    int top = 0;
 
-    /* If %d is specified and D is minus, put ‘-’ in the head. */
-    if (base == 'd' && num < 0) {
-        *p++ = '-';
-        buffer++;
-        ud = -num;
-    } else if (base == 'x')
-        divisor = 16;
-
-    /* Divide UD by DIVISOR until UD == 0. */
-    do {
-        int remainder = ud % divisor;
-        *p++ = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
-    } while (ud /= divisor);
-
-    /* Terminate buffer. */
-    *p = 0;
-
-    /* Reverse buffer. */
-    p1 = buffer;
-    p2 = p - 1;
-    while (p1 < p2) {
-        char tmp = *p1;
-        *p1 = *p2;
-        *p2 = tmp;
-        p1++;
-        p2--;
+    if (num < 0) { // We need to do a little extra work if the value is negative.
+        *buffer++ = '-';
+        num *= -1;
     }
 
-    
+    if (num == 0 || base > 16) { // Don't even bother if the base is greater than 16 or the number is 0.
+        buffer[0] = '0';
+        buffer[1] = '\0';
+        return;
+    }
 
+    // First, get the character
+    while (num != 0) {
+        tbuf[pos] = bchars[num % base];
+        pos++;
+        num /= base;
+    }
+
+    top = pos--;
+
+    for (opos = 0; opos < top; pos--,opos++) 
+        buffer[opos] = tbuf[pos];
+    
+    buffer[opos] = 0;
+}
+
+
+// strcpy() - copies a string to a string.
+// Two parameters - destination and source.
+char *strcpy(char *dest, const char *src) {
+    char *dest_p = dest;
+    while (*dest++ = *src++); // Copy all the contents of src to destination.
+    return dest_p;
 }
