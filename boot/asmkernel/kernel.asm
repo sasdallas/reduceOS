@@ -74,7 +74,7 @@ main:
     ; Before we enter protected mode, we need to load our C kernel. 
     ; BIOS interrupts aren't supported in pmode, so we do it here. 
     ; ES is already set to the proper values.
-    mov al, 7                                   ; AL - sector amount to read
+    mov al, 15                                   ; AL - sector amount to read
     mov bx, kernelOffset                        ; Read to 0x1000 (remember it reads to ES:BX)
     mov cl, 4                                   ; Starting from sector 4, which in our case is 0x600(where the code is located)
     call readSector                             ; Read the sector
