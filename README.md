@@ -2,6 +2,9 @@
 Welcome to the in progress development of the new reduceOS.\
 If you would like to learn more about the development of the kernel, scroll down.
 
+
+![reduceOS image](reduceOSDemo.png)
+
 #### Please read the credits!
 
 # What's different?
