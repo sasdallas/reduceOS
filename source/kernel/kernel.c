@@ -67,5 +67,5 @@ void kmain() {
     
     i86_pitStartCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
 
-    enableHardwareInterrupts();
+    // Enabling hardware interrupts triple faults QEMU, so worry about that later.
 }
