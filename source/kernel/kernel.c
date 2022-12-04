@@ -21,6 +21,15 @@ void updateBottomText(char *bottomText) {
     return;
 }
 
+void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
+	asm volatile("cpuid"
+				: "=a"(*eax), "=b"(*ebx), "=c"(ecx), "=d"(*edx)
+				: "0"(type)); // Add type to ea
+}
+
+
+
+
 
 void kmain() {
     initTerminal(); // Initialize the terminal and clear the screen
@@ -39,5 +48,24 @@ void kmain() {
     idtInit(0x8);
     
     
+    uint32_t vendor[32];
+    
+    memset(vendor, 0, sizeof(vendor));
+    
+    __cpuid(0x80000002, (uint32_t *)vendor+0x0, (uint32_t *)vendor+0x1, (uint32_t *)vendor+0x2, (uint32_t *)vendor+0x3);
+    __cpuid(0x80000003, (uint32_t *)vendor+0x4, (uint32_t *)vendor+0x5, (uint32_t *)vendor+0x6, (uint32_t *)vendor+0x7);
+    __cpuid(0x80000004, (uint32_t *)vendor+0x8, (uint32_t *)vendor+0x9, (uint32_t *)vendor+0xa, (uint32_t *)vendor+0xb);
+    
+    printf("CPU Vendor: %s\n", vendor);
+    
+    updateBottomText("Initializing PIC...");
+    i86_picInit(0x20, 0x28);
 
+    
+    updateBottomText("Initializing PIT...");
+    i86_pitInit();
+    
+    i86_pitStartCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
+
+    enableHardwareInterrupts();
 }
