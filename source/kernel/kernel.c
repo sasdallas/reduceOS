@@ -61,6 +61,7 @@ void kmain() {
     i86_pitInit();
     i86_pitStartCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
 
+<<<<<<< HEAD
     updateBottomText("Initializing PIC...");
     i86_picInit(0x20, 0x28);
 
@@ -73,3 +74,7 @@ void kmain() {
         
     }
 }
+=======
+    // Enabling hardware interrupts triple faults QEMU, so worry about that later.
+}
+>>>>>>> eef6eb9947e4330f0b308cd56ee5a17b20524419
