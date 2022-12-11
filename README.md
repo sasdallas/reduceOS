@@ -17,6 +17,10 @@ The assembly code shouldn't look that messy. If it is, start a pull request/cont
 # What's the current stage?
 Getting IDT, GDT, and HAL up and running
 
+# Known Bugs
+- **Critical:** sti function triple-faults QEMU. This means development must fix this bug before any new things can be implmented.
+- Video bug, bottom gray bar not going all the way to the side, crashes QEMU for some reason.
+- No stack-smashing protector for printf.
 
 # Credits
 BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. reduceOS rewrite's basic design is mainly built off their code. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
