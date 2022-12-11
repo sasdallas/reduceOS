@@ -5,7 +5,7 @@
 
 // Includes
 #include "include/idt.h" // Interrupt Descriptor Table
-#include "include/gdt.h" // Global Descriptor Table
+
 #include "include/hal.h" // Hardware Abstraction Layer
 #include "include/terminal.h" // Terminal output (printf)
 

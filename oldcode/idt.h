@@ -13,6 +13,7 @@
 #include "include/libc/va_list.h" // va_list declared here.
 #include "include/panic.h" // panic function for unregistered interrupt handler
 #include "include/terminal.h" // printf() and other terminal functions
+#include "include/isr.h" // Interrupt Service Routines
 
 
 // Definitions

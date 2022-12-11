@@ -14,7 +14,6 @@
 #include "include/graphics.h" // Graphics handling
 #include "include/terminal.h" // Terminal handling
 #include "include/idt.h" // Interrupt Descriptor Table
-#include "include/gdt.h" // Global Descriptor Table
 #include "include/pic.h" // Programmable Interrupt Controller
 #include "include/pit.h" // Programmable Interval Timer
 #include "include/hal.h" // Hardware Abstraction Layer
