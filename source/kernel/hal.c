@@ -46,3 +46,10 @@ uint8_t inportb(uint16_t port) {
 void outportb(uint16_t port, uint8_t value) {
     asm volatile("outb %1, %0" :: "dN"(port), "a"(value));
 }
+
+// void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) - Returns an assembly cpuid instruction's results.
+void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
+	asm volatile("cpuid"
+				: "=a"(*eax), "=b"(*ebx), "=c"(ecx), "=d"(*edx)
+				: "0"(type)); // Add type to ea
+}

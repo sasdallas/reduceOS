@@ -21,11 +21,7 @@ void updateBottomText(char *bottomText) {
     return;
 }
 
-void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
-	asm volatile("cpuid"
-				: "=a"(*eax), "=b"(*ebx), "=c"(ecx), "=d"(*edx)
-				: "0"(type)); // Add type to ea
-}
+
 
 
 
@@ -41,13 +37,14 @@ void kmain() {
     updateTerminalColor(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
     printf("reduceOS is loading, please wait...\n");
 
-    updateBottomText("Initializing GDT...");
-    gdtInitialize();
+    // updateBottomText("Initializing GDT...");
+    // gdtInitialize();
+
 
     updateBottomText("Initializing IDT...");
     idtInit(0x8);
     
-    
+
     uint32_t vendor[32];
     
     memset(vendor, 0, sizeof(vendor));
@@ -58,14 +55,21 @@ void kmain() {
     
     printf("CPU Vendor: %s\n", vendor);
     
-    updateBottomText("Initializing PIC...");
-    i86_picInit(0x20, 0x28);
-
+    
     
     updateBottomText("Initializing PIT...");
     i86_pitInit();
-    
     i86_pitStartCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
 
+    updateBottomText("Initializing PIC...");
+    i86_picInit(0x20, 0x28);
+
+    updateBottomText("Setting up exception handlers...");
+    isrInstall();
     enableHardwareInterrupts();
+
+
+    for (;;) {
+        
+    }
 }

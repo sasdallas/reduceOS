@@ -13,7 +13,7 @@
 #include "include/terminal.h"
 
 // Definitions
-#define MAX_DESCRIPTORS 3 // The maximum amount of descriptors allowed
+#define MAX_DESCRIPTORS 8 // The maximum amount of descriptors allowed
 
 // GDT Descriptor access bit flags
 #define I86_GDT_DESC_ADDRESS        0x0001 // Set access bit - 00000001
@@ -39,7 +39,7 @@
 typedef struct {
     uint16_t limit; // Bits 0-15 of the segment limit
     uint16_t baseLow; // Bits 0-15 of the base address
-    uint16_t baseMid; // Bits 16-23 of the base address
+    uint8_t baseMid; // Bits 16-23 of the base address
     uint16_t baseHigh; // Bits 24-32 of the base address
     uint8_t flags; // Descriptor access flags
     uint8_t grand;
@@ -54,7 +54,7 @@ typedef struct {
 
 // Functions
 
-extern void gdtSetDescriptor(uint32_t i, uint64_t base, uint64_t limit, uint8_t access, uint8_t grand); // Setup a descriptor in the GDT
+extern void gdtSetDescriptor(uint32_t i, uint32_t base, uint32_t limit, uint8_t access, uint8_t grand); // Setup a descriptor in the GDT
 extern gdt_descriptor* i86_gdtGetDescriptor(int i); // Returns a descriptor.
 extern int gdtInitialize(); // Initialize the GDT
 

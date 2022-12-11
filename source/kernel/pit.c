@@ -84,5 +84,5 @@ void i86_pitInit() {
     // Update the isInitialized variable.
     pit_isInit = true;
     
-    printf("Programmable Interval Timer initialized.");
+    printf("Programmable Interval Timer initialized.\n");
 }
