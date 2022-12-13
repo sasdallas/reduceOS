@@ -18,8 +18,8 @@ The assembly code shouldn't look that messy. If it is, start a pull request/cont
 Getting IDT, GDT, and HAL up and running
 
 # Known Bugs
-- **Critical: ** ISR exception handlers are not properly initialized. WILL BE FIXED IN NEXT PATCH.
-- **Next patch: ** ISR exception handlers not pushing reg.int_no properly.
+- **Critical:** ISR exception handlers are not properly initialized. WILL BE FIXED IN NEXT PATCH.
+- **Next patch:** ISR exception handlers not pushing reg.int_no properly.
 - Video bug, bottom gray bar not going all the way to the side, crashes QEMU for some reason if I do.
 - No stack-smashing protector for printf.
 
