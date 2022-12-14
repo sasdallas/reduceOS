@@ -25,11 +25,7 @@ static void installIDT() {
     __asm__ ("lidt (%0)" :: "r"(&_idtptr));
 }
 
-// i86DefaultHandler() - Handles all interrupts
-static void i86DefaultHandler() {
-    panic("i86", "i86DefaultHandler", "Unhandled exception"); // Kernel panic
-    for(;;); // Infinite loop. Unreachable.
-}
+
 
 
 IDT* idtGetIR(uint32_t i) {
@@ -61,12 +57,7 @@ int idtInit(uint16_t segmentSelector) {
     _idtptr.limit = sizeof(_idt) - 1;
     _idtptr.base_addr = (uint32_t)&_idt[0];
 
-
-
-    // Register the default handlers
-    for (int i = 0; i <= I86_MAX_INTERRUPTS; i++) {
-        idtInstallIR(i, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, segmentSelector, i86DefaultHandler);
-    }
+    isrInstall(); // Install handlers
 
     installIDT(); // Install IDT
 

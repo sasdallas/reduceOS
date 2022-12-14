@@ -7,20 +7,6 @@
 #include "include/kernel.h" // Kernel header file
 
 
-// updateBottomText() - A kernel function to make handling the beginning graphics easier.
-void updateBottomText(char *bottomText) {
-    if (strlen(bottomText) > INT_MAX) return -1; // Overflow
-    
-    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY));
-
-    for (int i = 0; i < SCREEN_WIDTH - 1; i++) terminalPutcharXY(' ', vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY), i, SCREEN_HEIGHT - 1);
-    terminalWriteStringXY(bottomText, 0, SCREEN_HEIGHT - 1);
-
-
-    updateTerminalColor(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
-    return;
-}
-
 
 
 
@@ -37,10 +23,7 @@ void kmain() {
     updateTerminalColor(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
     printf("reduceOS is loading, please wait...\n");
 
-    // updateBottomText("Initializing GDT...");
-    // gdtInitialize();
-
-
+    
     updateBottomText("Initializing IDT...");
     idtInit(0x8);
     
@@ -54,27 +37,17 @@ void kmain() {
     __cpuid(0x80000004, (uint32_t *)vendor+0x8, (uint32_t *)vendor+0x9, (uint32_t *)vendor+0xa, (uint32_t *)vendor+0xb);
     
     printf("CPU Vendor: %s\n", vendor);
-    
-    
-    
+
+
     updateBottomText("Initializing PIT...");
     i86_pitInit();
-    i86_pitStartCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
 
-<<<<<<< HEAD
-    updateBottomText("Initializing PIC...");
-    i86_picInit(0x20, 0x28);
+    updateBottomText("Initializing keyboard...");
+    keyboardInitialize();
 
-    updateBottomText("Setting up exception handlers...");
-    isrInstall();
+    updateBottomText("Enabling interrupts...");
     enableHardwareInterrupts();
+    printf("Interrupts enabled.\n");
 
-
-    for (;;) {
-        
-    }
+    printf("Test scrolling!\n");
 }
-=======
-    // Enabling hardware interrupts triple faults QEMU, so worry about that later.
-}
->>>>>>> eef6eb9947e4330f0b308cd56ee5a17b20524419

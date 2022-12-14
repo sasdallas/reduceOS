@@ -48,9 +48,19 @@ void terminalGotoXY(size_t x, size_t y) {
 // Unlike the alpha, this one has terminal scrolling!
 // scrollTerminal() - Scrolls the terminal
 void scrollTerminal() {
-    for (int i = 0; SCREEN_HEIGHT-1; ++i) {
-                memmove(&terminalBuffer[i*SCREEN_WIDTH],
-                        &terminalBuffer[(i+1)*SCREEN_WIDTH], SCREEN_WIDTH);
+    uint16_t blank = vgaEntry(" ", terminalColor);
+
+    if (terminalY >= SCREEN_HEIGHT) {
+        int i;
+        for (i = 0*SCREEN_WIDTH; i < (SCREEN_HEIGHT-1) * SCREEN_WIDTH; i++) {
+            terminalBuffer[i] = terminalBuffer[i+SCREEN_WIDTH];
+        }
+
+        for (int i = (SCREEN_HEIGHT-1)*80; i < SCREEN_HEIGHT*80; i++) {
+            terminalBuffer[i] = blank;
+        }
+
+        terminalY = SCREEN_HEIGHT - 1;
     }
 }
 
@@ -101,10 +111,7 @@ void terminalPutchar(char c) {
     }
 
     // Perform the scrolling stuff for Y
-    if (terminalY == SCREEN_HEIGHT) {
-        scrollTerminal();
-        terminalY = SCREEN_HEIGHT - 1;
-    }
+    scrollTerminal();
 }
 
 // terminalWrite(const char *data, size_t size) - Writes a certain amount of data to the terminal.
@@ -118,8 +125,8 @@ void terminalWriteString(const char *data) { terminalWrite(data, strlen(data)); 
 
 
 void terminalWriteStringXY(const char *data, size_t x, size_t y) {
-    size_t previousX = terminalX;
-    size_t previousY = terminalY; // Store terminalX and terminalY in temporary variables
+    size_t previousX = terminalX; // Store terminalX and terminalY in temporary variables
+    size_t previousY = terminalY; 
 
     terminalX = x; // Update terminalX & terminalY
     terminalY = y;
@@ -129,6 +136,23 @@ void terminalWriteStringXY(const char *data, size_t x, size_t y) {
     terminalX = previousX; // Restore terminalX & terminalY to their previous values.
     terminalY = previousY;
 }
+
+// updateBottomText() - A kernel function to make handling the beginning graphics easier.
+void updateBottomText(char *bottomText) {
+    if (strlen(bottomText) > INT_MAX) return -1; // Overflow
+    
+    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY));
+
+    for (int i = 0; i < SCREEN_WIDTH - 1; i++) terminalPutcharXY(' ', vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY), i, SCREEN_HEIGHT - 1);
+    terminalWriteStringXY(bottomText, 0, SCREEN_HEIGHT - 1);
+
+
+    updateTerminalColor(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
+    return;
+}
+
+
+
 
 // *************************************************************************************************
 // Some of the following functions are helper functions to printf, as they need to return a value. 

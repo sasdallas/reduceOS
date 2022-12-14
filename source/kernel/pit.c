@@ -11,15 +11,8 @@ static bool pit_isInit = false; // Is the PIT initialized?
 
 
 // PIT timer interrupt handler
-void i86_pitIRQ() {
-    
-    
+void i86_pitIRQ() { 
     pitTicks++; // Increment tick count
-
-    // Notify HAL we are done.
-    interruptCompleted(0);
-
-    
 }
 
 
@@ -79,7 +72,7 @@ void i86_pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) {
 // void i86_pitInit() - Initialize PIT
 void i86_pitInit() {
     // Install our interrupt handler (IRQ 0 uses INT 32)
-    setVector(32, i86_pitIRQ);
+    isrRegisterInterruptHandler(32, i86_pitIRQ);
 
     // Update the isInitialized variable.
     pit_isInit = true;
