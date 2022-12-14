@@ -17,12 +17,8 @@
 #include "include/pic.h" // Programmable Interrupt Controller
 #include "include/pit.h" // Programmable Interval Timer
 #include "include/hal.h" // Hardware Abstraction Layer
-
-// Functions
-
-void updateBottomText(char *bottomText); // updateBottomText() - Changes the text on the bottom of the screen.
-
-
+#include "include/keyboard.h" // Keyboard driver
+#include "include/panic.h" // kernel panicking
 
 
 #endif

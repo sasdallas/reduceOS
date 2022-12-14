@@ -35,6 +35,7 @@ void terminalPutchar(char c); // terminalPutchar() - Recommended function. Incor
 void terminalWrite(const char *data, size_t size); // terminalWrite() - This nor terminalWriteString is recommended for use. Use printf. It prints data using a for loop, but needs length.
 void terminalWriteString(const char* data); // terminalWriteString() - The exact same as terminalWrite but with strlen() included.
 void terminalWriteStringXY(const char *data, size_t x, size_t y); // terminalWriteStringXY() - Moves the terminal to X and Y, prints the string, then moves back to the original position.
+void updateBottomText(char *bottomText); // updateBottomText() - A function to update that bottom bar of text
 int printf(const char* restrict format, ...); // printf() - the main function of the entire file. Handles unlimited arguments, %s and %c, and scrolling.
 
 // As described in the C file, certain printf functions are NOT present in this file, like putc and print, as they are only helper functions for printf.

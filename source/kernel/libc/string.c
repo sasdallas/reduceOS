@@ -118,3 +118,20 @@ char *strcpy(char *dest, const char *src) {
     while (*dest++ = *src++); // Copy all the contents of src to destination.
     return dest_p;
 }
+
+// upper() - turns a string uppercase
+// takes one parameter - string.
+char upper(char c) {
+    if ((c >= 'a') && (c <= 'z'))
+        return (c - 32);
+    return c;
+}
+
+
+// lower() - turns a string lowercase
+// Takes one parameter - string.
+char lower(char c) {
+    if ((c >= 'A') && (c <= 'Z'))
+        return (c + 32);
+    return c;
+}

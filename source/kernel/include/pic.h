@@ -8,7 +8,6 @@
 
 #include "include/hal.h" // Hardware Abstraction Layer
 #include "include/terminal.h" // Terminal output (printf)
-
 #include "include/libc/stdint.h" // Integer types like uint8_t, uint16_t, etc...
 
 

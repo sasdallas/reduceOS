@@ -8,20 +8,16 @@
 
 // void interruptCompleted(uint32_t intNo) - Notifies HAL interrupt is done.
 void interruptCompleted(uint32_t intNo) {
-    // Ensure its a valid hardware IRQ
-    if (intNo > 16) return;
+    outportb(0x20, 0x20);
 
     // Do we need to send EOI to second PIC?
-    if (intNo >= 8) i86_picSendCommand(I86_PIC_OCW2_MASK_EOI, 1);
-
-    // Always send EOI to first PIC.
-    i86_picSendCommand(I86_PIC_OCW2_MASK_EOI, 0);
+    if (intNo >= 8) outportb(0xA0, 0x20);
 }
 
 
-// void setVector(int intNo, far vect) - Sets a new interrupt vector.
-void setVector(int intNo, void (far vect) ( ) ) {
-    idtInstallIR(intNo, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x8, vect);
+// void setVector(int intNo, uint32_t vect) - Sets a new interrupt vector.
+void setVector(int intNo, uint32_t vect) {
+    idtInstallIR(intNo, 0x8E, 0x08, (uint32_t) vect);
 }
 
 // void enableHardwareInterrupts() - Enable hardware interrupts

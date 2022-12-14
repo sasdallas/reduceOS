@@ -11,9 +11,7 @@
 #include "include/libc/limits.h" // Limits on integers and more.
 #include "include/libc/stdarg.h" // va argument handling (for ... on printf)
 #include "include/libc/va_list.h" // va_list declared here.
-#include "include/panic.h" // panic function for unregistered interrupt handler
 #include "include/terminal.h" // printf() and other terminal functions
-
 
 // Definitions
 
