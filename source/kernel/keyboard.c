@@ -8,7 +8,7 @@
 
 static void keyboardHandler(REGISTERS *r) {
     uint8_t scancode = inportb(0x60);
-    printf("Scancode: 0x%x", scancode);
+    printf("Scancode: 0x%x\n", scancode);
     return;
 }
 

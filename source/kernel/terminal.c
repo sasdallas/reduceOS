@@ -48,7 +48,7 @@ void terminalGotoXY(size_t x, size_t y) {
 // Unlike the alpha, this one has terminal scrolling!
 // scrollTerminal() - Scrolls the terminal
 void scrollTerminal() {
-    uint16_t blank = vgaEntry(" ", terminalColor);
+    uint16_t blank = 0x20 | (terminalColor << 8);
 
     if (terminalY >= SCREEN_HEIGHT) {
         int i;
@@ -56,7 +56,7 @@ void scrollTerminal() {
             terminalBuffer[i] = terminalBuffer[i+SCREEN_WIDTH];
         }
 
-        for (int i = (SCREEN_HEIGHT-1)*80; i < SCREEN_HEIGHT*80; i++) {
+        for (int i = (SCREEN_HEIGHT - 1) * SCREEN_WIDTH; i < SCREEN_HEIGHT * SCREEN_WIDTH; i++) {
             terminalBuffer[i] = blank;
         }
 
