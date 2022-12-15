@@ -7,6 +7,11 @@ RM = rm
 MKDIR = mkdir -p
 CP = cp -f
 
+dd = dd
+qemu-system-x86_64 = qemu-system-x86_64
+qemu-img = qemu-img
+
+
 # Directories
 KERNEL_SOURCE = source/kernel
 ASM_LOADER = boot/loader
@@ -71,6 +76,21 @@ $(OUT_ASM)/asmkernel.bin: $(ASM_KERNEL_SRCS)
 	$(ASM) $(ASM_FLAGS) $< -I $(ASM_KERNEL)/ -o $@ 
 	@printf "\n"
 
+
+img: $(OUT_ASM)/asmkernel.bin $(OUT_ASM)/loader.bin $(OUT_KERNEL)/kernel.bin
+	@printf "[ Creating image file (requires qemu-img)... ]\n"
+	@$(qemu-img) create out/img/reduceOS.img 100M
+	@printf "[ Writing boot sector to image... ]\n"
+	@$(dd) if=out/boot/loader.bin of=out/img/reduceOS.img bs=512 count=1
+	@printf "[ Writing assembly kernel to image... ]\n"
+	@$(dd) if=out/boot/asmkernel.bin of=out/img/reduceOS.img bs=512 seek=1
+	@printf "[ Writing kernel to image... ]\n"
+	@$(dd) if=out/kernel/kernel.bin of=out/img/reduceOS.img bs=512 seek=3
+	@printf "[ Done! Run make qemu to execute QEMU... ]\n"
+
+qemu:
+	@printf "[ Launching QEMU... ]\n"
+	@${qemu-system-x86_64} -hda out/img/reduceOS.img
 
 clean:
 	@printf "[ Deleting assembly binary files... ]\n"
