@@ -18,6 +18,6 @@ void* memmove(void*, const void*, size_t); // memmove() - memcpy but moving it i
 void *memset(void* buf, int c, size_t n); // memset() - set a buffer in memory to given value
 void itoa(int num, char* buffer, int base); // itoa() - converts an integer to a string. stores in buffer so no return value.
 char *strcpy(char *dest, const char *src); // strcpy() - copies one string to another
-char upper(char c); // upper() - turns a string uppercase
-char lower(char c); // lower() - turns a string lowercase
+char toupper(char c); // toupper() - turns a character uppercase
+char tolower(char c); // tolower() - turns a character lowercase
 #endif

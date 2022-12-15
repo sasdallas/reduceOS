@@ -20,6 +20,7 @@ static size_t terminalY; // Y position of terminal buffer, or row
 static uint8_t terminalColor; // The current color of the terminal.
 static uint16_t *terminalBuffer; // The most important one: the terminal buffer.
 
+
 // VGA memory address, width, height etc are stored in graphics.h.
 
 // Function declarations
@@ -34,7 +35,9 @@ void clearScreen(uint8_t color); // clearScreen() - Clears the terminal screen.
 void terminalPutchar(char c); // terminalPutchar() - Recommended function. Incorporates scrollTerminal and terminalDeleteLastLine.
 void terminalWrite(const char *data, size_t size); // terminalWrite() - This nor terminalWriteString is recommended for use. Use printf. It prints data using a for loop, but needs length.
 void terminalWriteString(const char* data); // terminalWriteString() - The exact same as terminalWrite but with strlen() included.
+void terminalBackspace(); // terminalBackspace() - Removes the last character printed.
 void terminalWriteStringXY(const char *data, size_t x, size_t y); // terminalWriteStringXY() - Moves the terminal to X and Y, prints the string, then moves back to the original position.
+void terminalMoveArrowKeys(int arrowKey); // terminalMoveArrowKeys() - used by keyboard.c, a function to move the cursor around
 void updateBottomText(char *bottomText); // updateBottomText() - A function to update that bottom bar of text
 int printf(const char* restrict format, ...); // printf() - the main function of the entire file. Handles unlimited arguments, %s and %c, and scrolling.
 

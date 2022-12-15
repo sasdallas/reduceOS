@@ -62,6 +62,9 @@ void scrollTerminal() {
 
         terminalY = SCREEN_HEIGHT - 1;
     }
+
+    
+
 }
 
 
@@ -88,21 +91,29 @@ void clearScreen(uint8_t color) {
     return;
 }
 
+// updateTextCursor() - Updates the text mode cursor to whatever terminalX and terminalY are.
+void updateTextCursor() {
+    uint16_t pos = terminalY * SCREEN_WIDTH + terminalX;
+
+    outportb(0x3D4, 14);
+    outportb(0x3D5, pos >> 8);
+    outportb(0x3D4, 15);
+    outportb(0x3D5, pos);
+}
+
+
+void terminalMoveArrowKeys(int arrowKey) {
+    if (arrowKey == 0 && terminalX != 0) {
+        terminalGotoXY(terminalX - 1, terminalY);
+    } else if (arrowKey == 1 && terminalX != SCREEN_WIDTH) {
+        terminalGotoXY(terminalX + 1, terminalY);
+    }
+}
+
 // terminalPutchar(char c) - This is the recommended function to use (besides printf, that'll be later) as it incorporates scrollTerminal and terminalDeleteLastLine.
 void terminalPutchar(char c) {
     int line;
     unsigned char uc = c; // terminalPutcharXY() requires an unsigned char.
-
-
-    // Checking if c is a newline or not.
-    if (c == '\n') {
-        terminalY++; // Increment terminal Y
-        terminalX = 0; // Increment terminal X
-    } else {
-        terminalPutcharXY(uc, terminalColor, terminalX, terminalY); // Place an entry at terminal X and Y.
-        terminalX++;
-    }
-
 
     // Perform the scrolling stuff for X
     if (terminalX == SCREEN_WIDTH) {
@@ -112,6 +123,28 @@ void terminalPutchar(char c) {
 
     // Perform the scrolling stuff for Y
     scrollTerminal();
+
+
+    // Checking if c is a special character or not.
+    if (c == '\n') {
+        terminalY++; // Increment terminal Y
+        terminalX = 0; // Increment terminal X
+    } else if (c == '\0') {
+        // do nothing
+    } else if (c == '\t') {
+        for (int i = 0; i < 4; i++) {
+            terminalPutchar(' ');
+        }
+    } else {
+        terminalPutcharXY(uc, terminalColor, terminalX, terminalY); // Place an entry at terminal X and Y.
+        terminalX++;
+    }
+
+
+    
+
+    // Update text mode cursor
+    updateTextCursor();
 }
 
 // terminalWrite(const char *data, size_t size) - Writes a certain amount of data to the terminal.
@@ -123,6 +156,19 @@ void terminalWrite(const char *data, size_t size) {
 // terminalWriteString() - The exact same as terminal write, but shorter with no len option (we use strlen). Not recommended for use, use printf (further down in the file)!
 void terminalWriteString(const char *data) { terminalWrite(data, strlen(data)); }
 
+// terminalBackspace() - Removes the last character outputed.
+void terminalBackspace() {
+    if (terminalX == 0) return; // terminalX being 0 would cause a lot of problems.
+
+    // First, go back one character.
+    terminalGotoXY(terminalX-1, terminalY);
+
+    // Then, write a space where the character is.
+    terminalPutchar(' ');
+
+    // Finally, set terminalX to one below current.
+    terminalGotoXY(terminalX-1, terminalY);
+}
 
 void terminalWriteStringXY(const char *data, size_t x, size_t y) {
     size_t previousX = terminalX; // Store terminalX and terminalY in temporary variables
@@ -143,7 +189,7 @@ void updateBottomText(char *bottomText) {
     
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY));
 
-    for (int i = 0; i < SCREEN_WIDTH - 1; i++) terminalPutcharXY(' ', vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY), i, SCREEN_HEIGHT - 1);
+    for (int i = 0; i < SCREEN_WIDTH; i++) terminalPutcharXY(' ', vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY), i, SCREEN_HEIGHT - 1);
     terminalWriteStringXY(bottomText, 0, SCREEN_HEIGHT - 1);
 
 
@@ -198,14 +244,13 @@ int printf(const char*  format, ...) {
             case '%': // In the case that it's a percent sign, check what character is after it.
 
                 switch(format[i+1]) {
-                    // There are a few possible characters after this, mainly %c, %s, %d, %x, and %i.
-                    
+                    // There are a few possible characters after this, mainly %c, %s, %d, %x, and %i
                     // %c is for characters.
                     case 'c': {
                         char c = va_arg(args, char); // We need to get the next argument that is a character.
                         
                         
-                        if (!print(c, 1)) return -1; // Print error!
+                        if (!putc(c)) return -1; // Print error!
 
                         charsWritten++; // Increment charsWritten.
                         i++; // Increment i.
