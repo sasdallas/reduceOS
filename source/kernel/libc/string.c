@@ -119,19 +119,24 @@ char *strcpy(char *dest, const char *src) {
     return dest_p;
 }
 
-// upper() - turns a string uppercase
-// takes one parameter - string.
-char upper(char c) {
+// toupper() - turns a char uppercase
+// One parameter - char.
+char toupper(char c) {
     if ((c >= 'a') && (c <= 'z'))
         return (c - 32);
     return c;
 }
 
 
-// lower() - turns a string lowercase
-// Takes one parameter - string.
-char lower(char c) {
+// tolower() - turns a char lowercase
+// One parameter - char.
+char tolower(char c) {
     if ((c >= 'A') && (c <= 'Z'))
         return (c + 32);
     return c;
+}
+
+// isalpha() - returns if a char is in the alphabet
+int isalpha(char ch) {
+    return (((ch >= 'A') && (ch <= 'Z')) || ((ch >= 'a') && (ch <= 'z')));
 }

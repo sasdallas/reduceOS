@@ -11,8 +11,8 @@
 
 // Basic graphics definitions, like the video memory address
 static uint16_t* const VIDEO_MEM = (uint16_t*) 0xB8000;
-static const size_t SCREEN_WIDTH = 80;
-static const size_t SCREEN_HEIGHT = 25; 
+static size_t SCREEN_WIDTH = 80;
+static size_t SCREEN_HEIGHT = 25; 
 
 // Color enumerator.
 enum gfxColor {
@@ -41,4 +41,6 @@ static inline uint16_t vgaEntry(unsigned char uc, uint8_t color) { return (uint1
 // vgaColorEntry() - Function returns a valid VGA color entry.
 // Parameters: Two gfxColor enums, foreground color and background color
 static inline uint8_t vgaColorEntry(enum gfxColor foreground, enum gfxColor background) { return foreground | background << 4; }
+
+
 #endif

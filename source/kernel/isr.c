@@ -11,7 +11,6 @@ ISR interruptHandlers[256]; // A list of all interrupt handlers
 
 // isrRegisterInterruptHandler(int num, ISR handler) - Registers an interrupt handler.
 void isrRegisterInterruptHandler(int num, ISR handler) {
-    printf("ISR handler %i has been registered.\n", num);
     if (num < 256) { interruptHandlers[num] = handler; }
 }
 
@@ -81,7 +80,6 @@ void isrInstall() {
     setVector(30, (uint32_t) isr30);
     setVector(31, (uint32_t) isr31);
 
-        
     // Initialize PIC
     i86_picInit(0x20, 0x28);
     

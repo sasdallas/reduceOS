@@ -18,9 +18,8 @@ The assembly code shouldn't look that messy. If it is, start a pull request/cont
 Getting IDT, GDT, and HAL up and running
 
 # Known Bugs
-- **Critical:** ISR exception handlers are not properly initialized. WILL BE FIXED IN NEXT PATCH.
-- **Next patch:** ISR exception handlers not pushing reg.int_no properly.
-- Video bug, bottom gray bar not going all the way to the side, crashes QEMU for some reason if I do.
+- Terminal scrolling can scroll the bottom bar of the screen sometimes (no way to fix easily, but not critical)
+- Sometimes, (randomly on QEMU), holding SHIFT and pressing space doesn't do a space.
 - No stack-smashing protector for printf.
 
 # Credits

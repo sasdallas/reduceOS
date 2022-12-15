@@ -8,14 +8,8 @@
 #include "include/libc/stdbool.h" // Booleans
 #include "include/terminal.h" // Terminal functions, like printf
 #include "include/hal.h" // Hardware Abstraction Layer
+#include "include/regs.h" // REGISTERS typedef
 
-// Typedefs
-typedef struct {
-    uint32_t ds;
-    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;  // pushed by pusha
-    uint32_t int_no, err_code;                        // Interrupt # and error code
-    uint32_t eip, cs, eflags, useresp, ss;            // pushed by the processor automatically
-} REGISTERS;
 
 
 // Functions
