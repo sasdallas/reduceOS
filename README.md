@@ -20,6 +20,8 @@ The assembly code shouldn't look that messy. If it is, start a pull request/cont
 Adding memory mapping and adding multitasking
 
 # Known Bugs
+- **Very Annoying:** Keyboard buffer has trouble keeping up with all characters.
+- A little bit of disgusting code in `keyboardGetChar()` (unsure how to fix)
 - Terminal scrolling can scroll the bottom bar of the screen sometimes (no way to fix easily, but not critical)
 - Sometimes, (randomly on QEMU), holding SHIFT and pressing space doesn't do a space.
 - No stack-smashing protector for printf.
