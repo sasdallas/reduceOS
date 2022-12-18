@@ -68,10 +68,10 @@ void* memset(void *buf, int c, size_t n) {
 }
 
 // strlen() - Returns the length of a string(size_t)
-// One parameter - str(const char*)
-size_t strlen(const char* str) {
-    size_t stringLength = 0;
-    while (*str++) stringLength++;
+// One parameter - str(char[])
+int strlen(char str[]) {
+    int stringLength = 0;
+    while (str[stringLength] != '\0') stringLength++;
     return stringLength;
 }
 
@@ -139,4 +139,16 @@ char tolower(char c) {
 // isalpha() - returns if a char is in the alphabet
 int isalpha(char ch) {
     return (((ch >= 'A') && (ch <= 'Z')) || ((ch >= 'a') && (ch <= 'z')));
+}
+
+// strcmp() - compares s1 to s2
+// Two parameters - string #1 and #2.
+int strcmp(const char *s1, char *s2) {
+    int i = 0;
+
+    while ((s1[i] == s2[i])) {
+        if (s2[i++] == 0)
+            return 0;
+    }
+    return 1;
 }
