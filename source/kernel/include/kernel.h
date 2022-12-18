@@ -18,7 +18,6 @@
 #include "include/pit.h" // Programmable Interval Timer
 #include "include/hal.h" // Hardware Abstraction Layer
 #include "include/keyboard.h" // Keyboard driver
-#include "include/panic.h" // kernel panicking
-
+#include "include/panic.h" // Kernel panicking
 
 #endif

@@ -101,7 +101,7 @@ void updateTextCursor() {
     outportb(0x3D5, pos);
 }
 
-
+// No function description. Proprietary function used only by keyboard driver.
 void terminalMoveArrowKeys(int arrowKey) {
     if (arrowKey == 0 && terminalX != 0) {
         terminalGotoXY(terminalX - 1, terminalY);
@@ -129,6 +129,8 @@ void terminalPutchar(char c) {
     if (c == '\n') {
         terminalY++; // Increment terminal Y
         terminalX = 0; // Increment terminal X
+    } else if (c == '\b') {
+        terminalBackspace(); // Handle backspace
     } else if (c == '\0') {
         // do nothing
     } else if (c == '\t') {

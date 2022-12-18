@@ -47,8 +47,10 @@
 #define SCANCODE_F12 0x58
 #define SCANCODE_TAB 0x0F
 #define SCANCODE_SPACE 0x39
-
 #define SCANCODE_EXTENDEDBYTE 0xE0
+
+#define MAX_BUFFER_CHARS 256    // We can hold about 256 chars - this is a hard limit (as of now). TODO: Possibly, if it turns out we do need to have 256 chars as a hard limit, add a speaker beep that will notify the user when the buffer is overflowing.
+
 
 // Typedefs
 
@@ -74,6 +76,6 @@ typedef enum LEDStates {
 static void keyboardHandler(REGISTERS *r); // keyboardHandler() - Identifies scancodes, printing, etc. Should NEVER be called outside of isrIRQHandler (REGISTERS are passed from the assembly code.)
 void keyboardInitialize(); // keyboardInit() - Registers keyboardHandler on IRQ 33 - enabling the keyboard.
 void enableKBHandler(bool state); // enableKBHandler() - Enables / disables the keyboard. Used when setting up the kernel (we don't want those pesky users mucking up our output, do we?)
-
-
+void keyboardGetLine(char *out); // keyboardGetLine() - Returns keyboard input after ENTER key is pressed.
+char keyboardGetChar(); // keyboardGetChar() - Returns the current character char (after waiting for it to be non-0)
 #endif

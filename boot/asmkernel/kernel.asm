@@ -17,6 +17,7 @@ jmp  main
 %include "include/gdt.inc"
 %include "include/a20.inc"
 
+
 ; ---------------------------------------
 ; Data and strings
 ; ---------------------------------------
@@ -25,9 +26,6 @@ jmp  main
 preparing db "Loading reduceOS...", 0x0D, 0x0A, 0x00
 readErrorStr db "Error reading sectors.", 0x0D, 0x0A, 0x00
 kernelOffset equ 0x1000
-
-
-
 
 ; -------------------------------------------------------------------
 ; readSector - Purpose is to load the actual C kernel to 0x1000
@@ -63,23 +61,23 @@ loadGood:
 
 main:
     ; The loader has successfully loaded us to 0x0600! Continue with execution to protected mode!
-
+    
     call installGDT                             ; Install the GDT
     call enableA20_KKbrd_Out                    ; Enable A20
-   
+    
     mov si, preparing                           ; Print our preparing string
     call print16
 
-
+    
     ; Before we enter protected mode, we need to load our C kernel. 
     ; BIOS interrupts aren't supported in pmode, so we do it here. 
     ; ES is already set to the proper values.
-    mov al, 19                                   ; AL - sector amount to read
+    mov al, 40                                  ; AL - sector amount to read
     mov bx, kernelOffset                        ; Read to 0x1000 (remember it reads to ES:BX)
     mov cl, 4                                   ; Starting from sector 4, which in our case is 0x600(where the code is located)
     call readSector                             ; Read the sector
     
-
+    
 
 EnablePmode:
 
@@ -90,12 +88,14 @@ EnablePmode:
     mov  cr0, eax
 
     jmp  CODE_DESC:main32                       ; Far jump to fix CS
-    
+
 
 
 bits 32                                         ; We are now 32 bit!
 
-%include "include/stdio32.inc"
+%include "include/stdio32.inc"                  ; Printing
+%include "include/paging.inc"                   ; Paging
+
 
 main32:
     ; Set registers up
@@ -110,9 +110,11 @@ main32:
     call clear32                                ; Clear screen
     mov  ebx, buildNum
     call puts32                                 ; Call puts32 to print
-    
+
     mov ebx, kernOK                             ; Print our kernel okay message
     call puts32           
+
+    call enablePaging                           ; Enable paging.
 
     call kernelOffset                           ; The kernel is located at 
     jmp $

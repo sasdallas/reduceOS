@@ -20,4 +20,6 @@ void itoa(int num, char* buffer, int base); // itoa() - converts an integer to a
 char *strcpy(char *dest, const char *src); // strcpy() - copies one string to another
 char toupper(char c); // toupper() - turns a character uppercase
 char tolower(char c); // tolower() - turns a character lowercase
+int strcmp(const char *s1, char *s2); // strcmp() - compares a string.
+int strlen(char str[]); // strlen() - checks length of a string
 #endif

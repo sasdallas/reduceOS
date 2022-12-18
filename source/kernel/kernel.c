@@ -56,7 +56,7 @@ void kmain() {
     updateBottomText("Initializing PIT...");
     i86_pitInit();
 
-    // Initialize Keyboard (won't work until interrupts are enabled!)
+    // Initialize Keyboard (won't work until interrupts are enabled - that's when IRQ and stuff is enabled.)
     updateBottomText("Initializing keyboard...");
     keyboardInitialize();
     enableKBHandler(true);
@@ -66,7 +66,15 @@ void kmain() {
     updateBottomText("Enabling interrupts...");
     enableHardwareInterrupts();
     printf("Interrupts enabled.\n");
+    printf("reduceOS v1.0-dev has completed basic initialization.\n");
+    printf("Type something! The computer will (try) to keep up with you, but it might have some trouble. Have fun!\n");
 
-    printf("reduceOS v1.0-alpha has completed basic initialization.\nYou can type things now! Note that there are no commands, yet. Have fun!\n");
-    // The next we need to do is handle memory mapping. That will be in the next patch (along with shell)
-}
+    // The next we need to do is handle memory mapping (next patch).
+
+    char buffer[255]; // We will store keyboard input here.
+    while (true) {
+        memset(buffer, 0, sizeof(buffer));
+        keyboardGetLine(buffer);
+        printf("You typed: %s\n", buffer);
+    }
+}   

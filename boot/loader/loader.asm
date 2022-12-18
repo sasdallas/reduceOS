@@ -29,7 +29,7 @@ donePrint:
 ; =====================================================
 readSector:
     mov ah, 2h                  ; AH = second function of int 13h
-    mov al, 2                   ; Reading 2 sectors.
+    mov al, 2                    ; Reading 2 sectors.
     mov ch, 0                   ; Cylinder 0
     mov cl, 2                   ; Starting from sector 2(begins from 1 not 0)
     mov dh, 0                   ; Drive #0
