@@ -13,7 +13,7 @@
 
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
-void kmain() {
+void kmain(multiboot_info* mem) {
     initTerminal(); // Initialize the terminal and clear the screen
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
 
@@ -48,9 +48,17 @@ void kmain() {
     asm volatile ("movl $0x80000001, %%eax\n"
                 "cpuid\n" : "=d"(iedx) :: "eax", "ebx", "ecx");
 
+
     // Tell the user.
     printf("CPU Vendor: %s\n", vendor);
     printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
+
+    // Quickly inform the user of their available memory. (note: yes, I know 1 GB is equal 1000 MB and 1 MB is equal to 1000 KB, but for some reason it breaks things so I don't care)
+
+    int memoryGB = mem->m_memorySize / 1024 / 1024; 
+    int memoryMB = mem->m_memorySize / 1024 - (memoryGB * 1024);
+    int memoryKB = mem->m_memorySize - (memoryMB * 1024);
+    printf("Available memory: %i GB %i MB %i KB\n", memoryGB, memoryMB, memoryKB);
 
     // PIT timer
     updateBottomText("Initializing PIT...");
@@ -66,15 +74,19 @@ void kmain() {
     updateBottomText("Enabling interrupts...");
     enableHardwareInterrupts();
     printf("Interrupts enabled.\n");
-    printf("reduceOS v1.0-dev has completed basic initialization.\n");
-    printf("Type something! The computer will (try) to keep up with you, but it might have some trouble. Have fun!\n");
 
+    
+    
     // The next we need to do is handle memory mapping (next patch).
 
-    char buffer[255]; // We will store keyboard input here.
+    char buffer[256]; // We will store keyboard input here.
+    char *test;
     while (true) {
-        memset(buffer, 0, sizeof(buffer));
         keyboardGetLine(buffer);
-        printf("You typed: %s\n", buffer);
+        for (int i = 0; i < sizeof(buffer); i++) printf("%c", buffer[i]); // You can't print an array with %s in printf.
+        for (int i = 0; i < sizeof(buffer); i++) if (buffer[i] == '\n') buffer[i] = '\0'; // Remove newline characters
+        
+
+        // TODO: Figure out how to parse commands.
     }
-}   
+}

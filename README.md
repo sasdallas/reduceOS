@@ -4,7 +4,6 @@
 Welcome to the in progress development of the new reduceOS.\
 If you would like to learn more about the development of the kernel, scroll down.
 
-
 ![reduceOS image](reduceOSDemo.png)
 
 #### Please read the credits!
@@ -19,6 +18,23 @@ The assembly code shouldn't look that messy. If it is, start a pull request/cont
 # What's the current stage?
 Adding memory mapping and adding multitasking
 
+# Compiling
+### Again, even though we were having trouble with Linux builds before, Windows builds are NOT supported. Use WSL, mingw-32, or MSys to build.
+
+**To build reduceOS, you need these packages:** `gcc`, `nasm`, `make`, `qemu-tools` (specifically `qemu-img`), and `qemu-system` (for running)
+
+The makefile of reduceOS has two main targets for building - `all` and `dbg`.\
+The target to actually build the OS is `all`. If you need to do further debugging, use `dbg` **as well as** `all` (dbg only outputs some debugging symbols)
+
+Run `make` to build the OS, or `make all dbg` if you're trying to debug it.
+
+Now that you have built the OS, you need to write to the image file.\
+Run `make img` to create an image and write to it.
+
+Finally, you need to launch the OS. This can be done in a variety of different ways, but the Makefile uses QEMU.\
+Run `make qemu` to launch QEMU and start the OS.
+
+
 # Known Bugs
 - **Very Annoying:** Keyboard buffer has trouble keeping up with all characters.
 - A little bit of disgusting code in `keyboardGetChar()` (unsure how to fix)
@@ -27,8 +43,10 @@ Adding memory mapping and adding multitasking
 - No stack-smashing protector for printf.
 
 # Credits
-BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. reduceOS rewrite's basic design is mainly built off their code. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
+OSDev Wiki - Great resource for anyone looking into OS development. Helped with a ton of the basic principles and code. Link [here](https://wiki.osdev.org/)
+
+BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
 
 StackOverflow - Could never have gotten my custom bootloader without them. Question link [here](https://stackoverflow.com/questions/74172118/how-to-read-sector-into-memory-and-jump-to-it-for-os?noredirect=1#comment131168294_74172118)
 
-OSDev Wiki - Great resource for anyone looking into OS development. Helped with a ton of the basic principles and code. Link [here](https://wiki.osdev.org/)
+JamesM's kernel development tutorials - (no need for Internet Archive anymore) Really helped out with some of the basic concepts. Link [here](http://jamesmolloy.co.uk/tutorial_html/)

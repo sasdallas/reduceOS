@@ -5,7 +5,7 @@
 ; With <3 and thanks to the BrokenThorn Entertainment and StackOverflow
 
 bits 16                                 ; Beginning at 16-bits, switching to 32-bit later            
-org  0x0600                             ; Starting at address 0x0600, loaded in by loader.asm
+org  0x07C0                             ; Starting at address 0x0600, loaded in by loader.asm
 
 
 jmp  main
@@ -16,7 +16,8 @@ jmp  main
 %include "include/stdio.inc"
 %include "include/gdt.inc"
 %include "include/a20.inc"
-
+%include "include/memory.inc"
+%include "include/bootinfo.inc"
 
 ; ---------------------------------------
 ; Data and strings
@@ -25,7 +26,35 @@ jmp  main
 
 preparing db "Loading reduceOS...", 0x0D, 0x0A, 0x00
 readErrorStr db "Error reading sectors.", 0x0D, 0x0A, 0x00
-kernelOffset equ 0x1000
+kernelOffset equ 0x1100
+
+; Credit to BrokenThorn Entertainment for their structure of multiboot.
+boot_info:
+istruc multiboot_info
+	at multiboot_info.flags,			dd 0
+	at multiboot_info.memoryLo,			dd 0
+	at multiboot_info.memoryHi,			dd 0
+	at multiboot_info.bootDevice,			dd 0
+	at multiboot_info.cmdLine,			dd 0
+	at multiboot_info.mods_count,			dd 0
+	at multiboot_info.mods_addr,			dd 0
+	at multiboot_info.syms0,			dd 0
+	at multiboot_info.syms1,			dd 0
+	at multiboot_info.syms2,			dd 0
+	at multiboot_info.mmap_length,			dd 0
+	at multiboot_info.mmap_addr,			dd 0
+	at multiboot_info.drives_length,		dd 0
+	at multiboot_info.drives_addr,			dd 0
+	at multiboot_info.config_table,			dd 0
+	at multiboot_info.bootloader_name,		dd 0
+	at multiboot_info.apm_table,			dd 0
+	at multiboot_info.vbe_control_info,		dd 0
+	at multiboot_info.vbe_mode_info,		dw 0
+	at multiboot_info.vbe_interface_seg,		dw 0
+	at multiboot_info.vbe_interface_off,		dw 0
+	at multiboot_info.vbe_interface_len,		dw 0
+iend
+
 
 ; -------------------------------------------------------------------
 ; readSector - Purpose is to load the actual C kernel to 0x1000
@@ -54,6 +83,8 @@ loadGood:
     ret
 
 
+
+
 ; ---------------------------------------
 ; main - 16-bit entry point
 ; Installing GDT, storing BIOS info, and enabling protected mode
@@ -74,10 +105,30 @@ main:
     ; ES is already set to the proper values.
     mov al, 40                                  ; AL - sector amount to read
     mov bx, kernelOffset                        ; Read to 0x1000 (remember it reads to ES:BX)
-    mov cl, 4                                   ; Starting from sector 4, which in our case is 0x600(where the code is located)
+    mov cl, 5                                   ; Starting from sector 4, which in our case is 0x600(where the code is located)
     call readSector                             ; Read the sector
     
-    
+    xor		eax, eax
+	xor		ebx, ebx
+	call biosGetMemorySize64MB                  ; Get memory
+
+	push eax
+	mov	eax, 64
+	mul ebx
+	mov ecx, eax
+	pop eax
+	add eax, ecx
+	add	eax, 1024		                        ; biosGetMemorySize64MB doesn't add KB between 0 to 1 MB, so we add it ourselves.
+
+	mov dword [boot_info+multiboot_info.memoryHi], 0    ; Update memoryHi and memoryLo to their proper values.
+	mov	dword [boot_info+multiboot_info.memoryLo], eax
+
+	mov eax, 0x0
+	mov	ds, ax
+	mov	di, 0x1000
+	call biosGetMemoryMap                       ; Get the memory map.
+
+    ; Now we need to enable protected mode.
 
 EnablePmode:
 
@@ -116,6 +167,8 @@ main32:
 
     call enablePaging                           ; Enable paging.
 
+    mov eax, boot_info                          ; Push boot_info for the kernel.
+    push eax
     call kernelOffset                           ; The kernel is located at 
     jmp $
 

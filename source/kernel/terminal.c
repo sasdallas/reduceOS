@@ -262,10 +262,9 @@ int printf(const char*  format, ...) {
                     // %s is for strings (or address of).
                     case 's': {
                         const char *c = va_arg(args, const char *); // Char promotes to integer, and we're trying to get the address of the string.
-                        char str[64] = {0}; // The array where the character will go.
+                        char *str = {0}; // The array where the character will go.
 
-                        strcpy(str, (const char*)c); // Copy c to str (dest is the first parameter)
-
+                        strcpy(str, (const char *)c); // Copy c to str (dest is the first parameter)
                         
                         if (!print(str, strlen(str))) return -1; // Print error!
 
@@ -322,9 +321,6 @@ int printf(const char*  format, ...) {
         }
     }
 
-    
-
-    
     va_end(args);
     return charsWritten;
 } 

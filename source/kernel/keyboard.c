@@ -11,7 +11,7 @@ bool capsLock = false;
 bool ctrlPressed = false;
 
 // Keyboard buffer - used with keyboardGetChar() and stores input up to MAX_BUFFER_CHARS (defined in keyboard.h)
-static char keyboardBuffer[MAX_BUFFER_CHARS];
+char keyboardBuffer[MAX_BUFFER_CHARS];
 int index = 0; // Buffer index for keyboardBuffer. BUGGED: Unknown values stored.
 
 // Making life so much easier for me. Instead of manually switching between the scancodes in a switch() statement, just match them to this! So much easier.
@@ -22,7 +22,7 @@ const char scancodeChars[] = {
     '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', '\0', '\0', '\0'
 };
 
-static char ch = '\0'; // The char we will output. You may be wondering why it is declared here instead of in keyboardHandler() - that's because a few other functions need access to this variable.
+char ch = '\0'; // The char we will output. You may be wondering why it is declared here instead of in keyboardHandler() - that's because a few other functions need access to this variable.
 
 
 // enableKBHandler(bool state) - Changes if the keyboard handler is allowed to output characters. 
@@ -174,7 +174,6 @@ char keyboardGetChar() {
 
 // clearBuffer() - Clears the keyboard buffer.
 void clearBuffer() {
-    if (index == 0) return; // Always return if index is 0.
     memset(keyboardBuffer, 0, sizeof(keyboardBuffer)); // Fill keyboard buffer with zeroes.
 }
 
@@ -182,18 +181,21 @@ void clearBuffer() {
 // keyboardGetLine() - A better version of keyboardGetInput that waits until ENTER key is pressed, and then sends it back (it never actually sends it back, only edits a buffer provided).
 // TODO: We need efficiency - this buffer has trouble keeping track of everything you typed.
 void keyboardGetLine(char *out) {
+    memset(out, 0, sizeof(out)); // Fill buffer with zeroes
     while (1) {
         char c = keyboardGetChar(); // Get character from keyboardGetChar() - which waits until we have a non-zero char.
         if (c == '\n') {
+            memcpy(keyboardBuffer, out, 256); // Set out to keyboardBuffer.
             clearBuffer(); // Clear the buffer.
             return; // Return.
-        } else { *out++ = c; } // Else, add the character to the output string.
+        }
     }
 
 }
 
 // keyboardInitialize() - Main function that loads the keyboard
 void keyboardInitialize() {
+    memset(keyboardBuffer, 0, MAX_BUFFER_CHARS); // Fill keyboard buffer with zeroes
     isrRegisterInterruptHandler(33, keyboardHandler); // Register IRQ 33 as an ISR interrupt handler value.
     printf("Keyboard driver initialized.\n");
 }

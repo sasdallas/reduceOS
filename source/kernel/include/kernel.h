@@ -19,5 +19,6 @@
 #include "include/hal.h" // Hardware Abstraction Layer
 #include "include/keyboard.h" // Keyboard driver
 #include "include/panic.h" // Kernel panicking
+#include "include/bootinfo.h"
 
 #endif

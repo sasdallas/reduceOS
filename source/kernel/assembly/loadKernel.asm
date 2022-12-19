@@ -1,5 +1,9 @@
 [bits 32]
 [extern kmain]
 
-call kmain
-jmp $
+
+[global _start]
+_start:
+    push eax
+    call kmain
+    jmp $
