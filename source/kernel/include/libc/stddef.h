@@ -1,7 +1,8 @@
 // stddef.h - replacement for standard C header file.
 // Why is this required? We use -ffreestanding in our compile options, so the standard std library isn't included.
 
-// Macros
+
+// Definitions
 #define null 0
 
 // Typedef declarations

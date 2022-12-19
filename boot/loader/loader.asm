@@ -29,21 +29,25 @@ donePrint:
 ; =====================================================
 readSector:
     mov ah, 2h                  ; AH = second function of int 13h
-    mov al, 2                    ; Reading 2 sectors.
+    mov al, 3                   ; Reading 2 sectors.
     mov ch, 0                   ; Cylinder 0
     mov cl, 2                   ; Starting from sector 2(begins from 1 not 0)
     mov dh, 0                   ; Drive #0
-    mov bx, 0x0600              ; Read to 0x0000:0x0600
-    int  13h                    ; Read!
+    mov bx, 0x07C0              ; Read to 0x0000:0x0600
+    int 13h                     ; Read!
     jnc loadGood                ; Return if it's good.
 
 fail:
-    mov  si, FAILURE_MSG
+    mov  si, FAILURE_MSG        ; We failed :(
     call print
-stop:
     cli
     hlt
-    jmp  stop
+    
+fail2:
+    mov si, JMP_FAIL
+    call print
+    cli
+    hlt
 
 
 loadGood:
@@ -68,7 +72,10 @@ main:
 
 
     call readSector
-    jmp  0x0000:0x0600  ; Jump to second stage
+    jmp  0x0000:0x07C0  ; Jump to second stage
+
+    jmp fail2
+    
 
     
 
@@ -77,7 +84,7 @@ main:
     
 LOADING     db 13, 10, "Booting loader...", 13, 10, 0
 FAILURE_MSG db 13, 10, "ERROR: Press any key to reboot.", 10, 0
-LOADOK      db "Sector load OK."
-
+LOADOK      db 13, 10, "Stage 2 loaded OK.", 10, 0
+JMP_FAIL    db 13, 10, "Failed to jump to stage 2. Halting.", 10, 0
 TIMES 510 - ($-$$) DB 0
 DW 0xAA55
