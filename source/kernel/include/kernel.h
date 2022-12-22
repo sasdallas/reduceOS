@@ -19,6 +19,7 @@
 #include "include/hal.h" // Hardware Abstraction Layer
 #include "include/keyboard.h" // Keyboard driver
 #include "include/panic.h" // Kernel panicking
-#include "include/bootinfo.h"
+#include "include/bootinfo.h" // Boot information
+#include "include/physical_memory.h" // Physical memory management.
 
 #endif
