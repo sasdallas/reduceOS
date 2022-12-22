@@ -77,10 +77,30 @@ void kmain(multiboot_info* mem) {
 
     
     
-    // The next we need to do is handle memory mapping (next patch).
+    // Initalize physical memory.
 
+    
+    // Initialize physical memory manager.
+    // Place the memory bitmap used by PMM at the end of the kernel in memory.
+    physMemoryInit(mem->m_memorySize, 0xC0000000);
+
+    // Allocate regions 
+    memoryRegion* region = (memoryRegion*)0x1000;
+    for (int i =0; i < 10; i++) {
+        if (region[i].type > 4) break; // Invalid type.
+        if (i > 0 && region[i].startLo == 0) break; // Invalid region start.
+
+        initRegion(region[i].startLo, region[i].sizeLo); // Initialize the region.
+    }
+
+    // Deinitialize the region the kernel is in.
+    deinitRegion(0x1100, 0);
+
+    // Possible bug here in that used blocks isn't a valid number.
+    printf("regions initialized: %i; used blocks: %i; free blocks: %i\n", getBlockCount(), getUsedBlockCount(), getFreeBlockCount());
+    
     char buffer[256]; // We will store keyboard input here.
-    char *test;
+
     while (true) {
         keyboardGetLine(buffer);
         for (int i = 0; i < sizeof(buffer); i++) printf("%c", buffer[i]); // You can't print an array with %s in printf.
