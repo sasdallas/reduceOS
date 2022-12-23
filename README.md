@@ -36,6 +36,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
+- **Annoying:** Keyboard driver has a hard time keeping up.
 - **Possibly Severe:** Physical memory driver not properly working - may replace with another paging driver at some point.
 - **Possibly Severe:** `physical_memory.c` not returning a proper value on call of `getUsedBlockCount()` (whether it be negative or what not)
 - **Probably severe later:** Setting up physical memory management to place the memory map at `0xC0000000` likely will eventually overwrite kernel code.
