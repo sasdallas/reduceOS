@@ -18,7 +18,7 @@ static uint32_t *memoryMap = 0;     // This represents the memory map bit array 
 
 
 // Some get functions...
-uint32_t getMemorySize() { return memorySize; }
+size_t getMemorySize() { return memorySize; }
 uint32_t getBlockCount() { return maxBlocks; }
 uint32_t getUsedBlockCount() { return usedBlocks; }
 uint32_t getFreeBlockCount() { return maxBlocks - usedBlocks; }

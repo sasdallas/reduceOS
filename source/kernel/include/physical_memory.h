@@ -6,6 +6,7 @@
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/libc/string.h" // String functions
+#include "include/libc/stddef.h" // size_t
 
 #include "include/terminal.h" // Terminal functions like printf
 
@@ -45,7 +46,7 @@ void *allocateBlocks(size_t size); // Allocate multiple blocks (# of blocks is s
 void freeBlocks(void *p, size_t size); // Free blocks (# of blocks is size).
 
 // Getter functions (that return some of the static variables):
-uint32_t getMemorySize();
+size_t getMemorySize();
 uint32_t getBlockCount();
 uint32_t getUsedBlockCount();
 uint32_t getFreeBlockCount();

@@ -8,8 +8,13 @@
 
 
 
-
-
+int kstrcmp(const char *str1, const char *str2) {
+    while (*str1 && (*str1 == *str2)) {
+        str1++;
+        str2++;
+    }
+    return *(unsigned char*)str1 - *(unsigned char*)str2;
+}
 
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
@@ -79,10 +84,15 @@ void kmain(multiboot_info* mem) {
     
     // Initalize physical memory.
 
-    
+    // Get kernel size
+    uint32_t kernelSize = 0;
+    asm volatile ("" : "=D"(kernelSize));
+    printf("Kernel size: 0x%x\n", kernelSize);
+
+
     // Initialize physical memory manager.
     // Place the memory bitmap used by PMM at the end of the kernel in memory.
-    physMemoryInit(mem->m_memorySize, 0xC0000000);
+    physMemoryInit(mem->m_memorySize, 0xC0000000 + kernelSize*512);
 
     // Allocate regions 
     memoryRegion* region = (memoryRegion*)0x1000;
@@ -94,7 +104,8 @@ void kmain(multiboot_info* mem) {
     }
 
     // Deinitialize the region the kernel is in.
-    deinitRegion(0x1100, 0);
+    deinitRegion(0x1100, kernelSize*512);
+    
 
     // Possible bug here in that used blocks isn't a valid number.
     printf("regions initialized: %i; used blocks: %i; free blocks: %i\n", getBlockCount(), getUsedBlockCount(), getFreeBlockCount());
@@ -102,11 +113,8 @@ void kmain(multiboot_info* mem) {
     char buffer[256]; // We will store keyboard input here.
 
     while (true) {
-        keyboardGetLine(buffer);
-        for (int i = 0; i < sizeof(buffer); i++) printf("%c", buffer[i]); // You can't print an array with %s in printf.
-        for (int i = 0; i < sizeof(buffer); i++) if (buffer[i] == '\n') buffer[i] = '\0'; // Remove newline characters
+        keyboardGetLine(buffer, sizeof(buffer));
         
-
-        // TODO: Figure out how to parse commands.
     }
 }
+

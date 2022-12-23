@@ -40,7 +40,7 @@ void terminalWriteStringXY(const char *data, size_t x, size_t y); // terminalWri
 void terminalMoveArrowKeys(int arrowKey); // terminalMoveArrowKeys() - used by keyboard.c, a function to move the cursor around
 void updateBottomText(char *bottomText); // updateBottomText() - A function to update that bottom bar of text
 int printf(const char* restrict format, ...); // printf() - the main function of the entire file. Handles unlimited arguments, %s and %c, and scrolling.
-
+void debugterminalPutchar(char c); // REMOVE
 // As described in the C file, certain printf functions are NOT present in this file, like putc and print, as they are only helper functions for printf.
 // They are likely going to be removed and merged into terminal.c.
 #endif
