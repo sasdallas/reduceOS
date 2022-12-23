@@ -6,6 +6,6 @@
 #define null 0
 
 // Typedef declarations
-typedef unsigned int size_t;
+typedef unsigned size_t;
 typedef signed ptrdiff_t;
 typedef wchar_t;

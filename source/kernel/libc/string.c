@@ -68,12 +68,15 @@ void* memset(void *buf, int c, size_t n) {
 }
 
 // strlen() - Returns the length of a string(size_t)
-// One parameter - str(char[])
-int strlen(char str[]) {
-    int stringLength = 0;
-    while (str[stringLength] != '\0') stringLength++;
-    return stringLength;
+// One parameter - str
+int strlen(char *str) {
+    int i = 0;
+    while (*str++) {
+        i++;
+    }
+    return i;
 }
+
 
 // itoa() - converts an integer to a string
 // Three parameters - Integer, string buffer, integer base (1-16)
@@ -143,16 +146,12 @@ int isalpha(char ch) {
 
 // strcmp() - compares s1 to s2
 // Two parameters - string #1 and #2.
-int strcmp (const char* str1, const char* str2) {
+int strcmp (const char* str1, char *str2) {
+    int i = 0;
 
-	int res=0;
-	while (!(res = *(unsigned char*)str1 - *(unsigned char*)str2) && *str2)
-		++str1, ++str2;
-
-	if (res < 0)
-		res = -1;
-	if (res > 0)
-		res = 1;
-
-	return res;
+    while ((str1[i] == str2[i])) {
+        if (str2[i++] == 0)
+            return 0;
+    }
+    return 1;
 }

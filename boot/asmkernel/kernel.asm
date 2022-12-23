@@ -128,6 +128,9 @@ main:
 	mov	di, 0x1000
 	call biosGetMemoryMap                       ; Get the memory map.
 
+    mov esi, kernelOffset
+    call GetSize
+
     ; Now we need to enable protected mode.
 
 EnablePmode:

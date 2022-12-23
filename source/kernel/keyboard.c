@@ -10,8 +10,7 @@ bool shiftKey = false; // Shift, caps lock, and ctrl key handling.
 bool capsLock = false;
 bool ctrlPressed = false;
 
-// Keyboard buffer - used with keyboardGetChar() and stores input up to MAX_BUFFER_CHARS (defined in keyboard.h)
-char keyboardBuffer[MAX_BUFFER_CHARS];
+char keyboardBuffer[MAX_BUFFER_CHARS]; // Keyboard buffer - used with keyboardGetChar() and stores input up to MAX_BUFFER_CHARS (defined in keyboard.h)
 int index = 0; // Buffer index for keyboardBuffer. BUGGED: Unknown values stored.
 
 // Making life so much easier for me. Instead of manually switching between the scancodes in a switch() statement, just match them to this! So much easier.
@@ -144,7 +143,7 @@ static void keyboardHandler(REGISTERS *r) {
     // TODO: Replace with actual buffer handling code (possibly when Dynamic Memory Management is done)
     if (index == MAX_BUFFER_CHARS - 1) { printf("Warning! Keyboard buffer overflow!"); clearBuffer(); index = 0; } 
     else if (ch <= 0 || ch == '\0') {
-        // Do nothing if ch is 0.
+        // Do nothing if ch is 0 or \n. 
     } else {
         keyboardBuffer[index] = ch;
         index++;
@@ -180,18 +179,20 @@ void clearBuffer() {
 
 // keyboardGetLine() - A better version of keyboardGetInput that waits until ENTER key is pressed, and then sends it back (it never actually sends it back, only edits a buffer provided).
 // TODO: We need efficiency - this buffer has trouble keeping track of everything you typed.
-void keyboardGetLine(char *out) {
-    memset(out, 0, sizeof(out)); // Fill buffer with zeroes
-    while (1) {
-        char c = keyboardGetChar(); // Get character from keyboardGetChar() - which waits until we have a non-zero char.
+void keyboardGetLine(char *buffer, size_t bufferSize) {
+    size_t index = 0;
+    while (index < bufferSize - 1) {
+        char c = keyboardGetChar();
         if (c == '\n') {
-            memcpy(keyboardBuffer, out, 256); // Set out to keyboardBuffer.
-            clearBuffer(); // Clear the buffer.
-            return; // Return.
+            buffer[index] = '\0';
+            return;
         }
+        buffer[index] = c;
+        index++;
     }
-
+    buffer[index] = '\0';
 }
+
 
 // keyboardInitialize() - Main function that loads the keyboard
 void keyboardInitialize() {

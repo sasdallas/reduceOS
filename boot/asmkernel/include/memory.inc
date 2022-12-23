@@ -173,5 +173,19 @@ biosGetExtendedMemorySize:
     ret
 
 
+; Assume ESI contains start address
+GetSize:
+    xor edx, edx
+
+.loop:
+    cmp byte [esi], 0
+    jz .endLoop
+    inc edx
+    inc esi
+    jmp .loop
+
+.endLoop:
+    ret
+
 FUNCTION_UNSUPPORTED db "Function unsupported (loading memory map).", 0x0D, 0x0A, 0x00
 

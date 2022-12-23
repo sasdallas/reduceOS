@@ -21,6 +21,6 @@ char *strcpy(char *dest, const char *src); // strcpy() - copies one string to an
 char toupper(char c); // toupper() - turns a character uppercase
 char tolower(char c); // tolower() - turns a character lowercase
 int isalpha(char ch); // isalpha() -  returns if a char is in the alphabet
-int strcmp(const char *str1, const char* str2); // strcmp() - compares a string.
-int strlen(char str[]); // strlen() - checks length of a string
+int strcmp(const char *str1, char *str2); // strcmp() - compares a string.
+int strlen(char *str); // strlen() - checks length of a string
 #endif
