@@ -16,7 +16,7 @@ More info coming soon.
 The assembly code shouldn't look that messy. If it is, start a pull request/contact me and I will update it.
 
 # What's the current stage?
-Adding memory mapping and adding multitasking
+Improving physical memory handling, adding virtual memory handling (or paging handling)
 
 # Compiling
 ### Again, even though we were having trouble with Linux builds before, Windows builds are NOT supported. Use WSL, mingw-32, or MSys to build.
@@ -36,7 +36,8 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
-- **Very Annoying:** Keyboard buffer has trouble keeping up with all characters.
+- **Possibly Severe:** Physical memory driver not properly working - may replace with another paging driver at some point.
+- **Possibly Severe:** `physical_memory.c` not returning a proper value on call of `getUsedBlockCount()` (whether it be negative or what not)
 - A little bit of disgusting code in `keyboardGetChar()` (unsure how to fix)
 - Terminal scrolling can scroll the bottom bar of the screen sometimes (no way to fix easily, but not critical)
 - Sometimes, (randomly on QEMU), holding SHIFT and pressing space doesn't do a space.
