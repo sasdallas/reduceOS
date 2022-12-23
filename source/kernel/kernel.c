@@ -8,7 +8,31 @@
 
 
 
+int testFunction(char *args[]) {
+    printf("It works!\n");
+    return 1;
+}
 
+
+int getSystemInformation(char *args[]) {
+    uint32_t vendor[32];
+    int iedx = 0;
+    __cpuid(0x80000002, (uint32_t *)vendor+0x0, (uint32_t *)vendor+0x1, (uint32_t *)vendor+0x2, (uint32_t *)vendor+0x3);
+    __cpuid(0x80000003, (uint32_t *)vendor+0x4, (uint32_t *)vendor+0x5, (uint32_t *)vendor+0x6, (uint32_t *)vendor+0x7);
+    __cpuid(0x80000004, (uint32_t *)vendor+0x8, (uint32_t *)vendor+0x9, (uint32_t *)vendor+0xa, (uint32_t *)vendor+0xb);
+
+    // Now get if the CPU is 64 or 32.
+    // We are going to be calling cpuid (manually, through inline assembly), but first we need to move EAX to 0x80000001 to signify we want to check the capabilities.
+    asm volatile("movl $0x80000001, %%eax\n"
+                "cpuid\n" : "=d"(iedx) :: "eax", "ebx", "ecx");
+
+
+    // Tell the user.
+    printf("CPU Vendor: %s\n", vendor);
+    printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
+
+    return 1; // Return
+}
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
@@ -77,6 +101,8 @@ void kmain(multiboot_info* mem) {
     
     // Initalize physical memory.
 
+    updateBottomText("Initializing physical memory management...");
+
     // Get kernel size
     uint32_t kernelSize = 0;
     asm volatile ("" : "=D"(kernelSize));
@@ -103,10 +129,15 @@ void kmain(multiboot_info* mem) {
     // Possible bug here in that used blocks isn't a valid number.
     printf("regions initialized: %i; used blocks: %i; free blocks: %i\n", getBlockCount(), getUsedBlockCount(), getFreeBlockCount());
     
+    registerCommand("test", (command*)testFunction);
+    registerCommand("system", (command*)getSystemInformation);
+
     char buffer[256]; // We will store keyboard input here.
 
     while (true) {
         keyboardGetLine(buffer, sizeof(buffer));
+        int result = parseCommand(buffer);
+        if (result == 1) printf("Function returned 1\n\n");
+        else if (result != -1) printf("Function execution error.\n\n");
     }
 }
-

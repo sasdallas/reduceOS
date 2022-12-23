@@ -7,8 +7,8 @@
 
 // Commands in reduceOS must follow this structure:
 // The command function is stored in an array of a type called cmdData (this typedef is present in command.h, note that it is different from command)
-// The function returns an integer, which can be any value, but mainly only 1, 0, and -1. 
-// 1 and 0 mean success, while -1 means a failure.
+// The function returns an integer, which can be any value, but mainly only 1 and -1. 
+// 1 means success, while -1 means a failure.
 // The command can also take a parameter called args (of type char*[])
 
 cmdData cmdFunctions[1024]; // As of now maximum commands is 1024.
@@ -31,9 +31,8 @@ int parseCommand(char *cmd) {
         
     }  
 
-    printf("Unknown command - ");
-    for (int i = 0; i < 256; i++) terminalPutchar(cmd[i]);
-    printf("\n");
+    printf("Unknown command - %s\n", cmd);
+    return -1;
 }
 
 
