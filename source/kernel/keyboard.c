@@ -179,6 +179,7 @@ void clearBuffer() {
 
 // keyboardGetLine() - A better version of keyboardGetInput that waits until ENTER key is pressed, and then sends it back (it never actually sends it back, only edits a buffer provided).
 // TODO: We need efficiency - this buffer has trouble keeping track of everything you typed.
+// less priority TODO: Comment and cleanup code.
 void keyboardGetLine(char *buffer, size_t bufferSize) {
     size_t index = 0;
     while (index < bufferSize - 1) {
