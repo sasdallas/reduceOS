@@ -34,6 +34,12 @@ int getSystemInformation(char *args[]) {
     return 1; // Return
 }
 
+
+int help(char *args[]) {
+    printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help\n");
+    return 1;
+}
+
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
     initTerminal(); // Initialize the terminal and clear the screen
@@ -128,9 +134,12 @@ void kmain(multiboot_info* mem) {
 
     // Possible bug here in that used blocks isn't a valid number.
     printf("regions initialized: %i; used blocks: %i; free blocks: %i\n", getBlockCount(), getUsedBlockCount(), getFreeBlockCount());
-    
+
+    printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
+
     registerCommand("test", (command*)testFunction);
     registerCommand("system", (command*)getSystemInformation);
+    registerCommand("help", (command*)help);
 
     char buffer[256]; // We will store keyboard input here.
 
