@@ -38,6 +38,7 @@ Run `make qemu` to launch QEMU and start the OS.
 # Known Bugs
 - **Possibly Severe:** Physical memory driver not properly working - may replace with another paging driver at some point.
 - **Possibly Severe:** `physical_memory.c` not returning a proper value on call of `getUsedBlockCount()` (whether it be negative or what not)
+- **Probably severe later:** Setting up physical memory management to place the memory map at `0xC0000000` likely will eventually overwrite kernel code.
 - A little bit of disgusting code in `keyboardGetChar()` (unsure how to fix)
 - Terminal scrolling can scroll the bottom bar of the screen sometimes (no way to fix easily, but not critical)
 - Sometimes, (randomly on QEMU), holding SHIFT and pressing space doesn't do a space.
