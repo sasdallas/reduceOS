@@ -110,28 +110,6 @@ void terminalMoveArrowKeys(int arrowKey) {
     }
 }
 
-// REMOVE:
-void debugterminalPutchar(char c) {
-    int line;
-    unsigned char uc = c; // terminalPutcharXY() requires an unsigned char.
-
-    // Perform the scrolling stuff for X
-    if (terminalX == SCREEN_WIDTH) {
-        terminalX = 0;
-        terminalY++;
-    }
-
-    // Perform the scrolling stuff for Y
-    scrollTerminal();
-
-
-    terminalPutcharXY(uc, terminalColor, terminalX, terminalY); // Place an entry at terminal X and Y.
-    terminalX++;
-    
-    // Update text mode cursor
-    updateTextCursor();
-}
-
 
 // terminalPutchar(char c) - This is the recommended function to use (besides printf, that'll be later) as it incorporates scrollTerminal and terminalDeleteLastLine.
 void terminalPutchar(char c) {
