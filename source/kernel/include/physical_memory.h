@@ -44,6 +44,11 @@ void *allocateBlock(); // Allocates a physical memory block.
 void freeBlock(void *block); // Frees a block in the memoryMap.
 void *allocateBlocks(size_t size); // Allocate multiple blocks (# of blocks is size).
 void freeBlocks(void *p, size_t size); // Free blocks (# of blocks is size).
+void memoryMapSet(int bit); // Set a bit in the memory map
+void memoryMapUnset(int bit); // Unset a bit in the memory map
+bool memoryMapTest(int bit); // Test if a bit is set in the memory map
+int memoryMapFindFree(); // Find the first free bit in a memory map and returns the index
+int memoryMapFirstFreeSize(size_t n); // Finds the first free size number of frames and returns its index.
 
 // Getter functions (that return some of the static variables):
 size_t getMemorySize();

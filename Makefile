@@ -30,7 +30,7 @@ OUT_IMG = out/img/build.img
 # Flags for compilers
 ASM_FLAGS = -f bin
 CC_FLAGS = -ffreestanding -O2 -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W
-LD_FLAGS = -m elf_i386 -Ttext 0x1100
+LD_FLAGS = -m elf_i386 -T linker.ld
 
 # Source files
 

@@ -5,7 +5,7 @@
 ; With <3 and thanks to the BrokenThorn Entertainment and StackOverflow
 
 bits 16                                 ; Beginning at 16-bits, switching to 32-bit later            
-org  0x07C0                             ; Starting at address 0x0600, loaded in by loader.asm
+org  0x07C0                             ; Starting at address 0x07C0, loaded in by loader.asm
 
 
 jmp  main
@@ -66,16 +66,9 @@ readSector:
     mov dh, 0
     mov ch, 0
     int 13h
-    jnc loadGood
     
-fail:  
-    mov si, readErrorStr
-    call print16
-    int 0x16
-stop:
-    cli
-    hlt
-    jmp stop
+    ; NOTICE: For some reason - when I use a linker script, the code that handles errors mistakenly fires and stops it.
+    ; I will need to add the error handling code back in a little bit.
 
 loadGood:
     mov si, preparing
@@ -103,8 +96,8 @@ main:
     ; Before we enter protected mode, we need to load our C kernel. 
     ; BIOS interrupts aren't supported in pmode, so we do it here. 
     ; ES is already set to the proper values.
-    mov al, 40                                  ; AL - sector amount to read
-    mov bx, kernelOffset                        ; Read to 0x1000 (remember it reads to ES:BX)
+    mov al, 100                                  ; AL - sector amount to read
+    mov bx, kernelOffset                        ; Read to 0x1100 (remember it reads to ES:BX)
     mov cl, 5                                   ; Starting from sector 4, which in our case is 0x600(where the code is located)
     call readSector                             ; Read the sector
     
@@ -127,9 +120,6 @@ main:
 	mov	ds, ax
 	mov	di, 0x1000
 	call biosGetMemoryMap                       ; Get the memory map.
-
-    mov esi, kernelOffset
-    call GetSize
 
     ; Now we need to enable protected mode.
 
@@ -172,7 +162,7 @@ main32:
 
     mov eax, boot_info                          ; Push boot_info for the kernel.
     push eax
-    call kernelOffset                           ; The kernel is located at 
+    call kernelOffset                           ; The kernel is located at 0x1100
     jmp $
 
     
