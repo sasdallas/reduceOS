@@ -27,12 +27,9 @@ int parseCommand(char *cmd) {
             int ret = func(NULL);
             return ret;
         }
-            
-        
     }  
 
     printf("Unknown command - %s\n", cmd);
-    return -1;
 }
 
 
@@ -48,4 +45,19 @@ void registerCommand(char *name, command cmd) {
         cmdFunctions[index] = data; // Store the command data in array. It will be called in parseCommand.
         index += 1;
     }
+}
+
+
+
+// initCommandHandler() - Inititializes the command handler
+void initCommandHandler() {
+    for (int i = 0; i < 1024; i++) {
+        cmdData data;
+        data.cmdName = '\0';
+        data.cmdFunc = NULL;
+
+        cmdFunctions[i] = data;
+    }
+
+    printf("Command parser initialized successfully.\n");
 }

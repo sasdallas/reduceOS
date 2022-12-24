@@ -15,6 +15,7 @@
 // Functions
 void *panic(char *caller, char *code, char *reason);
 void *panicReg(char *caller, char *code, char *reason, REGISTERS *reg);
-
+void *specialPanic(char *caller, char *code, char *reason, int integer, uint32_t address, char *data1desc, char *data2desc);
+void *pageFault(REGISTERS *reg);
 
 #endif

@@ -24,5 +24,6 @@ typedef struct {
 // Functions
 int parseCommand(char *cmd);
 void registerCommand(char *name, command cmd);
+void initCommandHandler();
 
 #endif

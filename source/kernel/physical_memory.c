@@ -157,6 +157,7 @@ void *allocateBlock() {
 }
 
 
+
 // freeBlock(void *block) - Frees a block in the memoryMap.
 void freeBlock(void *block) {
     physicalAddress addr = (physicalAddress)block; // Get the physical address.

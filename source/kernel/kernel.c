@@ -42,6 +42,13 @@ int help(char *args[]) {
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
+    // Get kernel size
+    extern uint32_t end;
+    uint32_t kernelSize = &end;
+
+    
+
+    // Perform some basic setup
     initTerminal(); // Initialize the terminal and clear the screen
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
 
@@ -109,33 +116,19 @@ void kmain(multiboot_info* mem) {
 
     updateBottomText("Initializing physical memory management...");
 
-    // Get kernel size
-    uint32_t kernelSize = 0;
-    asm volatile ("" : "=D"(kernelSize));
-    printf("Kernel size: 0x%x\n", kernelSize);
+    
+    printf("Kernel size: 0x%x (%i bytes)\n", kernelSize, kernelSize);
 
 
     // Initialize physical memory manager.
     // Place the memory bitmap used by PMM at the end of the kernel in memory.
-    physMemoryInit(mem->m_memorySize, 0xC0000000 + kernelSize*512);
-
-    // Allocate regions 
-    memoryRegion* region = (memoryRegion*)0x1000;
-    for (int i =0; i < 10; i++) {
-        if (region[i].type > 4) break; // Invalid type.
-        if (i > 0 && region[i].startLo == 0) break; // Invalid region start.
-
-        initRegion(region[i].startLo, region[i].sizeLo); // Initialize the region.
-    }
-
-    // Deinitialize the region the kernel is in.
-    deinitRegion(0x1100, kernelSize*512);
     
-
-    // Possible bug here in that used blocks isn't a valid number.
-    printf("regions initialized: %i; used blocks: %i; free blocks: %i\n", getBlockCount(), getUsedBlockCount(), getFreeBlockCount());
-
+    
+    // NEXT PATCH: Incorporating heap.c, paging.c, and figuring out what to do with physical_memory.c
+    
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
+
+    initCommandHandler();
 
     registerCommand("test", (command*)testFunction);
     registerCommand("system", (command*)getSystemInformation);
@@ -145,8 +138,6 @@ void kmain(multiboot_info* mem) {
 
     while (true) {
         keyboardGetLine(buffer, sizeof(buffer));
-        int result = parseCommand(buffer);
-        if (result == 1) printf("Function returned 1\n\n");
-        else if (result != -1) printf("Function execution error.\n\n");
+        parseCommand(buffer);
     }
 }
