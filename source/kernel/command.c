@@ -16,20 +16,57 @@ static int index = 0; // Index of commands to add.
 
 // Functions
 
-// parseCommand(char *cmd) - Parses a command to get the function to call.
-int parseCommand(char *cmd) {
-    if (index == 0) return;
+// (static) parseArguments(char *cmd, char *args) - Removes spaces and parses any arguments. Returns amount of arguments and sets the actual arguments in *args. Each argument is seperated by a 
+static int parseArguments(char *cmd, char *args[]) {
+    char tmp[256]; // tmp stores our current argument
+    int argumentAmnt = 0;
+    int tmpIndex = 0; // Seperate index is used because if we find an argument, tmp is reset, and so the index needs to be reset.
+    
+    for (int i = 0; i < strlen(cmd); i++) {
+        if (cmd[i] == ' ' && i+1 != strlen(cmd)) {
+            // We have an argument!
+            args[argumentAmnt] = tmp; // Set the proper value in arguments.
+            memset(tmp, 0, sizeof(tmp)); // Clear tmp.
+            argumentAmnt++; // Increment the amount of arguments
+            tmpIndex = 0; // Reset tmpIndex.
+        } else if (cmd[i] != ' ') {
+            tmp[tmpIndex] = cmd[i]; // Add the character to tmp and increment tmpIndex.
+            tmpIndex++;
+        }
+    }
+
+    // Done. Return argumentAmnt.
+    return argumentAmnt;
+}
+
+// parseCommand(char *parseCmd) - Parses a command to get the function to call.
+int parseCommand(char *parseCmd) {
+    if (index == 0 || strlen(parseCmd) == 0) return;
+
+
+    // Parse the arguments.
+
+    char *args[] = {};
+    int amnt = parseArguments(parseCmd, args);
+
+    // Since parseArguments returns the WHOLE command string, just without zeroes, remove the first part and shift values down.
+    char *cmd = args[0];
+    if (amnt != 0) { for (int i = 0; i < 3; i++) args[i] = args[i+1]; }
+
     for (int i = 0; i < 1024; i++) {
         cmdData *data = &cmdFunctions[i];
         
         if (strcmp(cmd, data->cmdName) == 0) {
             command *func = data->cmdFunc;
-            int ret = func(NULL);
+            int ret;
+            if (amnt != 0) { ret = func(args); }
+            else ret = func(NULL);
             return ret;
         }
     }  
 
-    printf("Unknown command - %s\n", cmd);
+
+    printf("Unknown command - %s\n", parseCmd);
 }
 
 

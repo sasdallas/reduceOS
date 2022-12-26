@@ -54,7 +54,11 @@ typedef struct {
 
 // Functions
 
-/* To avoid circular dependencies, reduceOS uses stdlib.c to house kmalloc_int and a few other functions. If kernelHeap is not 0, however, it hands control back to heap.c. */
+uint32_t kmalloc_int(uint32_t size, int align, uint32_t *phys); // Allocates size blocks on placement_address (a uint32_t pointer to end)
+uint32_t kmalloc_a(uint32_t size);
+uint32_t kmalloc_p(uint32_t size, uint32_t *phys);
+uint32_t kmalloc_ap(uint32_t size, uint32_t *phys);
+uint32_t kmalloc(uint32_t size); 
 uint32_t kmalloc_heap(uint32_t size, int align, uint32_t *phys);
 heap_t *createHeap(uint32_t startAddress, uint32_t endAddress, uint32_t maxAddress, uint8_t supervisor, uint8_t readonly); // Create a heap!
 void *alloc(uint32_t size, uint8_t pageAlign, heap_t *heap); // Allocate to a heap (of size "size" and page align if pageAlign != 0)

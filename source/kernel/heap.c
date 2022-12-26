@@ -10,10 +10,54 @@
 // heap.h defines end - but we need to get a uint32_t pointer to end.
 uint32_t placement_address = (uint32_t)&end;
 heap_t *kernelHeap = 0; // This shows kmalloc_int not to immediately use paging functions yet.
-extern page_directory *kernelDir; // Defined in paging.c
+extern page_directory_t *kernelDir; // Defined in paging.c
 
 
-// These aren't the actual heap functions - that's after.
+
+uint32_t kmalloc_int(uint32_t size, int align, uint32_t *phys) {
+    if (kernelHeap) {
+        // Hand over control to heap.c.
+        return kmalloc_heap(size, align, phys);
+    } else {
+        // If alignment is 1, align the placement address to 4096.
+        if (align == 1 && (placement_address & 0xFFFFF000)) {
+            placement_address &= 0xFFFFF000;
+            placement_address += 0x1000;
+        }
+
+        // If phys is not 0, set it to the physical address (without adding the size to it).
+        if (phys) { *phys = placement_address; }
+        
+        uint32_t returnValue = placement_address;
+        placement_address += size;
+        return returnValue;
+    }
+}
+
+
+// The following functions use this key on their names:
+// a - align placement address
+// p - return physical address
+// ap - do both
+// none - do neither
+// They do not have function descriptions, since those are not required.
+
+uint32_t kmalloc_a(uint32_t size) {
+    return kmalloc_int(size, 1, 0); 
+}
+
+uint32_t kmalloc_p(uint32_t size, uint32_t *phys) {
+    return kmalloc_int(size, 0, phys);
+}
+
+uint32_t kmalloc_ap(uint32_t size, uint32_t *phys) {
+    return kmalloc_int(size, 1, phys);
+}
+
+uint32_t kmalloc(uint32_t size) {
+    return kmalloc_int(size, 0, 0);
+}
+
 
 // kmalloc_heap(uint32_t size, int align, uint32_t *phys) - To fix a circular dependency, we use this function, which is called by stdlib.c whenever kheap is not 0.
 uint32_t kmalloc_heap(uint32_t size, int align, uint32_t *phys) {
@@ -21,7 +65,7 @@ uint32_t kmalloc_heap(uint32_t size, int align, uint32_t *phys) {
     void *address = alloc(size, (uint8_t)align, kernelHeap); // Get the address of what we are allocating.
     if (phys != 0) {
         // Set the physical address.
-        page *pg = getPage((uint32_t)address, 0, kernelDir); // Get the page on our allocation address.
+        page_t *pg = getPage((uint32_t)address, 0, kernelDir); // Get the page on our allocation address.
         *phys = pg->frame*PLACEMENT_ALIGN + (uint32_t)address & 0xFFF; // Get the physical address.
     }
     return (uint32_t)address;
