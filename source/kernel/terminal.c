@@ -5,8 +5,7 @@
 
 #include "include/terminal.h" // This header file contains variable declarations as not to clutter up the actual C code.
 
-
-
+static char *shell = "\0"; // This will be used if we're handling typing - mainly used with backspace, to prevent deleting the prompt by accident. If this variable is \0, it will not be used.
 
 // initTerminal() - Load the terminal, setup the buffers, reset the values, etc.
 void initTerminal(void) {
@@ -130,6 +129,7 @@ void terminalPutchar(char c) {
     if (c == '\n') {
         terminalY++; // Increment terminal Y
         terminalX = 0; // Increment terminal X
+        
     } else if (c == '\b') {
         terminalBackspace(); // Handle backspace
     } else if (c == '\0') {
@@ -162,7 +162,7 @@ void terminalWriteString(const char *data) { terminalWrite(data, strlen(data)); 
 // terminalBackspace() - Removes the last character outputed.
 void terminalBackspace() {
     if (terminalX == 0) return; // terminalX being 0 would cause a lot of problems.
-
+    if (terminalX <= sizeof(shell) && shell != "\0") return; // Cannot overwrite the shell.
     // First, go back one character.
     terminalGotoXY(terminalX-1, terminalY);
 
@@ -200,6 +200,8 @@ void updateBottomText(char *bottomText) {
     return;
 }
 
+// enableShell() - Enables a boundary that cannot be overwritten.
+void enableShell(char *shellToUse) { shell = shellToUse; }
 
 
 

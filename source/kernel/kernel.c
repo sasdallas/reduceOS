@@ -36,7 +36,12 @@ int getSystemInformation(char *args[]) {
 
 
 int help(char *args[]) {
-    printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help\n");
+    printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help, echo\n");
+    return 1;
+}
+
+int echo(char *args[]) {
+    printf(args[0]);
     return 1;
 }
 
@@ -111,20 +116,7 @@ void kmain(multiboot_info* mem) {
     printf("Interrupts enabled.\n");
 
     
-    
-    // Initalize physical memory.
-
-    updateBottomText("Initializing physical memory management...");
-
-    
     printf("Kernel size: 0x%x (%i bytes)\n", kernelSize, kernelSize);
-
-
-    // Initialize physical memory manager.
-    // Place the memory bitmap used by PMM at the end of the kernel in memory.
-    
-    
-    // NEXT PATCH: Incorporating heap.c, paging.c, and figuring out what to do with physical_memory.c
     
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
 
@@ -133,10 +125,13 @@ void kmain(multiboot_info* mem) {
     registerCommand("test", (command*)testFunction);
     registerCommand("system", (command*)getSystemInformation);
     registerCommand("help", (command*)help);
+    registerCommand("echo", (command*)echo);
 
     char buffer[256]; // We will store keyboard input here.
+    enableShell("reduceOS> "); // Enable a boundary (our prompt).
 
     while (true) {
+        printf("reduceOS> ");
         keyboardGetLine(buffer, sizeof(buffer));
         parseCommand(buffer);
     }

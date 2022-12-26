@@ -4,16 +4,23 @@
 // This file is a part of the reduceOS C kernel. If you use this code, please credit the implementation's original owner (if you directly copy and paste this, also add me please)
 // This implementation is not by me - credits for the implementation are present in paging.h
 
-
 #include "include/paging.h" // Main header file
 
-page_directory *kernelDir = 0; // The kernel's page directory
-page_directory *currentDir = 0; // The current page directory
+page_directory_t *kernelDir = 0; // The kernel's page directory
+page_directory_t *currentDir = 0; // The current page directory
 
 // Some bitsets of frames - used or free.
 uint32_t *frames;
 uint32_t nframes;
 
+
+extern uint32_t placement_address; // Defined in heap.c
+extern heap_t *kernelHeap;
+
+
+// (from JamesM's kernel dev tutorials)
+#define INDEX_BIT(a) (a/(8*4))
+#define OFFSET_BIT(a) (a%(8*4))
 
 // Moving on to the functions...
 
@@ -72,29 +79,29 @@ static uint32_t firstFrame() {
 
 // Now moving on to the functions all C files outside will probably use...
 
-// allocateFrame(page *page, int kernel, int writable) - Allocating a frame.
-void allocateFrame(page *page, int kernel, int writable) {
-    if (page->frame != 0) return; // It's not valid if the frame is 0.
-    else {
-        uint32_t index = firstFrame(); // Get the index of the first free frame
-        if (index == (uint32_t)-1) {
-            // Panic! No free frames!
-            panic("Paging", "allocateFrame()", "no free frames available!");
+// allocateFrame(page_t *page, int kernel, int writable) - Allocating a frame.
+void allocateFrame(page_t *page, int kernel, int writable) {
+    if (page->frame != 0)
+    {
+        return;
+    }
+    else
+    {
+        uint32_t idx = firstFrame();
+        if (idx == (uint32_t)-1) {
+            panic("Paging", "allocateFrame()", "No free frames available");
         }
-
-        setFrame(index * 0x1000); // Set the frame, aligned to 4k
-    
-        // Setup all the page flags
+        setFrame(idx*0x1000);
         page->present = 1;
-        page->rw == (writable) ? 1 : 0; // The caller of this function provides us whether the page is rw or ro.
-        page->user = (kernel) ? 0 : 1; // Again, the caller of this function provides us whether the page is kernel.
-        page->frame = index; // Set the page's frame value to the index of the first free frame.
+        page->rw = (writable)?1:0;
+        page->user = (kernel)?0:1;
+        page->frame = idx;
     }
 }
 
 
-// freeFrame(page *page) - Deallocate (or "free") a frame.
-void freeFrame(page *page) {
+// freeFrame(page_t *page) - Deallocate (or "free") a frame.
+void freeFrame(page_t *page) {
     uint32_t frame;
     if (!(frame = page->frame)) return; // Invalid frame.
 
@@ -103,34 +110,47 @@ void freeFrame(page *page) {
 }
 
 // initPaging(uint32_t physicalMemorySize) - Initialize paging
-void initPaging(uint32_t physicalMemorySize, uint32_t kernelSize) {
+void initPaging(uint32_t physicalMemorySize) {
     // The user provides us with the size of physical memory.
     
     // Set nframes and frames to their proper values.
     nframes = physicalMemorySize / 0x1000;
-    frames = (uint32_t*)allocateBlocks(INDEX_BIT(nframes));
+    frames = (uint32_t*)kmalloc(INDEX_BIT(nframes));
     memset(frames, 0, INDEX_BIT(nframes));
     
     // Make a page directory.
-    kernelDir = (page_directory*)allocateBlocks(sizeof(page_directory)); // Allocate a page directory for the kernel...
+    kernelDir = (page_directory_t*)kmalloc_a(sizeof(page_directory_t)); // Allocate a page directory for the kernel...
     currentDir = kernelDir; // We start in the kernel's page directory.
 
-    // Now identity map (physical address to virtual address) from 0x0 to end of memory.
-    // This is required so we can access this transparently, as if paging wasn't enabled.
+    // Now, map some pages in the kernel's heap area - here we call getPage but not allocateFrame, causing pagge tables to be created where necessary.
     int i = 0; 
-    while (i < kernelSize) {
-        // The kernel code is read-only from userspace.
-        allocateFrame(getPage(i, 1, kernelDir), 0, 0); 
-        i += 0x1000;
+    for (i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE; i += PAGE_ALIGN) {
+        getPage(i, 1, kernelDir);
     }
-    
 
+    
+    // Now we can identity map using allocateFrame
+    i = 0;
+    while (i < placement_address + PAGE_ALIGN) {
+        allocateFrame(getPage(i, 1, kernelDir), 0, 0);
+        i += PAGE_ALIGN;
+    }
+
+    // Allocate the pages we mapped earlier
+    for (i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE; i += PAGE_ALIGN) {
+        allocateFrame(getPage(i, 1, kernelDir), 0, 0);
+    }
+
+    // Register interrupt handlers and enable paging.
     isrRegisterInterruptHandler(14, pageFault); // pageFault is defined in panic.c
     switchPageDirectory(kernelDir); // Switch the page directory to kernel directory.
+
+    // Create the kernel heap
+    kernelHeap = createHeap(HEAP_START, HEAP_START + HEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
 }
 
-// switchPageDirectory(page_directory *dir) - Switches the page directory using inline assembly
-void switchPageDirectory(page_directory *dir) {
+// switchPageDirectory(page_directory_t *dir) - Switches the page directory using inline assembly
+void switchPageDirectory(page_directory_t *dir) {
     currentDir = dir;
     asm volatile ("mov %0, %%cr3" :: "r"(&dir->tablePhysical));
     uint32_t cr0;
@@ -141,8 +161,8 @@ void switchPageDirectory(page_directory *dir) {
 
 
 
-// getPage(uint32_t addr, int make, page_directory *dir) - Returns a page from an address, directory (creates one if make is non-zero).
-page *getPage(uint32_t addr, int make, page_directory *dir) {
+// getPage(uint32_t addr, int make, page_directory_t *dir) - Returns a page from an address, directory (creates one if make is non-zero).
+page_t *getPage(uint32_t addr, int make, page_directory_t *dir) {
     addr /= PAGE_ALIGN; // Turn the address into an index (aligned to 4096).
      
     // Find the page table containing this address.
@@ -151,10 +171,11 @@ page *getPage(uint32_t addr, int make, page_directory *dir) {
         // If this table is already assigned...
         return &dir->tables[tableIndex]->pages[addr % 1024];
     } else if (make) {
-        uint32_t tmp = allocateBlocks(sizeof(page_table));
-        dir->tables[tableIndex] = (page_table*)(tmp / PAGE_ALIGN);
-        dir->tablePhysical[tableIndex] = tmp | 0x7; // Present, read-write, user-mode.
-        return &dir->tables[tableIndex]->pages[addr%1024];
+       uint32_t tmp;
+       dir->tables[tableIndex] = (page_table_t*)kmalloc_ap(sizeof(page_table_t), &tmp);
+       memset(dir->tables[tableIndex], 0, 0x1000);
+       dir->tablePhysical[tableIndex] = tmp | 0x7;
+       return &dir->tables[tableIndex]->pages[addr%1024];
     } else { return 0; } // Nothing we can do.
 }
 

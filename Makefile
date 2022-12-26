@@ -30,7 +30,7 @@ OUT_IMG = out/img/build.img
 # Flags for compilers
 ASM_FLAGS = -f bin
 CC_FLAGS = -ffreestanding -O2 -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W
-LD_FLAGS = -m elf_i386 -T linker.ld
+LD_FLAGS = -m elf_i386 -T linker.ld --oformat binary
 
 # Source files
 
@@ -66,7 +66,7 @@ $(OUT_KERNEL)/kernel: $(ASM_KLOADEROBJS) $(C_OBJS)
 
 $(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS)
 	@printf "[ Linking C kernel... ]\n"
-	$(LD) $(LD_FLAGS)  --oformat binary $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.bin 
+	$(LD) $(LD_FLAGS)  $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.bin 
 	@printf "\n"
 
 $(OUT_OBJ)/%.o: $(KERNEL_SOURCE)/%.c | $(OUT_OBJ)

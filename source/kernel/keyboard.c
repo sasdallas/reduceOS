@@ -187,9 +187,13 @@ void keyboardGetLine(char *buffer, size_t bufferSize) {
         if (c == '\n') {
             buffer[index] = '\0';
             return;
+        } else if (c == '\b') {
+            buffer[index-1] = '\0';
+            index--;
+        } else {
+            buffer[index] = c;
+            index++;
         }
-        buffer[index] = c;
-        index++;
     }
     buffer[index] = '\0';
 }
