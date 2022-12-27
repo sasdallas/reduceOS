@@ -40,10 +40,21 @@ int help(char *args[]) {
     return 1;
 }
 
+// currently bugged: will fix in next patch (hopefully)
 int echo(char *args[]) {
     printf(args[0]);
     return 1;
 }
+
+int crash(char *args[]) {
+    enableKBHandler(false); // Disable keyboard handler.
+    printf("Why do you want to crash reduceOS?\n");
+    sleep(1000);
+    printf("FOR SCIENCE, OF COURSE!");
+    sleep(1000);
+    panic("kernel", "kmain()", "Error in function crash() - for science.");
+}
+
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
@@ -103,6 +114,7 @@ void kmain(multiboot_info* mem) {
     // PIT timer
     updateBottomText("Initializing PIT...");
     i86_pitInit();
+    i86_pitStartCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN); 
 
     // Initialize Keyboard (won't work until interrupts are enabled - that's when IRQ and stuff is enabled.)
     updateBottomText("Initializing keyboard...");
@@ -114,10 +126,13 @@ void kmain(multiboot_info* mem) {
     updateBottomText("Enabling interrupts...");
     enableHardwareInterrupts();
     printf("Interrupts enabled.\n");
-
     
+    // PAGING IMPLEMENTATION NOT WORKING FOR SOME REASON! THIS MEANS THAT IT IS BUGGED AND WILL NEED TO BE FIXED LATER.
     printf("Kernel size: 0x%x (%i bytes)\n", kernelSize, kernelSize);
-    
+
+    updateBottomText("Probing PCI...");
+    initPCI();
+
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
 
     initCommandHandler();
@@ -126,6 +141,7 @@ void kmain(multiboot_info* mem) {
     registerCommand("system", (command*)getSystemInformation);
     registerCommand("help", (command*)help);
     registerCommand("echo", (command*)echo);
+    registerCommand("crash", (command*)crash);
 
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt).

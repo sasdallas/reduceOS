@@ -23,5 +23,7 @@
 #include "include/command.h" // Command parser
 #include "include/paging.h" // Paging
 #include "include/heap.h" // Kernel heap management.
+#include "include/pci.h" // PCI
+#include "include/libc/sleep.h" // Sleep function
 
 #endif

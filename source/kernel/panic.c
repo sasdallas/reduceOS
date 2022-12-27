@@ -7,6 +7,22 @@
 
 #include "include/panic.h" // Main panic include file
 
+typedef struct {
+    struct stack_frame* ebp;
+    uint32_t eip;
+} stack_frame;
+
+// This static function performes a stack trace to get the callers of panic.
+static void stackTrace(uint32_t maximumFrames) {
+    stack_frame *stk;
+    asm volatile ("movl %%ebp, %0" :: "r"(stk));
+    printf("\nStack trace:\n");
+    for (uint32_t frame = 0; stk && frame < maximumFrames; frame++) {
+        printf("0x%x\n", stk->eip);
+        stk = stk->ebp;
+    }
+}
+
 void *panic(char *caller, char *code, char *reason) {
     clearScreen(terminalColor);
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
@@ -30,6 +46,8 @@ void *panic(char *caller, char *code, char *reason) {
         printf("Type: 0x%x, EAX: 0x%x, EBX: 0x%x, ECX: 0x%x, EDX: 0x%x\n", i, eax, ebx, ecx, edx);
     }
     
+    stackTrace(5); // Get a stack trace.
+
     asm volatile ("hlt");
     for (;;);
 }

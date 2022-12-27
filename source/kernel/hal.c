@@ -49,3 +49,15 @@ void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_
 				: "=a"(*eax), "=b"(*ebx), "=c"(ecx), "=d"(*edx)
 				: "0"(type)); // Add type to ea
 }
+
+// uint32_t inportl(uint16_t port) - Reads data from device via port mapped IO
+uint32_t inportl(uint16_t port) {
+    uint32_t ret;
+    asm volatile ("inl %1, %0" : "=a"(ret) : "dN"(port));
+    return ret;
+}
+
+// void outportl(uint16_t port, uint8_t value) - Write byte to device via port mapped IO
+void outportl(uint16_t port, uint32_t value) {
+    asm volatile ("outl %1, %0" :: "dN"(port), "a"(value));
+}

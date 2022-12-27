@@ -39,19 +39,9 @@ static int parseArguments(char *cmd, char *args[]) {
     return argumentAmnt;
 }
 
-// parseCommand(char *parseCmd) - Parses a command to get the function to call.
-int parseCommand(char *parseCmd) {
-    if (index == 0 || strlen(parseCmd) == 0) return;
-
-
-    // Parse the arguments.
-
-    char *args[] = {};
-    int amnt = parseArguments(parseCmd, args);
-
-    // Since parseArguments returns the WHOLE command string, just without zeroes, remove the first part and shift values down.
-    char *cmd = args[0];
-    if (amnt != 0) { for (int i = 0; i < 3; i++) args[i] = args[i+1]; }
+// parseCommand(char *cmd) - Parses a command to get the function to call.
+int parseCommand(char *cmd) {
+    if (index == 0 || strlen(cmd) == 0) return;
 
     for (int i = 0; i < 1024; i++) {
         cmdData *data = &cmdFunctions[i];
@@ -59,14 +49,13 @@ int parseCommand(char *parseCmd) {
         if (strcmp(cmd, data->cmdName) == 0) {
             command *func = data->cmdFunc;
             int ret;
-            if (amnt != 0) { ret = func(args); }
-            else ret = func(NULL);
+            ret = func(NULL);
             return ret;
         }
     }  
 
 
-    printf("Unknown command - %s\n", parseCmd);
+    printf("Unknown command - %s\n", cmd);
 }
 
 

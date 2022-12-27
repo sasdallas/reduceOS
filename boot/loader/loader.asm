@@ -4,7 +4,7 @@
 
 
 bits 16
-org  0
+org  0x7C00
 
 jmp  main
 

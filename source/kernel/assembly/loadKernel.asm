@@ -4,6 +4,7 @@
 
 [global _start]
 _start:
+    xor ebp, ebp
     push eax
     call kmain
     jmp $
