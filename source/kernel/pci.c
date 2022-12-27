@@ -114,5 +114,19 @@ void initPCI() {
 
 
 void printPCIInfo() {
-    
+    if (!isPCIInitialized) initPCI();
+
+    uint32_t deviceCounter = 0;
+
+    for (uint32_t bus = 0; bus < MAX_BUS; bus++) {
+        for (uint32_t slot = 0; slot < MAX_SLOTS; slot++) {
+            if (pciAdapters[bus][slot] != -1 && (pciAdapters[bus][slot] & 0xFFFF) != 0xFFFF && (pciAdapters[bus][slot] & 0xFFFF0000) >> 16 != 0x0) {
+                deviceCounter++;
+                
+                printf("%d) Vendor ID: 0x%x; Device ID: 0x%x\n", deviceCounter, pciAdapters[bus][slot] & 0xFFFF, (pciAdapters[bus][slot] & 0xFFFF0000) >> 16);
+            }
+        }
+    }
+
+    if (deviceCounter == 0) printf("No PCI devices found.\n");
 }
