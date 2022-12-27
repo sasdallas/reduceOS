@@ -15,7 +15,6 @@ cmdData cmdFunctions[1024]; // As of now maximum commands is 1024.
 static int index = 0; // Index of commands to add.
 
 // Functions
-
 // (static) parseArguments(char *cmd, char *args) - Removes spaces and parses any arguments. Returns amount of arguments and sets the actual arguments in *args. Each argument is seperated by a 
 static int parseArguments(char *cmd, char *args[]) {
     char tmp[256]; // tmp stores our current argument
@@ -23,13 +22,13 @@ static int parseArguments(char *cmd, char *args[]) {
     int tmpIndex = 0; // Seperate index is used because if we find an argument, tmp is reset, and so the index needs to be reset.
     
     for (int i = 0; i < strlen(cmd); i++) {
-        if (cmd[i] == ' ' && i+1 != strlen(cmd)) {
+        if (cmd[i] == ' ' && i+1 != '\0') {
             // We have an argument!
             args[argumentAmnt] = tmp; // Set the proper value in arguments.
             memset(tmp, 0, sizeof(tmp)); // Clear tmp.
             argumentAmnt++; // Increment the amount of arguments
             tmpIndex = 0; // Reset tmpIndex.
-        } else if (cmd[i] != ' ') {
+        } else {
             tmp[tmpIndex] = cmd[i]; // Add the character to tmp and increment tmpIndex.
             tmpIndex++;
         }
@@ -41,24 +40,27 @@ static int parseArguments(char *cmd, char *args[]) {
 
 // parseCommand(char *cmd) - Parses a command to get the function to call.
 int parseCommand(char *cmd) {
-    if (index == 0 || strlen(cmd) == 0) return;
+    if (index == 0 || strlen(cmd) == 0) return -1;
+
+    char *args[] = {"\0"};
+    char *cmdName = cmd;
+    int argc = parseArguments(cmd, args);
 
     for (int i = 0; i < 1024; i++) {
         cmdData *data = &cmdFunctions[i];
-        
-        if (strcmp(cmd, data->cmdName) == 0) {
+        if (strcmp(cmdName, data->cmdName) == 0) {
             command *func = data->cmdFunc;
             int ret;
-            ret = func(NULL);
+            if (argc != 0) ret = func(args);
+            else ret = func(NULL);
             return ret;
         }
     }  
 
 
     printf("Unknown command - %s\n", cmd);
+    
 }
-
-
 
 // registerCommand(char *name, command cmd) - Registers a command and stores it in cmdFunctions.
 void registerCommand(char *name, command cmd) {
@@ -79,7 +81,7 @@ void registerCommand(char *name, command cmd) {
 void initCommandHandler() {
     for (int i = 0; i < 1024; i++) {
         cmdData data;
-        data.cmdName = '\0';
+        data.cmdName = "\0";
         data.cmdFunc = NULL;
 
         cmdFunctions[i] = data;

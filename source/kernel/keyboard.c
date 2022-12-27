@@ -5,10 +5,11 @@
 
 #include "include/keyboard.h" // Main include file
 
-bool isEnabled = true; // As mentioned in keyboard.h, this header file contains definitions for special scancodes and other things.
-bool shiftKey = false; // Shift, caps lock, and ctrl key handling.
-bool capsLock = false;
-bool ctrlPressed = false;
+static bool isEnabled = true; // As mentioned in keyboard.h, this header file contains definitions for special scancodes and other things.
+static bool shiftKey = false; // Shift, caps lock, and ctrl key handling.
+static bool capsLock = false;
+static bool ctrlPressed = false;
+static bool printChars = true;
 
 char keyboardBuffer[MAX_BUFFER_CHARS]; // Keyboard buffer - used with keyboardGetChar() and stores input up to MAX_BUFFER_CHARS (defined in keyboard.h)
 int index = 0; // Buffer index for keyboardBuffer. BUGGED: Unknown values stored.
@@ -24,10 +25,12 @@ const char scancodeChars[] = {
 char ch = '\0'; // The char we will output. You may be wondering why it is declared here instead of in keyboardHandler() - that's because a few other functions need access to this variable.
 
 
-// enableKBHandler(bool state) - Changes if the keyboard handler is allowed to output characters. 
+// setKBHandler(bool state) - Changes if the keyboard handler is allowed to save characters.
 // Dev notes: Possibly add some special keycodes (like CTRL + C) that can pause the boot process or do something (therefore bypassing this).
-void enableKBHandler(bool state) { isEnabled = state; }
+void setKBHandler(bool state) { isEnabled = state; }
 
+// setKBPrintChars(bool state) - Changes if the keyboard handler is allowed to output characters.
+void setKBPrintChars(bool state) { printChars = state; }
 
 char altChars(char ch) {
     switch (ch) {
@@ -147,7 +150,7 @@ static void keyboardHandler(REGISTERS *r) {
     } else {
         keyboardBuffer[index] = ch;
         index++;
-        terminalPutchar(ch);
+        if (printChars) terminalPutchar(ch);
     }
     
     return;
@@ -177,6 +180,36 @@ void clearBuffer() {
 }
 
 
+// keyboardGetKey() - Waits until a specific key is pressed and returns it.
+void keyboardGetKey(char key, bool printChars) {
+    bool previousPrintValue = printChars; // We will restore this value after we're done.
+    setKBPrintChars(printChars); // Set KB print chars to whatever they want.
+
+
+    // A few special keys can be passed to this function.
+    // If \e is passed, wait for ENTER (ch is '\n'). If \s is passed, wait for SHIFT (shiftKey is true.).
+    // If \c is passed, wait for CTRL (ctrlPressed is true).
+
+    if (key == '\e') {
+        while (keyboardGetChar() != '\n');
+        setKBPrintChars(previousPrintValue);
+        return;
+    } else if (key == '\s') {
+        while (!shiftKey);
+        setKBPrintChars(previousPrintValue);
+        return;
+    } else if (key == '\c') {
+        while (!ctrlPressed);
+        setKBPrintChars(previousPrintValue);
+        return;
+    } else {
+        while(keyboardGetChar() != key);
+        setKBPrintChars(previousPrintValue);
+        return;
+    }
+}
+
+
 // keyboardGetLine() - A better version of keyboardGetInput that waits until ENTER key is pressed, and then sends it back (it never actually sends it back, only edits a buffer provided).
 // TODO: We need efficiency - this buffer has trouble keeping track of everything you typed.
 // less priority TODO: Comment and cleanup code.
@@ -187,7 +220,7 @@ void keyboardGetLine(char *buffer, size_t bufferSize) {
         if (c == '\n') {
             buffer[index] = '\0';
             return;
-        } else if (c == '\b') {
+        } else if (c == '\b' && index != 0) {
             buffer[index-1] = '\0';
             index--;
         } else {

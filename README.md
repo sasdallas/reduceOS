@@ -36,7 +36,6 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
-- PCI function `printPCIInfo()` does nothing - next patch.
 - Command parser can't handle arguments.
 - **Very Severe:** Paging and kernel heap are both faulting reduceOS entirely - it's not an error with their files because I tested it from the source the implementation is based off, and it worked ok. Next release may be without a paging driver.
 - **Annoying:** Keyboard driver has a hard time keeping up.

@@ -7,6 +7,10 @@
 #include "include/kernel.h" // Kernel header file
 
 
+// Linker defined symbols.
+extern char BUILD_DATE;
+extern char BUILD_TIME;
+
 
 int testFunction(char *args[]) {
     printf("It works!\n");
@@ -36,7 +40,7 @@ int getSystemInformation(char *args[]) {
 
 
 int help(char *args[]) {
-    printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help, echo\n");
+    printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help, echo, pci, crash\n");
     return 1;
 }
 
@@ -47,7 +51,7 @@ int echo(char *args[]) {
 }
 
 int crash(char *args[]) {
-    enableKBHandler(false); // Disable keyboard handler.
+    setKBHandler(false); // Disable keyboard handler.
     printf("Why do you want to crash reduceOS?\n");
     sleep(1000);
     printf("FOR SCIENCE, OF COURSE!");
@@ -55,6 +59,9 @@ int crash(char *args[]) {
     panic("kernel", "kmain()", "Error in function crash() - for science.");
 }
 
+int pciInfo(char *args[]) {
+    printPCIInfo();
+}
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
@@ -119,7 +126,7 @@ void kmain(multiboot_info* mem) {
     // Initialize Keyboard (won't work until interrupts are enabled - that's when IRQ and stuff is enabled.)
     updateBottomText("Initializing keyboard...");
     keyboardInitialize();
-    enableKBHandler(true);
+    setKBHandler(true);
 
 
     // Enable hardware interrupts
@@ -142,9 +149,11 @@ void kmain(multiboot_info* mem) {
     registerCommand("help", (command*)help);
     registerCommand("echo", (command*)echo);
     registerCommand("crash", (command*)crash);
+    registerCommand("pci", (command*)pciInfo);
 
     char buffer[256]; // We will store keyboard input here.
-    enableShell("reduceOS> "); // Enable a boundary (our prompt).
+    enableShell("reduceOS> "); // Enable a boundary (our prompt)
+
 
     while (true) {
         printf("reduceOS> ");

@@ -128,7 +128,7 @@ void terminalPutchar(char c) {
     // Checking if c is a special character or not.
     if (c == '\n') {
         terminalY++; // Increment terminal Y
-        terminalX = 0; // Increment terminal X
+        terminalX = 0;
         
     } else if (c == '\b') {
         terminalBackspace(); // Handle backspace
@@ -162,7 +162,7 @@ void terminalWriteString(const char *data) { terminalWrite(data, strlen(data)); 
 // terminalBackspace() - Removes the last character outputed.
 void terminalBackspace() {
     if (terminalX == 0) return; // terminalX being 0 would cause a lot of problems.
-    if (terminalX <= sizeof(shell) && shell != "\0") return; // Cannot overwrite the shell.
+    if (terminalX <= strlen(shell) && shell != "\0") return; // Cannot overwrite the shell.
     // First, go back one character.
     terminalGotoXY(terminalX-1, terminalY);
 
