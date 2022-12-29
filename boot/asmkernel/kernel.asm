@@ -158,6 +158,7 @@ main32:
     mov ebx, kernOK                             ; Print our kernel okay message
     call puts32           
 
+    call enablePaging
 
     mov eax, boot_info                          ; Push boot_info for the kernel.
     push eax

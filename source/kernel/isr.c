@@ -42,7 +42,9 @@ void isrIRQHandler(REGISTERS *reg) {
     }
     
     // Send EOI to PIC (this function is present in hal.h)
+    
     interruptCompleted(reg->err_code);
+    
 }
 
 void isrInstall() {

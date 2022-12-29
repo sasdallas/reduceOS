@@ -59,12 +59,10 @@ void* memmove(void* destination, const void* source, size_t n) {
 // memset() - Set a buffer in memory to a given value.
 // Three parameters - buffer, value, amount of times to set
 
-void* memset(void *buf, int c, size_t n) {
-    unsigned char* ubuf = buf;
-    
-    while (n--) { *ubuf++ = (unsigned char)c; }
+void* memset(void *buf, char c, size_t n) {
+    unsigned char *temp = (unsigned char *)buf;
+    for (; n != 0; n--) temp[n] = c;
     return buf;
-
 }
 
 // strlen() - Returns the length of a string(size_t)

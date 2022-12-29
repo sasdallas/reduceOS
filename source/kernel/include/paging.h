@@ -1,52 +1,56 @@
-// paging.h - header file for paging.c.
-// Implementation of the paging file is based on James Molloy's kernel dev tutorials (http://www.jamesmolloy.co.uk/tutorial_html/7.-The%20Heap.html)
+// paging.h - Header file for paging.c (handles memory)
+// This implementation is from BrokenThorn Entertainment, modified to support C.
 
 #ifndef PAGING_H
 #define PAGING_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
+#include "include/libc/stdint.h" // Integer definitions, like uint8_t
 #include "include/libc/string.h" // String functions
+#include "include/terminal.h" // printf()
+#include "include/paging_pde.h" // PDE functions (page directory entry)
+#include "include/paging_pte.h" // PTE functions (page table entry)
+#include "include/panic.h" // Panicking
+// Definitions
 
-#include "include/panic.h" // Kernel panicking
-#include "include/heap.h" // Kernel heap management.
+// x86 arch defines 1024 entries per table.
+#define PAGES_PER_TABLE 1024
+#define PAGES_PER_DIR 1024
 
-// Typedefs
-
-typedef struct {
-    uint32_t present : 1; // Page present in memory
-    uint32_t rw : 1; // The page is read-only if this is clear, but it's read-write if set.
-    uint32_t user : 1; // Supervisor level only if clear.
-    uint32_t accessed : 1; // Has the page been accessed since the last refresh?
-    uint32_t dirty : 1; // Has the page been written to since the last refresh?
-    uint32_t unused : 7; // This value represents an amalgamation of unused + reserved bits.
-    uint32_t frame : 20; // Frame address (needs to be shifted right 12 bits)
-} page_t;
-
-typedef struct {
-    page_t pages[1024];
-} page_table_t;
-
-typedef struct {
-    page_table_t *tables[1024]; // Array of pointers to page tables.
-    uint32_t tablePhysical[1024]; // Array of pointers to physical location of page tables.
-    uint32_t physicalAddress; // Physical address of tablePhysical.
-} page_directory_t;
+#define PTABLE_ADDR_SPACE_SIZE 0x400000 // Page table represents 4 mb address space
+#define DTABLE_ADDR_SPACE_SIZE 0x100000000 // Directory table represents 4 gb address space
+#define PAGE_SIZE 4096 // Page sizes are 4k
 
 // Macros
+#define PAGE_DIRECTORY_INDEX(x) (((x) >> 22) & 0x3FF)
+#define PAGE_TABLE_INDEX(x) (((x) >> 12) & 0x3FF)
+#define PAGE_GET_PHYSICAL_ADDRESS(x) (*x & ~0xFFF)
 
 
+// Typedefs
+typedef uint32_t virtualAddress;
 
-// Definitions
-#define PAGE_ALIGN 4096 // Aligned to 4096.
-#define PAGE_SIZE PAGE_ALIGN // Page size is 4096.
+// Page table
+typedef struct {
+    pt_entry m_entries[PAGES_PER_TABLE];
+} page_table_t;
+
+// Page directory
+typedef struct {
+    pd_entry m_entries[PAGES_PER_DIR];
+} page_directory_t;
 
 
-// Functions
+// Functions:
+pt_entry *paging_tableLookupEntry(page_table_t *p, virtualAddress addr); // Searches the page table p for a virtual address.
+pd_entry *paging_directoryLookupEntry(page_directory_t *p, virtualAddress addr); // Searches the page directory p for a virtual address.
+bool paging_switchDirectory(page_directory_t *dir); // Switches the current page directory to dir.
+void paging_flushTlbEntry(virtualAddress addr); // Flushes a tlb entry at virtual address address
+page_directory_t *paging_getDirectory(); // Returns address of current directory.
+bool paging_allocatePage(pt_entry *e); // Allocate a page
+void paging_freePage(pt_entry *e); // Free a page.
+void paging_mapPage(void *phys, void *virt); // Map a page to a physical and virtual address
+void paging_initialize(); // Initialize paging, set variables, allocate default pages, etc.
 
-void allocateFrame(page_t *page, int kernel, int writable); // Allocating a frame.
-void freeFrame(page_t *page); // Deallocate (or "free") a frame.
-void initPaging(uint32_t physicalMemorySize); // Initialize paging
-void switchPageDirectory(page_directory_t *dir); // Switches the page directory using inline assembly
-page_t *getPage(uint32_t addr, int make, page_directory_t *dir); // Returns a page from an address, directory (creates one if make is non-zero).
+
 #endif

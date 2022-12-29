@@ -1,182 +1,169 @@
-// ==========================================================
-// paging.c - Manages kernel virtual memory
-// ==========================================================
-// This file is a part of the reduceOS C kernel. If you use this code, please credit the implementation's original owner (if you directly copy and paste this, also add me please)
-// This implementation is not by me - credits for the implementation are present in paging.h
+// =======================================================
+// paging.c - reduceOS paging handler, manages memory
+// =======================================================
+// This implementation is not by me. Credits in the header file.
 
-#include "include/paging.h" // Main header file
+#include "include/paging.h" // Main header file.
 
-page_directory_t *kernelDir = 0; // The kernel's page directory
-page_directory_t *currentDir = 0; // The current page directory
-
-// Some bitsets of frames - used or free.
-uint32_t *frames;
-uint32_t nframes;
+// Variables
+page_directory_t *currentDirectory = 0; // Current directory table
+physicalAddress currentPDBR = 0; // Current page directory base register
 
 
-extern uint32_t placement_address; // Defined in heap.c
-extern heap_t *kernelHeap;
+// paging_tableLookupEntry(page_table_t *p, virtualAddress addr) - Searches the page table p for a virtual address.
+pt_entry *paging_tableLookupEntry(page_table_t *p, virtualAddress addr) {
+    if (p) return &p->m_entries[PAGE_TABLE_INDEX(addr)];
+    return 0;
+}
 
+// paging_directoryLookupEntry(page_directory_t *p, virtualAddress addr) - Searches the page directory p for a virtual address.
+pd_entry *paging_directoryLookupEntry(page_directory_t *p, virtualAddress addr) {
+    if (p) return &p->m_entries[PAGE_TABLE_INDEX(addr)];
+    return 0;
+}
 
-// (from JamesM's kernel dev tutorials)
-#define INDEX_BIT(a) (a/(8*4))
-#define OFFSET_BIT(a) (a%(8*4))
+// paging_switchDirectory(page_directory_t *dir) - Switches the current page directory to dir.
+bool paging_switchDirectory(page_directory_t *dir) {
+    if (!dir) return false; // Invalid directory.
 
-// Moving on to the functions...
+    // Switch current directory and load PDBR
+    currentDirectory = dir;
+    loadPDBR(currentPDBR);
+    return true;
+}
 
-// Starting off with static functions...
-
-// setFrame(uint32_t addr) - Setting a bit in the frames bitset.
-static void setFrame(uint32_t addr) {
-    uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
-    uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
-    uint32_t offset = OFFSET_BIT(frame);
-
-    frames[index] |= (0x1 << offset);
+// paging_flushTlbEntry(virtualAddress addr) - Flushes a tlb entry at virtual address address
+void paging_flushTlbEntry(virtualAddress addr) {
+    // Use the invlpg instruction to flush tlb entry
+    asm volatile ("invlpg %0" :: "m"(addr));   
 }
 
 
-// clearFrame(uint32_t addr) - Clear a bit in the frames bitset
-static void clearFrame(uint32_t addr) {
-    // Same as setFrame, but with a few differences.
-    uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
-    uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
-    uint32_t offset = OFFSET_BIT(frame);
-
-    // Now clear the bit.
-    frames[index] &= ~(0x1 << offset);
+// paging_getDirectory() - Returns address of current directory.
+page_directory_t *paging_getDirectory() {
+    return currentDirectory;
 }
 
-// testFrame(uint32_t addr) - Test if a frame is set
-static uint32_t testFrame(uint32_t addr) {
-    // Same as all previous functions, but we return a value.
-    uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
-    uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
-    uint32_t offset = OFFSET_BIT(frame);
+// paging_allocatePage(pt_entry *e) - Allocate a page
+bool paging_allocatePage(pt_entry *e) {
+    // First, allocate a free physical frame
+    void *p = memPhys_allocateBlock();
+    if (!p) return false; // Allocation failed or not enough memory.
 
-    return (frames[index] & (0x1 << offset)); // Return if the frame is set
+    // Next, map it to the page.
+    pt_entry_set_frame(e, (physicalAddress)p);
+    pt_entry_add_attribute(e, I86_PTE_PRESENT);
+    // Doesn't set write flag.
+
+    return true;
 }
 
+// paging_freePage(pt_entry *e) - Free a page.
+void paging_freePage(pt_entry *e) {
+    // First, get the pfn of the pt_entry.
+    void *p = (void*)pt_entry_pfn(*e);
+    if (p) memPhys_freeBlock(p);
 
-// firstFrame() - Find the first free frame
-static uint32_t firstFrame() {
-    // Loop through to find a free frame.
-    for (uint32_t i = 0; i < INDEX_BIT(nframes); i++) {
-        // Only continue if we have enough memory.
-        if (frames[i] != 0xFFFFFFFF) {
-            // Cool! We know at least one bit is free, let's test all 32 (8*4, remember?).
-            for (uint32_t x = 0; x < 32; x++) {
-                uint32_t test = 0x1 << x;
-                if (!(frames[i] & test)) {
-                    return i*4*8+x; // We did it, we found a frame!
-                }
-            }
-        }
-    }
-
+    // Remove the present attribute
+    pt_entry_del_attribute(e, I86_PTE_PRESENT);
 }
 
 
-// Now moving on to the functions all C files outside will probably use...
+// paging_mapPage(void *phys, void *virt) - Map a page to a physical and virtual address
+void paging_mapPage(void *phys, void *virt) {
+    // First, get the page directory.
+    page_directory_t *pageDirectory = paging_getDirectory();
 
-// allocateFrame(page_t *page, int kernel, int writable) - Allocating a frame.
-void allocateFrame(page_t *page, int kernel, int writable) {
-    if (page->frame != 0)
-    {
-        return;
-    }
-    else
-    {
-        uint32_t idx = firstFrame();
-        if (idx == (uint32_t)-1) {
-            panic("Paging", "allocateFrame()", "No free frames available");
-        }
-        setFrame(idx*0x1000);
-        page->present = 1;
-        page->rw = (writable)?1:0;
-        page->user = (kernel)?0:1;
-        page->frame = idx;
-    }
-}
-
-
-// freeFrame(page_t *page) - Deallocate (or "free") a frame.
-void freeFrame(page_t *page) {
-    uint32_t frame;
-    if (!(frame = page->frame)) return; // Invalid frame.
-
-    clearFrame(frame); // Clear the frame from the bitmap
-    page->frame = 0x0; // Clear the frame value in the page.
-}
-
-// initPaging(uint32_t physicalMemorySize) - Initialize paging
-void initPaging(uint32_t physicalMemorySize) {
-    // The user provides us with the size of physical memory.
+    // Next, get the page table.
+    pd_entry *e = &pageDirectory->m_entries[PAGE_DIRECTORY_INDEX((uint32_t)virt)];
     
-    // Set nframes and frames to their proper values.
-    nframes = physicalMemorySize / 0x1000;
-    frames = (uint32_t*)kmalloc(INDEX_BIT(nframes));
-    memset(frames, 0, INDEX_BIT(nframes));
+    // Check if the page table isn't present.
+    if ((*e & I86_PTE_PRESENT) != I86_PTE_PRESENT) {
+        // Page table not present, allocate it.
+        page_table_t *table = (page_table_t*)memPhys_allocateBlock();
+        if (!table) return;
+
+        // Clear page table.
+        memset(table, 0, sizeof(page_table_t));
+
+        // Create a new entry
+        pd_entry *entry = &pageDirectory->m_entries[PAGE_DIRECTORY_INDEX((uint32_t) virt)];
+
+        // Map in the table (you can also do *entry |= 3) to enable these bits
+        pd_entry_add_attribute(entry, I86_PDE_PRESENT);
+        pd_entry_add_attribute(entry, I86_PDE_WRITABLE);
+        pd_entry_set_frame(entry, (physicalAddress)table);
+    }
+
+    // Get the table and page
+    page_table_t *table = (page_table_t*) PAGE_GET_PHYSICAL_ADDRESS(e);
+    pt_entry *page = &table->m_entries[PAGE_TABLE_INDEX((uint32_t)virt)];
+
+    // Map it in.
+    pt_entry_set_frame(page, (physicalAddress)phys);
+    pt_entry_add_attribute(page, I86_PTE_PRESENT);
+}
+
+// paging_initialize() - Initialize paging, set variables, allocate default pages, etc.
+void paging_initialize() {
+    // First, allocate the default page table
+    page_table_t* table = (page_table_t*)memPhys_allocateBlock();
+    if (!table) return;
+
+    // Next, allocate 3 gb page table
+    page_table_t* table2 = (page_table_t*)memPhys_allocateBlock();
+    if (!table2) return;
+
+    // Clear the page table.
+    memset(table, 0, sizeof(page_table_t));
     
-    // Make a page directory.
-    kernelDir = (page_directory_t*)kmalloc_a(sizeof(page_directory_t)); // Allocate a page directory for the kernel...
-    currentDir = kernelDir; // We start in the kernel's page directory.
 
-    // Now, map some pages in the kernel's heap area - here we call getPage but not allocateFrame, causing pagge tables to be created where necessary.
-    int i = 0; 
-    for (i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE; i += PAGE_ALIGN) {
-        getPage(i, 1, kernelDir);
+    // Identity map the 1st 4mb.
+    for (int i = 0, frame = 0x0, virt=0x00000000; i < 1024; i++, frame += 4096, virt += 4096) {
+        // Create a new page
+        pt_entry page = 0;
+        pt_entry_add_attribute(&page, I86_PTE_PRESENT);
+        pt_entry_set_frame(&page, frame);
+
+        // Add it to the page table.
+        table2->m_entries[PAGE_TABLE_INDEX(virt)] = page;
     }
 
-    
-    // Now we can identity map using allocateFrame
-    i = 0;
-    while (i < placement_address + PAGE_ALIGN) {
-        allocateFrame(getPage(i, 1, kernelDir), 0, 0);
-        i += PAGE_ALIGN;
+    // Now, map 1.1 kb to 3 gb (where we are at)
+    for (int i=0, frame=0x100000, virt=0xc0000000; i<1024; i++, frame+=4096, virt+=4096) {
+        // Create a new page
+        pt_entry page =0;
+        pt_entry_add_attribute(&page, I86_PTE_PRESENT);
+        pt_entry_set_frame(&page, frame);
+        
+        // Add it to page table...
+        table->m_entries[PAGE_TABLE_INDEX(virt)] = page;
     }
 
-    // Allocate the pages we mapped earlier
-    for (i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE; i += PAGE_ALIGN) {
-        allocateFrame(getPage(i, 1, kernelDir), 0, 0);
-    }
+    // Create default directory table
+    page_directory_t *dir = (page_directory_t*)memPhys_allocateBlocks(3);
+    if (!dir) return; // Not enough memory or failed to allocat.e
 
-    // Register interrupt handlers and enable paging.
-    isrRegisterInterruptHandler(14, pageFault); // pageFault is defined in panic.c
-    switchPageDirectory(kernelDir); // Switch the page directory to kernel directory.
+    // Clear directory table and set it as current
+    memset(dir, 0, sizeof(page_directory_t));
 
-    // Create the kernel heap
-    kernelHeap = createHeap(HEAP_START, HEAP_START + HEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
+    // Get first entry in directory table and set it up to point to our table.
+    pd_entry *entry = &dir->m_entries[PAGE_DIRECTORY_INDEX(0xC0000000)];
+    pd_entry_add_attribute(entry, I86_PDE_PRESENT);
+    pd_entry_add_attribute(entry, I86_PDE_WRITABLE);
+    pd_entry_set_frame(entry, (physicalAddress)table);
+
+    pd_entry *entry2 = &dir->m_entries[PAGE_DIRECTORY_INDEX(0x00000000)];
+    pd_entry_add_attribute(entry2, I86_PDE_PRESENT);
+    pd_entry_add_attribute(entry2, I86_PDE_WRITABLE);
+    pd_entry_set_frame(entry2, (physicalAddress)table2);
+
+    // Store current PDBR.
+    currentPDBR = (physicalAddress)&dir->m_entries;
+
+    // Switch to our page directory
+    paging_switchDirectory(dir);
+
+    // Don't enable paging, we already have it enabled.
+
 }
-
-// switchPageDirectory(page_directory_t *dir) - Switches the page directory using inline assembly
-void switchPageDirectory(page_directory_t *dir) {
-    currentDir = dir;
-    asm volatile ("mov %0, %%cr3" :: "r"(&dir->tablePhysical));
-    uint32_t cr0;
-    asm volatile ("mov %%cr0, %0" : "=r"(cr0));
-    cr0 |= 0x80000000; // Enable paging!!
-    asm volatile ("mov %0, %%cr0" :: "r"(cr0));
-}
-
-
-
-// getPage(uint32_t addr, int make, page_directory_t *dir) - Returns a page from an address, directory (creates one if make is non-zero).
-page_t *getPage(uint32_t addr, int make, page_directory_t *dir) {
-    addr /= PAGE_ALIGN; // Turn the address into an index (aligned to 4096).
-     
-    // Find the page table containing this address.
-    uint32_t tableIndex = addr / 1024; 
-    if (dir->tables[tableIndex]) {
-        // If this table is already assigned...
-        return &dir->tables[tableIndex]->pages[addr % 1024];
-    } else if (make) {
-       uint32_t tmp;
-       dir->tables[tableIndex] = (page_table_t*)kmalloc_ap(sizeof(page_table_t), &tmp);
-       memset(dir->tables[tableIndex], 0, 0x1000);
-       dir->tablePhysical[tableIndex] = tmp | 0x7;
-       return &dir->tables[tableIndex]->pages[addr%1024];
-    } else { return 0; } // Nothing we can do.
-}
-
-

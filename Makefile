@@ -30,7 +30,7 @@ OUT_IMG = out/img/build.img
 # Flags for compilers
 ASM_FLAGS = -f bin
 CC_FLAGS = -ffreestanding -O2 -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W
-LD_FLAGS = -m elf_i386 -T linker.ld --defsym __BUILD_DATE=$(shell date +'%m%d%Y') --defsym __BUILD_TIME=$(shell date +'%H%M%S')
+LD_FLAGS = -m elf_i386 -T linker.ld --defsym BUILD_DATE=$(shell date +'%m%d%Y') --defsym BUILD_TIME=$(shell date +'%H%M%S')
 
 
 # Source files
