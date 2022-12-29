@@ -8,8 +8,8 @@
 
 
 // Linker defined symbols.
-extern char BUILD_DATE;
-extern char BUILD_TIME;
+extern char *BUILD_DATE;
+extern char *BUILD_TIME;
 
 
 int testFunction(char *args[]) {
@@ -59,16 +59,17 @@ int crash(char *args[]) {
     panic("kernel", "kmain()", "Error in function crash() - for science.");
 }
 
-int pciInfo(char *args[]) {
-    printPCIInfo();
-}
+int pciInfo(char *args[]) { printPCIInfo(); return 1; }
+
+
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
     // Get kernel size
     extern uint32_t end;
     uint32_t kernelSize = &end;
-
+    extern uint32_t start;
+    uint32_t kernelStart = &start;
     
 
     // Perform some basic setup
@@ -135,11 +136,28 @@ void kmain(multiboot_info* mem) {
     printf("Interrupts enabled.\n");
     
     // PAGING IMPLEMENTATION NOT WORKING FOR SOME REASON! THIS MEANS THAT IT IS BUGGED AND WILL NEED TO BE FIXED LATER.
+    // This problem has been narrowed down to the bootloader and stage 2. This may be fixed or the paging implementation will be scrapped and replaced with another.
     printf("Kernel size: 0x%x (%i bytes)\n", kernelSize, kernelSize);
 
     updateBottomText("Probing PCI...");
     initPCI();
 
+    updateBottomText("Initializing physical memory...");
+    
+    memPhys_init(mem->m_memorySize, 0xC0000000 + kernelSize);
+    printf("Physical memory management initialized.\n");
+    memoryRegion *region = (memoryRegion*)0x1000;
+    for (int i = 0; i < 10; i++) {
+        if (region[i].type > 4) break; // Invalid type
+        if (i > 0 && region[i].startLo == 0) break; // Invalid region location.
+
+        memPhys_initRegion(region[i].startLo, region[i].sizeLo);
+    }
+
+    // Deinitialize the region the kernel is in.
+    memPhys_deinitRegion(kernelStart, kernelSize*512);
+
+    
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
 
     initCommandHandler();
@@ -150,6 +168,7 @@ void kmain(multiboot_info* mem) {
     registerCommand("echo", (command*)echo);
     registerCommand("crash", (command*)crash);
     registerCommand("pci", (command*)pciInfo);
+    
 
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt)

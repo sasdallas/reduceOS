@@ -1,4 +1,5 @@
 SECTIONS {
+    start = .;
     .text 0x1100 : { *(.text) }
     .data : { *(.data) }
     .bss : { *(.bss) }

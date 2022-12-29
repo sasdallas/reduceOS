@@ -37,7 +37,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 # Known Bugs
 - Command parser can't handle arguments.
-- **Very Severe:** Paging and kernel heap are both faulting reduceOS entirely - it's not an error with their files because I tested it from the source the implementation is based off, and it worked ok. Next release may be without a paging driver.
+- **Very Severe:** Division by zero fault when enabling paging. Again, next release may be without a paging driver.
 - **Annoying:** Keyboard driver has a hard time keeping up.
 - A little bit of disgusting code in `keyboardGetChar()` (unsure how to fix)
 - Terminal scrolling can scroll the bottom bar of the screen sometimes (no way to fix easily, but not critical)

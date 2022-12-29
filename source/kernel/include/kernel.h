@@ -21,9 +21,8 @@
 #include "include/panic.h" // Kernel panicking
 #include "include/bootinfo.h" // Boot information
 #include "include/command.h" // Command parser
-#include "include/paging.h" // Paging
-#include "include/heap.h" // Kernel heap management.
 #include "include/pci.h" // PCI
 #include "include/libc/sleep.h" // Sleep function
-
+#include "include/mem_phys.h" // Physical memory
+#include "include/paging.h" // Paging handler
 #endif
