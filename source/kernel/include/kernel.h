@@ -23,6 +23,7 @@
 #include "include/command.h" // Command parser
 #include "include/pci.h" // PCI
 #include "include/libc/sleep.h" // Sleep function
-#include "include/mem_phys.h" // Physical memory
-#include "include/paging.h" // Paging handler
+#include "include/serial.h" // Serial logging
+#include "include/paging.h"
+#include "include/heap.h" 
 #endif

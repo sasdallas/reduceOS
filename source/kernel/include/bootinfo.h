@@ -6,9 +6,8 @@
 
 #include "include/libc/stdint.h" // Definitions of integer types, like uint8_t
 
+#define MULTIBOOT_MAGIC 0x2BADB002
 
-
-// multiboot info structure passed from boot loader
 
 typedef struct {
 	uint32_t	m_flags; 			// m_flags - Multiboot flags (useless without a multiboot bootloader like GRUB)

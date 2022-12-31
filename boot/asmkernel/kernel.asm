@@ -67,8 +67,15 @@ readSector:
     mov ch, 0
     int 13h
     
-    ; NOTICE: For some reason - when I use a linker script, the code that handles errors mistakenly fires and stops it.
-    ; I will need to add the error handling code back in a little bit.
+    or ah, ah
+    jnz loadGood
+
+fail:
+    mov si, readErrorStr
+    call print16
+    cli
+    hlt
+
 
 loadGood:
     mov si, preparing
@@ -96,7 +103,7 @@ main:
     ; Before we enter protected mode, we need to load our C kernel. 
     ; BIOS interrupts aren't supported in pmode, so we do it here. 
     ; ES is already set to the proper values.
-    mov al, 100                                  ; AL - sector amount to read
+    mov al, 100                                 ; AL - sector amount to read
     mov bx, kernelOffset                        ; Read to 0x1100 (remember it reads to ES:BX)
     mov cl, 5                                   ; Starting from sector 4, which in our case is 0x600(where the code is located)
     call readSector                             ; Read the sector
@@ -135,10 +142,14 @@ EnablePmode:
 
 
 
+
+
+
 bits 32                                         ; We are now 32 bit!
 
 %include "include/stdio32.inc"                  ; Printing
 %include "include/paging.inc"                   ; Paging
+
 
 
 main32:
@@ -158,14 +169,17 @@ main32:
     mov ebx, kernOK                             ; Print our kernel okay message
     call puts32           
 
-    call enablePaging
-
+    
+    
     mov eax, boot_info                          ; Push boot_info for the kernel.
     push eax
     call kernelOffset                           ; The kernel is located at 0x1100
     jmp $
 
-    
+
 
 buildNum db 0x0A, 0x0A, 0x0A, "                         reduceOS Development Build", 0
 kernOK db 0x0A, 0x0A, 0x0A, "                              Loading C kernel...", 0
+sector db 0x00
+head db 0x00
+track db 0x00

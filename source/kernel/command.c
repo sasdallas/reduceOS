@@ -20,7 +20,6 @@ static int parseArguments(char *cmd, char *args[]) {
     char tmp[256]; // tmp stores our current argument
     int argumentAmnt = 0;
     int tmpIndex = 0; // Seperate index is used because if we find an argument, tmp is reset, and so the index needs to be reset.
-    
     for (int i = 0; i < strlen(cmd); i++) {
         if (cmd[i] == ' ' && i+1 != '\0') {
             // We have an argument!
@@ -42,9 +41,14 @@ static int parseArguments(char *cmd, char *args[]) {
 int parseCommand(char *cmd) {
     if (index == 0 || strlen(cmd) == 0) return -1;
 
+    // I have no idea, man:
+    printf("\0");
+    
     char *args[] = {"\0"};
     char *cmdName = cmd;
     int argc = parseArguments(cmd, args);
+
+    printf("\0");
 
     for (int i = 0; i < 1024; i++) {
         cmdData *data = &cmdFunctions[i];
