@@ -310,6 +310,21 @@ int printf(const char*  format, ...) {
                         break;
                     }
 
+                    // %u or %U is for an unsigned integer
+                    case 'U':
+                    case 'u': {
+                        unsigned int c = va_arg(args, int);
+                        char str[32] = {0};
+
+                        // itoa() takes care of the negative stuff
+                        itoa(c, str, 10);
+
+                        if (!print(str, strlen(str))) return -1;
+
+                        charsWritten++;
+                        i++;
+                        break;
+                    }
                     default:
                         terminalPutchar(format[i]); // If else place the character
                         break;
@@ -328,3 +343,119 @@ int printf(const char*  format, ...) {
     return charsWritten;
 } 
 
+
+
+// THESE ARE SOME MISC FUNCTIONS - MAINLY USED IN serial.c AND FUNCTIONS THAT REQUIRE A SPECIAL PRINTF (that uses a special putchar() method)
+
+
+// This function is basically just printf(), except it uses put_method instead.
+void printf_putchar(const char *format, void(*put_method)(char), va_list args) {
+    if (!format) return; // Don't bother if there is no string
+
+    int charsWritten = 0; // This is the value that will be returned on finish
+
+    for (int i = 0; i < strlen(format); i++) {
+
+        switch (format[i]) { // Take the i character of our string format and determine whether it needs special handling.
+
+            case '%': // In the case that it's a percent sign, check what character is after it.
+
+                switch(format[i+1]) {
+                    // There are a few possible characters after this, mainly %c, %s, %d, %x, and %i
+                    // %c is for characters.
+                    case 'c': {
+                        char c = va_arg(args, char); // We need to get the next argument that is a character.
+                        
+                        
+                        put_method(c);
+
+                        charsWritten++; // Increment charsWritten.
+                        i++; // Increment i.
+                        break;
+                    }
+
+                    // %s is for strings (or address of).
+                    case 's': {
+                        const char *c = va_arg(args, const char *); // Char promotes to integer, and we're trying to get the address of the string.
+                        char *s = {0}; // The array where the character will go.
+
+                        strcpy(s, (const char *)c); // Copy c to str (dest is the first parameter)
+                        
+                        for (int i = 0; i < strlen(s); i++) {
+                            put_method(s[i]);
+                        }
+                        charsWritten++; // Increment charsWritten
+                        i++; // Increment i.
+                        break;
+                    }
+                    
+                    // %d or %i is for integers
+                    case 'd':
+                    case 'i': {
+                        int c = va_arg(args, int); // We need to get the next integer in the parameters.
+                        char str[32] = {0}; // String buffer where the integer will go.
+
+                        // itoa() takes care of all the negative stuff already.
+                        itoa(c, str, 10); // Convert the integer to a string
+                        
+                        
+                        for (int i = 0; i < strlen(str); i++) 
+                            put_method(str[i]);
+    
+
+                        charsWritten++; // Increment charsWritten
+                        i++; // Increment i
+                        break;
+
+                    }
+
+                    // %x or %X is for hexadecimal
+                    case 'X':
+                    case 'x': {
+                        int c = va_arg(args, int); // We need to get the next integer (it will be converted to hexadecimal when we use itoa.) from the parameters.
+                        char str[32] = {0}; // String buffer where the hexadecimal will go.
+
+                        // itoa() will convert the integer to base-16 or hex.
+                        itoa(c, str, 16); // Convert the integer to a hex string.
+
+                        for (int i = 0; i < strlen(str); i++) 
+                            put_method(str[i]);
+    
+                        charsWritten++; // Increment charsWritten
+                        i++; // Increment i.
+                        break;
+                    }
+
+                    // %u or %U is for an unsigned integer
+                    case 'U':
+                    case 'u': {
+                        unsigned int c = va_arg(args, int);
+                        char str[32] = {0};
+
+                        // itoa() takes care of the negative stuff
+                        itoa(c, str, 10);
+
+                        for (int i = 0; i < strlen(str); i++) 
+                            put_method(str[i]);
+    
+                        charsWritten++;
+                        i++;
+                        break;
+                    }
+                    default:
+                        put_method(format[i]); // If else place the character
+                        break;
+                }
+
+                break;
+            
+            default:
+                put_method(format[i]);
+                break;
+
+        }
+    }
+
+    va_end(args);
+    return charsWritten;
+}

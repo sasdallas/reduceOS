@@ -82,8 +82,15 @@ static void keyboardHandler(REGISTERS *r) {
         switch (scancode) {
             case SCANCODE_CAPSLOCK:
                 ch = '\0';
+                // I have no idea why this works. It just does.
+                // Otherwise the system automatically enables capslock and screws up the command parser.
+                // Again: NO. IDEA.
+
+                printf("\0\0\0\0\0\0\0\0");
                 if (capsLock) { capsLock = false; }
-                else { capsLock = true; }
+                else {
+                    capsLock = true;
+                }
                 break;
             
             case SCANCODE_ENTER:

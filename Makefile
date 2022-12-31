@@ -2,6 +2,7 @@
 ASM = nasm
 CC = gcc
 LD = ld
+GRUB_FILE = grub-file
 
 RM = rm
 MKDIR = mkdir -p
@@ -55,8 +56,8 @@ C_OBJS = $(patsubst $(KERNEL_SOURCE)/%.c, $(OUT_OBJ)/%.o, $(C_SRCS)) $(patsubst 
 # all - builds a proper kernel.bin file for release
 # dbg - builds a kernel file (non-binary) for use with objdump or other examination tools (this target is most commonly used while testing new linking)
 
-all: $(OUT_ASM)/loader.bin $(OUT_ASM)/asmkernel.bin  $(OUT_KERNEL)/kernel.bin
-dbg: $(OUT_ASM)/loader.bin $(OUT_ASM)/asmkernel.bin $(OUT_KERNEL)/kernel
+all: $(OUT_KERNEL)/kernel.bin
+dbg: $(OUT_KERNEL)/kernel $(OUT_KERNEL)/kernel.elf
 
 
 
@@ -65,46 +66,56 @@ $(OUT_KERNEL)/kernel: $(ASM_KLOADEROBJS) $(C_OBJS)
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel
 	@printf "\n"
 
+$(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS)
+	@printf "[ Linking debug symbols... ]\n"
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.elf
+
 $(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS)
 	@printf "[ Linking C kernel... ]\n"
-	$(LD) $(LD_FLAGS) --oformat binary $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.bin 
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.bin 
+	@printf "[ Verifying kernel is valid... ]\n"
+	$(GRUB_FILE) --is-x86-multiboot $(OUT_KERNEL)/kernel.bin
 	@printf "\n"
+
 
 $(OUT_OBJ)/%.o: $(KERNEL_SOURCE)/%.c | $(OUT_OBJ)
 	@printf "[ Compiling C file $<... ]\n"
 	@$(CC) $(CC_FLAGS) -c $< -o $@
 
 $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.asm | $(OUT_ASMOBJ)
-	@printf "[ Compiling ASM kernel loader... ]\n"
+	@printf "[ Compiling kernel ASM file... ]\n"
 	$(ASM) -f elf32 $< -o $@
 	@printf "\n"
 	
+$(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.s | $($OUT_ASMOBJ)
+	$(ASM) -f elf32 $< -o $@
 
-$(OUT_ASM)/loader.bin: $(ASM_LOADER_SRCS)
-	@printf "[ Compiling bootloader... ]\n"
-	$(ASM) $(ASM_FLAGS) $< -o $@
-	@printf "\n"
+#$(OUT_ASM)/loader.bin: $(ASM_LOADER_SRCS)
+#	@printf "[ Compiling bootloader... ]\n"
+#	$(ASM) $(ASM_FLAGS) $< -o $@
+#	@printf "\n"
+	
+#$(OUT_ASM)/asmkernel.bin: $(ASM_KERNEL_SRCS)
+#	@printf "[ Compiling assembly kernel... ]\n"
+#	$(ASM) $(ASM_FLAGS) $< -I $(ASM_KERNEL)/ -o $@ 
+#	@printf "\n"
 
-$(OUT_ASM)/asmkernel.bin: $(ASM_KERNEL_SRCS)
-	@printf "[ Compiling assembly kernel... ]\n"
-	$(ASM) $(ASM_FLAGS) $< -I $(ASM_KERNEL)/ -o $@ 
-	@printf "\n"
 
 
-img: $(OUT_ASM)/asmkernel.bin $(OUT_ASM)/loader.bin $(OUT_KERNEL)/kernel.bin
-	@printf "[ Creating image file (requires qemu-img)... ]\n"
-	@$(qemu-img) create out/img/reduceOS.img 100M
-	@printf "[ Writing boot sector to image... ]\n"
-	@$(dd) if=out/boot/loader.bin of=out/img/reduceOS.img bs=512 count=1
-	@printf "[ Writing assembly kernel to image... ]\n"
-	@$(dd) if=out/boot/asmkernel.bin of=out/img/reduceOS.img bs=512 seek=1
-	@printf "[ Writing kernel to image... ]\n"
-	@$(dd) if=out/kernel/kernel.bin of=out/img/reduceOS.img bs=512 seek=4
-	@printf "[ Done! Run make qemu to execute QEMU... ]\n"
+#img: (OUT_KERNEL)/kernel.bin
+#	@printf "[ Creating image file (requires qemu-img)... ]\n"
+#	@$(qemu-img) create out/img/reduceOS.img 100M
+#	@printf "[ Writing boot sector to image... ]\n"
+#	@$(dd) if=out/boot/loader.bin of=out/img/reduceOS.img bs=512 count=1
+#	@printf "[ Writing assembly kernel to image... ]\n"
+#	@$(dd) if=out/boot/asmkernel.bin of=out/img/reduceOS.img bs=512 seek=1
+#	@printf "[ Writing kernel to image... ]\n"
+#	@$(dd) if=out/kernel/kernel.bin of=out/img/reduceOS.img bs=512 seek=4
+#	@printf "[ Done! Run make qemu to execute QEMU... ]\n"
 
 qemu:
 	@printf "[ Launching QEMU... ]\n"
-	@${qemu-system-x86_64} -hda out/img/reduceOS.img
+	@${qemu-system-x86_64} -kernel out/kernel/kernel.bin
 
 clean:
 	@printf "[ Deleting assembly binary files... ]\n"

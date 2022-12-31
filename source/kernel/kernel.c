@@ -61,20 +61,26 @@ int crash(char *args[]) {
 
 int pciInfo(char *args[]) { printPCIInfo(); return 1; }
 
+int shutdown(char *args[]) {
+    printf("Shutting down reduceOS...\n");
+    asm volatile ("cli");
+    asm volatile ("hlt");
+}
+
 
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
-    // Get kernel size
+    // Get kernel size (remember that the kernel starts at 0x100000)
     extern uint32_t end;
     uint32_t kernelSize = &end;
     extern uint32_t start;
     uint32_t kernelStart = &start;
     
-
     // Perform some basic setup
     initTerminal(); // Initialize the terminal and clear the screen
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
+
 
     // First, setup the top bar.
     printf("reduceOS v1.0 - Development Build");
@@ -86,6 +92,7 @@ void kmain(multiboot_info* mem) {
 
     // Change the bottom text of the terminal (updateBottomText)
     updateBottomText("Loading reduceOS...");
+
     
     // Initialize IDT.
     updateBottomText("Initializing IDT...");
@@ -114,10 +121,13 @@ void kmain(multiboot_info* mem) {
 
     // Quickly inform the user of their available memory. (note: yes, I know 1 GB is equal 1000 MB and 1 MB is equal to 1000 KB, but for some reason it breaks things so I don't care)
 
-    int memoryGB = mem->m_memorySize / 1024 / 1024; 
-    int memoryMB = mem->m_memorySize / 1024 - (memoryGB * 1024);
-    int memoryKB = mem->m_memorySize - (memoryMB * 1024);
-    printf("Available memory: %i GB %i MB %i KB\n", memoryGB, memoryMB, memoryKB);
+    // NOTE: Scrapped as of now - GRUB didn't pass us the amount of memory we have.
+
+    // Serial output and logging
+    serialInit();
+    serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
+    serialPrintf("Serial logging initialized!\n");
+    printf("Serial logging initialized on COM1.\n");
 
     // PIT timer
     updateBottomText("Initializing PIT...");
@@ -135,28 +145,14 @@ void kmain(multiboot_info* mem) {
     enableHardwareInterrupts();
     printf("Interrupts enabled.\n");
     
-    // PAGING IMPLEMENTATION NOT WORKING FOR SOME REASON! THIS MEANS THAT IT IS BUGGED AND WILL NEED TO BE FIXED LATER.
-    // This problem has been narrowed down to the bootloader and stage 2. This may be fixed or the paging implementation will be scrapped and replaced with another.
+   
     printf("Kernel size: 0x%x (%i bytes)\n", kernelSize, kernelSize);
 
     updateBottomText("Probing PCI...");
     initPCI();
 
-    updateBottomText("Initializing physical memory...");
     
-    memPhys_init(mem->m_memorySize, 0xC0000000 + kernelSize);
-    printf("Physical memory management initialized.\n");
-    memoryRegion *region = (memoryRegion*)0x1000;
-    for (int i = 0; i < 10; i++) {
-        if (region[i].type > 4) break; // Invalid type
-        if (i > 0 && region[i].startLo == 0) break; // Invalid region location.
-
-        memPhys_initRegion(region[i].startLo, region[i].sizeLo);
-    }
-
-    // Deinitialize the region the kernel is in.
-    memPhys_deinitRegion(kernelStart, kernelSize*512);
-
+    initPaging(0xCFFFF000);
     
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
 
@@ -168,7 +164,6 @@ void kmain(multiboot_info* mem) {
     registerCommand("echo", (command*)echo);
     registerCommand("crash", (command*)crash);
     registerCommand("pci", (command*)pciInfo);
-    
 
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt)
