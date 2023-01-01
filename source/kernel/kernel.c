@@ -17,6 +17,20 @@ int testFunction(char *args[]) {
     return 1;
 }
 
+int pagingTest(char *args[]) {
+    printf("Executing paging test...\n");
+    uint32_t a = kmalloc(8);
+    uint32_t b = kmalloc(8);
+    uint32_t c = kmalloc(8);
+    printf("a: 0x%x, b: 0x%x\nc: 0x%x, ", a, b, c);
+    kfree(c);
+    kfree(b);
+    uint32_t d = kmalloc(12);
+    printf("d: 0x%x\n", d);
+    kfree(d);
+    printf("Test complete.\n");
+}
+
 
 int getSystemInformation(char *args[]) {
     uint32_t vendor[32];
@@ -93,6 +107,9 @@ void kmain(multiboot_info* mem) {
     // Change the bottom text of the terminal (updateBottomText)
     updateBottomText("Loading reduceOS...");
 
+    // Initialize GDT.
+    updateBottomText("Initializing GDT...");
+    gdtInit();
     
     // Initialize IDT.
     updateBottomText("Initializing IDT...");
@@ -154,6 +171,7 @@ void kmain(multiboot_info* mem) {
     
     initPaging(0xCFFFF000);
     
+
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
 
     initCommandHandler();
@@ -164,6 +182,7 @@ void kmain(multiboot_info* mem) {
     registerCommand("echo", (command*)echo);
     registerCommand("crash", (command*)crash);
     registerCommand("pci", (command*)pciInfo);
+    registerCommand("paging", (command*)pagingTest);
 
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt)

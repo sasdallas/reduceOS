@@ -37,8 +37,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 # Known Bugs
 - Serial logging can't handle a `\n` (doesn't reset X to 0)
-- **Severe:** Paging isn't aligning the addresses properly (that or it's a bug with the terminal).
-- **Probably severe:** Paging `kmalloc()` is working, but `kfree()` crashes on an `ASSERT()` function checking if - the header magic is equal to the HEAP_MAGIC, in which it's some random negative value.
+- **Severe:** Paging isn't aligning the addresses properly.
 - Command parser can't handle arguments.
 - **Annoying:** Keyboard driver has a hard time keeping up.
 - A little bit of disgusting code in `keyboardGetChar()` (unsure how to fix)
