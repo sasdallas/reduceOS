@@ -297,11 +297,12 @@ int printf(const char*  format, ...) {
                     // %x or %X is for hexadecimal
                     case 'X':
                     case 'x': {
-                        int c = va_arg(args, int); // We need to get the next integer (it will be converted to hexadecimal when we use itoa.) from the parameters.
+                        unsigned int c = va_arg(args, unsigned int); // We need to get the next integer.
                         char str[32] = {0}; // String buffer where the hexadecimal will go.
 
-                        // itoa() will convert the integer to base-16 or hex.
-                        itoa(c, str, 16); // Convert the integer to a hex string.
+                        // BUGGED WITH PAGING FOR SOME REASON!
+
+                        itoa(c, str, 16);
 
                         if (!print(str, strlen(str))) return -1; // Print error!
 
@@ -309,6 +310,7 @@ int printf(const char*  format, ...) {
                         i++; // Increment i.
                         break;
                     }
+
 
                     // %u or %U is for an unsigned integer
                     case 'U':
@@ -344,6 +346,22 @@ int printf(const char*  format, ...) {
 } 
 
 
+
+// printf_hex(uint32_t hex) - Fixed function to get around printf's buggy %x.
+void printf_hex(uint32_t hex) {
+    char noZeroes = 1;
+    int i;
+    int32_t tmp;
+    for (i = 28; i > 0; i-= 4) {
+        tmp = (hex >> i) & 0xF;
+        if (tmp == 0 && noZeroes != 0) continue;
+        if (tmp >= 0xA) { noZeroes = 0; terminalPutchar(tmp-0xA+'a'); }
+        else { noZeroes = 0; terminalPutchar(tmp+'0'); }
+    }
+    tmp = hex & 0xF;
+    if (tmp >= 0xA) terminalPutchar(tmp-0xA + 'a');
+    else terminalPutchar(tmp+'0');
+}
 
 // THESE ARE SOME MISC FUNCTIONS - MAINLY USED IN serial.c AND FUNCTIONS THAT REQUIRE A SPECIAL PRINTF (that uses a special putchar() method)
 

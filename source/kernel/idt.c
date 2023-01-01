@@ -5,6 +5,8 @@
 
 #include "include/idt.h" // IDT header file
 
+extern void install_idt(uint32_t);
+
 typedef struct {
     uint16_t limit; // size of the IDT
     uint32_t base_addr; // base address of the IDT
@@ -59,8 +61,7 @@ int idtInit(uint16_t segmentSelector) {
 
     isrInstall(); // Install handlers
 
-    installIDT(); // Install IDT
-
+    install_idt((uint32_t)&_idtptr);
     printf("IDT initialized.\n");
     return 0;
 }
