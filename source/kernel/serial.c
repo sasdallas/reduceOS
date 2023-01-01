@@ -7,6 +7,8 @@
 
 // Variable declarations
 bool serialTestPassed = true; 
+bool isSerialEnabled = false;
+
 
 // Functions
 
@@ -81,4 +83,6 @@ void serialInit() {
     
     // Test the serial port to make sure it works properly.
     testSerial();
+
+    isSerialEnabled = true;
 }

@@ -18,6 +18,9 @@
 #define SERIAL_COM7 0x5E8
 #define SERIAL_COM8 0x4E8
 
+// Variables
+extern bool isSerialEnabled;
+
 // Functions
 void serialInit(); // Initialize serial (default port COM1, unchangable as of now.)
 void serialWrite(char c); // Writes character 'c' to serial when transmit is empty.

@@ -22,11 +22,20 @@ int pagingTest(char *args[]) {
     uint32_t a = kmalloc(8);
     uint32_t b = kmalloc(8);
     uint32_t c = kmalloc(8);
-    printf("a: 0x%x, b: 0x%x\nc: 0x%x, ", a, b, c);
+    
+    printf("a: 0x");
+    printf_hex(a);
+    printf(", b: 0x");
+    printf_hex(b);
+    printf("\nc: 0x");
+    printf_hex(c);
+
     kfree(c);
     kfree(b);
     uint32_t d = kmalloc(12);
-    printf("d: 0x%x\n", d);
+    printf(", d: 0x");
+    printf_hex(d);
+    printf("\n");
     kfree(d);
     printf("Test complete.\n");
 }
@@ -85,11 +94,13 @@ int shutdown(char *args[]) {
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
-    // Get kernel size (remember that the kernel starts at 0x100000)
-    extern uint32_t end;
-    uint32_t kernelSize = &end;
+    // Get kernel size
     extern uint32_t start;
     uint32_t kernelStart = &start;
+    extern uint32_t end;
+    uint32_t kernelSize = &end;
+    kernelSize = kernelSize - kernelStart;
+    
     
     // Perform some basic setup
     initTerminal(); // Initialize the terminal and clear the screen
