@@ -8,6 +8,7 @@ SECTIONS
         text = .;
         *(.text)
         . = ALIGN(4096);
+        text_end = .;
     }
 
     .data :
@@ -16,6 +17,7 @@ SECTIONS
         *(.data)
         *(.rodata)
         . = ALIGN(4096);
+        data_end = .;
     }
 
     .bss :
@@ -23,6 +25,7 @@ SECTIONS
         bss = .;
         *(.bss)
         . = ALIGN(4096);
+        bss_end = .;
     }
 
     end = .;

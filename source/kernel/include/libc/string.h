@@ -7,6 +7,7 @@
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/libc/stdbool.h" // Boolean declarations
 #include "include/libc/stddef.h" // size_t declaration
+#include "include/heap.h" // kmalloc and such.
 
 // TECHNICALLY this isn't supposed to be here but I don't care that much
 #define EOF -1
@@ -23,4 +24,5 @@ char tolower(char c); // tolower() - turns a character lowercase
 int isalpha(char ch); // isalpha() -  returns if a char is in the alphabet
 int strcmp(const char *str1, char *str2); // strcmp() - compares a string.
 int strlen(char *str); // strlen() - checks length of a string
+char *strtok(char *str, const char *delim); // strtok() - splits a string into tokens, seperated by delim.
 #endif

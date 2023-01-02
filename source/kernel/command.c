@@ -9,33 +9,49 @@
 // The command function is stored in an array of a type called cmdData (this typedef is present in command.h, note that it is different from command)
 // The function returns an integer, which can be any value, but mainly only 1 and -1. 
 // 1 means success, while -1 means a failure.
-// The command can also take a parameter called args (of type char*[])
+// The command can also take a parameter called args (of type char*[]) and argc (of type int)
 
 cmdData cmdFunctions[1024]; // As of now maximum commands is 1024.
 static int index = 0; // Index of commands to add.
 
 // Functions
-// (static) parseArguments(char *cmd, char *args) - Removes spaces and parses any arguments. Returns amount of arguments and sets the actual arguments in *args. Each argument is seperated by a 
-static int parseArguments(char *cmd, char *args[]) {
-    char tmp[256]; // tmp stores our current argument
-    int argumentAmnt = 0;
-    int tmpIndex = 0; // Seperate index is used because if we find an argument, tmp is reset, and so the index needs to be reset.
-    for (int i = 0; i < strlen(cmd); i++) {
-        if (cmd[i] == ' ' && i+1 != '\0') {
-            // We have an argument!
-            args[argumentAmnt] = tmp; // Set the proper value in arguments.
-            memset(tmp, 0, sizeof(tmp)); // Clear tmp.
-            argumentAmnt++; // Increment the amount of arguments
-            tmpIndex = 0; // Reset tmpIndex.
-        } else {
-            tmp[tmpIndex] = cmd[i]; // Add the character to tmp and increment tmpIndex.
-            tmpIndex++;
+// (static) parseArguments(char *cmd, char ) - Removes spaces and parses any arguments. Returns amount of arguments and sets the actual arguments in *args. Each argument is seperated by a 
+static int parseArguments(char *cmd, char ***parsedArguments) {
+    // Count number of arguments in the command.
+    int commandAmount = 0;
+    for (int i = 0; cmd[i] != '\0'; i++) {
+        if (cmd[i] == ' ') commandAmount++;
+    }
+
+    // Add one for the command itself.
+    commandAmount++;
+
+    // Allocate memory for argument array
+    *parsedArguments = kmalloc(commandAmount * sizeof(char *));
+    if (*parsedArguments == NULL) return -1;
+
+    // Fill the array with arguments
+    int i = 0, start = 0;
+    for (int j = 0; cmd[j] != '\0'; j++) {
+        if (cmd[j] == ' ') {
+            int len = j - start;
+            (*parsedArguments)[i] = kmalloc((len + 1) * sizeof(char));
+            if ((*parsedArguments)[i] == NULL) return -1;
+            strcpy((*parsedArguments)[i], &cmd[start]);
+            (*parsedArguments)[i][len] = '\0';
+            i++;
+            start = j + 1;
         }
     }
 
-    // Done. Return argumentAmnt.
-    return argumentAmnt;
+    int len = strlen(cmd) - start;
+    (*parsedArguments)[i] = kmalloc((len + 1) * sizeof(char));
+    if ((*parsedArguments)[i] == NULL) return -1;
+
+    strcpy((*parsedArguments)[i], &cmd[start]);
+    return commandAmount;
 }
+
 
 // parseCommand(char *cmd) - Parses a command to get the function to call.
 int parseCommand(char *cmd) {
@@ -43,20 +59,21 @@ int parseCommand(char *cmd) {
 
     // I have no idea, man:
     printf("\0");
-    
-    char *args[] = {"\0"};
-    char *cmdName = cmd;
-    int argc = parseArguments(cmd, args);
+    char **argv;
+    int argc = parseArguments(cmd, &argv);
 
+   
     printf("\0");
 
     for (int i = 0; i < 1024; i++) {
         cmdData *data = &cmdFunctions[i];
-        if (strcmp(cmdName, data->cmdName) == 0) {
+        if (strcmp(argv[0], data->cmdName) == 0) {
             command *func = data->cmdFunc;
             int ret;
-            if (argc != 0) ret = func(args);
-            else ret = func(NULL);
+            ret = func(argc, argv);
+            // Free the memory allocated for the parsed command
+            for (int i = 0; i < argc; i++) { memset(argv[i], 0, strlen(argv[i])); }
+            memset(argv, 0, argc * sizeof(char *));
             return ret;
         }
     }  

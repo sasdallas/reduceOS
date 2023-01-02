@@ -12,12 +12,12 @@ extern char *BUILD_DATE;
 extern char *BUILD_TIME;
 
 
-int testFunction(char *args[]) {
+int testFunction(int argc, char *args[]) {
     printf("It works!\n");
     return 1;
 }
 
-int pagingTest(char *args[]) {
+int pagingTest(int argc, char *args[]) {
     printf("Executing paging test...\n");
     uint32_t a = kmalloc(8);
     uint32_t b = kmalloc(8);
@@ -36,12 +36,13 @@ int pagingTest(char *args[]) {
     printf(", d: 0x");
     printf_hex(d);
     printf("\n");
+    kfree(a);
     kfree(d);
     printf("Test complete.\n");
 }
 
 
-int getSystemInformation(char *args[]) {
+int getSystemInformation(int argc, char *args[]) {
     uint32_t vendor[32];
     int iedx = 0;
     __cpuid(0x80000002, (uint32_t *)vendor+0x0, (uint32_t *)vendor+0x1, (uint32_t *)vendor+0x2, (uint32_t *)vendor+0x3);
@@ -62,29 +63,33 @@ int getSystemInformation(char *args[]) {
 }
 
 
-int help(char *args[]) {
+int help(int argc, char *args[]) {
     printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help, echo, pci, crash\n");
     return 1;
 }
 
-// currently bugged: will fix in next patch (hopefully)
-int echo(char *args[]) {
-    printf(args[0]);
+
+int echo(int argc, char *args[]) {
+    if (argc > 1) {
+        for (int i = 1; i < argc; i++) { printf("%s ", args[i]); }
+        printf("\n");
+    }
+
     return 1;
 }
 
-int crash(char *args[]) {
+int crash(int argc, char *args[]) {
     setKBHandler(false); // Disable keyboard handler.
     printf("Why do you want to crash reduceOS?\n");
     sleep(1000);
     printf("FOR SCIENCE, OF COURSE!");
     sleep(1000);
-    panic("kernel", "kmain()", "Error in function crash() - for science.");
+    panic("kernel", "kmain()", "Error in function crash()");
 }
 
-int pciInfo(char *args[]) { printPCIInfo(); return 1; }
+int pciInfo(int argc, char *args[]) { printPCIInfo(); return 1; }
 
-int shutdown(char *args[]) {
+int shutdown(int argc, char *args[]) {
     printf("Shutting down reduceOS...\n");
     asm volatile ("cli");
     asm volatile ("hlt");
@@ -98,9 +103,7 @@ void kmain(multiboot_info* mem) {
     extern uint32_t start;
     uint32_t kernelStart = &start;
     extern uint32_t end;
-    uint32_t kernelSize = &end;
-    kernelSize = kernelSize - kernelStart;
-    
+    uint32_t kernelEnd = &end;
     
     // Perform some basic setup
     initTerminal(); // Initialize the terminal and clear the screen
@@ -174,7 +177,7 @@ void kmain(multiboot_info* mem) {
     printf("Interrupts enabled.\n");
     
    
-    printf("Kernel size: 0x%x (%i bytes)\n", kernelSize, kernelSize);
+    printf("Kernel is loaded at 0x%x, ending at 0x%x\n", kernelStart, kernelEnd);
 
     updateBottomText("Probing PCI...");
     initPCI();

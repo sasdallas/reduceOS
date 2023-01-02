@@ -154,3 +154,32 @@ int strcmp (const char* str1, char *str2) {
     return 1;
 }
 
+
+
+// strtok() - Splits a string into tokens, seperated by characters in delim.
+char *strtok(char *str, const char *delim) {
+    static int currentIndex = 0;
+
+    if (!str || !delim || str[currentIndex] == '\0') return NULL;
+
+    // Allocate memory for character.
+    char *w = (char*)kmalloc(sizeof(char)*100);
+
+    int i = currentIndex, k = 0, j = 0;
+    while (str[i] != '\0') {
+        j = 0;
+        while (delim[j] != '\0') {
+            if (str[i] != delim[j]) w[k] = str[i];
+            else goto Done;
+            j++;
+        }
+
+        i++;
+        k++;
+    }
+
+Done:
+    w[i] = 0;
+    currentIndex = i+1;
+    return w;
+}
