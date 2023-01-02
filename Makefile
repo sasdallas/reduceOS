@@ -118,7 +118,7 @@ img: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img
 
 
 	@printf "[ Creating image file... ]\n"
-	@$(QEMU_IMG) create $(OUT_IMG) 500M
+	@$(QEMU_IMG) create $(OUT_IMG) 50M
 	@printf "\n"
 	
 	@printf "[ Formatting image file to ext2... ]\n"
