@@ -8,7 +8,6 @@ RM = rm
 MKDIR = mkdir -p
 CP = cp -f
 
-<<<<<<< HEAD
 DD = dd
 qemu-system-x86_64 = qemu-system-x86_64
 QEMU_IMG = qemu-img
@@ -21,11 +20,6 @@ unmount = sudo umount
 cp_elevated = sudo cp
 
 initrd_generator = ./initrd_img/generate_initrd
-=======
-dd = dd
-qemu-system-x86_64 = qemu-system-x86_64
-qemu-img = qemu-img
->>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
 
 
 # Directories
