@@ -9,7 +9,11 @@
 // The command function is stored in an array of a type called cmdData (this typedef is present in command.h, note that it is different from command)
 // The function returns an integer, which can be any value, but mainly only 1 and -1. 
 // 1 means success, while -1 means a failure.
+<<<<<<< HEAD
 // The command can also take a parameter called args (of type char*[]) and argc (of type int)
+=======
+// The command can also take a parameter called args (of type char*[])
+>>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
 
 cmdData cmdFunctions[1024]; // As of now maximum commands is 1024.
 static int index = 0; // Index of commands to add.

@@ -38,8 +38,14 @@ Run `make qemu` to launch QEMU and start the OS.
 # Known Bugs
 - For some reason, `printf()` can't handle a `%x` when paging values are passed. I added some code I found to fix it, it works fine in the function calling it but not in printf. It's not bad, the `%x` operator works fine otherwise. In the meantime, `printf_hex()` has been added to mitigate this.
 - Serial logging can't handle a `\n` (doesn't reset X to 0)
+<<<<<<< HEAD
 - **Annoying:** Keyboard driver has a hard time keeping up.
 - A little bit of disgusting code in `keyboardGetChar()`, `commandHandler()`, and a few other functions (unknown how to fix)
+=======
+- Command parser can't handle arguments.
+- **Annoying:** Keyboard driver has a hard time keeping up.
+- A little bit of disgusting code in `keyboardGetChar()` (unsure how to fix)
+>>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
 - Terminal scrolling can scroll the bottom bar of the screen sometimes (no way to fix easily, but not critical)
 - No stack-smashing protector for printf (and a few other functions).
 

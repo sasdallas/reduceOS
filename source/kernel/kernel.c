@@ -12,12 +12,20 @@ extern char *BUILD_DATE;
 extern char *BUILD_TIME;
 
 
+<<<<<<< HEAD
 int testFunction(int argc, char *args[]) {
+=======
+int testFunction(char *args[]) {
+>>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
     printf("It works!\n");
     return 1;
 }
 
+<<<<<<< HEAD
 int pagingTest(int argc, char *args[]) {
+=======
+int pagingTest(char *args[]) {
+>>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
     printf("Executing paging test...\n");
     uint32_t a = kmalloc(8);
     uint32_t b = kmalloc(8);
