@@ -38,7 +38,6 @@ OUT_OBJ = obj
 OUT_ASMOBJ = obj/assembly
 OUT_ASM = out/boot
 OUT_KERNEL = out/kernel
-<<<<<<< HEAD
 OUT_INITRD = out/initrd
 
 INITRD_SRC = initrd_img
@@ -46,21 +45,16 @@ INITRD_OBJ = $(INITRD_SRC)/obj
 INITRD_DIR = $(INITRD_SRC)/initrd
 
 TMP_MNT = /tmp/mnt
-=======
->>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
 
 # Files
 OUT_IMG = out/img/build.img
 
 
-<<<<<<< HEAD
 # Misc. things
 LOOP0 = /dev/loop0
 
 
 
-=======
->>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
 # Flags for compilers
 ASM_FLAGS = -f bin
 CC_FLAGS = -ffreestanding -O2 -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W
