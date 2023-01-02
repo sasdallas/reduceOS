@@ -7,8 +7,7 @@ If you would like to learn more about the development of the kernel, scroll down
 ![reduceOS image](reduceOSDemo.png)
 
 #### Please read the credits!
-### TEMPORARY NOTICE: reduceOS, due to limitations in my own knowledge of assembly and bootloaders, has switched in favor of multiboot. I am deeply sorry about this - I was hoping we wouldn't have to.
-
+### TEMPORARY NOTICE: I managed to screw up the branch by accidentally adding a >500MB file to my commit. I then made the mistake of running git filter-branch. There is definitely not 300 commits here, sorry about that lol.
 # What's different?
 I've switched off multiboot in favor of a custom assembly bootloader and kernel. More features are coming in the kernel rewrite along with a ton of flaws and bugs fixed.\
 More info coming soon.
@@ -38,14 +37,8 @@ Run `make qemu` to launch QEMU and start the OS.
 # Known Bugs
 - For some reason, `printf()` can't handle a `%x` when paging values are passed. I added some code I found to fix it, it works fine in the function calling it but not in printf. It's not bad, the `%x` operator works fine otherwise. In the meantime, `printf_hex()` has been added to mitigate this.
 - Serial logging can't handle a `\n` (doesn't reset X to 0)
-<<<<<<< HEAD
 - **Annoying:** Keyboard driver has a hard time keeping up.
 - A little bit of disgusting code in `keyboardGetChar()`, `commandHandler()`, and a few other functions (unknown how to fix)
-=======
-- Command parser can't handle arguments.
-- **Annoying:** Keyboard driver has a hard time keeping up.
-- A little bit of disgusting code in `keyboardGetChar()` (unsure how to fix)
->>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
 - Terminal scrolling can scroll the bottom bar of the screen sometimes (no way to fix easily, but not critical)
 - No stack-smashing protector for printf (and a few other functions).
 
