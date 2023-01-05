@@ -9,6 +9,6 @@
 // Macros
 
 // ASSERT(b) - Makes sure b is a valid object before continuing.
-#define ASSERT(b, caller, msg) ((b) ? (void)0 : panic("assert", caller, msg));
+#define ASSERT(b, caller, msg) ((b) ? (void)0 : panic("Assert", caller, msg));
 
 #endif

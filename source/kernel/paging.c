@@ -115,7 +115,6 @@ void freeFrame(page_t* page) {
 // initPaging(uint32_t physicalMemorySize) - Initialize paging
 void initPaging(uint32_t physicalMemorySize) {
     // The user provides us with the size of physical memory.
-
     // Set nframes and frames to their proper values.
     nframes = physicalMemorySize / 0x1000;
     frames = (uint32_t*)kmalloc(INDEX_BIT(nframes));

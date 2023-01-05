@@ -11,13 +11,12 @@
 
 typedef struct {
 	uint32_t	m_flags; 			// m_flags - Multiboot flags (useless without a multiboot bootloader like GRUB)
-	uint64_t	m_memorySize;		// m_memorySize - Amount of memory installed, in KB 
 	uint32_t	m_memoryLo;			// m_memoryLo - Low address of memory
 	uint32_t	m_memoryHi;			// m_memoryHi - High address of memory (usually 0)
 	uint32_t	m_bootDevice;		// m_bootDevice - Value BIOS passed
 	uint32_t	m_cmdLine;			// m_cmdLine - command used to boot OS
-	uint32_t	m_modsCount;		// m_modsCount - Unused
-	uint32_t	m_modsAddr;			// m_modsAddr - Unused
+	uint32_t	m_modsCount;		// m_modsCount - Amount of mods passed (used with initrd)
+	uint32_t	m_modsAddr;			// m_modsAddr - Address of mods passed (used with initrd)
 	uint32_t	m_syms0;			// m_syms0 - Unused
 	uint32_t	m_syms1;			// m_syms1 - Unused
 	uint32_t	m_syms2;			// m_syms2 - Unused

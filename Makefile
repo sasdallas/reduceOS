@@ -177,11 +177,9 @@ $(OUT_INITRD)/initrd.img: $(INITRD_SRC)/generate_initrd
 
 qemu:
 	@printf "[ Launching QEMU... ]\n"
-	@${qemu-system-x86_64} -kernel out/kernel/kernel.bin -initrd $(OUT_INITRD)/initrd.img
+	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.bin 
 
 clean:
-	@printf "[ Deleting assembly binary files... ]\n"
-	@$(RM) $(OUT_ASM)/*.bin
 	@printf "[ Deleting C object files... ]\n"
 	@$(RM) $(OUT_OBJ)/*.o
 	@$(RM) $(OUT_OBJ)/libc/*.o

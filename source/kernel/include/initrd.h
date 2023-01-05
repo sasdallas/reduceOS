@@ -5,5 +5,27 @@
 
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
+#include "include/vfs.h" // Virtual File System definitions
+#include "include/terminal.h" // printf()
+
+// Typedefs
+
+// Image header
+typedef struct {
+    uint32_t fileAmnt; // Number of files in the ramdisk.
+} initrd_imageHeader_t;
+
+// File header
+typedef struct {
+    uint8_t magic; // Magic number (used for error checking, should be 0xBF)
+    int8_t name[64]; // Filename.
+    uint32_t offset; // Offset in the ramdisk where the file starts.
+    uint32_t length; // File length.
+} initrd_fileHeader_t;
+
+
+// Function (there's just one lol):
+fsNode_t *initrdInit(uint32_t location); // Loads initrd by defining pointers, setting values, etc.
+
 
 #endif

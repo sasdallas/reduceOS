@@ -11,6 +11,7 @@
 #include "include/libc/limits.h" // Limits on integers and more.
 #include "include/libc/stdarg.h" // va argument handling (for ... on printf)
 #include "include/libc/va_list.h" // va_list declared here.
+#include "include/libc/assert.h" // Assertion macro
 #include "include/graphics.h" // Graphics handling
 #include "include/terminal.h" // Terminal handling
 #include "include/idt.h" // Interrupt Descriptor Table
@@ -26,5 +27,7 @@
 #include "include/libc/sleep.h" // Sleep function
 #include "include/serial.h" // Serial logging
 #include "include/paging.h" // Paging handler
-#include "include/heap.h"  // kernel heap management
+#include "include/heap.h"  // Kernel heap management
+#include "include/initrd.h" // Initial ramdisk management.
+#include "include/vfs.h" // Virtual file system.
 #endif

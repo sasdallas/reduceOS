@@ -4,6 +4,9 @@
 // This file is a tool used to make an initrd image.
 // Original adaptation is by James Molloy, modified by sasdallas to support more options.
 
+
+// WHAT NEEDS TO BE DONE: Add subdirectory support and more.
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>

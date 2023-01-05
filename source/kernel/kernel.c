@@ -11,21 +11,16 @@
 extern char *BUILD_DATE;
 extern char *BUILD_TIME;
 
+// heap.c defined variables.
+extern uint32_t placement_address;
 
-<<<<<<< HEAD
+
 int testFunction(int argc, char *args[]) {
-=======
-int testFunction(char *args[]) {
->>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
     printf("It works!\n");
     return 1;
 }
 
-<<<<<<< HEAD
 int pagingTest(int argc, char *args[]) {
-=======
-int pagingTest(char *args[]) {
->>>>>>> 2f7635386167534d12bbf5bca5f7ae48aee9e6d1
     printf("Executing paging test...\n");
     uint32_t a = kmalloc(8);
     uint32_t b = kmalloc(8);
@@ -103,6 +98,31 @@ int shutdown(int argc, char *args[]) {
     asm volatile ("hlt");
 }
 
+int getInitrdFiles(int argc, char *args[]) {
+    int i = 0;
+    struct dirent *node = 0;
+    while ((node = readDirectoryFilesystem(fs_root, i)) != 0)
+    {
+        printf("Found file %s", node->name);
+        fsNode_t *fsNode = findDirectoryFilesystem(fs_root, node->name);
+
+        if ((fsNode->flags & 0x7 ) == VFS_DIRECTORY)
+        {
+            printf(" (directory)\n");
+        }
+        else
+        {
+            printf("\n\t contents: ");
+            char buf[256];
+            uint32_t sz = readFilesystem(fsNode, 0, 256, buf);
+            for (int j = 0; j < sz; j++)
+                printf("%c", buf[j]);
+            
+            printf("\n");
+        }
+        i++;
+    }
+}
 
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
@@ -187,11 +207,26 @@ void kmain(multiboot_info* mem) {
    
     printf("Kernel is loaded at 0x%x, ending at 0x%x\n", kernelStart, kernelEnd);
 
+    // Probe for PCI devices
     updateBottomText("Probing PCI...");
     initPCI();
 
+    // Initialize paging
     
+    // Calculate the initial ramdisk location in memory (panic if it's not there)
+    ASSERT(mem->m_modsCount > 0, "kmain", "Initial ramdisk not found (m_modsCount is 0)");
+    uint32_t initrdLocation = *((uint32_t*)mem->m_modsAddr);
+    uint32_t initrdEnd = *(uint32_t*)(mem->m_modsAddr + 4);
+
+    placement_address = initrdEnd;
+
+
+    updateBottomText("Initializing paging and heap...");
     initPaging(0xCFFFF000);
+
+    
+    fs_root = initrdInit(initrdLocation);    
+    printf("Initrd image initialized!\n");
     
 
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
@@ -205,6 +240,7 @@ void kmain(multiboot_info* mem) {
     registerCommand("crash", (command*)crash);
     registerCommand("pci", (command*)pciInfo);
     registerCommand("paging", (command*)pagingTest);
+    registerCommand("initrd", (command*)getInitrdFiles);
 
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt)

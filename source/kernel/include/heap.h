@@ -6,9 +6,9 @@
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/libc/string.h" // String functions
+#include "include/libc/ordered_array_t.h"
 #include "include/libc/ordered_array.h" // Ordered array handling
 #include "include/libc/assert.h"
-
 #include "include/paging.h"
 #include "include/panic.h" // Handles panicking
 // Definitions
