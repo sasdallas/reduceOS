@@ -5,6 +5,7 @@
 
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
+#include "include/libc/string.h" // String functions
 #include "include/vfs.h" // Virtual File System definitions
 #include "include/terminal.h" // printf()
 

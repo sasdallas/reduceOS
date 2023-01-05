@@ -33,7 +33,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
-- Initrd doesn't print contents of file, instead prints "" when called by another function and unicode when called by `kmain()`.
+- Typing too many characters results in a division by zero exception.
 - For some reason, `printf()` can't handle a `%x` when paging values are passed. I added some code I found to fix it, it works fine in the function calling it but not in printf. It's not bad, the `%x` operator works fine otherwise. In the meantime, `printf_hex()` has been added to mitigate this.
 - Serial logging can't handle a `\n` (doesn't reset X to 0)
 - **Annoying:** Keyboard driver has a hard time keeping up.

@@ -226,6 +226,9 @@ void keyboardGetLine(char *buffer, size_t bufferSize) {
         char c = keyboardGetChar();
         if (c == '\n') {
             buffer[index] = '\0';
+            clearBuffer();
+            index = 0;
+            
             return;
         } else if (c == '\b' && index != 0) {
             buffer[index-1] = '\0';

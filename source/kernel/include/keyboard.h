@@ -12,7 +12,7 @@
 #include "include/isr.h" // Interrupt Service Routines
 #include "include/terminal.h" // Terminal functions like printf.
 #include "include/panic.h" // Register declarations
-
+#include "include/heap.h" // Heap declarations (for allocating memory)
 
 // Definitions
 
@@ -49,7 +49,7 @@
 #define SCANCODE_SPACE 0x39
 #define SCANCODE_EXTENDEDBYTE 0xE0
 
-#define MAX_BUFFER_CHARS 256    // We can hold about 256 chars - this is a hard limit (as of now). TODO: Possibly, if it turns out we do need to have 256 chars as a hard limit, add a speaker beep that will notify the user when the buffer is overflowing.
+#define MAX_BUFFER_CHARS 500    // We can hold about 500 chars - this is a hard limit (as of now). TODO: Possibly, if it turns out we do need to have 500 chars as a hard limit, add a speaker beep that will notify the user when the buffer is overflowing.
 
 
 

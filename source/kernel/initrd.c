@@ -33,13 +33,16 @@ struct dirent dirent;
 // Moving on to the functions....
 
 
+
 // (static) initrdRead(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) - Read a file from an initrd.
 static uint32_t initrdRead(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
     initrd_fileHeader_t header = fileHeaders[node->inode];
     if (offset > header.length) return 0;
     if (offset + size > header.length) size = header.length - offset;
 
-    memcpy(buffer, (uint8_t*)(header.offset + offset), size);
+   
+
+    memcpy((uint8_t*)(header.offset + offset), buffer, size);
     return size;
 }
 
