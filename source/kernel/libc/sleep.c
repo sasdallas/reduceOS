@@ -5,6 +5,10 @@
 
 
 void sleep(int ms) {
-    int currentTickCount = i86_pitGetTickCount();
-    while (i86_pitGetTickCount() - currentTickCount < ms);
+    // Originally, the default for a PIT timer is around 18.222Hz.
+    // Luckily, our i86_pitInit function intializes the PIT with 100Hz.
+
+    int startTickCount = i86_pitGetTickCount();
+    while (i86_pitGetTickCount() - startTickCount < ms);
+    return;
 }

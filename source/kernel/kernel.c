@@ -149,6 +149,12 @@ void kmain(multiboot_info* mem) {
     // Change the bottom text of the terminal (updateBottomText)
     updateBottomText("Loading reduceOS...");
 
+    // Initialize serial logging
+    serialInit();
+    serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
+    serialPrintf("Serial logging initialized!\n");
+    printf("Serial logging initialized on COM1.\n");
+
     // Initialize GDT.
     updateBottomText("Initializing GDT...");
     gdtInit();
@@ -157,6 +163,7 @@ void kmain(multiboot_info* mem) {
     updateBottomText("Initializing IDT...");
     idtInit(0x8);
     
+    serialPrintf("GDT and IDT have been initialized successfully.\n");
 
     // Getting vendor ID and if the CPU is 16, 32, or 64 bits (32 at minimum so idk why we check for 16, but just in case)
     uint32_t vendor[32];
@@ -173,36 +180,32 @@ void kmain(multiboot_info* mem) {
     asm volatile ("movl $0x80000001, %%eax\n"
                 "cpuid\n" : "=d"(iedx) :: "eax", "ebx", "ecx");
 
-
+    
     // Tell the user.
     printf("CPU Vendor: %s\n", vendor);
     printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
+    serialPrintf("User is running with CPU vendor %s (64-bit capable: %s)\n", vendor, (iedx & (1 << 29)) ? "YES" : "NO");
 
     // Quickly inform the user of their available memory. (note: yes, I know 1 GB is equal 1000 MB and 1 MB is equal to 1000 KB, but for some reason it breaks things so I don't care)
 
     // NOTE: Scrapped as of now - GRUB didn't pass us the amount of memory we have.
 
-    // Serial output and logging
-    serialInit();
-    serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
-    serialPrintf("Serial logging initialized!\n");
-    printf("Serial logging initialized on COM1.\n");
-
     // PIT timer
     updateBottomText("Initializing PIT...");
     i86_pitInit();
-    i86_pitStartCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN); 
+    serialPrintf("PIT started at 100hz\n");
 
     // Initialize Keyboard (won't work until interrupts are enabled - that's when IRQ and stuff is enabled.)
     updateBottomText("Initializing keyboard...");
     keyboardInitialize();
     setKBHandler(true);
-
+    serialPrintf("Keyboard handler initialized.\n");
 
     // Enable hardware interrupts
     updateBottomText("Enabling interrupts...");
     enableHardwareInterrupts();
     printf("Interrupts enabled.\n");
+    serialPrintf("sti instruction did not fault - interrupts enabled.\n");
     
    
     printf("Kernel is loaded at 0x%x, ending at 0x%x\n", kernelStart, kernelEnd);
@@ -217,22 +220,23 @@ void kmain(multiboot_info* mem) {
     ASSERT(mem->m_modsCount > 0, "kmain", "Initial ramdisk not found (m_modsCount is 0)");
     uint32_t initrdLocation = *((uint32_t*)mem->m_modsAddr);
     uint32_t initrdEnd = *(uint32_t*)(mem->m_modsAddr + 4);
-
     placement_address = initrdEnd;
+    serialPrintf("GRUB did pass an initial ramdisk.\n");
 
 
     updateBottomText("Initializing paging and heap...");
     initPaging(0xCFFFF000);
-
+    serialPrintf("Paging and kernel heap initialized successfully (address: 0xCFFFF000)\n");
     
     fs_root = initrdInit(initrdLocation);    
     printf("Initrd image initialized!\n");
-    
+    serialPrintf("Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
 
     initCommandHandler();
 
+    anniversaryRegisterCommands();
     registerCommand("test", (command*)testFunction);
     registerCommand("system", (command*)getSystemInformation);
     registerCommand("help", (command*)help);
@@ -241,6 +245,8 @@ void kmain(multiboot_info* mem) {
     registerCommand("pci", (command*)pciInfo);
     registerCommand("paging", (command*)pagingTest);
     registerCommand("initrd", (command*)getInitrdFiles);
+
+    serialPrintf("All commands registered successfully.\n");
 
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt)

@@ -15,6 +15,14 @@ void i86_pitIRQ() {
     pitTicks++; // Increment tick count
 }
 
+// Waits seconds.
+void i86_pitWaitSeconds(int seconds) {
+    int secondsPassed = 0;
+    do {
+        if (pitTicks % 100 == 0) secondsPassed++;
+    } while (secondsPassed < seconds);
+}
+
 
 // uint32_t i86_pitSetTickCount(uint32_t i) - Sets a new tick count and returns the previous one.
 uint32_t i86_pitSetTickCount(uint32_t i) {
@@ -39,13 +47,6 @@ void i86_pitSendData(uint16_t data, uint8_t counter) {
     outportb(port, (uint8_t) data); // Write the data.
 }
 
-// uint8_t i86_pitReadData(uint16_t counter) - Reads data from a counter
-uint8_t i86_pitReadData(uint16_t counter) {
-    uint8_t port = (counter == I86_PIT_OCW_COUNTER_0) ? I86_PIT_REG_COUNTER0:
-        ((counter==I86_PIT_OCW_COUNTER_1) ? I86_PIT_REG_COUNTER1 : I86_PIT_REG_COUNTER2);
-    
-    return inportb(port); // Return the read data.
-}
 
 
 // void i86_pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) - Starts a counter from the provided parameters.
@@ -77,5 +78,19 @@ void i86_pitInit() {
     // Update the isInitialized variable.
     pit_isInit = true;
     
+    // We want to add some extra code to fully initialize the PIT properly.
+    // The default what we want to is to enable the PIT with a square wave generator and 100hz frequencey.
+    // If the user wants they can use one of the above functions to do so, but we're going to do it here.
+    // Setup the PIT for 100 hz.
+    // TODO: Remove above functions.
+
+
+
+    int divisor = 1193180 / 100; // Calculate divisor.
+    outportb(0x43, 0x36); // Command byte (0x36)
+    outportb(0x40, divisor & 0xFF); // Set the low and high byte of the divisor.
+    outportb(0x40, divisor >> 8);
+
+
     printf("Programmable Interval Timer initialized.\n");
 }

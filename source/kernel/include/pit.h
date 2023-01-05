@@ -61,11 +61,10 @@
 
 extern void i86_pitSendCommand(uint8_t cmd); // Send operational command to PIT.
 extern void i86_pitSendData(uint16_t data, uint8_t counter); // Write data byte to a counter.
-extern uint8_t i86_pitReadData(uint16_t counter); // Read data from a counter
 extern uint32_t i86_pitSetTickCount(uint32_t i); // Sets new PIT tick count and returns prev. value.
 extern uint32_t i86_pitGetTickCount(); // Returns current tick count.
 extern void i86_pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode); // Starts a counter (counter continues until another call)
 extern void i86_pitInit(); // Initialize PIT
 extern bool i86_pitIsInitialized(); // Check if the PIT is initialized.
-
+void i86_pitWaitSeconds(int seconds);
 #endif

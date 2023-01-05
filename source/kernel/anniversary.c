@@ -21,16 +21,70 @@ I hope you enjoy reduceOS, the rewrite.
 
 #include "include/anniversary.h" // Anniversary header file.
 
+static char thankYous[6][1000] = {
+    "pritamzope (most of the code for reduceOS alpha)                                ",
+    "BrokenThorn Entertainment (original bootloader and some misc pieces of reduceOS)",
+    "James Molloy (for his kernel development tutorials and excellent paging driver) ",
+    "The OSdev wiki (for almost everything I know)                                   ",
+    "All of my friends and family (for their support)                                ",
+    "You :) (for trying reduceOS out)                                                "
+};
+
 
 // DONT LOOK AT THIS FILE FOR SPOILERS! I made sure the easter eggs are at the bottom just in case.
 
 // anniversary() - the main command, prints some special unicode and more.
 int anniversary(int argc, char *argv) {
+    if (argc > 1) {
+        if (!strcmp(argv[1], "help")) {
+            printf("reduceOS 1.0 anniversary edition - anniversary command\n");
+            printf("Available special commands:\n");
+            printf("- placeholder1\n");
+            printf("- placeholder2\n");
+            printf("- placeholder3\n");
+            printf("- placeholder4\n");
+        }
+    }
 
+    // Clear the screen.
+    clearScreen(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
+    
+    // Print the reduceOS logo
+    printf("\n%s", anniversaryArt1);
+    printf("reduceOS anniversary edition - version 1.0-rewrite\n");
+    printf("Written by sasdallas.\n\n");
+
+    sleep(500);
+
+    printf("Thank you to:\n");
+    sleep(100);
+    for (int i = 0; i < 6; i++) {
+        printf("%s", thankYous[i]);
+        sleep(500);
+        printf("\r");
+    }
+
+    clearScreen(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
+    printf("\n\n\n%s", anniversaryArt1);
+    printf("reduceOS anniversary edition - version 1.0-rewrite\n");
+    printf("Written by sasdallas.\n\n");
+    printf("%s\n", myMessage);
+
+    sleep(1000);
+    
+    clearScreen(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
+    printf("\n\n\n%s", anniversaryArt1);
+    printf("reduceOS anniversary edition - version 1.0-rewrite\n");
+    printf("Written by sasdallas.\n\n");
+    printf("\n\n%s", finalMessage);
+    keyboardGetKey('\e', false);
+    clearScreen(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
+    
+    return 1;
 }
 
 
-// registerCommands() - Registers all the anniversary commands with their respective names.
-void registerCommands() {
-
+// anniversaryRegisterCommands() - Registers all the anniversary commands with their respective names.
+void anniversaryRegisterCommands() {
+    registerCommand("anniversary", (command*)anniversary);
 }

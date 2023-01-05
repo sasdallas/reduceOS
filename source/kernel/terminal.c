@@ -138,6 +138,8 @@ void terminalPutchar(char c) {
         for (int i = 0; i < 4; i++) {
             terminalPutchar(' ');
         }
+    } else if (c == '\r') {
+        terminalX = 0;  
     } else {
         terminalPutcharXY(uc, terminalColor, terminalX, terminalY); // Place an entry at terminal X and Y.
         terminalX++;
@@ -462,6 +464,10 @@ void printf_putchar(const char *format, void(*put_method)(char), va_list args) {
                     }
                     default:
                         put_method(format[i]); // If else place the character
+                        // Double check if the character was a newline or not - since serial doesn't reset the X.
+                        if (format[i] == '\n') {
+                            put_method('\r'); // Do a return carriage as well.
+                        }
                         break;
                 }
 
@@ -469,6 +475,10 @@ void printf_putchar(const char *format, void(*put_method)(char), va_list args) {
             
             default:
                 put_method(format[i]);
+                // Double check if the character was a newline or not - since serial doesn't reset the X.
+                if (format[i] == '\n') {
+                    put_method('\r'); // Do a return carriage as well.
+                }
                 break;
 
         }

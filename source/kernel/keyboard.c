@@ -188,9 +188,9 @@ void clearBuffer() {
 
 
 // keyboardGetKey() - Waits until a specific key is pressed and returns it.
-void keyboardGetKey(char key, bool printChars) {
+void keyboardGetKey(char key, bool doPrintChars) {
     bool previousPrintValue = printChars; // We will restore this value after we're done.
-    setKBPrintChars(printChars); // Set KB print chars to whatever they want.
+    setKBPrintChars(doPrintChars); // Set KB print chars to whatever they want.
 
 
     // A few special keys can be passed to this function.
@@ -214,6 +214,8 @@ void keyboardGetKey(char key, bool printChars) {
         setKBPrintChars(previousPrintValue);
         return;
     }
+    
+    
 }
 
 
@@ -228,7 +230,7 @@ void keyboardGetLine(char *buffer, size_t bufferSize) {
             buffer[index] = '\0';
             clearBuffer();
             index = 0;
-            
+
             return;
         } else if (c == '\b' && index != 0) {
             buffer[index-1] = '\0';
