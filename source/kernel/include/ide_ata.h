@@ -128,5 +128,6 @@ void outsl(uint16_t reg, uint32_t *buffer, int quads); // Writes a long word to 
 uint8_t idePolling(uint8_t channel, uint32_t advancedCheck); // Returns whether there was an error.
 uint8_t idePrintErrors(uint32_t drive, uint8_t err); // Prints the errors that may have occurred.
 void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t bar4);
+void printIDESummary();
 
 #endif

@@ -127,18 +127,34 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
     }
 
     // Finally (for all of the driver), print a summary of the ATA devices
+    int drives = 0;
+    for (int i = 0; i < 4; i++) {
+        if (ideDevices[i].reserved == 1) {
+            serialPrintf("Found %s drive - %s\n", (ideDevices[i].type == 0) ? "ATA" : "ATAPI", ideDevices[i].model);
+            // Quick maths to find out the drive capacity.
+            int capacityGB = ideDevices[i].size / 1024 / 1024;
+            int capacityMB = ideDevices[i].size / 1024 - (capacityGB * 1024);
+            int capacityKB = ideDevices[i].size - (capacityMB * 1024);
+            serialPrintf("\tCapacity: %i GB %i MB %i KB\n", capacityGB, capacityMB, capacityKB);
+            drives++;
+        }
+    }
+    printf("IDE driver initialized - found %i drives.\n", drives);
+}
+
+// printIDESummary() - Print a basic summary of all available IDE drives.
+void printIDESummary() {
     for (int i = 0; i < 4; i++) {
         if (ideDevices[i].reserved == 1) {
             printf("Found %s drive - %s\n", (ideDevices[i].type == 0) ? "ATA" : "ATAPI", ideDevices[i].model);
             // Quick maths to find out the drive capacity.
-            int capacityGB = ideDevices[i].size / (1024^2) / 2;
-            int capacityMB = ideDevices[i].size / 1024 - capacityGB;
-            int capacityKB = ideDevices[i].size - capacityMB;
+            int capacityGB = ideDevices[i].size / 1024 / 1024;
+            int capacityMB = ideDevices[i].size / 1024 - (capacityGB * 1024);
+            int capacityKB = ideDevices[i].size - (capacityMB * 1024);
             printf("\tCapacity: %i GB %i MB %i KB\n", capacityGB, capacityMB, capacityKB);
         }
     }
 }
-
 
 // ideRead(uint8_t channel, uint8_t reg) - Reads in a register
 uint8_t ideRead(uint8_t channel, uint8_t reg) {

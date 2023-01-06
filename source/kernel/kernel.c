@@ -67,7 +67,7 @@ int getSystemInformation(int argc, char *args[]) {
 
 
 int help(int argc, char *args[]) {
-    printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help, echo, pci, crash\n");
+    printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help, echo, pci, crash, anniversary, shutdown, initrd, ata\n");
     return 1;
 }
 
@@ -126,10 +126,7 @@ int getInitrdFiles(int argc, char *args[]) {
 
 
 int ataPoll(int argc, char *args[]) {
-    printf("ata_identify returned %i\n", ata_identify(0xA0));
-    printf("reading 1 sector with LBA 1 on drive 0xE0...\n");
-    uint16_t *buffer;
-    ata_read28bitPIO(0xE0, 1, 1, buffer);
+    printIDESummary();
     return 1;
 }
 
