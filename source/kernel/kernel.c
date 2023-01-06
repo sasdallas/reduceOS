@@ -125,6 +125,19 @@ int getInitrdFiles(int argc, char *args[]) {
 }
 
 
+int ataPoll(int argc, char *args[]) {
+    printf("ata_identify returned %i\n", ata_identify(0xA0));
+    printf("reading 1 sector with LBA 1 on drive 0xE0...\n");
+    uint16_t *buffer;
+    ata_read28bitPIO(0xE0, 1, 1, buffer);
+    return 1;
+}
+
+// Used for debugging
+int panicTest(int argc, char *args[]) {
+    panic("kernel", "panicTest()", "Testing panic function");
+}
+
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
     // Get kernel size
@@ -214,6 +227,8 @@ void kmain(multiboot_info* mem) {
     updateBottomText("Probing PCI...");
     initPCI();
 
+    ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
+
     // Initialize paging
     
     // Calculate the initial ramdisk location in memory (panic if it's not there)
@@ -237,6 +252,7 @@ void kmain(multiboot_info* mem) {
     initCommandHandler();
 
     anniversaryRegisterCommands();
+    anniversaryRegisterEasterEggs();
     registerCommand("test", (command*)testFunction);
     registerCommand("system", (command*)getSystemInformation);
     registerCommand("help", (command*)help);
@@ -245,7 +261,8 @@ void kmain(multiboot_info* mem) {
     registerCommand("pci", (command*)pciInfo);
     registerCommand("paging", (command*)pagingTest);
     registerCommand("initrd", (command*)getInitrdFiles);
-
+    registerCommand("ata", (command*)ataPoll);
+    registerCommand("panic", (command*)panicTest);
     serialPrintf("All commands registered successfully.\n");
 
     char buffer[256]; // We will store keyboard input here.

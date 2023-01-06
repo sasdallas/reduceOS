@@ -24,6 +24,10 @@ static void stackTrace(uint32_t maximumFrames) {
 }
 
 void *panic(char *caller, char *code, char *reason) {
+    serialPrintf("panic() called! FATAL ERROR!\n");
+    serialPrintf("*** [%s] %s: %s\n", caller, code, reason);
+    serialPrintf("panic type: non-registers, called by external function.\n");
+
     clearScreen(terminalColor);
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
 
@@ -46,7 +50,10 @@ void *panic(char *caller, char *code, char *reason) {
         printf("Type: 0x%x, EAX: 0x%x, EBX: 0x%x, ECX: 0x%x, EDX: 0x%x\n", i, eax, ebx, ecx, edx);
     }
     
+
     stackTrace(5); // Get a stack trace.
+
+
 
     asm volatile ("hlt");
     for (;;);
@@ -54,6 +61,10 @@ void *panic(char *caller, char *code, char *reason) {
 
 
 void *panicReg(char *caller, char *code, char *reason, REGISTERS *reg) {
+    serialPrintf("panic() called! FATAL ERROR!\n");
+    serialPrintf("Panic reason: %s\n", reason);
+    serialPrintf("panic type: registers, %s.\n", code);
+
     clearScreen(terminalColor);
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
 
@@ -77,6 +88,7 @@ void *panicReg(char *caller, char *code, char *reason, REGISTERS *reg) {
 
     stackTrace(5);
 
+
     asm volatile ("hlt");
     for (;;);
 }
@@ -85,6 +97,10 @@ void *panicReg(char *caller, char *code, char *reason, REGISTERS *reg) {
 // This panic function is called when a function has some values it needs to output.
 // Probably ugly parameters, but I don't care.
 void *specialPanic(char *caller, char *code, char *reason, int integer, uint32_t address, char *data1desc, char *data2desc) {
+    serialPrintf("panic() called! FATAL ERROR!\n");
+    serialPrintf("*** [%s] %s: %s\n", caller, code, reason);
+    serialPrintf("panic type: special, called by external function.\n");
+    serialPrintf("Given values:\n%s - %i\n%s - 0x%x\n", data1desc, integer, data2desc, address);
     clearScreen(terminalColor);
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
 
@@ -111,6 +127,7 @@ void *specialPanic(char *caller, char *code, char *reason, int integer, uint32_t
         printf("Type: 0x%x, EAX: 0x%x, EBX: 0x%x, ECX: 0x%x, EDX: 0x%x\n", i, eax, ebx, ecx, edx);
     }
     
+
     asm volatile ("hlt");
     for (;;);
 }
@@ -121,6 +138,10 @@ void *pageFault(REGISTERS *reg) {
     // Get the faulting address
     uint32_t faultAddress;
     asm volatile("mov %%cr2, %0" : "=r" (faultAddress));
+
+    serialPrintf("panic() called! FATAL ERROR!\n");
+    serialPrintf("*** page fault at address 0x%x\n", faultAddress);
+    serialPrintf("panic type: page-fault\n");
 
     // Get the flags
     int present = !(reg->err_code & 0x1); // Page not present?
@@ -150,6 +171,7 @@ void *pageFault(REGISTERS *reg) {
     printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     printf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
+    serialPrintf("Page flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0", (reserved) ? "reserved " : "\0");
 
 
     asm volatile ("hlt");

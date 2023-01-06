@@ -45,4 +45,4 @@ OSDev Wiki - Great resource for anyone looking into OS development. Helped with 
 
 BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
 
-JamesM's kernel development tutorials - (no need for Internet Archive anymore) Really helped out with some of the basic concepts. Link [here](http://jamesmolloy.co.uk/tutorial_html/)
+JamesM's kernel development tutorials - (no need for Internet Archive anymore) Really helped out with some of the basic concepts, especially paging and the initial ramdisk. Link [here](http://jamesmolloy.co.uk/tutorial_html/)

@@ -38,8 +38,30 @@ I hope you enjoy my operating system! If you find any bugs or have any suggestio
 Press ENTER to continue...\n\
 \n";
 
+
+static char egg1messages[18][255] = {
+    "Because an error occurred.",
+    "Because that's an error.",
+    "Because that's the way you typed it.",
+    "Because that's the way the code works.",
+    "Because that's the way the developer made it.",
+    "Because that's impossible.",
+    "Because I said so.",
+    "Because yes.",
+    "How long are you going to do this?",
+    "I'm getting bored.",
+    "This is a waste of CPU resources.",
+    "Why don't you try another command?",
+    "This is pretty stupid, you know that?",
+    "Run the help command.",
+    "I said run the help command.",
+    "Do you even understand directions?",
+    "SERIOUSLY?",
+    "Fine. Have it your way."
+};
+
 // Functions
 void anniversaryRegisterCommands(); // Registers all the anniversary commands with their respective names.
-
+void anniversaryRegisterEasterEggs(); // Registers all the easter eggs.
 
 #endif

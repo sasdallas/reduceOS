@@ -24,6 +24,12 @@ typedef struct {
     uint32_t length; // File length.
 } initrd_fileHeader_t;
 
+// Subdirectory structure
+typedef struct {
+    uint8_t magic; // Magic number (should be 0xBA)
+    int8_t name;
+    uint8_t fileMagic; // File magic number (see initrdInit())
+} initrd_subdirectoryHeader_t;
 
 // Function (there's just one lol):
 fsNode_t *initrdInit(uint32_t location); // Loads initrd by defining pointers, setting values, etc.

@@ -9,7 +9,7 @@
 #include "include/terminal.h" // Terminal functions, like printf
 #include "include/hal.h" // Hardware Abstraction Layer
 #include "include/regs.h" // REGISTERS typedef
-
+#include "include/serial.h" // Serial logging
 
 
 // Functions

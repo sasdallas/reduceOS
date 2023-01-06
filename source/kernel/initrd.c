@@ -33,14 +33,17 @@ struct dirent dirent;
 // Moving on to the functions....
 
 
+static void test(uint8_t *src, uint8_t dest, uint32_t len) {
+    const uint8_t *sp = (const uint8_t *)src;
+    uint8_t *dp = (uint8_t *)dest;
+    for (; len != 0; len--) *dp++ = *sp++;
+}
 
 // (static) initrdRead(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) - Read a file from an initrd.
 static uint32_t initrdRead(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
     initrd_fileHeader_t header = fileHeaders[node->inode];
     if (offset > header.length) return 0;
     if (offset + size > header.length) size = header.length - offset;
-
-   
 
     memcpy((uint8_t*)(header.offset + offset), buffer, size);
     return size;
@@ -115,6 +118,13 @@ fsNode_t *initrdInit(uint32_t location) {
     initrdDev->finddir = &initrdFinddir;
     initrdDev->ptr = 0;
     initrdDev->impl = 0;
+
+    // reduceOS has a special initial ramdisk structure
+    // Each file has a magic number starting at the top.
+    // The magic number is specific to each directory the file is in (starting at 0xAA for root directory)
+    // Each subdirectory has its own magic number too, 0xBA.
+    
+
 
     rootNodes = (fsNode_t*)kmalloc(sizeof(fsNode_t) * initrdHeader->fileAmnt);
     rootNodes_amount = initrdHeader->fileAmnt;

@@ -38,7 +38,7 @@ int anniversary(int argc, char *argv) {
     if (argc > 1) {
         if (!strcmp(argv[1], "help")) {
             printf("reduceOS 1.0 anniversary edition - anniversary command\n");
-            printf("Available special commands:\n");
+            printf("Available special commands (sub commands to anniversary):\n");
             printf("- placeholder1\n");
             printf("- placeholder2\n");
             printf("- placeholder3\n");
@@ -87,4 +87,60 @@ int anniversary(int argc, char *argv) {
 // anniversaryRegisterCommands() - Registers all the anniversary commands with their respective names.
 void anniversaryRegisterCommands() {
     registerCommand("anniversary", (command*)anniversary);
+}
+
+
+
+
+
+
+// SPOILERS BELOW!!!!!!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static int eggTimes = 0;
+
+
+int easterEggOne(int argc, char *argv) {
+    printf("%s\n", egg1messages[eggTimes]);
+    
+    eggTimes++;
+    if (eggTimes == 18) {
+        // Maximum amount of messages
+        sleep(500);
+        panic("anniversary", "easterEggOne", "terminated due to having enough.");
+        return 0; // Unachievable.
+    }
+    return 1;
+}
+
+
+int easterEggTwo(int argc, char *argv) {
+    printf("That's mean :(\n");
+    return 1;
+} 
+
+
+
+
+void anniversaryRegisterEasterEggs() {
+    registerCommand("why", (command*)easterEggOne);
+    registerCommand("die", (command*)easterEggTwo);
 }

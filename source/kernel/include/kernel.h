@@ -31,5 +31,6 @@
 #include "include/initrd.h" // Initial ramdisk management.
 #include "include/vfs.h" // Virtual file system.
 #include "include/anniversary.h" // Anniversary functions
+#include "include/ide_ata.h" // ATA driver
 
 #endif
