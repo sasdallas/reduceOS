@@ -5,6 +5,10 @@
 
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
+#include "include/hal.h" // Hardware abstraction layer
+#include "include/isr.h" // IRQ handling
+#include "include/libc/sleep.h" // Sleep function
+
 
 // Definitions
 
@@ -127,7 +131,11 @@ void insl(uint16_t reg, uint32_t *buffer, int quads); // Reads a long word from 
 void outsl(uint16_t reg, uint32_t *buffer, int quads); // Writes a long word to a register port for quads times
 uint8_t idePolling(uint8_t channel, uint32_t advancedCheck); // Returns whether there was an error.
 uint8_t idePrintErrors(uint32_t drive, uint8_t err); // Prints the errors that may have occurred.
-void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t bar4);
-void printIDESummary();
+void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t bar4); // Initialize IDE drives.
+void printIDESummary(); // Print a summary of all IDE drives found.
+uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi); // Access an ATA drive (direction specifies what operation to perform)
+uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi); // Read from an ATAPI drive.
+void ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi); // Read from an ATA/ATAPI drive.
+void ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi); // Write to an ATA drive.
 
 #endif

@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.inc": "arm",
+			"util.h": "c",
+			"graphics.h": "c",
+			"stdint.h": "c",
+			"string.h": "c",
+			"terminal.h": "c",
+			"stdbool.h": "c",
+			"gdt.h": "c",
+			"hal.h": "c",
+			"va_list.h": "c",
+			"pit.h": "c",
+			"heap.h": "c",
+			"pci.h": "c",
+			"isr.h": "c",
+			"sleep.h": "c",
+			"mem_phys.h": "c"
+		}
+	}
+}

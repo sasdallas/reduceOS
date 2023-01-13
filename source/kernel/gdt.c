@@ -49,6 +49,7 @@ void gdtInit() {
 
     // Install the GDT.
     install_gdt((uint32_t)&gdtPtr);
+    
 
     printf("GDT initialized\n");
 }

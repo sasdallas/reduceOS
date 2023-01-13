@@ -52,7 +52,7 @@ LOOP0 = /dev/loop0
 # Flags for compilers
 ASM_FLAGS = -f bin
 CC_FLAGS = -ffreestanding -O2 -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W
-LD_FLAGS = -m elf_i386 -T linker.ld --defsym BUILD_DATE=$(shell date +'%m%d%Y') --defsym BUILD_TIME=$(shell date +'%H%M%S')
+LD_FLAGS = -m elf_i386 -T linker.ld --defsym BUILD_DATE=$(shell date +'%m%d%y') --defsym BUILD_TIME=$(shell date +'%H%M%S')
 
 
 # Source files
@@ -103,6 +103,7 @@ $(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS)
 $(OUT_OBJ)/%.o: $(KERNEL_SOURCE)/%.c | $(OUT_OBJ)
 	@printf "[ Compiling C file $<... ]\n"
 	@$(CC) $(CC_FLAGS) -c $< -o $@
+
 
 $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.asm | $(OUT_ASMOBJ)
 	@printf "[ Compiling kernel ASM file... ]\n"

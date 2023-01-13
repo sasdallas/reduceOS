@@ -7,10 +7,6 @@
 #include "include/kernel.h" // Kernel header file
 
 
-// Linker defined symbols.
-extern char *BUILD_DATE;
-extern char *BUILD_TIME;
-
 // heap.c defined variables.
 extern uint32_t placement_address;
 
@@ -47,6 +43,7 @@ int pagingTest(int argc, char *args[]) {
 
 int getSystemInformation(int argc, char *args[]) {
     uint32_t vendor[32];
+
     int iedx = 0;
     __cpuid(0x80000002, (uint32_t *)vendor+0x0, (uint32_t *)vendor+0x1, (uint32_t *)vendor+0x2, (uint32_t *)vendor+0x3);
     __cpuid(0x80000003, (uint32_t *)vendor+0x4, (uint32_t *)vendor+0x5, (uint32_t *)vendor+0x6, (uint32_t *)vendor+0x7);
@@ -137,6 +134,10 @@ int panicTest(int argc, char *args[]) {
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
+    // Get build date and time.
+    extern char BUILD_DATE;
+    extern char BUILD_TIME;
+    
     // Get kernel size
     extern uint32_t start;
     uint32_t kernelStart = &start;
@@ -162,6 +163,7 @@ void kmain(multiboot_info* mem) {
     // Initialize serial logging
     serialInit();
     serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
+    serialPrintf("Build date: %u, build time: %u\n", &BUILD_DATE, &BUILD_TIME);
     serialPrintf("Serial logging initialized!\n");
     printf("Serial logging initialized on COM1.\n");
 

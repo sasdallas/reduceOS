@@ -35,7 +35,7 @@ static char thankYous[6][1000] = {
 
 // anniversary() - the main command, prints some special unicode and more.
 int anniversary(int argc, char *argv) {
-    if (argc > 1) {
+    if (argc > 0) {
         if (!strcmp(argv[1], "help")) {
             printf("reduceOS 1.0 anniversary edition - anniversary command\n");
             printf("Available special commands (sub commands to anniversary):\n");

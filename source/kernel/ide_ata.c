@@ -29,6 +29,16 @@ void outsl(uint16_t reg, uint32_t *buffer, int quads); // Writes a long word to 
 uint8_t idePolling(uint8_t channel, uint32_t advancedCheck); // Returns whether there was an error.
 uint8_t idePrintErrors(uint32_t drive, uint8_t err); // Prints the errors that may have occurred.
 
+void ideWaitIRQ() {
+    while (!ideIRQ);
+    ideIRQ = 0;
+}
+
+void ideIRQHandler() {
+    ideIRQ = 1;
+}
+
+
 // ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t bar4) - Initializes the IDE controller/driver.
 void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t bar4) {
     // Parameters:
@@ -139,7 +149,11 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
             drives++;
         }
     }
+    isrRegisterInterruptHandler(14, ideIRQHandler);
+    isrRegisterInterruptHandler(15, ideIRQHandler);
     printf("IDE driver initialized - found %i drives.\n", drives);
+
+    
 }
 
 // printIDESummary() - Print a basic summary of all available IDE drives.
@@ -297,4 +311,268 @@ uint8_t idePrintErrors(uint32_t drive, uint8_t err) {
     ideDevices[drive].model);
 
     return err;
+}
+
+
+// ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi) - Read/write sectors to an ATA drive (if direction is 0 we read, else write)
+uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi) {
+    /* A bit of explanation about the parameters:
+    Drive is the drive number (can be 0-3)
+    lba is the LBA address which allows us to access disks (up to 2TB supported)
+    sectorNum is the number of sectors to be read 
+    selector is the segment selector to read from/write to
+    edi is the offset in that segment (data buffer memory address)*/
+
+    // First, we define a few variables
+    uint8_t lbaMode, dma, cmd; // lbaMode: 0: CHS, 1: LBA28, 2: LBA48. dma: 0: No DMA, 1: DMA
+    uint8_t lbaIO[6];
+    uint32_t channel = ideDevices[drive].channel; // Read the channel
+    uint32_t slaveBit = ideDevices[drive].drive; // Read the drive (master or slave)
+    uint32_t bus = channels[channel].ioBase; // Bus base (the data port)
+    uint32_t words = 256; // Almost every ATA drive has a sector size of 512 bytes
+    uint16_t cylinder, i;
+    uint8_t head, sect, err;
+
+    // Disable IRQs to prevent problems.
+    ideWrite(channel, ATA_REG_CONTROL, channels[channel].nIEN = (ideIRQ = 0x0) + 0x02);
+
+    // Now, let's read the paramters
+
+    // Select one from LBA28, LBA48, or CHS
+    if (lba >= 0x10000000) {
+        // Drive supports LBA48. Use that.
+        
+        lbaMode = 2;
+        lbaIO[0] = (lba & 0x000000FF) >> 0;
+        lbaIO[1] = (lba & 0x0000FF00) >> 8;
+        lbaIO[2] = (lba & 0x00FF0000) >> 16;
+        lbaIO[3] = (lba & 0xFF000000) >> 24;
+        lbaIO[4] = 0; // LBA28 is integer, so 32 bits are enough to access 2TB
+        lbaIO[5] = 0;
+        head = 0; // (lower 4 bits of ATA_REG_HDDEVSEL)
+    } else if (ideDevices[drive].features & 0x200) {
+        // Drive supports LBA28.
+        lbaMode = 1;
+        lbaIO[0] = (lba & 0x00000FF) >> 0;
+        lbaIO[1] = (lba & 0x000FF00) >> 8;
+        lbaIO[2] = (lba & 0x0FF0000) >> 16;
+        lbaIO[3] = 0; // These registers are not used here.
+        lbaIO[4] = 0;
+        lbaIO[5] = 0;
+        head = (lba & 0xF000000) >> 24;
+    } else {
+        // Drive uses CHS.
+        lbaMode = 0;
+        sect = (lba % 63) + 1;
+        cylinder = (lba + 1 - sect) / (16 * 63);
+        lbaIO[0] = sect;
+        lbaIO[1] = (cylinder >> 0) & 0xFF;
+        lbaIO[2] = (cylinder >> 8) & 0xFF;
+        lbaIO[3] = 0;
+        lbaIO[4] = 0;
+        lbaIO[5] = 0;
+        head = (lba + 1 - sect) % (16 * 63) / (63);
+    }
+
+    dma = 0; // Don't use DMA.
+
+
+    // Now we wait if the drive is busy.
+    while (ideRead(channel, ATA_REG_STATUS) & ATA_STATUS_BSY) {
+
+    }  
+
+    // Select the drive from the controller.
+    if (lbaMode == 0) ideWrite(channel, ATA_REG_HDDEVSEL, 0xA0 | (slaveBit >> 4) | head); // Drive & CHS.
+    else ideWrite(channel, ATA_REG_HDDEVSEL, 0xE0 | (slaveBit >> 4) | head);
+
+    // Next, write the paramters to the register.
+    if (lbaMode == 2) {
+        // Make sure to write a few extra parameters if we use LBA48.
+        // ideWrite makes it pretty simple if we want to write to the LBA0 and LBA3 registers.
+        ideWrite(channel, ATA_REG_SECCOUNT1, 0);
+        ideWrite(channel, ATA_REG_LBA3, lbaIO[3]);
+        ideWrite(channel, ATA_REG_LBA4, lbaIO[4]);
+        ideWrite(channel, ATA_REG_LBA5, lbaIO[5]);
+    }
+
+    ideWrite(channel, ATA_REG_SECCOUNT0, sectorNum);
+    ideWrite(channel, ATA_REG_LBA0, lbaIO[0]);
+    ideWrite(channel, ATA_REG_LBA1, lbaIO[1]);
+    ideWrite(channel, ATA_REG_LBA2, lbaIO[2]);
+
+
+    // Now, select the command and send it.
+    // According to the ATA/ATAPI-8 specification, these are the available commands (and the routines that are followed)
+    // If DMA & LBA48, send DMA_EXT
+    // If DMA & LBA28, send DMA_LBA
+    // If DMA & LBA28, send DMA_CHS
+    // If not DMA & LBA48, send PIO_EXT.
+    // If not DMA & LBA28, send PIO_LBA
+    // If not DMA & LBA28, send PIO_CHS
+
+    if (lbaMode == 0 && dma == 0 && direction == 0) cmd = ATA_READ_PIO;
+    if (lbaMode == 1 && dma == 0 && direction == 0) cmd = ATA_READ_PIO;
+    if (lbaMode == 2 && dma == 0 && direction == 0) cmd = ATA_READ_PIO_EXT;
+    if (lbaMode == 0 && dma == 1 && direction == 0) cmd = ATA_READ_DMA;
+    if (lbaMode == 1 && dma == 1 && direction == 0) cmd = ATA_READ_DMA;
+    if (lbaMode == 2 && dma == 1 && direction == 0) cmd = ATA_READ_DMA_EXT;
+    if (lbaMode == 0 && dma == 0 && direction == 1) cmd = ATA_WRITE_PIO;
+    if (lbaMode == 1 && dma == 0 && direction == 1) cmd = ATA_WRITE_PIO;
+    if (lbaMode == 2 && dma == 0 && direction == 1) cmd = ATA_WRITE_PIO_EXT;
+    if (lbaMode == 0 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA;
+    if (lbaMode == 1 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA;
+    if (lbaMode == 2 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA_EXT;
+    ideWrite(channel, ATA_REG_COMMAND, cmd); // Send the command.
+
+    // Now that we have sent the command, we should poll and read/write a sector until all sectors are read/written.
+    if (dma) {
+        // TODO: Implement DMA reading + writing.
+        if (direction == 0);
+        else;
+    } else {
+        if (direction == 0) {
+            // PIO read.
+            for (i == 0; i < sectorNum; i++) {
+                if (err == idePolling(channel, i)) return err; // Return if an error occurred.
+                asm ("pushw %es");
+                asm ("mov %%ax, %%es" :: "a"(selector));
+                asm ("rep insw" :: "c"(words), "d"(bus), "D"(edi)); // Receive data.
+                asm ("popw %es");
+                edi += (words * 2);
+            }
+        } else {
+            // PIO write
+            for (i = 0; i < sectorNum; i++) {
+                idePolling(channel, 0); // Poll the channel.
+                asm ("pushw %ds");
+                asm ("mov %%ax, %%ds" :: "a"(selector));
+                asm ("rep outsw" :: "c"(words), "d"(bus), "S"(edi)); // Send data.
+                asm ("popw %ds");
+                edi += (words*2);
+            }
+            ideWrite(channel, ATA_REG_COMMAND, (char []) { ATA_CACHE_FLUSH, ATA_CACHE_FLUSH, ATA_CACHE_FLUSH_EXT }[lbaMode]);
+            idePolling(channel, 0);
+        }
+    }
+
+    return 0; // Done!
+}
+
+// ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi) - Read from an ATAPI drive.
+uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi) {
+    uint32_t channel = ideDevices[drive].channel;
+    uint32_t slaveBit = ideDevices[drive].drive;
+    uint32_t bus = channels[channel].ioBase;
+    uint32_t words = 1024; // Sector size (ATAPI drives have a sector size of 2048 bytes)
+    uint8_t err;
+    int i;
+
+    // Enable IRQs.
+    ideWrite(channel, ATA_REG_CONTROL, channels[channel].nIEN = ideIRQ = 0x0);
+
+    // Now, setup the SCSI packet.
+    atapiPacket[0] = ATAPI_READ;
+    atapiPacket[1] = 0x0;
+    atapiPacket[2] = (lba >> 24) & 0xFF;
+    atapiPacket[3] = (lba >> 16) & 0xFF;
+    atapiPacket[4] = (lba >> 8) & 0xFF;
+    atapiPacket[5] = (lba >> 0) & 0xFF;
+    atapiPacket[6] = 0x0;
+    atapiPacket[7] = 0x0;
+    atapiPacket[8] = 0x0;
+    atapiPacket[9] = sectorNum;
+    atapiPacket[10] = 0x0;
+    atapiPacket[11] = 0x0;
+
+    // Now, select the drive.
+    ideWrite(channel, ATA_REG_HDDEVSEL, slaveBit);
+
+    // Delay 400ns for select to coplete.
+    for (i = 0; i < 4; i++) {
+        ideRead(channel, ATA_REG_ALTSTATUS);
+    }   
+
+    // Inform controller we use PIO mode.
+    ideWrite(channel, ATA_REG_FEATURES, 0);
+
+    // Notify controller size of buffer.
+    ideWrite(channel, ATA_REG_LBA1, (words*2) & 0xFF); // Lower byte of sector size.
+    ideWrite(channel, ATA_REG_LBA1, (words*2) >> 8); // Upper byte of sector size.
+
+    // First, send the packet command (not the actual packet)
+    ideWrite(channel, ATA_REG_COMMAND, ATA_PACKET);
+
+    // Wait for the drive to finish or return an error.
+    if (err = idePolling(channel, 1)) return err; // Erorr.
+
+    // Send the packet data.
+    asm ("rep outsw" :: "c"(6), "d"(bus), "S"(atapiPacket));
+
+    // Receive the data.
+    for (i = 0; i < sectorNum; i++) {
+        ideWaitIRQ(); // Wait for an IRQ.
+        if (err = idePolling(channel, 1)) return err; // There was an error.
+        asm ("pushw %es");
+        asm ("mov %%ax, %%es" :: "a"(selector));
+        asm ("rep insw" :: "c"(words), "d"(bus), "D"(edi)); // Receive the data.
+        asm ("popw %es");
+        edi += (words * 2);
+    }
+
+    // Wait for an IRQ.
+    ideWaitIRQ();
+    // Wait for BSY and DRQ to clear.
+    while (ideRead(channel, ATA_REG_STATUS) & (ATA_STATUS_BSY | ATA_STATUS_DRQ));
+
+    return 0;
+}
+
+
+// Note that the above functions (specifically ATA/ATAPI reading and writing) are not supposed to be used outside of ide_ata.c, but are there just in case.
+// THESE are the functions supposed to be used outside of ATA:
+
+uint8_t package[8]; // package[0] contains err code
+
+// ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi) - Read from an ATA/ATAPI drive.
+void ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi) {
+    // Check if the drive is present.
+    if (drive > 3 | ideDevices[drive].reserved == 0) package[0] = 0x1;
+    
+    // Check if the inputs are valid.
+    else if (((lba + sectorNum) > ideDevices[drive].size) && (ideDevices[drive].type == IDE_ATA)) package[0] = 0x2; // Seeking to invalid position.
+
+    // Read in PIO mode through polling and IRQs.
+    else {
+        uint8_t error;
+        if (ideDevices[drive].type == IDE_ATA) {
+            error = ideAccessATA(ATA_READ, drive, lba, sectorNum, es, edi);
+        } else if (ideDevices[drive].type == IDE_ATAPI) {
+            for (int i = 0; i < sectorNum; i++) {
+                error = ideReadATAPI(drive, lba + i, 1, es, edi + (i*2048));
+            }
+            package[0] = idePrintErrors(drive, error);
+        }
+    }
+}
+
+
+
+// ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi) - Write to an ATA drive.
+void ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi) {
+    // Like the above funtion, we follow similar steps.
+    // Check if the drive is present.
+    if (drive > 3 || ideDevices[drive].reserved == 0) package[0] = 0x1; // Drive not found.
+
+    // Check if the inputs are valid.
+    else if (((lba + sectorNum) > ideDevices[drive].size) && (ideDevices[drive].type == IDE_ATA)) package[0] = 0x2; // Seeking to invalid position.
+
+    // Now, write in PIO mode through polling and IRQs
+    else {
+        uint8_t error;
+        if (ideDevices[drive].type == IDE_ATA) {
+            error = ideAccessATA(ATA_WRITE, drive, lba, sectorNum, es, edi);
+        } else if (ideDevices[drive].type == IDE_ATAPI) error = 4; // Drive is write protected.
+        package[0] = idePrintErrors(drive, error);
+    }
 }
