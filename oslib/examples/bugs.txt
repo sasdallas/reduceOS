@@ -1,0 +1,5 @@
+- The scheduling demo is bugged... The error is in the demo code, not in
+the OS library :) FIXED!!! It is orrible (and gives some warning compiling),
+but now it works correctly.
+
+- Now, also the warning has been removed...

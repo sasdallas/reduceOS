@@ -7,16 +7,15 @@ If you would like to learn more about the development of the kernel, scroll down
 ![reduceOS image](reduceOSDemo.png)
 
 #### Please read the credits!
-### TEMPORARY NOTICE: I managed to screw up the branch by accidentally adding a >500MB file to my commit. I then made the mistake of running git filter-branch. There is definitely not 300 commits here, sorry about that lol.
 # What's different?
-I've switched off multiboot in favor of a custom assembly bootloader and kernel. More features are coming in the kernel rewrite along with a ton of flaws and bugs fixed.\
-More info coming soon.
+reduceOS has switched to a brand new kernel, with cleaner, commented code and more features. This kernel is also written entirely by me, without a base.\
+We do still have to stick with multiboot for now, however. Still, the OS is coming along great.
 
 # Why does it look so messy?
 The assembly code shouldn't look that messy. If it is, start a pull request/contact me and I will update it.
 
 # What's the current stage?
-Improving physical memory handling, adding virtual memory handling (or paging handling)
+Adding multitasking and perfecting anniversary (January 20th)
 
 # Compiling
 ### Again, even though we were having trouble with Linux builds before, Windows builds are NOT supported. Use WSL, mingw-32, or MSys to build.
@@ -33,7 +32,8 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
-- Typing too many characters results in a division by zero exception.
+- **Severe:** Typing too many characters results in a division by zero exception.
+- When printing BUILD_DATE to the serial console, it is not printed properly. Possibly a bug with printf_putchar's `%u` handler.
 - For some reason, `printf()` can't handle a `%x` when paging values are passed. I added some code I found to fix it, it works fine in the function calling it but not in printf. It's not bad, the `%x` operator works fine otherwise. In the meantime, `printf_hex()` has been added to mitigate this.
 - **Annoying:** Keyboard driver has a hard time keeping up.
 - A little bit of disgusting code in `keyboardGetChar()`, `commandHandler()`, and a few other functions (unknown how to fix)

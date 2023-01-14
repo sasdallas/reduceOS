@@ -17,6 +17,9 @@ uint32_t nframes;
 extern uint32_t placement_address; // Defined in heap.c
 extern heap_t* kernelHeap;
 
+// Function prototypes.
+static page_table_t *clonePageTable(page_table_t *src, uint32_t *physicalAddress); // Clone a page table.
+
 
 // (from JamesM's kernel dev tutorials)
 #define INDEX_BIT(a) (a/(8*4))
@@ -121,8 +124,12 @@ void initPaging(uint32_t physicalMemorySize) {
     memset(frames, 0, INDEX_BIT(nframes));
 
     // Make a page directory.
+    uint32_t phys;
     kernelDir = (page_directory_t*)kmalloc_a(sizeof(page_directory_t)); // Allocate a page directory for the kernel...
-    currentDir = kernelDir; // We start in the kernel's page directory.
+    memset(kernelDir, 0, sizeof(page_directory_t));
+    kernelDir->physicalAddress = (uint32_t)kernelDir->tablePhysical;
+
+
 
     // Now, map some pages in the kernel's heap area - here we call getPage but not allocateFrame, causing pagge tables to be created where necessary.
     int i = 0;
@@ -148,15 +155,20 @@ void initPaging(uint32_t physicalMemorySize) {
     switchPageDirectory(kernelDir); // Switch the page directory to kernel directory.
     printf("Paging initialized!\n");
 
+    
+
     // Create the kernel heap
     kernelHeap = createHeap(HEAP_START, HEAP_START + HEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
     printf("Kernel heap initialized!\n");
+
+    //currentDir = clonePageDirectory(kernelDir);
+    //switchPageDirectory(currentDir);
 }
 
 // switchPageDirectory(page_directory_t *dir) - Switches the page directory using inline assembly
 void switchPageDirectory(page_directory_t* dir) {
     currentDir = dir;
-    asm volatile ("mov %0, %%cr3" :: "r"(&dir->tablePhysical));
+    asm volatile ("mov %0, %%cr3" :: "r"(dir->physicalAddress));
     uint32_t cr0;
     asm volatile ("mov %%cr0, %0" : "=r"(cr0));
     cr0 |= 0x80000000; // Enable paging!!
@@ -185,3 +197,71 @@ page_t* getPage(uint32_t addr, int make, page_directory_t* dir) {
     else { return 0; } // Nothing we can do.
 }
 
+
+// clonePageDirectory(page_directory_t *src) - Clone a page directory.
+page_directory_t *clonePageDirectory(page_directory_t *src) {
+    uint32_t phys; // Physical address
+    
+    // We first need to make a new page directory and store its physical address.
+    page_directory_t *dir = (page_directory_t*)kmalloc_ap(sizeof(page_directory_t), &phys);
+
+    // Blank the page directory.
+    memset(dir, 0, sizeof(page_directory_t));
+
+    // Get the offset of the physical tables from the start of the structure.
+    uint32_t offset = (uint32_t)dir->tablePhysical - (uint32_t)dir;
+    
+    // Calculate the physical address.
+    dir->physicalAddress = phys + offset;
+
+    // Copy each page table.
+    for (int i = 0; i < 1024; i++) {
+        if (!src->tables[i]) continue;
+        
+        if (kernelDir->tables[i] == src->tables[i]) {
+            // It's in the kernel - use the same pointer.
+            dir->tables[i] = src->tables[i];
+            dir->tablePhysical[i] = src->tablePhysical[i];
+
+            
+
+        } else {
+            // Copy the table.
+            uint32_t phys;
+            dir->tables[i] = clonePageTable(src->tables[i], &phys);
+            dir->tablePhysical[i] = phys | 0x07;
+        }
+    }
+
+    return dir;
+}
+
+
+
+static page_table_t *clonePageTable(page_table_t *src, uint32_t *physicalAddress) {
+    // Make a new page table (which is page aligned)
+    page_table_t *table = (page_table_t*)kmalloc_ap(sizeof(page_table_t), physicalAddress);
+
+    // Blank the page table.
+    memset(table, 0, sizeof(page_directory_t));
+
+    // Iterate through all pages in the table
+    for (int i = 0; i < 1024; i++) {
+        if (src->pages[i].frame) {
+            // Get a new frame.
+            allocateFrame(&table->pages[i], 0, 0);
+
+            // Clone the flags from src to dest.
+            if (src->pages[i].present) table->pages[i].present = 1;
+            if (src->pages[i].rw) table->pages[i].rw = 1;
+            if (src->pages[i].user) table->pages[i].user = 1;
+            if (src->pages[i].accessed) table->pages[i].accessed = 1;
+            if (src->pages[i].dirty) table->pages[i].dirty = 1;
+
+            // Physically copy the data across (this is defined in assembly/process.asm)
+            copyPagePhysical(src->pages[i].frame*0x1000, table->pages[i].frame*0x1000);
+        } 
+    }
+
+    return table;
+}

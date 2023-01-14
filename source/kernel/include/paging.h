@@ -10,6 +10,8 @@
 
 #include "include/panic.h" // Kernel panicking
 #include "include/heap.h" // Kernel heap management.
+#include "include/terminal.h"
+#include "include/serial.h"
 
 // Typedefs
 
@@ -49,4 +51,5 @@ void freeFrame(page_t *page); // Deallocate (or "free") a frame.
 void initPaging(uint32_t physicalMemorySize); // Initialize paging
 void switchPageDirectory(page_directory_t *dir); // Switches the page directory using inline assembly
 page_t *getPage(uint32_t addr, int make, page_directory_t *dir); // Returns a page from an address, directory (creates one if make is non-zero).
+page_directory_t *clonePageDirectory(page_directory_t *src); // Clone a page directory.
 #endif

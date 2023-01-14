@@ -1,0 +1,142 @@
+cons.h:
+	void set_visual_page(int page);
+	void set_active_page(int page);
+	int get_visual_page(void);
+	int get_active_page(void);
+	void place(int x,int y);
+	void cursor(int start,int end);
+	void _clear(char c,char attr,int x1,int y1,int x2,int y2);
+	void clear(void);
+	void _scroll(char attr,int x1,int y1,int x2,int y2);
+	void scroll(void);
+	void bios_save(void);
+	void bios_restore(void);
+	void cputc(char c);
+	void cputs(char *s);
+	int  cprintf(char *fmt,...) __attribute__((format(printf,1,2)));
+
+	void putc_xy(int x,int y,char attr,char c);
+	char getc_xy(int x,int y,char *attr,char *c);
+	void puts_xy(int x,int y,char attr,char *s);
+	int printf_xy(int x,int y,char attr, char *fmt,...) __attribute__((format(printf,4,5)));
+
+error.h:
+	error(msg)
+	message
+
+hw-func.h:
+	void halt(void);
+	void cold_reboot(void);			???
+	void warm_reboot(void);			???
+	void reboot(int mode);			???
+	void IDT_place(BYTE num,void (*handler)(void));
+	void GDT_place(WORD sel,DWORD base,DWORD lim,BYTE acc,BYTE gran);
+	DWORD GDT_read(WORD sel,DWORD *lim,BYTE *acc,BYTE *gran);
+	LIN_ADDR addr2linear(unsigned short sel,unsigned long offset);
+	void *x_init(void);
+	void x_end(void);
+	void x_exc_bind(int i, void (*f)(int n));
+	void x_irq_bind(int i, void (*f)(int n));
+	/* Do something for these, please!!! */
+	CONTEXT ll_context_save(void);
+	void    ll_context_change(CONTEXT c);
+	void    ll_context_load(CONTEXT c);
+	CONTEXT ll_context_from(void);
+	void    ll_context_to(CONTEXT c);
+hw-instr.h:
+	INLINE_OP WORD get_CS(void)
+	INLINE_OP WORD get_DS(void)
+	INLINE_OP WORD get_FS(void)
+	INLINE_OP DWORD get_SP(void)
+	INLINE_OP DWORD get_BP(void)
+	INLINE_OP WORD get_TR(void)
+	INLINE_OP void set_TR(WORD n)
+	INLINE_OP void set_LDTR(WORD addr)
+	INLINE_OP void clts(void)
+	INLINE_OP void hlt(void)
+	INLINE_OP void sti(void)
+	INLINE_OP void cli(void)
+	INLINE_OP SYS_FLAGS ll_fsave(void)
+	INLINE_OP void ll_frestore(SYS_FLAGS f)
+	INLINE_OP void save_fpu(TSS *t)
+	INLINE_OP void restore_fpu(TSS *t)
+	INLINE_OP void smartsave_fpu(TSS *t)
+	INLINE_OP void reset_fpu(void)
+	INLINE_OP int check_fpu(void)
+	INLINE_OP void init_fpu(void)
+	extern __inline__ void LL_FPU_save
+	void LL_FPU_restore(void)
+	inp, outp, inpw, outpw, inpd & outpd
+mem.h:
+	mem* functions
+pic.h:
+	void PIC_init(void);
+	void PIC_end(void);
+	void irq_mask(WORD irqno);
+	void irq_unmask(WORD irqno);
+pit.h:
+	INLINE_OP int pit_init(BYTE channel, BYTE mode, WORD tconst)
+	INLINE_OP int pit_setconstant(BYTE channel, DWORD c)
+	INLINE_OP WORD pit_read(BYTE channel)
+	ptspec structs & funcs...
+stdio.h:
+	int vsprintf(char *buf,char *fmt,va_list parms);
+	int sprintf(char *buf,char *fmt,...) __attribute__((__format__(printf,2,3)));
+	int vsscanf(char *buf,char *fmt,va_list parms);
+	int sscanf(char *buf,char *fmt,...) __attribute__((__format__(scanf,2,3)));
+(RIMUOVERE LL_PRINTF!!!)
+stdlib.h:
+	long strtoi(char *s,int base,char **scan_end);
+	unsigned long strtou(char *s,int base,char **scan_end);
+	double strtod(char *s,char **scan_end);
+	long strtol(const char *nptr, char **endptr, int base);
+	unsigned long strtoul(const char *nptr, char **endptr, int base);
+
+
+	unsigned ecvt(double v,char *buffer,int width,int prec,int flag);
+	unsigned fcvt(double v,char *buffer,int width,int prec,int flag);
+	unsigned gcvt(double v,char *buffer,int width,int prec,int flag);
+	unsigned dcvt(long v,char *buffer,int base,int width,int flag);
+	unsigned ucvt(unsigned long v,char *buffer,int base,int width,int flag);`
+	#define atof(s) strtod(s, NULL);
+	#define atoi(s) strtoi(s, 10, NULL);
+	#define atou(s) strtou(s, 10, NULL);
+	#define atol(s) strtol(s, 10, NULL);
+	void srand(long int seed);
+	long int rand(void);
+	unsigned abs(int x);
+	void exit(int code);
+string.h:
+	char *strcpy(char *dst,const char *src);
+	char *strncpy(char *dst,const char *src,int n);
+	int strcmp(const char *s1,const char *s2);
+	int strncmp(const char *s1,const char *s2,int n);
+	int strlen(const char *s);
+	char *strscn(char *s,char *pattern);
+	char *strchr(char *s,int c);
+	char *strupr(char *s);
+	char *strlwr(char *s);
+	char *strcat(char *dst,char *src);
+tss-ctx.h:
+	#define TSSMax                  155
+	#define TSSMain                 (TSSMax-1)
+	#define TSSBase                 0x100
+	#define TSSsel2index(sel)       ((sel-TSSBase)/8)
+	#define TSSindex2sel(i)         (TSSBase + i*8)
+x-bios.h:
+	X_CALLBIOS * x_bios_address(void);
+	void X_meminfo(LIN_ADDR *b1,DWORD *s1,LIN_ADDR *b2,DWORD *s2);
+	void X_callBIOS(int service,X_REGS16 *in,X_REGS16 *out,X_SREGS16 *s);
+	void vm86_init();
+	int vm86_callBIOS(int service,X_REGS16 *in,X_REGS16 *out,X_SREGS16 *s);
+x-dos.h:
+	DOS_FILE *DOS_fopen(char *name, char *mode);
+	void DOS_fclose(DOS_FILE *f);
+	DWORD DOS_fread(void *buf,DWORD size,DWORD num,DOS_FILE *f);
+	DWORD DOS_fwrite(void *buf,DWORD size,DWORD num,DOS_FILE *f);
+	unsigned DOS_error(void);
+x-dosmem.h:
+	void DOS_dump_mem(void);
+	void DOS_mem_init(void);
+	LIN_ADDR DOS_alloc(DWORD s);
+	int DOS_free(LIN_ADDR p,DWORD s);

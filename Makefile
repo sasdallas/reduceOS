@@ -61,7 +61,6 @@ LD_FLAGS = -m elf_i386 -T linker.ld --defsym BUILD_DATE=$(shell date +'%m%d%y') 
 ASM_LOADER_SRCS = $(wildcard $(ASM_LOADER)/*.asm)
 ASM_KERNEL_SRCS = $(wildcard $(ASM_KERNEL)/*.asm)
 
-# ASM_KLOADER includes isr.asm
 ASM_KLOADER = $(wildcard $(KLOADER_SOURCE)/*.asm)
 ASM_KLOADEROBJS = $(patsubst $(KLOADER_SOURCE)/%.asm, $(OUT_ASMOBJ)/%.o,$(ASM_KLOADER))
 

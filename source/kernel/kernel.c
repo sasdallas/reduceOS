@@ -264,6 +264,12 @@ void kmain(multiboot_info* mem) {
     registerCommand("panic", (command*)panicTest);
     serialPrintf("All commands registered successfully.\n");
 
+    uint8_t seconds, minutes, hours, days, months;
+    int years;
+    
+    rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
+    serialPrintf("Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
+
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt)
 
