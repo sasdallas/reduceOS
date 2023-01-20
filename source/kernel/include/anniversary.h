@@ -33,7 +33,7 @@ I hope you enjoy!\n\
 ";
 
 static char *finalMessage = "That is all from this command!\n\
-If you would like to see some of the special features embedded in reduceOS, try running anniversary help\n\
+reduceOS is finally here - rewritten and staying here forever\n\
 I hope you enjoy my operating system! If you find any bugs or have any suggestions, feel free to let me know!\n\
 Press ENTER to continue...\n\
 \n";

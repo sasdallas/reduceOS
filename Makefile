@@ -51,7 +51,7 @@ LOOP0 = /dev/loop0
 
 # Flags for compilers
 ASM_FLAGS = -f bin
-CC_FLAGS = -ffreestanding -O2 -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W
+CC_FLAGS = -ffreestanding -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W -O2
 LD_FLAGS = -m elf_i386 -T linker.ld --defsym BUILD_DATE=$(shell date +'%m%d%y') --defsym BUILD_TIME=$(shell date +'%H%M%S')
 
 
@@ -65,7 +65,9 @@ ASM_KLOADER = $(wildcard $(KLOADER_SOURCE)/*.asm)
 ASM_KLOADEROBJS = $(patsubst $(KLOADER_SOURCE)/%.asm, $(OUT_ASMOBJ)/%.o,$(ASM_KLOADER))
 
 # All LIBC and C sources - this will need an update when we properly organize directories.
+
 C_SRCS = $(wildcard $(KERNEL_SOURCE)/*.c) 
+
 LIBC_SRCS = $(wildcard $(KERNEL_SOURCE)/libc/*.c)
 C_OBJS = $(patsubst $(KERNEL_SOURCE)/%.c, $(OUT_OBJ)/%.o, $(C_SRCS)) $(patsubst $(KERNEL_SOURCE)/libc/%.c, $(OUT_OBJ)/libc/%.o, $(LIBC_SRCS))
 

@@ -14,7 +14,7 @@
 // Variables
 ideChannelRegisters_t channels[2]; // Primary and secondary channels
 uint8_t ideBuffer[2048] = {0}; // Buffer to read the identification space into (see ide_ata.h).
-static volatile uint8_t ideIRQ = 0; // Set to 1 when an IRQ is received.
+volatile unsigned static char ideIRQ = 0; // Set to 1 when an IRQ is received.
 static uint8_t atapiPacket[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // ATAPI drives
 ideDevice_t ideDevices[4]; // Maximum devices supported is 4.
 
@@ -39,7 +39,6 @@ void ideIRQHandler() {
 }
 
 
-// ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t bar4) - Initializes the IDE controller/driver.
 void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t bar4) {
     // Parameters:
     // bar0 is the start of the IO ports used by the primary ATA channel
@@ -50,6 +49,7 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
     // bar4 + 8 is the start of the 8 IO ports that control the secondary channel's bus master IDE.
 
     int count = 0;
+
 
     // First, detect IO ports which interface the IDE controller.
     channels[ATA_PRIMARY].ioBase = (bar0 & 0xFFFFFFFC) + 0x1F0 * (!bar0); // 0x1F0 is the default IO base
@@ -138,6 +138,7 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
 
     // Finally (for all of the driver), print a summary of the ATA devices
     int drives = 0;
+    serialPrintf("IDE driver completed initialization.\n");
     for (int i = 0; i < 4; i++) {
         if (ideDevices[i].reserved == 1) {
             serialPrintf("Found %s drive - %s\n", (ideDevices[i].type == 0) ? "ATA" : "ATAPI", ideDevices[i].model);
@@ -149,11 +150,12 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
             drives++;
         }
     }
-    isrRegisterInterruptHandler(14, ideIRQHandler);
-    isrRegisterInterruptHandler(15, ideIRQHandler);
-    printf("IDE driver initialized - found %i drives.\n", drives);
 
+    isrRegisterInterruptHandler(15, ideIRQHandler);
     
+    printf("IDE driver initialized - found %i drives.\n", drives);
+    
+
 }
 
 // printIDESummary() - Print a basic summary of all available IDE drives.
@@ -263,8 +265,8 @@ uint8_t idePolling(uint8_t channel, uint32_t advancedCheck) {
     for (int i = 0; i < 4; i++) ideRead(channel, ATA_REG_ALTSTATUS);
 
     // Next, wait for BSY to be cleared.
-    while (ideRead(channel, ATA_REG_STATUS) * ATA_STATUS_BSY);
-
+    while (ideRead(channel, ATA_REG_STATUS) & ATA_STATUS_BSY);
+    
     if (advancedCheck) {
         // The user wants us to do an advanced check.
         uint8_t state = ideRead(channel, ATA_REG_STATUS); // read the status register
@@ -314,13 +316,12 @@ uint8_t idePrintErrors(uint32_t drive, uint8_t err) {
 }
 
 
-// ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi) - Read/write sectors to an ATA drive (if direction is 0 we read, else write)
-uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi) {
+// ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi) - Read/write sectors to an ATA drive (if direction is 0 we read, else write)
+uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi) {
     /* A bit of explanation about the parameters:
     Drive is the drive number (can be 0-3)
     lba is the LBA address which allows us to access disks (up to 2TB supported)
     sectorNum is the number of sectors to be read 
-    selector is the segment selector to read from/write to
     edi is the offset in that segment (data buffer memory address)*/
 
     // First, we define a few variables
@@ -330,7 +331,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     uint32_t slaveBit = ideDevices[drive].drive; // Read the drive (master or slave)
     uint32_t bus = channels[channel].ioBase; // Bus base (the data port)
     uint32_t words = 256; // Almost every ATA drive has a sector size of 512 bytes
-    uint16_t cylinder, i;
+    uint16_t cylinder;
     uint8_t head, sect, err;
 
     // Disable IRQs to prevent problems.
@@ -386,7 +387,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     if (lbaMode == 0) ideWrite(channel, ATA_REG_HDDEVSEL, 0xA0 | (slaveBit >> 4) | head); // Drive & CHS.
     else ideWrite(channel, ATA_REG_HDDEVSEL, 0xE0 | (slaveBit >> 4) | head);
 
-    // Next, write the paramters to the register.
+    // Next, write the parameters to the registers.
     if (lbaMode == 2) {
         // Make sure to write a few extra parameters if we use LBA48.
         // ideWrite makes it pretty simple if we want to write to the LBA0 and LBA3 registers.
@@ -425,6 +426,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     if (lbaMode == 2 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA_EXT;
     ideWrite(channel, ATA_REG_COMMAND, cmd); // Send the command.
 
+    
     // Now that we have sent the command, we should poll and read/write a sector until all sectors are read/written.
     if (dma) {
         // TODO: Implement DMA reading + writing.
@@ -433,20 +435,21 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     } else {
         if (direction == 0) {
             // PIO read.
-            for (i == 0; i < sectorNum; i++) {
-                if (err == idePolling(channel, i)) return err; // Return if an error occurred.
+            for (int i = 0; i < sectorNum; i++) {
+                if (err = idePolling(channel, 1)) {
+                    serialPrintf("ideAccessATA (direction read): IDE polling returned non-zero value %i\n", err);
+                    return err; // Return if an error occurred. 
+                }
                 asm ("pushw %es");
-                asm ("mov %%ax, %%es" :: "a"(selector));
                 asm ("rep insw" :: "c"(words), "d"(bus), "D"(edi)); // Receive data.
                 asm ("popw %es");
                 edi += (words * 2);
             }
         } else {
             // PIO write
-            for (i = 0; i < sectorNum; i++) {
+            for (int i = 0; i < sectorNum; i++) {
                 idePolling(channel, 0); // Poll the channel.
                 asm ("pushw %ds");
-                asm ("mov %%ax, %%ds" :: "a"(selector));
                 asm ("rep outsw" :: "c"(words), "d"(bus), "S"(edi)); // Send data.
                 asm ("popw %ds");
                 edi += (words*2);
@@ -459,8 +462,8 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     return 0; // Done!
 }
 
-// ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi) - Read from an ATAPI drive.
-uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t selector, uint32_t edi) {
+// ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi) - Read from an ATAPI drive.
+uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi) {
     uint32_t channel = ideDevices[drive].channel;
     uint32_t slaveBit = ideDevices[drive].drive;
     uint32_t bus = channels[channel].ioBase;
@@ -504,7 +507,7 @@ uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t se
     ideWrite(channel, ATA_REG_COMMAND, ATA_PACKET);
 
     // Wait for the drive to finish or return an error.
-    if (err = idePolling(channel, 1)) return err; // Erorr.
+    if (err = idePolling(channel, 1)) return err; // Error.
 
     // Send the packet data.
     asm ("rep outsw" :: "c"(6), "d"(bus), "S"(atapiPacket));
@@ -514,7 +517,6 @@ uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t se
         ideWaitIRQ(); // Wait for an IRQ.
         if (err = idePolling(channel, 1)) return err; // There was an error.
         asm ("pushw %es");
-        asm ("mov %%ax, %%es" :: "a"(selector));
         asm ("rep insw" :: "c"(words), "d"(bus), "D"(edi)); // Receive the data.
         asm ("popw %es");
         edi += (words * 2);
@@ -534,22 +536,30 @@ uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint16_t se
 
 uint8_t package[8]; // package[0] contains err code
 
-// ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi) - Read from an ATA/ATAPI drive.
-void ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi) {
+// ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) - Read from an ATA/ATAPI drive.
+void ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) {
     // Check if the drive is present.
-    if (drive > 3 | ideDevices[drive].reserved == 0) package[0] = 0x1;
+    if (drive > 3 | ideDevices[drive].reserved == 0) {
+        package[0] = 0x1;
+        serialPrintf("ideReadSectors: drive not found - cannot continue.\n");
+        return;
+    }
     
     // Check if the inputs are valid.
-    else if (((lba + sectorNum) > ideDevices[drive].size) && (ideDevices[drive].type == IDE_ATA)) package[0] = 0x2; // Seeking to invalid position.
-
+    else if (((lba + sectorNum) > ideDevices[drive].size) && (ideDevices[drive].type == IDE_ATA)) { 
+        package[0] = 0x2; // Seeking to invalid position.
+        serialPrintf("ideReadSectors: LBA address invalid - greater than available sectors.\n");
+        return;
+    }
     // Read in PIO mode through polling and IRQs.
     else {
         uint8_t error;
         if (ideDevices[drive].type == IDE_ATA) {
-            error = ideAccessATA(ATA_READ, drive, lba, sectorNum, es, edi);
+            error = ideAccessATA(ATA_READ, drive, lba, sectorNum, edi);
+            
         } else if (ideDevices[drive].type == IDE_ATAPI) {
             for (int i = 0; i < sectorNum; i++) {
-                error = ideReadATAPI(drive, lba + i, 1, es, edi + (i*2048));
+                error = ideReadATAPI(drive, lba + i, 1, edi + (i*2048));
             }
             package[0] = idePrintErrors(drive, error);
         }
@@ -558,20 +568,27 @@ void ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es,
 
 
 
-// ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi) - Write to an ATA drive.
-void ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint16_t es, uint32_t edi) {
+// ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) - Write to an ATA drive.
+void ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) {
     // Like the above funtion, we follow similar steps.
     // Check if the drive is present.
-    if (drive > 3 || ideDevices[drive].reserved == 0) package[0] = 0x1; // Drive not found.
-
+    if (drive > 3 | ideDevices[drive].reserved == 0) {
+        package[0] = 0x1;
+        serialPrintf("ideWriteSectors: drive not found - cannot continue.\n");
+        return;
+    }
     // Check if the inputs are valid.
-    else if (((lba + sectorNum) > ideDevices[drive].size) && (ideDevices[drive].type == IDE_ATA)) package[0] = 0x2; // Seeking to invalid position.
-
+    // Check if the inputs are valid.
+    else if (((lba + sectorNum) > ideDevices[drive].size) && (ideDevices[drive].type == IDE_ATA)) { 
+        package[0] = 0x2; // Seeking to invalid position.
+        serialPrintf("ideWriteSectors: LBA address invalid - greater than available sectors.\n");
+        return;
+    }
     // Now, write in PIO mode through polling and IRQs
     else {
         uint8_t error;
         if (ideDevices[drive].type == IDE_ATA) {
-            error = ideAccessATA(ATA_WRITE, drive, lba, sectorNum, es, edi);
+            error = ideAccessATA(ATA_WRITE, drive, lba, sectorNum, edi);
         } else if (ideDevices[drive].type == IDE_ATAPI) error = 4; // Drive is write protected.
         package[0] = idePrintErrors(drive, error);
     }

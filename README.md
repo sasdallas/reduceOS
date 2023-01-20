@@ -32,6 +32,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
+- **Not a bug but annoying:** Certain files cannot use the `-O2` flag in compilation. Unfortunately, without the -O2 flag the system halts on `sti` - Makefile will need to be patched to fix that.
 - **Severe:** Typing too many characters results in a division by zero exception.
 - When printing BUILD_DATE to the serial console, it is not printed properly. Possibly a bug with printf_putchar's `%u` handler.
 - For some reason, `printf()` can't handle a `%x` when paging values are passed. I added some code I found to fix it, it works fine in the function calling it but not in printf. It's not bad, the `%x` operator works fine otherwise. In the meantime, `printf_hex()` has been added to mitigate this.

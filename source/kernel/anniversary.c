@@ -35,16 +35,6 @@ static char thankYous[6][1000] = {
 
 // anniversary() - the main command, prints some special unicode and more.
 int anniversary(int argc, char *argv) {
-    if (argc > 0) {
-        if (!strcmp(argv[1], "help")) {
-            printf("reduceOS 1.0 anniversary edition - anniversary command\n");
-            printf("Available special commands (sub commands to anniversary):\n");
-            printf("- placeholder1\n");
-            printf("- placeholder2\n");
-            printf("- placeholder3\n");
-            printf("- placeholder4\n");
-        }
-    }
 
     // Clear the screen.
     clearScreen(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
@@ -54,13 +44,13 @@ int anniversary(int argc, char *argv) {
     printf("reduceOS anniversary edition - version 1.0-rewrite\n");
     printf("Written by sasdallas.\n\n");
 
-    sleep(500);
+    sleep(2000);
 
     printf("Thank you to:\n");
-    sleep(100);
+    sleep(500);
     for (int i = 0; i < 6; i++) {
         printf("%s", thankYous[i]);
-        sleep(500);
+        sleep(1500);
         printf("\r");
     }
 
@@ -70,7 +60,7 @@ int anniversary(int argc, char *argv) {
     printf("Written by sasdallas.\n\n");
     printf("%s\n", myMessage);
 
-    sleep(1000);
+    sleep(3000);
     
     clearScreen(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
     printf("\n\n\n%s", anniversaryArt1);

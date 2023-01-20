@@ -1,4 +1,3 @@
-[bits 32]
 [global install_idt]
 
 install_idt:

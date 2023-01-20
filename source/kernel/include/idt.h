@@ -36,15 +36,21 @@ typedef struct {
     uint8_t reserved; // Reserved. Should be 0.
     uint8_t flags; // Bit flags.
     uint16_t baseHigh; // Higher 16 bits (16-31) of the interrupt routine address (see baseLow)
-} __attribute__((packed)) IDT;
+} __attribute__((packed)) idtEntry_t;
+
+typedef struct {
+    uint16_t limit; // size of the IDT
+    uint32_t base_addr; // base address of the IDT
+} __attribute__((packed)) idtPtr_t; 
+
 
 
 
 // Functions
 
-extern IDT* idtGetIR(uint32_t i); // Returns interrupt descriptor
-extern int idtInstallIR(int i, uint8_t flags, uint16_t segmentSelector, uint32_t base); // Installs interrupt handler. When INT is fired, it calls this
-extern int idtInit(uint16_t segmentSelector); // Initializes basic IDT.
+
+extern int idtInstallIR(uint8_t i, uint8_t flags, uint16_t segmentSelector, uint32_t base); // Installs interrupt handler. When INT is fired, it calls this
+extern void idtInit(); // Initializes basic IDT.
 
 
 

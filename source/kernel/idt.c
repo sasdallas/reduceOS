@@ -7,61 +7,55 @@
 
 extern void install_idt(uint32_t);
 
-typedef struct {
-    uint16_t limit; // size of the IDT
-    uint32_t base_addr; // base address of the IDT
-} __attribute__((packed)) IDT_PTR; 
+
+
+
+idtEntry_t idtEntries[I86_MAX_INTERRUPTS];
+idtPtr_t idtPtr;
 
 
 
 
-IDT _idt[I86_MAX_INTERRUPTS];
-IDT_PTR _idtptr;
 
 
-static void installIDT(); // Installs IDT_PTR into the CPU's idtr register
-static void i86DefaultHandler(); // Default interrupt handler used to catch unregistered interrupts
-
-// Installs IDT_PTR into the CPU's idtr register
-static void installIDT() {
-    __asm__ ("lidt (%0)" :: "r"(&_idtptr));
-}
-
-
-
-
-IDT* idtGetIR(uint32_t i) {
-    if (i > I86_MAX_INTERRUPTS) return 0;
-    return &_idt[i]; // Return the IR function
-}
-
-
-int idtInstallIR(int i, uint8_t flags, uint16_t segmentSelector, uint32_t base) {
+int idtInstallIR(uint8_t i, uint8_t flags, uint16_t segmentSelector, uint32_t base) {
     if (i < 0 || i >= I86_MAX_INTERRUPTS) return -1; // This would throw an out of bounds exception if it was.
 
-    IDT *idtTemp = &_idt[i];
+    idtEntries[i].baseLow = base & 0xFFFF;
+    idtEntries[i].baseHigh = (base >> 16) & 0xFFFF;
 
+    idtEntries[i].segmentSelector = segmentSelector;
+    idtEntries[i].reserved = 0;
 
-    idtTemp->baseLow = base & 0xFFFF; // Set base low
-    idtTemp->baseHigh = (base >> 16) & 0xFFFF; // Set base highidtInstallIR
-    idtTemp->reserved = 0; // Reserved should always be 0!
-    idtTemp->flags = flags; // Set the flags
-    idtTemp->segmentSelector = segmentSelector; // Set the segment selector
+    // NOTE: When user mode is enabled, make the below flags | 0x60.
+    idtEntries[i].flags = flags;
 
     return 0;
 }
 
 
 
-int idtInit(uint16_t segmentSelector) {
+void idtInit() {
+    // Setup the IDT pointer.
+    idtPtr.limit = sizeof(idtEntry_t) * 256 - 1;
+    idtPtr.base_addr = (uint32_t)idtEntries;
+    
+    // Clear IDT entries table.
+    memset(&idtEntries, 0, sizeof(idtEntry_t)*256);
 
-    // Setup the idtr (_idtptr) for the processor.
-    _idtptr.limit = sizeof(_idt) - 1;
-    _idtptr.base_addr = (uint32_t)&_idt[0];
-
+    outportb(0x20, 0x11);
+    outportb(0xA0, 0x11);
+    outportb(0x21, 0x20);
+    outportb(0xA1, 0x28);
+    outportb(0x21, 0x04);
+    outportb(0xA1, 0x02);
+    outportb(0x21, 0x01);
+    outportb(0xA1, 0x01);
+    outportb(0x21, 0x0);
+    outportb(0xA1, 0x0);
     isrInstall(); // Install handlers
 
-    install_idt((uint32_t)&_idtptr);
+    install_idt((uint32_t)&idtPtr);
     printf("IDT initialized.\n");
-    return 0;
+    return;
 }

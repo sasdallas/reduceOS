@@ -86,7 +86,7 @@ void i86_pitInit() {
 
 
 
-    int divisor = 1193180 / 100; // Calculate divisor.
+    int divisor = 1193180 / 1000; // Calculate divisor.
     outportb(0x43, 0x36); // Command byte (0x36)
     outportb(0x40, divisor & 0xFF); // Set the low and high byte of the divisor.
     outportb(0x40, divisor >> 8);
