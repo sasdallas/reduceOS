@@ -20,9 +20,9 @@ int memcmp(const void *s1, const void *s2, size_t n) {
 }
 
 // memcpy() - Copy a block of data from a source address to a destination address.
-// Three parameters - source block(void*), destination block(void*), and amount of bytes to copy(size_t)
+// Three parameters - destination block(void*), source block(void*),  and amount of bytes to copy(size_t)
 
-void* memcpy(void* __restrict source, const void* __restrict destination, size_t n) {
+void* memcpy(void* __restrict destination, const void* __restrict source, size_t n) {
     // Typecast both addresses to char* and assign them to csrc and cdest.
     char *csrc = (char *)source, *cdest = (char *)destination;
 

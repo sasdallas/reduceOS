@@ -27,11 +27,11 @@ typedef struct {
 	uint32_t	m_config_table;		// m_config_table - Unused
 	uint32_t	m_bootloader_name;	// m_bootloader_name - Unused
 	uint32_t	m_apm_table;		// m_apm_table - Unused
-	uint32_t	m_vbe_control_info;	// m_vbe_control_info - Unused
-	uint32_t	m_vbe_mode_info;	// m_vbe_mode_info - Unused
-	uint16_t	m_vbe_mode;			// m_vbe_mode - Unused
-	uint32_t	m_vbe_interface_addr; // m_vbe_interface_addr - Unused
-	uint16_t	m_vbe_interface_len; // m_vbe_interface_len - Unused
+	uint32_t	m_vbe_control_info;
+	uint32_t	m_vbe_mode_info;
+	uint16_t	m_vbe_mode;
+	uint32_t	m_vbe_interface_addr;
+	uint16_t	m_vbe_interface_len; 
 } multiboot_info;
 
 

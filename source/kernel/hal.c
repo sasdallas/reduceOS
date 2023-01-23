@@ -17,7 +17,7 @@ void interruptCompleted(uint32_t intNo) {
 
 // void setVector(int intNo, uint32_t vect) - Sets a new interrupt vector.
 void setVector(int intNo, uint32_t vect) {
-    idtInstallIR(intNo, 0x8E, 0x08, (uint32_t) vect);
+    idtInstallIR(intNo,  0x8E, 0x08, (uint32_t)vect);
 }
 
 // void enableHardwareInterrupts() - Enable hardware interrupts

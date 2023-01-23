@@ -1,8 +1,3 @@
-// =====================================================================
-// isr.c - Interrupt Service Routines
-// This file handles setting up the Interrupt Service Routines (ISR)
-// =====================================================================
-
 #include "include/isr.h" // Main header file
 
 ISR interruptHandlers[256]; // A list of all interrupt handlers

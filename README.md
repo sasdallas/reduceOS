@@ -20,7 +20,9 @@ Adding multitasking and perfecting anniversary (January 20th)
 # Compiling
 ### Again, even though we were having trouble with Linux builds before, Windows builds are NOT supported. Use WSL, mingw-32, or MSys to build.
 
-**To build reduceOS, you need these packages:** `gcc`, `nasm`, `make`, `grub`, and `qemu-system` (for running)
+**To build reduceOS, you need these packages:** `gcc`, `nasm`, `make`, `grub`\
+**To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso` (for building an ISO - does not work in QEMU!)
+
 
 The makefile of reduceOS has two main targets for building - `all` and `dbg`.\
 The target to actually build the OS is `all`. If you need to do further debugging, use `dbg` **as well as** `all` (dbg only outputs some debugging symbols)

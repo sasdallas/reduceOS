@@ -26,7 +26,7 @@ uint32_t kmalloc_int(uint32_t size, int align, uint32_t* phys) {
     }
     else {
         // If alignment is 1, align the placement address to 4096.
-        if (align == 1 && (placement_address & 0xFFFFF000)) {
+        if (align == 1 && (placement_address & 0x00000FFF)) {
             placement_address &= 0xFFFFF000;
             placement_address += 0x1000;
         }
@@ -142,7 +142,7 @@ static int32_t findSmallestHole(uint32_t size, uint8_t pageAlign, heap_t* heap) 
             // Page align the starting point of the header
             uint32_t location = (uint32_t)header;
             int32_t offset = 0;
-            if ((location + sizeof(header_t)) & 0xFFFFF000 != 0) offset = PAGE_SIZE - (location + sizeof(header_t)) % 0x1000;
+            if ((location + sizeof(header_t) & 0xFFFFF000) != 0) offset = PAGE_SIZE - (location + sizeof(header_t)) % 0x1000;
             int32_t holeSize = (int32_t)header->size - offset;
             // Is there enough space?
             if (holeSize >= (int32_t)size) break;
@@ -396,7 +396,6 @@ void free(void* p, heap_t* heap) {
     if ((uint32_t)footer + sizeof(footer_t) == heap->endAddress) {
         uint32_t oldLength = heap->endAddress - heap->startAddress;
         uint32_t newLength = contract((uint32_t)header - heap->startAddress, heap);
-
         // Check how big we will be after resizing
         if (header->size - (oldLength - newLength) > 0) {
             // We will still exist, yay! Resize us.
@@ -410,14 +409,12 @@ void free(void* p, heap_t* heap) {
             // (rip header)
             uint32_t iterator = 0;
             while ((iterator < heap->index.size) && (lookupOrderedArray(iterator, &heap->index) != (void*)testHeader)) iterator++;
-
             // Check if we didn't find ourselves. If we didn't, nothing to remove.
             if (iterator < heap->index.size) {
                 removeOrderedArray(iterator, &heap->index);
             }
         }
     }
-
     // Add us to index if required.
     if (doAdd == 1) insertOrderedArray((void*)header, &heap->index);
 }

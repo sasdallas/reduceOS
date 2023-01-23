@@ -10,14 +10,8 @@ CP = cp -f
 
 DD = dd
 qemu-system-x86_64 = qemu-system-x86_64
-QEMU_IMG = qemu-img
-MKE2FS = sudo mke2fs
 
-losetup = sudo /sbin/losetup
-mount = sudo mount
-sudo = sudo
-unmount = sudo umount
-cp_elevated = sudo cp
+MKIMAGE = grub-mkrescue
 
 initrd_generator = ./initrd_img/generate_initrd
 
@@ -38,8 +32,6 @@ INITRD_SRC = initrd_img
 INITRD_OBJ = $(INITRD_SRC)/obj
 INITRD_DIR = $(INITRD_SRC)/initrd
 
-TMP_MNT = /tmp/mnt
-
 # Files
 OUT_IMG = out/img/build.img
 
@@ -51,7 +43,7 @@ LOOP0 = /dev/loop0
 
 # Flags for compilers
 ASM_FLAGS = -f bin
-CC_FLAGS = -ffreestanding -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W -O2
+CC_FLAGS = -ffreestanding -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W
 LD_FLAGS = -m elf_i386 -T linker.ld --defsym BUILD_DATE=$(shell date +'%m%d%y') --defsym BUILD_TIME=$(shell date +'%H%M%S')
 
 
@@ -84,16 +76,16 @@ dbg: $(OUT_KERNEL)/kernel $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
 
 
 
-$(OUT_KERNEL)/kernel: $(ASM_KLOADEROBJS) $(C_OBJS)
+$(OUT_KERNEL)/kernel: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
 	@printf "[ Linking debug kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel
 	@printf "\n"
 
-$(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS)
+$(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
 	@printf "[ Linking debug symbols... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.elf
 
-$(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS)
+$(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.bin 
 	@printf "[ Verifying kernel is valid... ]\n"
@@ -116,52 +108,35 @@ $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.s | $($OUT_ASMOBJ)
 
 
 img: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img
+	@printf "[ Creating directory for building image... ]\n"
+	-@$(mkdir) -p $(OUT_IMG)/builddir/boot/grub
+
+	@printf "[ Copying files... ]\n"
+	$(cp) $(OUT_KERNEL)/kernel.bin $(OUT_IMG)/builddir/boot/
+	$(cp) $(OUT_INITRD)/initrd.img $(OUT_IMG)/builddir/boot/
+
+	@printf "[ Writing GRUB configuration file... ]\n"
+	@$(cat) > $(OUT_IMG)/builddir/boot/grub/grub.cfg << EOF
+	@menuentry "reduceOS" {
+	@	multiboot /boot/kernel.bin
+	@	module /boot/initrd.img
+	@}
+	@EOF
+
+	@printf "[ Creating reduceOS image (requires xorriso!)... ]\n"
+	@$(MKIMAGE) -o $(OUT_IMG)/reduceOS.iso $(OUT_IMG)/builddir
 	
+	@printf "[ Done! You can flash this to a device to run it. ]\n"
 
-
-	@printf "[ Creating image file... ]\n"
-	@$(QEMU_IMG) create $(OUT_IMG) 50M
-	@printf "\n"
-	
-	@printf "[ Formatting image file to ext2... ]\n"
-	@$(MKE2FS) -F -m0 $(OUT_IMG)
-	@printf "\n"
-
-	@printf "[ Removing /dev/loop0 device... ]\n"
-	-@$(losetup) -d $(LOOP0)
-	@printf "\n"
-
-	@printf "[ Setting up image file on /dev/loop0... ]\n"
-	@$(losetup) $(LOOP0) $(OUT_IMG)
-	@printf "\n"
-
-
-	@printf "[ Creating /tmp/mnt directory... ]\n"
-	-@$(sudo) $(MKDIR) $(TMP_MNT)
-	@printf "\n"
-
-	@printf "[ Mounting /dev/loop0 on /tmp/mnt... ]\n"
-	@$(mount) $(LOOP0) $(TMP_MNT)
-	@printf "\n"
-
-	@printf "[ Copying files to /tmp/mnt... ]\n"
-	$(cp_elevated) $(OUT_KERNEL)/kernel.bin $(TMP_MNT)/kernel
-	$(cp_elevated) $(OUT_INITRD)/initrd.img $(TMP_MNT)/initrd
-	@printf "\n"
-
-	@printf "[ Unmounting /tmp/mnt... ]\n"
-	@$(unmount) $(TMP_MNT)
-	@printf "\n"
-
-	@printf "[ Removing loop0 device... ]\n"
-	@$(losetup) -d $(LOOP0)
-	@printf "\n"
-
-	@printf "[ Done! If you want to run this image file, you should use Bochs (not included) ]\n"
 
 	
 
-
+# Needed for now because some files don't work without -O2
+PATCH_TARGETS:
+	@printf "[ Recompiling files that need optimization... ]\n"
+	$(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/isr.c -o $(OUT_OBJ)/isr.o 
+	@printf "\n"
+	
 $(INITRD_OBJ)/%.o : $(INITRD_SRC)/src/%.c | $(INITRD_OBJ)
 	@printf "[ Compiling initrd C file... ]\n"
 	@$(CC) -std=c99 -D_BSD_SOURCE -o $@ -c $<
@@ -187,4 +162,3 @@ clean:
 	@$(RM) $(OUT_OBJ)/libc/*.o
 	@printf "[ Deleting ASM object files... ]\n"
 	@$(RM) $(OUT_ASMOBJ)/*.o
-

@@ -15,5 +15,12 @@ typedef struct {
     uint32_t eip, cs, eflags, useresp, ss;            // pushed by the processor automatically
 } REGISTERS;
 
+// Registers (16-bit real mode)
+typedef struct {
+    uint16_t di, si, bp, sp, bx, dx, cx, ax;
+    uint16_t ds, es, fs, gs, ss;
+    uint16_t eflags;
+} REGISTERS_16;
+
 
 #endif

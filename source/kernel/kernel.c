@@ -227,7 +227,8 @@ void kmain(multiboot_info* mem) {
     // Initialize IDT.
     updateBottomText("Initializing IDT...");
     idtInit();
-    
+    printf("GDT and IDT initialized.\n");
+
     serialPrintf("GDT and IDT have been initialized successfully.\n");
 
     // Getting vendor ID and if the CPU is 16, 32, or 64 bits (32 at minimum so idk why we check for 16, but just in case)
@@ -251,26 +252,30 @@ void kmain(multiboot_info* mem) {
     printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
     serialPrintf("User is running with CPU vendor %s (64-bit capable: %s)\n", vendor, (iedx & (1 << 29)) ? "YES" : "NO");
 
-    // Quickly inform the user of their available memory. (note: yes, I know 1 GB is equal 1000 MB and 1 MB is equal to 1000 KB, but for some reason it breaks things so I don't care)
-
-    // NOTE: Scrapped as of now - GRUB didn't pass us the amount of memory we have.
+    // Enable hardware interrupts
+    updateBottomText("Enabling interrupts...");
+    enableHardwareInterrupts();
+    printf("Interrupts enabled.\n");
+    serialPrintf("sti instruction did not fault - interrupts enabled.\n");
+    
+    
+    // Initialize Keyboard (won't work until interrupts are enabled - that's when IRQ and stuff is enabled.)
+    
+    updateBottomText("Initializing keyboard...");
+    keyboardInitialize();
+    setKBHandler(true);
+    serialPrintf("Keyboard handler initialized.\n");
+    
 
     // PIT timer
     updateBottomText("Initializing PIT...");
     i86_pitInit();
     serialPrintf("PIT started at 1000hz\n");
 
-    // Initialize Keyboard (won't work until interrupts are enabled - that's when IRQ and stuff is enabled.)
-    updateBottomText("Initializing keyboard...");
-    keyboardInitialize();
-    setKBHandler(true);
-    serialPrintf("Keyboard handler initialized.\n");
+    
+    
 
-    // Enable hardware interrupts
-    updateBottomText("Enabling interrupts...");
-    enableHardwareInterrupts();
-    printf("Interrupts enabled.\n");
-    serialPrintf("sti instruction did not fault - interrupts enabled.\n");
+    
     
    
     printf("Kernel is loaded at 0x%x, ending at 0x%x\n", kernelStart, kernelEnd);
@@ -278,7 +283,7 @@ void kmain(multiboot_info* mem) {
     // Probe for PCI devices
     updateBottomText("Probing PCI...");
     initPCI();
-    serialPrintf("PCI probe completed");
+    serialPrintf("PCI probe completed\n");
 
 
     updateBottomText("Initializing IDE controller...");
@@ -331,10 +336,20 @@ void kmain(multiboot_info* mem) {
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt)
 
+    bios32_init();
+    serialPrintf("BIOS32 initialized successfully!\n");
+    
+    // Both of these functions are bugged as of now.
+    // They unfortunately cannot be used.
+    // REGISTERS_16 in = {0};
+    // REGISTERS_16 out = {0};
+    // bios32_call(0x12, &in, &out);
+    // acpiInit();
 
     while (true) {
         printf("reduceOS> ");
         keyboardGetLine(buffer, sizeof(buffer));
         parseCommand(buffer);
+        
     }
 }

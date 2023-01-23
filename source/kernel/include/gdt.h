@@ -7,8 +7,9 @@
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/terminal.h" // printf
 #include "include/libc/assert.h" // ASSERT() macro
+
 // Definitions
-#define MAX_DESCRIPTORS 5
+#define MAX_DESCRIPTORS 8
 
 // Typedefs
 

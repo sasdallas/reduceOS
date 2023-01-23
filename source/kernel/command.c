@@ -67,14 +67,16 @@ int parseCommand(char *cmd) {
 
     for (int i = 0; i < 1024; i++) {
         cmdData *data = &cmdFunctions[i];
-        if (strcmp(argv[0], data->cmdName) == 0) {
-            command *func = data->cmdFunc;
-            int ret;
-            ret = func(argc, argv);
-            // Free the memory allocated for the parsed command
-            for (int i = 0; i < argc; i++) { memset(argv[i], 0, strlen(argv[i])); }
-            memset(argv, 0, argc * sizeof(char *));
-            return ret;
+        if (strlen(data->cmdName) == strlen(argv[0])) {
+            if (strcmp(argv[0], data->cmdName) == 0) {
+                command *func = data->cmdFunc;
+                int ret;
+                ret = func(argc, argv);
+                // Free the memory allocated for the parsed command
+                for (int i = 0; i < argc; i++) { memset(argv[i], 0, strlen(argv[i])); }
+                memset(argv, 0, argc * sizeof(char *));
+                return ret;
+            }
         }
     }  
 

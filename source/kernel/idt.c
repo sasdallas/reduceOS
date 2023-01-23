@@ -56,6 +56,6 @@ void idtInit() {
     isrInstall(); // Install handlers
 
     install_idt((uint32_t)&idtPtr);
-    printf("IDT initialized.\n");
+    
     return;
 }
