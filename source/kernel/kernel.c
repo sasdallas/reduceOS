@@ -348,7 +348,7 @@ void kmain(multiboot_info* mem) {
 
     while (true) {
         printf("reduceOS> ");
-        keyboardGetLine(buffer, sizeof(buffer));
+        keyboardGetLine(buffer);
         parseCommand(buffer);
         
     }

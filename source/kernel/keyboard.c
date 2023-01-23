@@ -11,8 +11,10 @@ static bool capsLock = false;
 static bool ctrlPressed = false;
 static bool printChars = true;
 
-char keyboardBuffer[MAX_BUFFER_CHARS]; // Keyboard buffer - used with keyboardGetChar() and stores input up to MAX_BUFFER_CHARS (defined in keyboard.h)
-int index = 0; // Buffer index for keyboardBuffer. BUGGED: Unknown values stored.
+
+char *bufferPointer = NULL;
+int bindex = 0;
+bool newline = false;
 
 // Making life so much easier for me. Instead of manually switching between the scancodes in a switch() statement, just match them to this! So much easier.
 const char scancodeChars[] = {
@@ -60,6 +62,28 @@ char altChars(char ch) {
 }
 
 
+
+// keyboardRegisterKeyPress(char key) - Registers that a key was pressed.
+void keyboardRegisterKeyPress(char key) {
+
+    if (key == '\n') {
+        newline = true;
+    } else if (key == '\b' && bindex != 0) {
+        bufferPointer[bindex-1] = '\0';
+        bindex--;
+    } else {
+        bufferPointer[bindex] = key;
+        bindex++;
+    }
+    
+}
+
+void keyboardWaitForNewline() {
+    while (!newline);
+    newline = false;
+    
+    return;
+}
 
 // keyboardHandler(REGISTERS *r) - The handler assigned by keyboardInitialize to IRQ 33. Handles all scancode stuff.
 static void keyboardHandler(REGISTERS *r) {
@@ -149,14 +173,11 @@ static void keyboardHandler(REGISTERS *r) {
     }
     
     // keyboardGetChar() will handle getting the char and returning it (for the shell).
-    // Before we return we need to add the char to the buffer.
-    // TODO: Replace with actual buffer handling code (possibly when Dynamic Memory Management is done)
-    if (index == MAX_BUFFER_CHARS - 1) { printf("Warning! Keyboard buffer overflow!"); clearBuffer(); index = 0; } 
-    else if (ch <= 0 || ch == '\0') {
+    // Before we return we need to report that the key was pressed.
+    if (ch <= 0 || ch == '\0') {
         // Do nothing if ch is 0 or \n. 
     } else {
-        keyboardBuffer[index] = ch;
-        index++;
+        keyboardRegisterKeyPress(ch);
         if (printChars) terminalPutchar(ch);
     }
     
@@ -183,11 +204,12 @@ char keyboardGetChar() {
 
 // clearBuffer() - Clears the keyboard buffer.
 void clearBuffer() {
-    memset(keyboardBuffer, 0, sizeof(keyboardBuffer)); // Fill keyboard buffer with zeroes.
+    memset(bufferPointer, 0, sizeof(char) * 256);
 }
 
 
 // keyboardGetKey() - Waits until a specific key is pressed and returns it.
+// We leave this one because it can usually keep up.
 void keyboardGetKey(char key, bool doPrintChars) {
     bool previousPrintValue = printChars; // We will restore this value after we're done.
     setKBPrintChars(doPrintChars); // Set KB print chars to whatever they want.
@@ -220,33 +242,18 @@ void keyboardGetKey(char key, bool doPrintChars) {
 
 
 // keyboardGetLine() - A better version of keyboardGetInput that waits until ENTER key is pressed, and then sends it back (it never actually sends it back, only edits a buffer provided).
-// TODO: We need efficiency - this buffer has trouble keeping track of everything you typed.
-// less priority TODO: Comment and cleanup code.
-void keyboardGetLine(char *buffer, size_t bufferSize) {
-    size_t index = 0;
-    while (index < bufferSize - 1) {
-        char c = keyboardGetChar();
-        if (c == '\n') {
-            buffer[index] = '\0';
-            clearBuffer();
-            index = 0;
-
-            return;
-        } else if (c == '\b' && index != 0) {
-            buffer[index-1] = '\0';
-            index--;
-        } else {
-            buffer[index] = c;
-            index++;
-        }
-    }
-    buffer[index] = '\0';
+void keyboardGetLine(char *buffer) {
+    keyboardWaitForNewline();
+    strcpy(buffer, bufferPointer);
+    clearBuffer();
+    bindex = 0;
+    return;
 }
 
 
 // keyboardInitialize() - Main function that loads the keyboard
 void keyboardInitialize() {
-    memset(keyboardBuffer, 0, MAX_BUFFER_CHARS); // Fill keyboard buffer with zeroes
+    bufferPointer = kmalloc(8);
     isrRegisterInterruptHandler(33, keyboardHandler); // Register IRQ 33 as an ISR interrupt handler value.
     printf("Keyboard driver initialized.\n");
 }
