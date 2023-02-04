@@ -75,7 +75,7 @@ typedef enum LEDStates {
 
 
 // Functions
-static void keyboardHandler(REGISTERS *r); // keyboardHandler() - Identifies scancodes, printing, etc. Should NEVER be called outside of isrIRQHandler (REGISTERS are passed from the assembly code.)
+static void keyboardHandler(registers_t *r); // keyboardHandler() - Identifies scancodes, printing, etc. Should NEVER be called outside of isrIRQHandler (REGISTERS are passed from the assembly code.)
 void keyboardInitialize(); // keyboardInit() - Registers keyboardHandler on IRQ 33 - enabling the keyboard.
 void setKBHandler(bool state); // setKBHandler() - Enables / disables the keyboard. Used when setting up the kernel (we don't want those pesky users mucking up our output, do we?)
 void keyboardGetLine(char *buffer); // keyboardGetLine() - Returns keyboard input after ENTER key is pressed.

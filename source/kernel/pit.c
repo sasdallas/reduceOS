@@ -72,12 +72,13 @@ void i86_pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) {
 
 // void i86_pitInit() - Initialize PIT
 void i86_pitInit() {
+
     // Install our interrupt handler (IRQ 0 uses INT 32)
     isrRegisterInterruptHandler(32, i86_pitIRQ);
 
     // Update the isInitialized variable.
     pit_isInit = true;
-    
+
     // We want to add some extra code to fully initialize the PIT properly.
     // The default what we want to is to enable the PIT with a square wave generator and 100hz frequencey.
     // If the user wants they can use one of the above functions to do so, but we're going to do it here.
@@ -90,7 +91,6 @@ void i86_pitInit() {
     outportb(0x43, 0x36); // Command byte (0x36)
     outportb(0x40, divisor & 0xFF); // Set the low and high byte of the divisor.
     outportb(0x40, divisor >> 8);
-
 
     printf("Programmable Interval Timer initialized.\n");
 }

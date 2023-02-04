@@ -26,5 +26,6 @@ extern void outportb(uint16_t port, uint8_t value); // Write data to a device us
 extern void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx); // Returns an assembly cpuid instruction.
 extern uint32_t inportl(uint16_t port); // Read data from a device via port mapped IO
 extern void outportl(uint16_t port, uint32_t data); // Write data to a device via port mapped IO
-
+extern size_t msb(size_t i); // Returns the most significant bit.
+extern uint32_t getCPUFrequency(); // Returns the CPU frequency (todo: create processor.c).
 #endif

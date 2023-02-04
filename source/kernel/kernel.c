@@ -13,34 +13,9 @@ extern uint32_t placement_address;
 // ide_ata.c defined variables
 extern ideDevice_t ideDevices[4];
 
-int testFunction(int argc, char *args[]) {
-    printf("It works!\n");
-    return 1;
-}
+// initrd.c defined variables
+extern fsNode_t *initrdDev;
 
-int pagingTest(int argc, char *args[]) {
-    printf("Executing paging test...\n");
-    uint32_t a = kmalloc(8);
-    uint32_t b = kmalloc(8);
-    uint32_t c = kmalloc(8);
-    
-    printf("a: 0x");
-    printf_hex(a);
-    printf(", b: 0x");
-    printf_hex(b);
-    printf("\nc: 0x");
-    printf_hex(c);
-
-    kfree(c);
-    kfree(b);
-    uint32_t d = kmalloc(12);
-    printf(", d: 0x");
-    printf_hex(d);
-    printf("\n");
-    kfree(a);
-    kfree(d);
-    printf("Test complete.\n");
-}
 
 
 int getSystemInformation(int argc, char *args[]) {
@@ -60,13 +35,14 @@ int getSystemInformation(int argc, char *args[]) {
     // Tell the user.
     printf("CPU Vendor: %s\n", vendor);
     printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
+    printf("CPU frequency: %u\n", getCPUFrequency());
 
     return 1; // Return
 }
 
 
 int help(int argc, char *args[]) {
-    printf("reduceOS v1.0-dev\nValid commands:\ntest, system, help, echo, pci, crash, anniversary, shutdown, initrd, ata\n");
+    printf("reduceOS v1.0-dev\nValid commands:\nsystem, help, echo, pci, crash, anniversary, shutdown, initrd, ata, sector, fat\n");
     return 1;
 }
 
@@ -156,25 +132,25 @@ int readSectorTest(int argc, char *args[]) {
 
 
     // write message to drive
-    const int DRIVE = 0;
     const uint32_t LBA = 0;
     const uint8_t NO_OF_SECTORS = 1;
-    char buf[512] = {0};
+    char buf[512];
 
-    
+    memset(buf, 0, sizeof(buf));
 
     // write message to drive
     strcpy(buf, "Hello, world!");
-    ideWriteSectors(DRIVE, NO_OF_SECTORS, LBA, (uint32_t)buf);
-
-    printf("data written\n");
-
+    ideWriteSectors((int)drive, NO_OF_SECTORS, LBA, (uint32_t)buf);
+    printf("Wrote data.\n");
+    
     // read message from drive
     memset(buf, 0, sizeof(buf));
-    ideReadSectors(DRIVE, NO_OF_SECTORS, LBA, (uint32_t)buf);
-    printf("read data: %s\n", buf);
+    ideReadSectors((int)drive, NO_OF_SECTORS, LBA, (uint32_t)buf);
+    printf("Read data: %s\n", buf);
     return 0;
 }
+
+
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
@@ -189,11 +165,11 @@ void kmain(multiboot_info* mem) {
     uint32_t kernelEnd = &end;
     
     // Some extra stuff
-    extern uint32_t text;
+    extern uint32_t text_start;
     extern uint32_t text_end;
-    extern uint32_t data;
+    extern uint32_t data_start;
     extern uint32_t data_end;
-    extern uint32_t bss;
+    extern uint32_t bss_start;
     extern uint32_t bss_end;
 
     // Perform some basic setup
@@ -215,8 +191,8 @@ void kmain(multiboot_info* mem) {
     // Initialize serial logging
     serialInit();
     serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
-    serialPrintf("Build date: %u, build time: %u\n", &BUILD_DATE, &BUILD_TIME);
-    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", kernelStart, kernelEnd, text, text_end, data, data_end, bss, bss_end);
+    serialPrintf("Build date: %us, build time: %u\n", &BUILD_DATE, &BUILD_TIME);
+    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", kernelStart, kernelEnd, text_start, text_end, data_start, data_end, bss_start, bss_end);
     serialPrintf("Serial logging initialized!\n");
     printf("Serial logging initialized on COM1.\n");
 
@@ -259,8 +235,7 @@ void kmain(multiboot_info* mem) {
     serialPrintf("sti instruction did not fault - interrupts enabled.\n");
     
     
-    // Initialize Keyboard (won't work until interrupts are enabled - that's when IRQ and stuff is enabled.)
-    
+    // Initialize Keyboard 
     updateBottomText("Initializing keyboard...");
     keyboardInitialize();
     setKBHandler(true);
@@ -288,7 +263,6 @@ void kmain(multiboot_info* mem) {
 
     updateBottomText("Initializing IDE controller...");
     ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
-    
     // Initialize paging
     
     // Calculate the initial ramdisk location in memory (panic if it's not there)
@@ -313,17 +287,16 @@ void kmain(multiboot_info* mem) {
 
     anniversaryRegisterCommands();
     anniversaryRegisterEasterEggs();
-    registerCommand("test", (command*)testFunction);
     registerCommand("system", (command*)getSystemInformation);
     registerCommand("help", (command*)help);
     registerCommand("echo", (command*)echo);
     registerCommand("crash", (command*)crash);
     registerCommand("pci", (command*)pciInfo);
-    registerCommand("paging", (command*)pagingTest);
     registerCommand("initrd", (command*)getInitrdFiles);
     registerCommand("ata", (command*)ataPoll);
     registerCommand("panic", (command*)panicTest);
     registerCommand("sector", (command*)readSectorTest);
+    registerCommand("shutdown", (command*)shutdown);
     serialPrintf("All commands registered successfully.\n");
 
 
@@ -339,12 +312,18 @@ void kmain(multiboot_info* mem) {
     bios32_init();
     serialPrintf("BIOS32 initialized successfully!\n");
     
+    
     // Both of these functions are bugged as of now.
     // They unfortunately cannot be used.
     // REGISTERS_16 in = {0};
     // REGISTERS_16 out = {0};
     // bios32_call(0x12, &in, &out);
     // acpiInit();
+
+    updateBottomText("Initializing multitasking (task #0)...");
+    initMultitasking();
+    printf("Multitasking initialized.\n");
+    
 
     while (true) {
         printf("reduceOS> ");

@@ -50,8 +50,8 @@ void *panic(char *caller, char *code, char *reason) {
         printf("Type: 0x%x, EAX: 0x%x, EBX: 0x%x, ECX: 0x%x, EDX: 0x%x\n", i, eax, ebx, ecx, edx);
     }
     
-
-    stackTrace(5); // Get a stack trace.
+    // TODO: Add debug symbols into the initrd so we get function names. To prevent a bug haven, don't call stack trace.
+    // stackTrace(5); // Get a stack trace.
 
 
 
@@ -60,7 +60,7 @@ void *panic(char *caller, char *code, char *reason) {
 }
 
 
-void *panicReg(char *caller, char *code, char *reason, REGISTERS *reg) {
+void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("Panic reason: %s\n", reason);
     serialPrintf("panic type: registers, %s.\n", code);
@@ -134,7 +134,7 @@ void *specialPanic(char *caller, char *code, char *reason, int integer, uint32_t
 
 
 // Oh no! We encountered a page fault!
-void *pageFault(REGISTERS *reg) {
+void *pageFault(registers_t *reg) {
     // Get the faulting address
     uint32_t faultAddress;
     asm volatile("mov %%cr2, %0" : "=r" (faultAddress));

@@ -13,7 +13,7 @@
 
 // Definitions
 #include "include/panic.h" // Kernel panicking. Used on i86DefaultHandler.
-#include "include/regs.h" // REGISTERS typedef
+#include "include/regs.h" // registers_t  typedef
 
 
 // IRQ default constants
@@ -39,7 +39,7 @@
 
 // Typedefs
 
-typedef void (*ISR)(REGISTERS *);
+typedef void (*ISR)(registers_t  *);
 
 // Variable definitions
 

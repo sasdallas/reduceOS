@@ -52,4 +52,5 @@ void initPaging(uint32_t physicalMemorySize); // Initialize paging
 void switchPageDirectory(page_directory_t *dir); // Switches the page directory using inline assembly
 page_t *getPage(uint32_t addr, int make, page_directory_t *dir); // Returns a page from an address, directory (creates one if make is non-zero).
 page_directory_t *clonePageDirectory(page_directory_t *src); // Clone a page directory.
+void *createStack(unsigned int id); // Create a stack for paging.
 #endif

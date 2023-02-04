@@ -10,6 +10,7 @@
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
 
+
 // Definitions
 #define VFS_FILE 0x01
 #define VFS_DIRECTORY 0x02
@@ -47,6 +48,7 @@ typedef struct {
     uint32_t flags;     // Includes the node type.
     uint32_t inode;     // Device-specific, provides a way for a filesystem to identify files
     uint32_t length;    // Size of file.
+    // uint32_t eof; - we can possible use for EOF instead of hacking up impl (and then use impl to define where we got the file from)
     uint32_t impl;      // Implementation defined number.
     read_t  read;
     write_t write;
@@ -72,7 +74,7 @@ void openFilesystem(fsNode_t *node, uint8_t read, uint8_t write); // Opens a fil
 void closeFilesystem(fsNode_t *node); // Closes a filesystem.
 struct dirent *readDirectoryFilesystem(fsNode_t *node, uint32_t index); // Reads a directory in a filesystem.
 fsNode_t *findDirectoryFilesystem(fsNode_t *node, char *name); // Finds a directory in a filesystem.
-
+fsNode_t *openFile(const char *name); // Opens a file.
 
 
 #endif

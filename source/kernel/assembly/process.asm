@@ -1,36 +1,47 @@
-; process.asm - Handles physical page management and a few other things.
-; This implementation is sourced from JamesM's kernel development tutorials.
+; process.asm - Handles task context switching and a few other things.
+; This implementation is sourced from eduOS by RWTH-OS
 
-[global copyPagePhysical]
+[global task_switchContext]
+[extern task_getCurrentStack]
+[extern setKernelStack]
+[extern task_finishTaskSwitch]
 
-copyPagePhysical:
-    push ebx                    ; Make sure we push ebx.
-    pushf                       ; Push EFLAGS so we can pop it and reenable interrupts later.
+ALIGN 4
 
-    cli                         ; Disable interrupts
-    
-    mov ebx, [esp+12]           ; Source address.
-    mov ecx, [esp+16]           ; Destination address.
+task_switchContext:
+    ; Create on the stack a "psuedo-interrupt", afterwards switch to the task.
+    ; Note: We are already in kernel space so no pushing of ss required.
+    mov eax, [esp+4]            ; On the stack is already the address to store the old esp.
+    pushf                       ; Push control register.
+    push DWORD 0x8              ; Push CS, EIP, INT_NO, ERR_CODE, and all general purpose registers.
+    push DWORD rollback
+    push DWORD 0x0
+    push DWORD 0x00EDBABE
+    pusha
+    push 0x10                   ; Push the two kernel data segments
+    push 0x10
 
-    mov edx, cr0                ; Get control register.
-    and edx, 0x7fffffff         
-    mov cr0, edx                ; Disable paging.
+    jmp commonSwitch
 
-    mov edx, 1024               ; 1024 * 4 bytes = 4096 bytes to copy.
 
-.loop:
-    mov eax, [ebx]              ; Get word at the source address.
-    mov [ecx], eax              ; Store at destination address.
-    add ebx, 4                  ; Add sizeof(word) to source and destination address
-    add ecx, 4
-    dec edx                     ; Decrement (we completed 1 word)
-    jnz .loop                   ; Keep going.
-
-    mov edx, cr0                ; Get the control register.
-    or edx, 0x80000000   
-    mov cr0, edx                ; Enable paging again.
-
-    popf                        ; Pop EFLAGS.
-    pop ebx
+ALIGN 4
+rollback:
     ret
-    
+
+
+
+commonSwitch:
+    mov [eax], esp            ; Store old ESP
+    call task_getCurrentStack ; Get new ESP
+    xchg eax, esp
+
+    ; Set the task switched flag.
+    mov eax, cr0
+    or eax, 8
+    mov cr0, eax
+
+    ; Set esp0 in the TSS
+    call setKernelStack
+
+    ; Call cleanup code
+    call task_finishTaskSwitch

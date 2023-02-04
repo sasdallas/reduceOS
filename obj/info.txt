@@ -1,2 +1,0 @@
-This directory is useless and is here for compatibility reasons (when cloning the git repo).
-It should contain no files until used by make.

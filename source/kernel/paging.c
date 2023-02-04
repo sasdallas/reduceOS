@@ -17,6 +17,9 @@ uint32_t nframes;
 extern uint32_t placement_address; // Defined in heap.c
 extern heap_t* kernelHeap;
 
+// A stack for our kernel. 16 is max tasks and 16384 is the stack size.
+static char stack[16-1][16384];
+
 // Function prototypes.
 static page_table_t *clonePageTable(page_table_t *src, uint32_t *physicalAddress); // Clone a page table.
 
@@ -237,7 +240,7 @@ page_directory_t *clonePageDirectory(page_directory_t *src) {
 }
 
 
-
+// DEPRECATED:
 static page_table_t *clonePageTable(page_table_t *src, uint32_t *physicalAddress) {
     // Make a new page table (which is page aligned)
     page_table_t *table = (page_table_t*)kmalloc_ap(sizeof(page_table_t), physicalAddress);
@@ -259,9 +262,18 @@ static page_table_t *clonePageTable(page_table_t *src, uint32_t *physicalAddress
             if (src->pages[i].dirty) table->pages[i].dirty = 1;
 
             // Physically copy the data across (this is defined in assembly/process.asm)
-            copyPagePhysical(src->pages[i].frame*0x1000, table->pages[i].frame*0x1000);
+            // copyPagePhysical(src->pages[i].frame*0x1000, table->pages[i].frame*0x1000);
         } 
     }
 
     return table;
 }
+
+// createStack(unsigned int id) - Create a stack for paging.
+void *createStack(unsigned int id) {
+    if (!id) return NULL;
+    if (id >= 16) return NULL; // Max tasks is 16.
+
+    return (void*)stack[id-1];  
+}
+

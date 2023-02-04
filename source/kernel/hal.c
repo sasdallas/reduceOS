@@ -5,6 +5,9 @@
 
 #include "include/hal.h" // Main header file
 
+// Variables
+static uint32_t cpuFrequency = 0;
+
 
 // void interruptCompleted(uint32_t intNo) - Notifies HAL interrupt is done.
 void interruptCompleted(uint32_t intNo) {
@@ -61,3 +64,50 @@ uint32_t inportl(uint16_t port) {
 void outportl(uint16_t port, uint32_t value) {
     asm volatile ("outl %1, %0" :: "dN"(port), "a"(value));
 }
+
+
+// size_t msb(size_t i) - Returns the most significant bit.
+size_t msb(size_t i)
+{
+	size_t ret;
+
+	if (!i)
+		return (sizeof(size_t)*8);
+	asm volatile ("bsr %1, %0" : "=r"(ret) : "r"(i) : "cc");
+
+	return ret;
+}
+
+// detectCPUFrequency() - Detect the CPU frequency.
+uint32_t detectCPUFrequency() {
+	uint64_t start, end, diff;
+	uint64_t ticks, old;
+
+	if (cpuFrequency > 0)
+		return cpuFrequency;
+
+	old = i86_pitGetTickCount();
+
+	// Wait for the next time slice.
+	while((ticks = i86_pitGetTickCount()) - old == 0) continue;
+
+    asm volatile ("rdtsc" : "=A"(start));
+	// Wait a second to determine frequency.
+	while(i86_pitGetTickCount() - ticks < 1000) continue;
+	asm volatile ("rdtsc" : "=A"(end));
+
+	diff = end > start ? end - start : start - end;
+	cpuFrequency = (uint32_t) (diff / (uint64_t) 1000000);
+
+	return cpuFrequency;
+}
+
+
+// getCPUFrequency() - Returns the CPU frequency.
+uint32_t getCPUFrequency() {	
+	if (cpuFrequency > 0)
+		return cpuFrequency;
+
+	return detectCPUFrequency();
+}
+

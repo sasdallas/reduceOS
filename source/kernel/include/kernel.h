@@ -34,5 +34,5 @@
 #include "include/ide_ata.h" // ATA driver
 #include "include/rtc.h" // Real-time clock.
 #include "include/bios32.h" // BIOS32 calls
-#include "include/acpi.h" // Advanced Configuration Power Interface
+
 #endif

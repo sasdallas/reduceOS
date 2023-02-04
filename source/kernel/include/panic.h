@@ -8,14 +8,14 @@
 #include "include/libc/stdbool.h" // Booleans
 #include "include/terminal.h" // Terminal functions, like printf
 #include "include/hal.h" // Hardware Abstraction Layer
-#include "include/regs.h" // REGISTERS typedef
+#include "include/regs.h" // registers_t typedef
 #include "include/serial.h" // Serial logging
 
 
 // Functions
 void *panic(char *caller, char *code, char *reason);
-void *panicReg(char *caller, char *code, char *reason, REGISTERS *reg);
+void *panicReg(char *caller, char *code, char *reason, registers_t  *reg);
 void *specialPanic(char *caller, char *code, char *reason, int integer, uint32_t address, char *data1desc, char *data2desc);
-void *pageFault(REGISTERS *reg);
+void *pageFault(registers_t  *reg);
 
 #endif

@@ -3,10 +3,13 @@ ASM = nasm
 CC = gcc
 LD = ld
 GRUB_FILE = grub-file
+AS = as
+
 
 RM = rm
 MKDIR = mkdir -p
 CP = cp -f
+echo = echo
 
 DD = dd
 qemu-system-x86_64 = qemu-system-x86_64
@@ -33,12 +36,12 @@ INITRD_OBJ = $(INITRD_SRC)/obj
 INITRD_DIR = $(INITRD_SRC)/initrd
 
 # Files
-OUT_IMG = out/img/build.img
+OUT_IMG = out/img
 
 
 # Misc. things
 LOOP0 = /dev/loop0
-
+cat = cat
 
 
 # Flags for compilers
@@ -54,7 +57,9 @@ ASM_LOADER_SRCS = $(wildcard $(ASM_LOADER)/*.asm)
 ASM_KERNEL_SRCS = $(wildcard $(ASM_KERNEL)/*.asm)
 
 ASM_KLOADER = $(wildcard $(KLOADER_SOURCE)/*.asm)
-ASM_KLOADEROBJS = $(patsubst $(KLOADER_SOURCE)/%.asm, $(OUT_ASMOBJ)/%.o,$(ASM_KLOADER))
+GCC_KLOADER = $(wildcard $(KLOADER_SOURCE)/*.S)
+ASM_KLOADEROBJS = $(patsubst $(KLOADER_SOURCE)/%.asm, $(OUT_ASMOBJ)/%.o, $(ASM_KLOADER)) $(patsubst $(KLOADER_SOURCE)/%.S, $(OUT_ASMOBJ)/%.o, $(GCC_KLOADER)) $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o
+
 
 # All LIBC and C sources - this will need an update when we properly organize directories.
 
@@ -85,9 +90,11 @@ $(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
 	@printf "[ Linking debug symbols... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.elf
 
+
 $(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.bin 
+	@printf "\n"
 	@printf "[ Verifying kernel is valid... ]\n"
 	$(GRUB_FILE) --is-x86-multiboot $(OUT_KERNEL)/kernel.bin
 	@printf "\n"
@@ -102,27 +109,32 @@ $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.asm | $(OUT_ASMOBJ)
 	@printf "[ Compiling kernel ASM file... ]\n"
 	$(ASM) -f elf32 $< -o $@
 	@printf "\n"
-	
-$(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.s | $($OUT_ASMOBJ)
-	$(ASM) -f elf32 $< -o $@
+
+$(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o:
+	@printf "[ Compiling GCC object $@... ]\n"
+	OBJ=`$(CC) $(CC_FLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
+	@printf "\n"
+
+
+$(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.S | $(OUT_ASMOBJ)
+	@printf "[ Compiling kernel .S file... ]\n"
+	$(CC) -m32 -c $< -o $@
+	@printf "\n"
 
 
 img: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img
 	@printf "[ Creating directory for building image... ]\n"
-	-@$(mkdir) -p $(OUT_IMG)/builddir/boot/grub
+	-@$(MKDIR) $(OUT_IMG)/builddir/boot/grub
 
 	@printf "[ Copying files... ]\n"
-	$(cp) $(OUT_KERNEL)/kernel.bin $(OUT_IMG)/builddir/boot/
-	$(cp) $(OUT_INITRD)/initrd.img $(OUT_IMG)/builddir/boot/
+	$(CP) $(OUT_KERNEL)/kernel.bin $(OUT_IMG)/builddir/boot/
+	$(CP) $(OUT_INITRD)/initrd.img $(OUT_IMG)/builddir/boot/
 
 	@printf "[ Writing GRUB configuration file... ]\n"
-	@$(cat) > $(OUT_IMG)/builddir/boot/grub/grub.cfg << EOF
-	@menuentry "reduceOS" {
-	@	multiboot /boot/kernel.bin
-	@	module /boot/initrd.img
-	@}
-	@EOF
+	$(RM) $(OUT_IMG)/builddir/boot/grub/grub.cfg
 
+	$(echo) "menuentry "reduceOS" {\n\tmultiboot /boot/kernel.bin\n\tmodule /boot/initrd.img\n}" >> $(OUT_IMG)/builddir/boot/grub/grub.cfg
+	
 	@printf "[ Creating reduceOS image (requires xorriso!)... ]\n"
 	@$(MKIMAGE) -o $(OUT_IMG)/reduceOS.iso $(OUT_IMG)/builddir
 	
@@ -137,6 +149,7 @@ PATCH_TARGETS:
 	$(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/isr.c -o $(OUT_OBJ)/isr.o 
 	@printf "\n"
 	
+
 $(INITRD_OBJ)/%.o : $(INITRD_SRC)/src/%.c | $(INITRD_OBJ)
 	@printf "[ Compiling initrd C file... ]\n"
 	@$(CC) -std=c99 -D_BSD_SOURCE -o $@ -c $<

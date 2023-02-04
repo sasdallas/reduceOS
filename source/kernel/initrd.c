@@ -33,11 +33,6 @@ struct dirent dirent;
 // Moving on to the functions....
 
 
-static void test(uint8_t *src, uint8_t dest, uint32_t len) {
-    const uint8_t *sp = (const uint8_t *)src;
-    uint8_t *dp = (uint8_t *)dest;
-    for (; len != 0; len--) *dp++ = *sp++;
-}
 
 // (static) initrdRead(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) - Read a file from an initrd.
 static uint32_t initrdRead(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
