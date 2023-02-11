@@ -34,6 +34,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
+- **Severe:** Multitasking never calls the handlers - working on a solution.
 - **Not a bug but annoying:** Certain files cannot use the `-O2` flag in compilation. Unfortunately, without the -O2 flag the system halts on `sti` - Makefile has a temporary patch in place to fix this.
 - **Severe:** Typing too many special(? it's random) characters results in a division by zero exception.
 - When printing BUILD_DATE to the serial console, it is not printed properly. Possibly a bug with printf_putchar's `%u` handler.
@@ -47,3 +48,5 @@ OSDev Wiki - Great resource for anyone looking into OS development. Helped with 
 BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
 
 JamesM's kernel development tutorials - (no need for Internet Archive anymore) Really helped out with some of the basic concepts, especially paging and the initial ramdisk. Link [here](http://jamesmolloy.co.uk/tutorial_html/)
+
+eduOS by RWTH-OS - Helped with multitasking a ton, great resource if you need examples to build off. Link [here](https://github.com/RWTH-OS/eduOS)
