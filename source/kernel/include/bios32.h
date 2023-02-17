@@ -9,21 +9,20 @@
 #include "include/idt.h" // Interrupt descriptor table
 #include "include/regs.h" // Registers
 
-// External stuff defined in bios.asm
+// External functions
 extern void BIOS32_START();
 extern void BIOS32_END();
-extern void *bios32_gdtPtr;
-extern void *bios32_gdtEntries;
-extern void *bios32_idtPtr;
-extern void *bios32_inReg_ptr;
-extern void *bios32_outReg_ptr;
-extern void *bios32_intNo_ptr;
+extern void *bios32_gdt_ptr;
+extern void *bios32_gdt_entries;
+extern void *bios32_idt_ptr;
+extern void *bios32_in_reg16_ptr;
+extern void *bios32_out_reg16_ptr;
+extern void *bios32_int_number_ptr;
 
+#define REBASE_ADDRESS(x)  (void*)(0x7c00 + (void*)x - (uint32_t)BIOS32_START)
 
-// Macros
-#define BASE_ADDRESS(x) (void*)(0x7C00 + (void*)x - (uint32_t)BIOS32_START)
+// https://en.wikipedia.org/wiki/BIOS_interrupt_call
 
-// Functions
-void bios32_init(); // Initialize the BIOS 32 routine by setting the real mode GDT and IDT.
-void bios32_call(uint8_t interrupt, REGISTERS_16 *in, REGISTERS_16 *out); // Copy data to codeBase and execute the code in real mode.
+void bios32_init();
+void bios32_service(uint8_t int_num, REGISTERS_16 *in_reg, REGISTERS_16 *out_reg);
 #endif

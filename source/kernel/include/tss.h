@@ -5,6 +5,10 @@
 
 // Includes
 #include "include/libc/stdint.h" // Integer definitions
+#include "include/tasking_t.h"
+#include "include/tasking.h"
+#include "include/gdt.h"
+
 
 // Typedefs
 // Note: This will need to be updated when we upgrade to reduceOS x86_64.
@@ -12,10 +16,8 @@
 
 typedef struct {
     uint16_t backlink;
-    uint16_t __blh;
     uint32_t esp0;
     uint16_t ss0;
-    uint16_t __ss0h;
     uint32_t esp1;
     uint16_t ss1;
     uint16_t __ss1h;
@@ -43,5 +45,13 @@ typedef struct {
 	uint16_t trace, bitmap;
 } __attribute__ ((packed)) tss_t;
 
+
+
+// External functions
+extern void tssFlush();
+
+// Functions
+void tssInit(uint32_t index, uint32_t kernel_ss, uint32_t kernel_esp);
+void setKernelStack();
 
 #endif

@@ -17,15 +17,15 @@
 
 // Functions
 
-extern void setVector(int intNo, uint32_t vect); // Sets a new interrupt vector.
-extern void interruptCompleted(uint32_t intNo); // Notifies HAL interrupt is done.
-extern void enableHardwareInterrupts(); // Enable hardware interrupts
-extern void disableHardwareInterrupts(); // Disable hardware interrupts
-extern uint8_t inportb(uint16_t port); // Read data from a device using port mapped IO
-extern void outportb(uint16_t port, uint8_t value); // Write data to a device using port mapped IO
-extern void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx); // Returns an assembly cpuid instruction.
-extern uint32_t inportl(uint16_t port); // Read data from a device via port mapped IO
-extern void outportl(uint16_t port, uint32_t data); // Write data to a device via port mapped IO
-extern size_t msb(size_t i); // Returns the most significant bit.
-extern uint32_t getCPUFrequency(); // Returns the CPU frequency (todo: create processor.c).
+void setVector(int intNo, uint32_t vect); // Sets a new interrupt vector.
+void interruptCompleted(uint32_t intNo); // Notifies HAL interrupt is done.
+void enableHardwareInterrupts(); // Enable hardware interrupts
+void disableHardwareInterrupts(); // Disable hardware interrupts
+uint8_t inportb(uint16_t port); // Read data from a device using port mapped IO
+void outportb(uint16_t port, uint8_t value); // Write data to a device using port mapped IO
+void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx); // Returns an assembly cpuid instruction.
+uint32_t inportl(uint16_t port); // Read data from a device via port mapped IO
+void outportl(uint16_t port, uint32_t data); // Write data to a device via port mapped IO
+size_t msb(size_t i); // Returns the most significant bit.
+
 #endif

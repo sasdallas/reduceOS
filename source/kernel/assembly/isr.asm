@@ -69,16 +69,10 @@ isrCommonStub:
     call isrExceptionHandler
     pop eax
 
-    pop eax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
+    pop ds
+    pop es
     popa
-
     add esp, 8
-
     iret
 
 irqCommonStub:

@@ -16,6 +16,8 @@ extern ideDevice_t ideDevices[4];
 // initrd.c defined variables
 extern fsNode_t *initrdDev;
 
+static sem_t sem; // Kernel semaphore
+
 
 
 int getSystemInformation(int argc, char *args[]) {
@@ -42,7 +44,7 @@ int getSystemInformation(int argc, char *args[]) {
 
 
 int help(int argc, char *args[]) {
-    printf("reduceOS v1.0-dev\nValid commands:\nsystem, help, echo, pci, crash, anniversary, shutdown, initrd, ata, sector, fat\n");
+    printf("reduceOS v1.0\nValid commands:\nsystem, help, echo, pci, crash, anniversary, shutdown, initrd, ata, sector, task, ps\n");
     return 1;
 }
 
@@ -152,6 +154,100 @@ int readSectorTest(int argc, char *args[]) {
 
 
 
+
+
+int foo(void *arg) {
+    printf("foo() execution called\n");
+    return 0;
+}
+
+int testTasks(int argc, char *args[]) {
+    printf("Starting task 01...\n");
+    tid_t id1;
+    tid_t id2;
+    extern task_t taskTable[16];
+    createKernelTask(&id1, foo, "foo1", NORMAL_PRIORITY);
+    
+    printf("Starting task 02...\n");
+    createKernelTask(&id2, foo, "foo2", NORMAL_PRIORITY);
+
+    
+    printf("Method completed.\n");
+    return 0;
+}
+
+int listTasks(int argc, char *args[]) {
+    printf(" ID     STATUS             PRIORITY  \n=====================================\n");
+    
+    extern task_t taskTable[16];
+    for (int i = 1; i < 16; i++) {
+        if (taskTable[i].taskStatus != TASK_INVALID) {
+            char *status = "UNKNOWN TASK";
+            switch (taskTable[i].taskStatus) {
+                case TASK_READY:
+                    status = "READY";
+                    break;
+                case TASK_RUNNING:
+                    status = "RUNNING";
+                    break;
+                case TASK_BLOCKED:
+                    status = "BLOCKED";
+                    break;
+                case TASK_FINISHED:
+                    status = "FINISHED";
+                    break;
+                case TASK_IDLE:
+                    status = "IDLE";
+                    break;
+                default:
+                    status = "UNKNOWN";
+                    break;
+            };
+
+
+            char *priority;
+            switch(taskTable[i].taskPriority) {
+                case REALTIME_PRIORITY:
+                    priority = "REALTIME";
+                    break;
+
+                case HIGH_PRIORITY:
+                    priority = "HIGH";
+                    break;
+
+                case NORMAL_PRIORITY:
+                    priority = "NORMAL";
+                    break;
+                    
+                case LOW_PRIORITY:
+                    priority = "LOW";
+                    break;
+
+                case IDLE_PRIORITY:
+                    priority = "IDLE";
+                    break;
+                
+                default:
+                    priority = "UNKNOWN";
+                    break;
+            };
+
+
+            char characters[30];
+            memset(characters, '\0', 30);
+            for (int i = 0; i < strlen("STATUS             ") - strlen(status); i++) {
+                characters[i] = ' ';
+            }
+            printf(" %u      %s%s %s\n", taskTable[i].id, status, characters, priority);
+        }
+    }
+
+
+
+    return 0;
+}
+
+
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
     // Get build date and time.
@@ -191,22 +287,23 @@ void kmain(multiboot_info* mem) {
     // Initialize serial logging
     serialInit();
     serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
-    serialPrintf("Build date: %us, build time: %u\n", &BUILD_DATE, &BUILD_TIME);
+    serialPrintf("Build date: %u, build time: %u\n", &BUILD_DATE, &BUILD_TIME);
     serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", kernelStart, kernelEnd, text_start, text_end, data_start, data_end, bss_start, bss_end);
     serialPrintf("Serial logging initialized!\n");
     printf("Serial logging initialized on COM1.\n");
 
-    // Initialize GDT.
-    updateBottomText("Initializing GDT...");
-    gdtInit();
+
+
     
-    // Initialize IDT.
-    updateBottomText("Initializing IDT...");
-    idtInit();
-    printf("GDT and IDT initialized.\n");
 
-    serialPrintf("GDT and IDT have been initialized successfully.\n");
+    updateBottomText("Initializing CPU...");
+    cpuInit();
+    printf("CPU initialized succesfully.\n");
 
+
+    bios32_init();
+    serialPrintf("bios32 initialized successfully!\n");
+    
     // Getting vendor ID and if the CPU is 16, 32, or 64 bits (32 at minimum so idk why we check for 16, but just in case)
     uint32_t vendor[32];
     int iedx = 0;
@@ -228,12 +325,10 @@ void kmain(multiboot_info* mem) {
     printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
     serialPrintf("User is running with CPU vendor %s (64-bit capable: %s)\n", vendor, (iedx & (1 << 29)) ? "YES" : "NO");
 
-    // Enable hardware interrupts
-    updateBottomText("Enabling interrupts...");
-    enableHardwareInterrupts();
-    printf("Interrupts enabled.\n");
-    serialPrintf("sti instruction did not fault - interrupts enabled.\n");
-    
+
+
+
+
     
     // Initialize Keyboard 
     updateBottomText("Initializing keyboard...");
@@ -260,13 +355,15 @@ void kmain(multiboot_info* mem) {
     initPCI();
     serialPrintf("PCI probe completed\n");
 
-
+    // Initialize the IDE controller.
     updateBottomText("Initializing IDE controller...");
     ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
+    
+    
     // Initialize paging
     
     // Calculate the initial ramdisk location in memory (panic if it's not there)
-    ASSERT(mem->m_modsCount > 0, "kmain", "Initial ramdisk not found (m_modsCount is 0)");
+    ASSERT(mem->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
     uint32_t initrdLocation = *((uint32_t*)mem->m_modsAddr);
     uint32_t initrdEnd = *(uint32_t*)(mem->m_modsAddr + 4);
     placement_address = initrdEnd;
@@ -281,7 +378,6 @@ void kmain(multiboot_info* mem) {
     printf("Initrd image initialized!\n");
     serialPrintf("Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
-    printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
 
     initCommandHandler();
 
@@ -297,6 +393,9 @@ void kmain(multiboot_info* mem) {
     registerCommand("panic", (command*)panicTest);
     registerCommand("sector", (command*)readSectorTest);
     registerCommand("shutdown", (command*)shutdown);
+    registerCommand("task", (command*)testTasks);
+    registerCommand("ps", (command*)listTasks);
+
     serialPrintf("All commands registered successfully.\n");
 
 
@@ -306,24 +405,21 @@ void kmain(multiboot_info* mem) {
     rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
     serialPrintf("Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
-    char buffer[256]; // We will store keyboard input here.
-    enableShell("reduceOS> "); // Enable a boundary (our prompt)
-
-    bios32_init();
-    serialPrintf("BIOS32 initialized successfully!\n");
-    
-    
-    // Both of these functions are bugged as of now.
-    // They unfortunately cannot be used.
-    // REGISTERS_16 in = {0};
-    // REGISTERS_16 out = {0};
-    // bios32_call(0x12, &in, &out);
-    // acpiInit();
+    updateBottomText("Initializing semaphore...");
+    sem_init(&sem, 1);
 
     updateBottomText("Initializing multitasking (task #0)...");
     initMultitasking();
     printf("Multitasking initialized.\n");
     
+    // Bugged function, cannot call.
+    // acpiInit();
+
+    printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
+
+    char buffer[256]; // We will store keyboard input here.
+    enableShell("reduceOS> "); // Enable a boundary (our prompt)
+
 
     while (true) {
         printf("reduceOS> ");

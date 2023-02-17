@@ -169,6 +169,10 @@ qemu:
 	@printf "[ Launching QEMU... ]\n"
 	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.bin 
 
+qemu_dbg:
+	@printf "[ Launching QEMU with debug options... ]\n"
+	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.bin -serial stdio
+
 clean:
 	@printf "[ Deleting C object files... ]\n"
 	@$(RM) $(OUT_OBJ)/*.o

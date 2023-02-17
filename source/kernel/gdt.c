@@ -10,13 +10,10 @@
 // Variable definitions
 gdtEntry_t gdtEntries[MAX_DESCRIPTORS];
 gdtPtr_t gdtPtr;
-static tss_t taskStateSegment __attribute__ ((aligned (4096)));
 
 
 
-// Functions:
-
-
+// Functions
 
 // gdtSetGate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) - Set the value of 1 GDT entry.
 void gdtSetGate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
@@ -49,16 +46,6 @@ void gdtInit() {
     gdtSetGate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
     gdtSetGate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment.
 
-    // Setup the TSS.
-    memset(&taskStateSegment, 0x00, sizeof(tss_t));
-    taskStateSegment.eflags = 0x1202;
-    taskStateSegment.ss0 = 0x10; // Data segment
-    taskStateSegment.esp0 = 0xDEADBEEF; // Invalid psuedo-address
-    taskStateSegment.cs = 0x0B;
-    taskStateSegment.ss = taskStateSegment.ds = taskStateSegment.es = taskStateSegment.fs = taskStateSegment.gs = 0x13;
-    gdtSetGate(5, (uint32_t)(&taskStateSegment), sizeof(tss_t)-1, 0x80 | 0x09 | 0x00, 0x40);
-
-
     // Install the GDT.
     install_gdt((uint32_t)&gdtPtr);
     
@@ -66,13 +53,3 @@ void gdtInit() {
     printf("GDT initialized\n");
 }
 
-// Now, for the kernel stack methods
-
-// setKernelStack() - Set the kernel stack.
-extern task_t currentTask;
-void setKernelStack() {
-    task_t *current_task = &currentTask;
-    // 16384 is the kernel stack size.
-    taskStateSegment.esp0 = (size_t)current_task->stackStart + 16384-16;
-
-}

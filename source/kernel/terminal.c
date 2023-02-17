@@ -432,7 +432,7 @@ void printf_putchar(const char *format, void(*put_method)(char), va_list args) {
                     // %x or %X is for hexadecimal
                     case 'X':
                     case 'x': {
-                        int c = va_arg(args, int); // We need to get the next integer (it will be converted to hexadecimal when we use itoa.) from the parameters.
+                        unsigned int c = va_arg(args, unsigned int); // We need to get the next integer (it will be converted to hexadecimal when we use itoa.) from the parameters.
                         char str[32] = {0}; // String buffer where the hexadecimal will go.
 
                         // itoa() will convert the integer to base-16 or hex.
@@ -449,7 +449,7 @@ void printf_putchar(const char *format, void(*put_method)(char), va_list args) {
                     // %u or %U is for an unsigned integer
                     case 'U':
                     case 'u': {
-                        unsigned int c = va_arg(args, int);
+                        unsigned int c = va_arg(args, unsigned int);
                         char str[32] = {0};
 
                         // itoa() takes care of the negative stuff

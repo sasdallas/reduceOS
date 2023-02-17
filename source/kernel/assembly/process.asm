@@ -45,3 +45,10 @@ commonSwitch:
 
     ; Call cleanup code
     call task_finishTaskSwitch
+
+task_noContextSwitch:
+    pop ds
+    pop es
+    popa
+    add esp, 8
+    iret

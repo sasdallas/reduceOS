@@ -1,8 +1,15 @@
+// ==================================================
+// isr.c - Interrupt Service Routines initializer
+// ==================================================
+
+
 #include "include/isr.h" // Main header file
 
 ISR interruptHandlers[256]; // A list of all interrupt handlers
  
 #pragma GCC diagnostic ignored "-Wint-conversion" // Lots of warnings about setvector() not taking an unsigned int. Ignore them all.
+
+extern task_t *currentTask;
 
 // isrRegisterInterruptHandler(int num, ISR handler) - Registers an interrupt handler.
 void isrRegisterInterruptHandler(int num, ISR handler) {
@@ -39,7 +46,9 @@ void isrIRQHandler(registers_t *reg) {
     // Send EOI to PIC (this function is present in hal.h)
     
     interruptCompleted(reg->err_code);
-    
+
+    // Timer?
+
 }
 
 void isrInstall() {

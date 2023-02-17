@@ -12,6 +12,10 @@
 #include "include/libc/stdarg.h" // va argument handling (for ... on printf)
 #include "include/libc/va_list.h" // va_list declared here.
 #include "include/libc/assert.h" // Assertion macro
+#include "include/libc/spinlock.h" // Spinlocks
+#include "include/libc/atomic.h" // Atomic math
+#include "include/libc/udivdi3.h" // udivdi3
+#include "include/libc/sleep.h" // Sleeping
 #include "include/graphics.h" // Graphics handling
 #include "include/terminal.h" // Terminal handling
 #include "include/idt.h" // Interrupt Descriptor Table
@@ -24,7 +28,6 @@
 #include "include/bootinfo.h" // Boot information
 #include "include/command.h" // Command parser
 #include "include/pci.h" // PCI
-#include "include/libc/sleep.h" // Sleep function
 #include "include/serial.h" // Serial logging
 #include "include/paging.h" // Paging handler
 #include "include/heap.h"  // Kernel heap management
@@ -34,5 +37,8 @@
 #include "include/ide_ata.h" // ATA driver
 #include "include/rtc.h" // Real-time clock.
 #include "include/bios32.h" // BIOS32 calls
+#include "include/tasking.h" // Multitasking handler
+#include "include/semaphore.h" // Semaphores
+#include "include/processor.h" // Procesor handler
 
 #endif

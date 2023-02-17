@@ -7,7 +7,7 @@
 
 // Variables...
 // Assume 16 for max tasks.
-static task_t taskTable[16] = { \
+task_t taskTable[16] = { \
 		[0]                 = {0, TASK_IDLE, NULL, NULL, 0, NULL, NULL}, \
 		[1 ... 16-1] = {0, TASK_INVALID, NULL, NULL, 0, NULL, NULL}};
 
@@ -315,6 +315,8 @@ void task_finishTaskSwitch() {
     }
 
     spinlock_irqsave_unlock(&readyQueues.lock);
+
+    
 }
 
 
@@ -333,6 +335,7 @@ size_t **task_scheduler() {
         readyQueues.oldTask = currentTask;
     } else readyQueues.oldTask = NULL; // Reset old task.
 
+
     priority = msb(readyQueues.priorityBitmap); // Get highest priority.
     if (priority > MAX_PRIORITY) {
         if ((currentTask->taskStatus == TASK_RUNNING) || (currentTask->taskStatus == TASK_IDLE)) {
@@ -347,11 +350,13 @@ size_t **task_scheduler() {
             readyQueues.oldTask = currentTask;
         }
 
+
         currentTask = readyQueues.queue[priority-1].first;
         if (currentTask->taskStatus == TASK_INVALID) {
             serialPrintf("task_scheduler: Got invalid task %d, orig task %d!\n");
             asm volatile ("hlt"); // Hold for now, maybe change this.
         }
+
         currentTask->taskStatus = TASK_RUNNING;
 
         // Remove new task from queue.
@@ -366,12 +371,12 @@ size_t **task_scheduler() {
 
 getTaskOut:
     spinlock_irqsave_unlock(&readyQueues.lock);
+
     if (currentTask != originalTask) {
         serialPrintf("task_scheduler: Schedule from %u to %u with priority %u\n", originalTask->id, currentTask->id, (uint32_t)currentTask->taskPriority);
         return (size_t**) &(originalTask->lastStackPointer);
     }
-
-    return NULL;
+    return 0;
 }
 
 // task_reschedule() - Reschedule a task.

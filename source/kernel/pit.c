@@ -13,6 +13,8 @@ static bool pit_isInit = false; // Is the PIT initialized?
 // PIT timer interrupt handler
 void i86_pitIRQ() { 
     pitTicks++; // Increment tick count
+    
+    size_t value = task_scheduler();
 }
 
 // Waits seconds.
