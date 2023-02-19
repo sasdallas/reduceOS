@@ -1,10 +1,10 @@
 ; tss.asm - initializes the task state segment
 
 
-global tssFlush
+[GLOBAL tssFlush]
 
 ; tssFlush - install the tss
 tssFlush:
-    mov ax, 0x28
+    mov ax, 0x2B
     ltr ax
     ret

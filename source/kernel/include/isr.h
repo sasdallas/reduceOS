@@ -8,8 +8,7 @@
 
 #include "include/libc/stdint.h" // Integer declarations like uint8_t, int16_t, etc.
 #include "include/hal.h" // Some misc functions for interrupts.
-#include "include/tasking.h" // Tasking.
-#include "include/tasking_t.h" // Tasking types.
+
 
 #include "include/panic.h" // Kernel panicking. Used on i86DefaultHandler.
 #include "include/regs.h" // registers_t typedef

@@ -5,43 +5,32 @@
 
 #include "include/tss.h" // Task State Segment
 
-tss_t kernel_tss;
+tss_entry_t tss;
 
+// tssWrite(int32_t index, uint16_t ss0, uint32_t esp0) - Write to task state segment (and initalize structure)
+void tssWrite(int32_t index, uint16_t ss0, uint32_t esp0) {
+    // Begin by getting base and limit of entry into GDT.
+    uint32_t base = (uint32_t)&tss;
+    uint32_t limit = base + sizeof(tss);
 
-// tssInit(uint32_t index, uint32_t kernel_ss, uint32_t kernel_esp) - Initializes the task state segment (this can be used for user mode later)
-void tssInit(uint32_t idx, uint32_t kss, uint32_t kesp) {
-    uint32_t base = (uint32_t)&kernel_tss;
-    gdtSetGate(idx, base, base + sizeof(tss_t), 0xE9, 0);
-    /* Kernel tss, access(E9 = 1 11 0 1 0 0 1)
-        1   present
-        11  ring 3
-        0   should always be 1, why 0? may be this value doesn't matter at all
-        1   code?
-        0   can not be executed by ring lower or equal to DPL,
-        0   not readable
-        1   access bit, always 0, cpu set this to 1 when accessing this sector(why 0 now?)
-    */
-    memset(&kernel_tss, 0, sizeof(tss_t));
-    kernel_tss.ss0 = kss;
-    // Note that we usually set tss's esp to 0 when booting our os, however, we need to set it to the real esp when we've switched to usermode because
-    // the CPU needs to know what esp to use when usermode app is calling a kernel function(aka system call), that's why we have a function below called tss_set_stack
-    kernel_tss.esp0 = kesp;
-    kernel_tss.cs = 0x0b;
-    kernel_tss.ds = 0x13;
-    kernel_tss.es = 0x13;
-    kernel_tss.fs = 0x13;
-    kernel_tss.gs = 0x13;
-    kernel_tss.ss = 0x13;
-    tssFlush();
+    gdtSetGate(index, base, limit, 0xE9, 0x00);
+
+    // Ensure descriptor is 0.
+    memset(&tss, 0, sizeof(tss));
+
+    // Set the kernel stack segment and pointer.
+    tss.ss0 = ss0;
+    tss.esp0 = esp0;
+
+    // Setup CS, SS, DS, ES, FS, and GS entries in the TSS - they specify what segments should be loaded when processor switches to kernel mode.
+    tss.cs = 0x0B;
+    tss.ss = tss.ds = tss.es = tss.fs = tss.gs = 0x13;
 }
 
 
 
-extern task_t *currentTask;
 
-// setKernelStack() - Set the kernel stack.
-void setKernelStack() {
-    task_t *current_task = currentTask;
-    // 16384 is the kernel stack size.
-    kernel_tss.esp0 = (size_t)current_task->stackStart + 16384-16;
+// setKernelStack(uint32_t stack) - Set the kernel stack.
+void setKernelStack(uint32_t stack) {
+    tss.esp0 = stack;
 }

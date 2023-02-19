@@ -11,7 +11,7 @@
 gdtEntry_t gdtEntries[MAX_DESCRIPTORS];
 gdtPtr_t gdtPtr;
 
-
+extern void tssFlush();
 
 // Functions
 
@@ -36,7 +36,7 @@ void gdtSetGate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint
 // gdtInit() - Initializes GDT and sets up all the pointers
 void gdtInit() {
     // Setup the gdtPtr to point to our gdtEntires
-    gdtPtr.limit = (sizeof(gdtEntry_t) * 5) - 1;
+    gdtPtr.limit = (sizeof(gdtEntry_t) * 6) - 1;
     gdtPtr.base = (uint32_t)&gdtEntries;
 
     // Now setup the GDT entries
@@ -45,11 +45,13 @@ void gdtInit() {
     gdtSetGate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
     gdtSetGate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
     gdtSetGate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment.
+    tssWrite(5, 0x10, 0x0); // Task state segment
 
     // Install the GDT.
     install_gdt((uint32_t)&gdtPtr);
     
+    // Flush TSS.
+    tssFlush();
 
-    printf("GDT initialized\n");
+    printf("GDT and TSS initialized\n");
 }
-

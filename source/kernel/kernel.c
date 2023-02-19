@@ -16,7 +16,6 @@ extern ideDevice_t ideDevices[4];
 // initrd.c defined variables
 extern fsNode_t *initrdDev;
 
-static sem_t sem; // Kernel semaphore
 
 
 
@@ -156,96 +155,6 @@ int readSectorTest(int argc, char *args[]) {
 
 
 
-int foo(void *arg) {
-    printf("foo() execution called\n");
-    return 0;
-}
-
-int testTasks(int argc, char *args[]) {
-    printf("Starting task 01...\n");
-    tid_t id1;
-    tid_t id2;
-    extern task_t taskTable[16];
-    createKernelTask(&id1, foo, "foo1", NORMAL_PRIORITY);
-    
-    printf("Starting task 02...\n");
-    createKernelTask(&id2, foo, "foo2", NORMAL_PRIORITY);
-
-    
-    printf("Method completed.\n");
-    return 0;
-}
-
-int listTasks(int argc, char *args[]) {
-    printf(" ID     STATUS             PRIORITY  \n=====================================\n");
-    
-    extern task_t taskTable[16];
-    for (int i = 1; i < 16; i++) {
-        if (taskTable[i].taskStatus != TASK_INVALID) {
-            char *status = "UNKNOWN TASK";
-            switch (taskTable[i].taskStatus) {
-                case TASK_READY:
-                    status = "READY";
-                    break;
-                case TASK_RUNNING:
-                    status = "RUNNING";
-                    break;
-                case TASK_BLOCKED:
-                    status = "BLOCKED";
-                    break;
-                case TASK_FINISHED:
-                    status = "FINISHED";
-                    break;
-                case TASK_IDLE:
-                    status = "IDLE";
-                    break;
-                default:
-                    status = "UNKNOWN";
-                    break;
-            };
-
-
-            char *priority;
-            switch(taskTable[i].taskPriority) {
-                case REALTIME_PRIORITY:
-                    priority = "REALTIME";
-                    break;
-
-                case HIGH_PRIORITY:
-                    priority = "HIGH";
-                    break;
-
-                case NORMAL_PRIORITY:
-                    priority = "NORMAL";
-                    break;
-                    
-                case LOW_PRIORITY:
-                    priority = "LOW";
-                    break;
-
-                case IDLE_PRIORITY:
-                    priority = "IDLE";
-                    break;
-                
-                default:
-                    priority = "UNKNOWN";
-                    break;
-            };
-
-
-            char characters[30];
-            memset(characters, '\0', 30);
-            for (int i = 0; i < strlen("STATUS             ") - strlen(status); i++) {
-                characters[i] = ' ';
-            }
-            printf(" %u      %s%s %s\n", taskTable[i].id, status, characters, priority);
-        }
-    }
-
-
-
-    return 0;
-}
 
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
@@ -393,9 +302,7 @@ void kmain(multiboot_info* mem) {
     registerCommand("panic", (command*)panicTest);
     registerCommand("sector", (command*)readSectorTest);
     registerCommand("shutdown", (command*)shutdown);
-    registerCommand("task", (command*)testTasks);
-    registerCommand("ps", (command*)listTasks);
-
+    
     serialPrintf("All commands registered successfully.\n");
 
 
@@ -405,12 +312,12 @@ void kmain(multiboot_info* mem) {
     rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
     serialPrintf("Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
-    updateBottomText("Initializing semaphore...");
-    sem_init(&sem, 1);
+    //updateBottomText("Initializing semaphore...");
+    //sem_init(&sem, 1);
 
-    updateBottomText("Initializing multitasking (task #0)...");
-    initMultitasking();
-    printf("Multitasking initialized.\n");
+    //updateBottomText("Initializing multitasking (task #0)...");
+    //initMultitasking();
+    //printf("Multitasking initialized.\n");
     
     // Bugged function, cannot call.
     // acpiInit();

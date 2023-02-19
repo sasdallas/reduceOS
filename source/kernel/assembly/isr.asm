@@ -106,213 +106,213 @@ irqCommonStub:
 ; isr0 - div by 0 exception
 isr0:
     push byte 0
-    push byte 0
+    push 0
     jmp isrCommonStub
 
 
 ; isr1 - debug
 isr1:
     push byte 0
-    push byte 1
+    push 1
     jmp isrCommonStub
 
 ; isr2 - non-maskable interrupt
 isr2:
     push byte 0
-    push byte 2
+    push 2
     jmp isrCommonStub
 
 
 ; isr3 - breakpoint
 isr3:
     push byte 0
-    push byte 3
+    push 3
     jmp isrCommonStub
     
     
 ; isr4 - overflow
 isr4:
     push byte 0
-    push byte 4
+    push 4
     jmp isrCommonStub
 
 
 ; isr5 - bound range exceeded
 isr5:
     push byte 0
-    push byte 5
+    push 5
     jmp isrCommonStub
 
 ; isr2 - invalid opcode
 isr6:
     push byte 0
-    push byte 6
+    push 6
     jmp isrCommonStub
     
     
 ; isr7 - device not available 
 isr7:
     push byte 0
-    push byte 7
+    push 7
     jmp isrCommonStub
     
     
 ; isr8 - double fault
 isr8:
     push byte 0
-    push byte 8
+    push 8
     jmp isrCommonStub
     
     
 ; isr9 - coprocessor segment overrun
 isr9:
     push byte 0
-    push byte 9
+    push 9
     jmp isrCommonStub
     
     
 ; isr10 - invalid TSS
 isr10:
     push byte 0
-    push byte 10
+    push 10
     jmp isrCommonStub
     
     
 ; isr11 - segment not present
 isr11:
     push byte 0
-    push byte 11
+    push 11
     jmp isrCommonStub
     
     
 ; isr12 - stack segment fault
 isr12:
     push byte 0
-    push byte 12
+    push 12
     jmp isrCommonStub
     
     
 ; isr13 - general protection
 isr13:
     push byte 0
-    push byte 13
+    push 13
     jmp isrCommonStub
     
     
 ; isr14 - page fault
 isr14:
     push byte 0
-    push byte 14
+    push 14
     jmp isrCommonStub
     
     
 ; isr15 - unknown interrupt
 isr15:
     push byte 0
-    push byte 15
+    push 15
     jmp isrCommonStub
 
 ; isr16 - FPU floating point exception
 isr16:
     push byte 0
-    push byte 16
+    push 16
     jmp isrCommonStub
 
 ; isr17 - alignment check
 isr17:
     push byte 0
-    push byte 17
+    push 17
     jmp isrCommonStub
 
 
 ; isr18 - machine check
 isr18:
     push byte 0
-    push byte 18
+    push 18
     jmp isrCommonStub
 
 ; isr19 - SIMD floating-point exception
 isr19:
     push byte 0
-    push byte 19
+    push 19
     jmp isrCommonStub
 
 ; isr20 - virtualization exception
 isr20:
     push byte 0
-    push byte 20
+    push 20
     jmp isrCommonStub
 
 ; isr21 - Reserved
 isr21:
     push byte 0
-    push byte 21
+    push 21
     jmp isrCommonStub
 
 ; isr22 - Reserved
 isr22:
     push byte 0
-    push byte 22
+    push 22
     jmp isrCommonStub
 
 ; isr23 - Reserved
 isr23:
     push byte 0
-    push byte 23
+    push 23
     jmp isrCommonStub
 
 ; isr24 - Reserved
 isr24:
     push byte 0
-    push byte 24
+    push 24
     jmp isrCommonStub
 
 ; isr25 - Reserved
 isr25:
     push byte 0
-    push byte 25
+    push 25
     jmp isrCommonStub
 
 ; isr26 - Reserved
 isr26:
     push byte 0
-    push byte 26
+    push 26
     jmp isrCommonStub
 
 ; isr27 - Reserved
 isr27:
     push byte 0
-    push byte 27
+    push 27
     jmp isrCommonStub
 
 ; isr28 - Reserved
 isr28:
     push byte 0
-    push byte 28
+    push 28
     jmp isrCommonStub
 
 ; isr29 - Reserved
 isr29:
     push byte 0
-    push byte 29
+    push 29
     jmp isrCommonStub
 
 ; isr30 - Reserved
 isr30:
     push byte 0
-    push byte 30
+    push 30
     jmp isrCommonStub
 
 ; isr31 - Reserved
 isr31:
     push byte 0
-    push byte 31
+    push 31
     jmp isrCommonStub
 
 ; isr128 - Reserved
 isr128:
     push byte 0
-    push byte 128
+    push 128
     jmp isrCommonStub
 
 

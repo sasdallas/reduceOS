@@ -8,7 +8,6 @@
 #include "include/terminal.h" // printf
 #include "include/libc/assert.h" // ASSERT() macro
 #include "include/tss.h" // Task State Segment
-#include "include/tasking_t.h" // Tasking declarations
 
 // Definitions
 #define MAX_DESCRIPTORS 8

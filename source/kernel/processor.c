@@ -25,11 +25,6 @@ void cpuInit() {
     // Enable interrupts.
     enableHardwareInterrupts();
     serialPrintf("sti instruction did not fault - interrupts enabled.\n");
-    
-
-    // Load TSS
-    // TODO: Actually fix this function, doesn't load for some reason?
-    // tssInit(5, 0x10, 0);
 }
 
 // detectCPUFrequency() - Detect the CPU frequency.

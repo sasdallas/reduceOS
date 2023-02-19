@@ -9,7 +9,7 @@ ISR interruptHandlers[256]; // A list of all interrupt handlers
  
 #pragma GCC diagnostic ignored "-Wint-conversion" // Lots of warnings about setvector() not taking an unsigned int. Ignore them all.
 
-extern task_t *currentTask;
+
 
 // isrRegisterInterruptHandler(int num, ISR handler) - Registers an interrupt handler.
 void isrRegisterInterruptHandler(int num, ISR handler) {
@@ -47,7 +47,7 @@ void isrIRQHandler(registers_t *reg) {
     
     interruptCompleted(reg->err_code);
 
-    // Timer?
+    
 
 }
 
