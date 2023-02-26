@@ -110,6 +110,4 @@ void isrInstall() {
     // Register exception 128
     setVector(128, (uint32_t)isr128);
 
-    // Done!
-    printf("Exception handlers installed.\n");
 }

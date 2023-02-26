@@ -34,6 +34,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
+- **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code.
 - ACPI does not initialize, gets stuck in a loop on handling APIC.
 - **Severe:** Multitasking never calls the handlers - working on a solution.
 - When printing BUILD_DATE to the serial console, it is not printed properly. Possibly a bug with printf_putchar's `%u` handler.

@@ -53,5 +53,4 @@ void gdtInit() {
     // Flush TSS.
     tssFlush();
 
-    printf("GDT and TSS initialized\n");
 }

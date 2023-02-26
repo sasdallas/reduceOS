@@ -52,7 +52,7 @@ void *panic(char *caller, char *code, char *reason) {
         printf("Type: 0x%x, EAX: 0x%x, EBX: 0x%x, ECX: 0x%x, EDX: 0x%x\n", i, eax, ebx, ecx, edx);
     }
     
-    // TODO: Add debug symbols into the initrd so we get function names. To prevent a bug haven, don't call stack trace.
+    // TODO: Add debug symbols into the initrd so we get function names.
     // stackTrace(5); // Get a stack trace.
 
 

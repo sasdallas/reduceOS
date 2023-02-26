@@ -20,21 +20,18 @@ extern gdtEntry_t gdtEntries[8];
 
 void (*exec_bios32_function)() = (void *)0x7c00;
 
-/**
- init bios32 routine by setting 6 & 7 the entries
- this data will be copied when bios32_service() is called
- */
 void bios32_init() {
-    // 16bit code segment
-    gdtSetGate(6, 0, 0xffffffff, 0x9A, 0x0f);
-    // 16bit data segment
-    gdtSetGate(7, 0, 0xffffffff, 0x92, 0x0f);
-    // real mode gdt ptr
+    // Setup the 16-bit code and data segment in GDT.
+    gdtSetGate(6, 0, 0xFFFFFFFF, 0x9A, 0x0F);
+    gdtSetGate(7, 0, 0xFFFFFFFF, 0x92, 0x0F);
+
+    // Setup the real mode GDT ptr
     g_real_mode_gdt.base_addr = (uint32_t)gdtEntries;
     g_real_mode_gdt.limit = sizeof(gdtEntries) - 1;
-    // real mode idt ptr
+
+    // Setup the real mode IDT ptr
     g_real_mode_idt.base_addr = 0;
-    g_real_mode_idt.limit = 0x3ff;
+    g_real_mode_idt.limit = 0x3FF;
 }
 
 /**

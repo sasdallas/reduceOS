@@ -58,7 +58,13 @@ typedef struct {
 	uint8_t reserved1[206];
 } __attribute__((packed)) vbeModeInfo_t;
 
+
+// Inline functions
+
+
+
 // Functions
 void vesaInit();
+
 
 #endif

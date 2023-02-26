@@ -203,9 +203,9 @@ void kmain(multiboot_info* mem) {
 
     
 
-    updateBottomText("Initializing CPU...");
+    updateBottomText("Initializing HAL...");
     cpuInit();
-    printf("CPU initialized succesfully.\n");
+    printf("HAL initialization completed.\n");
 
 
     bios32_init();
@@ -250,13 +250,20 @@ void kmain(multiboot_info* mem) {
     serialPrintf("PIT started at 1000hz\n");
 
     // bios32 stops to work after we initialize paging, so get all calls done now!
-    vesaGetVbeInfo(); // Get VBE mode info
+    //vesaInit();
+    // Initializing VESA will NOT work after this, so we have to ask the user what they want to do now:
+    printf("VESA demo ready - if it doesn't work the first time, press the key again!\n");
+    printf("Press 'v' to begin VESA demo and any other key to continue...");
     
-    
+    while (true) {
+        char c = keyboardGetChar();
+        if (c != 'v') break;
+        else { vesaInit(); }
+    }
 
-    
+
    
-    printf("Kernel is loaded at 0x%x, ending at 0x%x\n", kernelStart, kernelEnd);
+    printf("\nKernel is loaded at 0x%x, ending at 0x%x\n", kernelStart, kernelEnd);
 
     // Probe for PCI devices
     updateBottomText("Probing PCI...");
