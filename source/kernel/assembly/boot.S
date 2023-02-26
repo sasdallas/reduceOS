@@ -53,6 +53,7 @@ _start:
     movl $stack_top, %esp
     call _init
 
+    xor %ebp, %ebp
     push %ebx
     call kmain
 

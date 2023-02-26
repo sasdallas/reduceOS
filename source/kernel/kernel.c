@@ -18,7 +18,6 @@ extern fsNode_t *initrdDev;
 
 
 
-
 int getSystemInformation(int argc, char *args[]) {
     uint32_t vendor[32];
 
@@ -42,10 +41,6 @@ int getSystemInformation(int argc, char *args[]) {
 }
 
 
-int help(int argc, char *args[]) {
-    printf("reduceOS v1.0\nValid commands:\nsystem, help, echo, pci, crash, anniversary, shutdown, initrd, ata, sector, task, ps\n");
-    return 1;
-}
 
 
 int echo(int argc, char *args[]) {
@@ -154,7 +149,10 @@ int readSectorTest(int argc, char *args[]) {
 
 
 
-
+int foo(void *arg) {
+    printf("Hello, world!\n");
+    return 0;
+}
 
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
@@ -251,10 +249,11 @@ void kmain(multiboot_info* mem) {
     i86_pitInit();
     serialPrintf("PIT started at 1000hz\n");
 
+    // bios32 stops to work after we initialize paging, so get all calls done now!
+    vesaGetVbeInfo(); // Get VBE mode info
     
     
 
-    
     
    
     printf("Kernel is loaded at 0x%x, ending at 0x%x\n", kernelStart, kernelEnd);
@@ -277,23 +276,27 @@ void kmain(multiboot_info* mem) {
     uint32_t initrdEnd = *(uint32_t*)(mem->m_modsAddr + 4);
     placement_address = initrdEnd;
     serialPrintf("GRUB did pass an initial ramdisk.\n");
+    
+    
+    
 
-
+    // Start paging.
     updateBottomText("Initializing paging and heap...");
     initPaging(0xCFFFF000);
     serialPrintf("Paging and kernel heap initialized successfully (address: 0xCFFFF000)\n");
     
+    
+
     fs_root = initrdInit(initrdLocation);    
     printf("Initrd image initialized!\n");
     serialPrintf("Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
-
+    
+    
     initCommandHandler();
 
-    anniversaryRegisterCommands();
-    anniversaryRegisterEasterEggs();
+
     registerCommand("system", (command*)getSystemInformation);
-    registerCommand("help", (command*)help);
     registerCommand("echo", (command*)echo);
     registerCommand("crash", (command*)crash);
     registerCommand("pci", (command*)pciInfo);
@@ -312,16 +315,14 @@ void kmain(multiboot_info* mem) {
     rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
     serialPrintf("Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
-    //updateBottomText("Initializing semaphore...");
-    //sem_init(&sem, 1);
+    
 
-    //updateBottomText("Initializing multitasking (task #0)...");
-    //initMultitasking();
-    //printf("Multitasking initialized.\n");
     
     // Bugged function, cannot call.
     // acpiInit();
 
+    
+    
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
 
     char buffer[256]; // We will store keyboard input here.

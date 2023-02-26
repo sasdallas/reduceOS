@@ -31,10 +31,11 @@
 #include "include/heap.h"  // Kernel heap management
 #include "include/initrd.h" // Initial ramdisk management.
 #include "include/vfs.h" // Virtual file system.
-#include "include/anniversary.h" // Anniversary functions
 #include "include/ide_ata.h" // ATA driver
 #include "include/rtc.h" // Real-time clock.
 #include "include/bios32.h" // BIOS32 calls
 #include "include/processor.h" // Procesor handler
+#include "include/vesa.h"
+
 
 #endif

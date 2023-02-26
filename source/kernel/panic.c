@@ -23,7 +23,9 @@ static void stackTrace(uint32_t maximumFrames) {
     }
 }
 
+// Panic - halts system and prints an error message
 void *panic(char *caller, char *code, char *reason) {
+    serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** [%s] %s: %s\n", caller, code, reason);
     serialPrintf("panic type: non-registers, called by external function.\n");
@@ -93,44 +95,6 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     for (;;);
 }
 
-
-// This panic function is called when a function has some values it needs to output.
-// Probably ugly parameters, but I don't care.
-void *specialPanic(char *caller, char *code, char *reason, int integer, uint32_t address, char *data1desc, char *data2desc) {
-    serialPrintf("panic() called! FATAL ERROR!\n");
-    serialPrintf("*** [%s] %s: %s\n", caller, code, reason);
-    serialPrintf("panic type: special, called by external function.\n");
-    serialPrintf("Given values:\n%s - %i\n%s - 0x%x\n", data1desc, integer, data2desc, address);
-    clearScreen(terminalColor);
-    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
-
-    printf("reduceOS v1.0 (Development Build) - Kernel Panic");
-    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" ");
-
-    updateBottomText("A fatal error occurred!");
-
-    printf("reduceOS encountered a fatal error and needs to shutdown.\n");
-    printf("The error cause will be printed below. If you start an issue on GitHub, please include the following text.\n");
-    printf("Apologies for any inconveniences caused by this error.\n");
-    printf("\n");
-    printf("The error encountered was:\n");
-    printf("*** [%s] %s: %s \n", caller, code, reason);
-    printf("The following data was provided:\n");
-    printf("%s - %i\n", data1desc, integer);
-    printf("%s - 0x%x\n", data2desc, address);
-
-    printf("\nStack dump:\n\n");
-    
-    uint32_t eax, ebx, ecx, edx;
-    for (uint32_t i = 0; i < 4; i++) {
-        __cpuid(i, &eax, &ebx, &ecx, &edx);
-        printf("Type: 0x%x, EAX: 0x%x, EBX: 0x%x, ECX: 0x%x, EDX: 0x%x\n", i, eax, ebx, ecx, edx);
-    }
-    
-
-    asm volatile ("hlt");
-    for (;;);
-}
 
 
 // Oh no! We encountered a page fault!

@@ -9,7 +9,6 @@
 #include "include/hal.h" // Hardware Abstraction Layer
 #include "include/terminal.h" // Terminal output (printf)
 #include "include/isr.h" // Interrupt Service Routines
-
 #include "include/libc/stdint.h" // Integer declarations
 
 // Definitions

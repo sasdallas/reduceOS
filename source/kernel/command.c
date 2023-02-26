@@ -85,6 +85,20 @@ int parseCommand(char *cmd) {
     
 }
 
+// Help command - prints all available commands.
+int help(int argc, char *args[]) {
+    printf("reduceOS v1.1 - help command\nAvailable commands: ");
+    
+    for (int i = 0; i < index; i++) {
+        cmdData *data = &cmdFunctions[i];
+        printf("%s, ", data->cmdName);
+    }
+    
+    
+    printf("\n");
+    return 0;
+}
+
 // registerCommand(char *name, command cmd) - Registers a command and stores it in cmdFunctions.
 void registerCommand(char *name, command cmd) {
     if (index < 1024) {
@@ -110,5 +124,7 @@ void initCommandHandler() {
         cmdFunctions[i] = data;
     }
 
+    // Register help command.
+    registerCommand("help", (command*)help);
     printf("Command parser initialized successfully.\n");
 }
