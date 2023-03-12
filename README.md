@@ -15,7 +15,7 @@ We do still have to stick with multiboot for now, however. Still, the OS is comi
 The assembly code shouldn't look that messy. If it is, start a pull request/contact me and I will update it.
 
 # What's the current stage?
-Adding multitasking and perfecting anniversary (January 20th)
+VBE and VESA stuff
 
 # Compiling
 ### Again, even though we were having trouble with Linux builds before, Windows builds are NOT supported. Use WSL, mingw-32, or MSys to build.
@@ -36,7 +36,7 @@ Run `make qemu` to launch QEMU and start the OS.
 # Known Bugs
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code.
 - ACPI does not initialize, gets stuck in a loop on handling APIC.
-- **Severe:** Multitasking never calls the handlers - working on a solution.
+- **Severe:** System crashes if you just type a space, system will leave one character in the buffer after you hit enter, and it doesn't play well with the command parser. Where to start?
 - When printing BUILD_DATE to the serial console, it is not printed properly. Possibly a bug with printf_putchar's `%u` handler.
 - For some reason, `printf()` can't handle a `%x` when paging values are passed. I added some code I found to fix it, it works fine in the function calling it but not in printf. It's not bad, the `%x` operator works fine otherwise. In the meantime, `printf_hex()` has been added to mitigate this.
 - A little bit of disgusting code in `keyboardGetChar()`, `commandHandler()`, and a few other functions (unknown how to fix)

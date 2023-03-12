@@ -4,7 +4,7 @@ CC = gcc
 LD = ld
 GRUB_FILE = grub-file
 AS = as
-
+OBJCOPY = objcopy
 
 RM = rm
 MKDIR = mkdir -p
@@ -35,6 +35,9 @@ INITRD_SRC = initrd_img
 INITRD_OBJ = $(INITRD_SRC)/obj
 INITRD_DIR = $(INITRD_SRC)/initrd
 
+FONT_SRC = source/fonts
+OUT_FONT = $(OUT_OBJ)/fonts
+
 # Files
 OUT_IMG = out/img
 
@@ -59,6 +62,9 @@ ASM_KERNEL_SRCS = $(wildcard $(ASM_KERNEL)/*.asm)
 ASM_KLOADER = $(wildcard $(KLOADER_SOURCE)/*.asm)
 GCC_KLOADER = $(wildcard $(KLOADER_SOURCE)/*.S)
 ASM_KLOADEROBJS = $(patsubst $(KLOADER_SOURCE)/%.asm, $(OUT_ASMOBJ)/%.o, $(ASM_KLOADER)) $(patsubst $(KLOADER_SOURCE)/%.S, $(OUT_ASMOBJ)/%.o, $(GCC_KLOADER)) $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o
+
+FONT_SRCS = $(wildcard $(FONT_SRC)/*.psf)
+FONT_OBJS = $(patsubst $(FONT_SRC)/%.psf, $(OUT_FONT)/%.o, $(FONT_SRCS))
 
 
 # All LIBC and C sources - this will need an update when we properly organize directories.
@@ -91,9 +97,9 @@ $(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.elf
 
 
-$(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
+$(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
-	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.bin 
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) -o $(OUT_KERNEL)/kernel.bin 
 	@printf "\n"
 	@printf "[ Verifying kernel is valid... ]\n"
 	$(GRUB_FILE) --is-x86-multiboot $(OUT_KERNEL)/kernel.bin
@@ -120,6 +126,10 @@ $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.S | $(OUT_ASMOBJ)
 	@printf "[ Compiling kernel .S file... ]\n"
 	$(CC) -m32 -c $< -o $@
 	@printf "\n"
+
+$(OUT_FONT)/%.o: $(FONT_SRC)/%.psf | $(OUT_FONT)
+	@printf "[ Converting font $< to binary object... ]"
+	$(OBJCOPY) -O elf32-i386 -B i386 -I binary $< $@
 
 
 img: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img

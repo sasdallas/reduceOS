@@ -16,6 +16,9 @@ extern ideDevice_t ideDevices[4];
 // initrd.c defined variables
 extern fsNode_t *initrdDev;
 
+multiboot_info *globalInfo;
+
+
 
 
 int getSystemInformation(int argc, char *args[]) {
@@ -35,10 +38,14 @@ int getSystemInformation(int argc, char *args[]) {
     // Tell the user.
     printf("CPU Vendor: %s\n", vendor);
     printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
-    printf("CPU frequency: %u\n", getCPUFrequency());
+    printf("CPU frequency: %u Hz\n", getCPUFrequency());
+
+    printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
+    
 
     return 1; // Return
 }
+
 
 
 
@@ -52,22 +59,29 @@ int echo(int argc, char *args[]) {
     return 1;
 }
 
+
+
 int crash(int argc, char *args[]) {
     setKBHandler(false); // Disable keyboard handler.
     printf("Why do you want to crash reduceOS?\n");
-    sleep(1000);
+    sleep(3000);
     printf("FOR SCIENCE, OF COURSE!");
-    sleep(1000);
+    sleep(3000);
     panic("kernel", "kmain()", "Error in function crash()");
 }
 
 int pciInfo(int argc, char *args[]) { printPCIInfo(); return 1; }
+
+
 
 int shutdown(int argc, char *args[]) {
     printf("Shutting down reduceOS...\n");
     asm volatile ("cli");
     asm volatile ("hlt");
 }
+
+
+
 
 int getInitrdFiles(int argc, char *args[]) {
     int i = 0;
@@ -149,14 +163,19 @@ int readSectorTest(int argc, char *args[]) {
 
 
 
-int foo(void *arg) {
-    printf("Hello, world!\n");
+int memoryInfo(int argc, char *args[]) {
+    printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
+
+
     return 0;
 }
 
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
+    // Update global multiboot info.
+    globalInfo = mem;
+
     // Get build date and time.
     extern char BUILD_DATE;
     extern char BUILD_TIME;
@@ -250,15 +269,22 @@ void kmain(multiboot_info* mem) {
     serialPrintf("PIT started at 1000hz\n");
 
     // bios32 stops to work after we initialize paging, so get all calls done now!
-    //vesaInit();
     // Initializing VESA will NOT work after this, so we have to ask the user what they want to do now:
+    // Update: Found the reason, since paging includes 0x7E00 (temp memory for all bios32 calls), crashing all of reduceOS.
+
     printf("VESA demo ready - if it doesn't work the first time, press the key again!\n");
     printf("Press 'v' to begin VESA demo and any other key to continue...");
     
+    bool didInitVesa = false;
+
     while (true) {
         char c = keyboardGetChar();
         if (c != 'v') break;
-        else { vesaInit(); }
+        else {
+            vesaInit();
+            didInitVesa = true;
+            break;
+        }
     }
 
 
@@ -312,7 +338,7 @@ void kmain(multiboot_info* mem) {
     registerCommand("panic", (command*)panicTest);
     registerCommand("sector", (command*)readSectorTest);
     registerCommand("shutdown", (command*)shutdown);
-    
+    registerCommand("memory", (command*)memoryInfo);
     serialPrintf("All commands registered successfully.\n");
 
 

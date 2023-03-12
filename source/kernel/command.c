@@ -56,14 +56,11 @@ static int parseArguments(char *cmd, char ***parsedArguments) {
 // parseCommand(char *cmd) - Parses a command to get the function to call.
 int parseCommand(char *cmd) {
     if (index == 0 || strlen(cmd) == 0) return -1;
-
-    // I have no idea, man:
-    printf("\0");
+    
     char **argv;
     int argc = parseArguments(cmd, &argv);
 
    
-    printf("\0");
 
     for (int i = 0; i < 1024; i++) {
         cmdData *data = &cmdFunctions[i];

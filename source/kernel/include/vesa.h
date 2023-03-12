@@ -66,5 +66,4 @@ typedef struct {
 // Functions
 void vesaInit();
 
-
 #endif

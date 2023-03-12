@@ -35,6 +35,10 @@ static void vbeGetInfo() {
     // Call the BIOS for our interrupt.
     bios32_service(0x10, &in, &out);
 
+    if (out.ax != 0x004F) {
+        panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
+    }
+
     // Copy the data to vbeInfo.
     memcpy(&vbeInfo, (void*)0x7E00, sizeof(vbeInfoBlock_t));
 
@@ -57,6 +61,10 @@ static vbeModeInfo_t vbeGetModeInfo(uint16_t mode) {
 
     // Call the BIOS for our interrupt.
     bios32_service(0x10, &in, &out);
+
+    if (out.ax != 0x004F) {
+        panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
+    }
 
     // Copy the data.
     memcpy(&modeInfo, (void*)0x7E00 + 1024, sizeof(vbeModeInfo_t));
@@ -96,6 +104,10 @@ void vbeSetMode(uint32_t mode) {
 
     // Call BIOS interrupt 0x10.
     bios32_service(0x10, &in, &out);
+
+    if (out.ax != 0x004F) {
+        panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
+    }
 }
 
 // vbeGetMode(uint32_t width, uint32_t height, uint32_t color_depth) - Returns the VBE mode with the parameters given.
@@ -161,33 +173,64 @@ void vesaInit() {
     // Now, switch the mode.
     vbeSetMode(mode);
 
-    // Draw a test pattern.
-    uint32_t x = 0;
+    int y = 0;
+    int r, g, b;
+    r = 5;
+    g = 0;
+    b = 0;
 
-    for (uint32_t c = 0; c < 267; c++) {
-        for (uint32_t i = 0; i < 600; i++) {
-            vbePutPixel(x, i, RGB_VBE(c % 255, 0, 0));
+    bool finalSteps = false;
+
+
+    for (y = 0; y < modeHeight; y++) {
+        for (int x = 0; x < modeWidth; x++) {
+            vbePutPixel(x, y, RGB_VBE(r, g, b));
         }
-        x++;
-    }
-    for (uint32_t c = 0; c < 267; c++) {
-        for (uint32_t i = 0; i < 600; i++) {
-            vbePutPixel(x, i, RGB_VBE(0, c % 255, 0));
+    
+        // All this code just for a rainbow wave.
+        if (r > 0 && r < 255 && g == 0) {
+            r += 5;   
+        } else if (r >= 255 && g >= 0 && g < 255) {
+            g += 5;
+        } else if (r >= 255 && g >= 255) {
+            r -= 5;
+        } else if (r < 255 && r > 0 && g >= 255) {
+            r -= 5;
+        } else if (r == 0 && g >= 255 && b == 0) {
+            b += 5;
+        } else if (g >= 255 && b < 255 && b > 0) {
+            b += 5;
+        } else if (g >= 255 && b >= 255) {
+            g -= 5;
+        } else if (g < 255 && g > 0 && b >= 255) {
+            g -= 5;
+        } else if (r == 0 && g == 0 && b >= 255) {
+            r += 5;
+        } else if (r > 0 && r < 255 && b >= 255) {
+            r += 5;
+        } else if (r >= 255 && b >= 255 && g == 0) {
+            b -= 5;
+        } else if (b < 255 && b > 5 && r >= 255) {
+            b -= 5;
+        } else if (b == 5 && r >= 255) {
+            finalSteps = true; // Some extra code for assistance.
+            b = 0; 
+            r -= 5;
+        } else if (finalSteps && b == 0 && r < 255 && r > 0) {
+            r -= 5;
+        } else if (finalSteps && r == 0) {
+            finalSteps = false;
+            r = 5;
         }
-        x++;
-    }
-    for (uint32_t c = 0; c < 267; c++) {
-        for (uint32_t i = 0; i < 600; i++) {
-            vbePutPixel(x, i, RGB_VBE(0, 0, c % 255));
-        }
-        x++;
-    }
+    } 
+
+    serialPrintf("End with r = %i, g = %i, b = %i\n", r, g, b);
     
 }
 
 
 
-// Most of the graphics functions in here should not be used, instead using other graphics functions (not written as of now, could change and I forgot to update)
+// Most of the graphics functions in here should not be used, instead using other graphics functions.
 
 // vbePutPixel(int x, int y, uint32_t color) - Puts a pixel on the screen.
 void vbePutPixel(int x, int y, uint32_t color) {
@@ -196,3 +239,6 @@ void vbePutPixel(int x, int y, uint32_t color) {
     *(vbeBuffer + p) = color;
 }
 
+
+
+// Here we have some functions that I should probably move to another file.
