@@ -21,7 +21,8 @@
 			"pci.h": "c",
 			"isr.h": "c",
 			"sleep.h": "c",
-			"mem_phys.h": "c"
+			"mem_phys.h": "c",
+			"font.h": "c"
 		}
 	}
 }

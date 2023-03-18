@@ -282,6 +282,8 @@ void kmain(multiboot_info* mem) {
         if (c != 'v') break;
         else {
             vesaInit();
+            bitmapInit();
+            bitmapDrawString("Hello, world!", 10, 10, RGB_VBE(255, 0, 0));
             didInitVesa = true;
             break;
         }

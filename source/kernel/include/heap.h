@@ -63,4 +63,6 @@ uint32_t kmalloc_heap(uint32_t size, int align, uint32_t *phys);
 heap_t *createHeap(uint32_t startAddress, uint32_t endAddress, uint32_t maxAddress, uint8_t supervisor, uint8_t readonly); // Create a heap!
 void *alloc(uint32_t size, uint8_t pageAlign, heap_t *heap); // Allocate to a heap (of size "size" and page align if pageAlign != 0)
 void free(void *p, heap_t *heap); // Free *p from *heap.
+void kfree(void* p); // Convenience function, just free() but with one argument
+void *kcalloc(size_t num, size_t size); // kmalloc, but accepts # of objects and the size of one object (also is zeroed)
 #endif

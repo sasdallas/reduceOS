@@ -418,3 +418,19 @@ void free(void* p, heap_t* heap) {
     // Add us to index if required.
     if (doAdd == 1) insertOrderedArray((void*)header, &heap->index);
 }
+
+
+// kcalloc(size_t num, size_t size) - kmalloc, but accepts # of objects and the size of one object (also is zeroed)
+void *kcalloc(size_t num, size_t size) {
+    // Calculate required bytes.
+    size_t size_bytes = num * size;
+
+    // Allocate bytes
+    void *p = kmalloc(size_bytes);
+    
+    // Initialize *p to 0
+    memset(p, 0, size_bytes);
+
+    // Return!
+    return p;
+}

@@ -34,6 +34,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
+- PSF font is not working properly.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code.
 - ACPI does not initialize, gets stuck in a loop on handling APIC.
 - **Severe:** System crashes if you just type a space, system will leave one character in the buffer after you hit enter, and it doesn't play well with the command parser. Where to start?

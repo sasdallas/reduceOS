@@ -57,6 +57,7 @@ static int parseArguments(char *cmd, char ***parsedArguments) {
 int parseCommand(char *cmd) {
     if (index == 0 || strlen(cmd) == 0) return -1;
     
+    
     char **argv;
     int argc = parseArguments(cmd, &argv);
 

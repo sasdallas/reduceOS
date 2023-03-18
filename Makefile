@@ -128,8 +128,9 @@ $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.S | $(OUT_ASMOBJ)
 	@printf "\n"
 
 $(OUT_FONT)/%.o: $(FONT_SRC)/%.psf | $(OUT_FONT)
-	@printf "[ Converting font $< to binary object... ]"
+	@printf "[ Converting font $< to binary object... ]\n"
 	$(OBJCOPY) -O elf32-i386 -B i386 -I binary $< $@
+	@printf "\n"
 
 
 img: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img

@@ -17,7 +17,7 @@ bool isVBESupported = false;
 
 uint32_t *vbeBuffer; // This is the buffer we will be drawing in
 int selectedMode = -1; // The current mode selected.
-uint32_t modeWidth, modeHeight = 0; // The height and width of the mode
+uint32_t modeWidth, modeHeight, modeBpp = 0; // The height and width of the mode
 
 
 
@@ -168,6 +168,7 @@ void vesaInit() {
     selectedMode = mode;
     modeWidth = modeInfo.width;
     modeHeight = modeInfo.height;
+    modeBpp = modeInfo.bpp;
     vbeBuffer = (uint32_t*)modeInfo.framebuffer;
 
     // Now, switch the mode.
@@ -181,7 +182,7 @@ void vesaInit() {
 
     bool finalSteps = false;
 
-
+    /*
     for (y = 0; y < modeHeight; y++) {
         for (int x = 0; x < modeWidth; x++) {
             vbePutPixel(x, y, RGB_VBE(r, g, b));
@@ -222,9 +223,8 @@ void vesaInit() {
             finalSteps = false;
             r = 5;
         }
-    } 
+    } */
 
-    serialPrintf("End with r = %i, g = %i, b = %i\n", r, g, b);
     
 }
 
