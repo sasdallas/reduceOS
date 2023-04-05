@@ -21,8 +21,8 @@ extern void *bios32_int_number_ptr;
 
 #define REBASE_ADDRESS(x)  (void*)(0x7c00 + (void*)x - (uint32_t)BIOS32_START)
 
-// https://en.wikipedia.org/wiki/BIOS_interrupt_call
 
-void bios32_init();
-void bios32_service(uint8_t int_num, REGISTERS_16 *in_reg, REGISTERS_16 *out_reg);
+void bios32_init(); // Initializes BIOS32.
+void bios32_call(uint8_t int_num, REGISTERS_16 *in_reg, REGISTERS_16 *out_reg); // Call the BIOS in protected mode.
+
 #endif

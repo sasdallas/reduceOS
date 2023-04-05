@@ -143,8 +143,20 @@ int isalpha(char ch) {
 }
 
 // strcmp() - compares s1 to s2
-// Two parameters - string #1 and #2.
+// Two parameters - strings #1 and #2.
 int strcmp (const char* str1, char *str2) {
+    int i = 0;
+
+    while ((str1[i] == str2[i])) {
+        if (str2[i++] == 0)
+            return 0;
+    }
+    return 1;
+}
+
+// strncmp() - Compares str1 to str2 for x amount of chars.
+// Three parameters - strings #1 and #2 and the # of chars
+int strncmp(const char *str1, char *str2, int length) {
     int i = 0;
 
     while ((str1[i] == str2[i])) {
@@ -183,3 +195,4 @@ Done:
     currentIndex = i+1;
     return w;
 }
+

@@ -33,7 +33,7 @@ static void vbeGetInfo() {
     in.di = 0x7E00;
 
     // Call the BIOS for our interrupt.
-    bios32_service(0x10, &in, &out);
+    bios32_call(0x10, &in, &out);
 
     if (out.ax != 0x004F) {
         panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
@@ -60,7 +60,7 @@ static vbeModeInfo_t vbeGetModeInfo(uint16_t mode) {
     REGISTERS_16 out = {0};
 
     // Call the BIOS for our interrupt.
-    bios32_service(0x10, &in, &out);
+    bios32_call(0x10, &in, &out);
 
     if (out.ax != 0x004F) {
         panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
@@ -103,7 +103,7 @@ void vbeSetMode(uint32_t mode) {
     REGISTERS_16 out = {0};
 
     // Call BIOS interrupt 0x10.
-    bios32_service(0x10, &in, &out);
+    bios32_call(0x10, &in, &out);
 
     if (out.ax != 0x004F) {
         panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
@@ -182,48 +182,6 @@ void vesaInit() {
 
     bool finalSteps = false;
 
-    /*
-    for (y = 0; y < modeHeight; y++) {
-        for (int x = 0; x < modeWidth; x++) {
-            vbePutPixel(x, y, RGB_VBE(r, g, b));
-        }
-    
-        // All this code just for a rainbow wave.
-        if (r > 0 && r < 255 && g == 0) {
-            r += 5;   
-        } else if (r >= 255 && g >= 0 && g < 255) {
-            g += 5;
-        } else if (r >= 255 && g >= 255) {
-            r -= 5;
-        } else if (r < 255 && r > 0 && g >= 255) {
-            r -= 5;
-        } else if (r == 0 && g >= 255 && b == 0) {
-            b += 5;
-        } else if (g >= 255 && b < 255 && b > 0) {
-            b += 5;
-        } else if (g >= 255 && b >= 255) {
-            g -= 5;
-        } else if (g < 255 && g > 0 && b >= 255) {
-            g -= 5;
-        } else if (r == 0 && g == 0 && b >= 255) {
-            r += 5;
-        } else if (r > 0 && r < 255 && b >= 255) {
-            r += 5;
-        } else if (r >= 255 && b >= 255 && g == 0) {
-            b -= 5;
-        } else if (b < 255 && b > 5 && r >= 255) {
-            b -= 5;
-        } else if (b == 5 && r >= 255) {
-            finalSteps = true; // Some extra code for assistance.
-            b = 0; 
-            r -= 5;
-        } else if (finalSteps && b == 0 && r < 255 && r > 0) {
-            r -= 5;
-        } else if (finalSteps && r == 0) {
-            finalSteps = false;
-            r = 5;
-        }
-    } */
 
     
 }

@@ -1,6 +1,7 @@
 [bits 32]
 
 ; Written by pritamzope - not by me!
+; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 %define REBASE_ADDRESS(x)  (0x7c00 + ((x) - BIOS32_START))
 

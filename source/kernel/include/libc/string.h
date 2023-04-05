@@ -23,6 +23,7 @@ char toupper(char c); // toupper() - turns a character uppercase
 char tolower(char c); // tolower() - turns a character lowercase
 int isalpha(char ch); // isalpha() -  returns if a char is in the alphabet
 int strcmp(const char *str1, char *str2); // strcmp() - compares a string.
+int strncmp(const char *str1, char *str2, int length); // strncmp() - compares a string for x amount of chars.
 int strlen(char *str); // strlen() - checks length of a string
 char *strtok(char *str, const char *delim); // strtok() - splits a string into tokens, seperated by delim.
 #endif

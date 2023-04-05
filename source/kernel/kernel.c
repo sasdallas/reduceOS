@@ -214,7 +214,7 @@ void kmain(multiboot_info* mem) {
     serialInit();
     serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
     serialPrintf("Build date: %u, build time: %u\n", &BUILD_DATE, &BUILD_TIME);
-    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", kernelStart, kernelEnd, text_start, text_end, data_start, data_end, bss_start, bss_end);
+    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", &kernelStart, &kernelEnd, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
     serialPrintf("Serial logging initialized!\n");
     printf("Serial logging initialized on COM1.\n");
 
@@ -302,7 +302,9 @@ void kmain(multiboot_info* mem) {
     updateBottomText("Initializing IDE controller...");
     ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
     
-    
+    // Bugged function, cannot call.
+    acpiInit();
+
     // Initialize paging
     
     // Calculate the initial ramdisk location in memory (panic if it's not there)
@@ -353,8 +355,7 @@ void kmain(multiboot_info* mem) {
     
 
     
-    // Bugged function, cannot call.
-    // acpiInit();
+    
 
     
     

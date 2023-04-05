@@ -8,6 +8,7 @@
 #include "include/local_apic.h" // Local APIC (different from ACPI)
 #include "include/io_apic.h" // IO APIC
 #include "include/libc/string.h" // Misc. functions
+#include "include/bios32.h" // BIOS32 functions
 
 // Typedefs
 

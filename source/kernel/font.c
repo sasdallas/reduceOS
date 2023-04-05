@@ -54,7 +54,7 @@ void bitmapDrawChar(char ch, int x, int y, int color) {
     }
 }
 
-// bitmapDrawString(char *str, int x, int y, int color) - Draw a string on the bitmap
+// bitmapDrawString(char *str, int x, int y, int color) - Draw a string from the bitmap
 void bitmapDrawString(char *str, int x, int y, int color) {
     int tmpX = x, tmpY = y;
     while (*str != '\0') {
