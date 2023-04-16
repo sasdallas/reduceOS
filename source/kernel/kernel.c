@@ -136,18 +136,13 @@ int readSectorTest(int argc, char *args[]) {
         return -1;
     }
 
-    // char buffer[256] = {'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!'};
-    // ideWriteSectors(drive, 1, 0, (uint32_t)buffer);
-    // serialPrintf("Data written successfully.\n");
-
-
     // write message to drive
     const uint32_t LBA = 0;
     const uint8_t NO_OF_SECTORS = 1;
     char buf[512];
 
     memset(buf, 0, sizeof(buf));
-
+    
     // write message to drive
     strcpy(buf, "Hello, world!");
     ideWriteSectors((int)drive, NO_OF_SECTORS, LBA, (uint32_t)buf);
@@ -165,8 +160,6 @@ int readSectorTest(int argc, char *args[]) {
 
 int memoryInfo(int argc, char *args[]) {
     printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
-
-
     return 0;
 }
 
@@ -176,10 +169,6 @@ void kmain(multiboot_info* mem) {
     // Update global multiboot info.
     globalInfo = mem;
 
-    // Get build date and time.
-    extern char BUILD_DATE;
-    extern char BUILD_TIME;
-    
     // Get kernel size
     extern uint32_t start;
     uint32_t kernelStart = &start;
@@ -193,6 +182,11 @@ void kmain(multiboot_info* mem) {
     extern uint32_t data_end;
     extern uint32_t bss_start;
     extern uint32_t bss_end;
+
+    extern int modeWidth;
+    extern int modeHeight;
+    extern int modeBpp;
+    extern uint32_t *vbeBuffer;
 
     // Perform some basic setup
     initTerminal(); // Initialize the terminal and clear the screen
@@ -213,7 +207,6 @@ void kmain(multiboot_info* mem) {
     // Initialize serial logging
     serialInit();
     serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
-    serialPrintf("Build date: %u, build time: %u\n", &BUILD_DATE, &BUILD_TIME);
     serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", &kernelStart, &kernelEnd, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
     serialPrintf("Serial logging initialized!\n");
     printf("Serial logging initialized on COM1.\n");
@@ -302,7 +295,8 @@ void kmain(multiboot_info* mem) {
     updateBottomText("Initializing IDE controller...");
     ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
     
-    // Bugged function, cannot call.
+    // Initialize ACPI
+    updateBottomText("Initializing ACPI...");
     acpiInit();
 
     // Initialize paging
@@ -316,7 +310,12 @@ void kmain(multiboot_info* mem) {
     
     
     
+    fs_root = initrdInit(initrdLocation);    
+    printf("Initrd image initialized!\n");
+    serialPrintf("Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
+    
+    
     // Start paging.
     updateBottomText("Initializing paging and heap...");
     initPaging(0xCFFFF000);
@@ -324,15 +323,7 @@ void kmain(multiboot_info* mem) {
     
     
 
-    fs_root = initrdInit(initrdLocation);    
-    printf("Initrd image initialized!\n");
-    serialPrintf("Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
-
-    
-    
     initCommandHandler();
-
-
     registerCommand("system", (command*)getSystemInformation);
     registerCommand("echo", (command*)echo);
     registerCommand("crash", (command*)crash);
@@ -356,7 +347,6 @@ void kmain(multiboot_info* mem) {
 
     
     
-
     
     
     printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
@@ -369,6 +359,5 @@ void kmain(multiboot_info* mem) {
         printf("reduceOS> ");
         keyboardGetLine(buffer);
         parseCommand(buffer);
-        
     }
 }

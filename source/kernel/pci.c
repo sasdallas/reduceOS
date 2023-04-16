@@ -23,7 +23,6 @@ uint16_t pciConfigRead(uint32_t bus, uint32_t slot, uint32_t offset) {
     // Send the address...
     outportl(CONFIG_ADDR, address);
 
-
     // Read the data...
     data = inportl(CONFIG_DATA);
 
@@ -100,7 +99,6 @@ void getPCIDeviceInfo(uint32_t vendor, uint32_t deviceID, uint32_t base, pci_inf
 
 void initPCI() {
     // Check all PCI adapters.
-
     for (uint32_t bus = 0; bus < MAX_BUS; bus++) {
         for (uint32_t slot = 0; slot < MAX_SLOTS; slot++) {
             pciAdapters[bus][slot] = pciConfigRead(bus, slot, 0x00); // 0x00 is the configuration ID

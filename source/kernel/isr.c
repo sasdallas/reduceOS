@@ -9,7 +9,11 @@ ISR interruptHandlers[256]; // A list of all interrupt handlers
  
 #pragma GCC diagnostic ignored "-Wint-conversion" // Lots of warnings about setvector() not taking an unsigned int. Ignore them all.
 
-
+/*
+    This file is awful, it literally has to get compiled separately to work.
+    It cannot run with PIE (Position Independent Executable) or optimization.
+    I have no idea why, even though it's probably obvious
+*/
 
 // isrRegisterInterruptHandler(int num, ISR handler) - Registers an interrupt handler.
 void isrRegisterInterruptHandler(int num, ISR handler) {

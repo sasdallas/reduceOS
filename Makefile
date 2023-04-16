@@ -13,6 +13,7 @@ echo = echo
 
 DD = dd
 qemu-system-x86_64 = qemu-system-x86_64
+qemu-img = qemu-img
 
 MKIMAGE = grub-mkrescue
 
@@ -49,8 +50,8 @@ cat = cat
 
 # Flags for compilers
 ASM_FLAGS = -f bin
-CC_FLAGS = -ffreestanding -m32 -fno-pie -I$(KERNEL_SOURCE)/ -W
-LD_FLAGS = -m elf_i386 -T linker.ld --defsym BUILD_DATE=$(shell date +'%m%d%y') --defsym BUILD_TIME=$(shell date +'%H%M%S')
+CC_FLAGS = -m32 -std=gnu99 -ffreestanding -fno-pie -Wall -Wextra -I$(KERNEL_SOURCE)/
+LD_FLAGS = -m elf_i386 -T linker.ld 
 
 
 # Source files
@@ -183,6 +184,14 @@ qemu:
 qemu_dbg:
 	@printf "[ Launching QEMU with debug options... ]\n"
 	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.bin -serial stdio
+
+qemu_drive:
+	@printf "[ Launching QEMU with external drive (run make drive to get drive)... ]\n"
+	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.bin -serial stdio -hda test.img
+
+drive:
+	@printf "[ Creating drive (requires qemu-img)... ]\n"
+	@${qemu-img} create test.img 1M
 
 clean:
 	@printf "[ Deleting C object files... ]\n"

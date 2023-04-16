@@ -156,11 +156,15 @@ void vesaInit() {
     }
 
     // There is a bug preventing us from checking some video modes - check vesaPrintModes() for the bug description.
-    // For now, just use 800x600 with colordepth 32
+    // For now, just use 1024x768 with colordepth 32
 
-    uint32_t mode = vbeGetMode(800, 600, 32);
-    if (mode == -1) return; // No valid mode was found.
+    //uint32_t mode = vbeGetMode(800, 600, 32);
+    //if (mode == -1) return; // No valid mode was found.
+    
 
+    // Bypass getting the mode and just set it like so.
+    uint32_t mode = 0x144 | 0x4000;
+    
     // Get a bit more information on the mode.
     vbeModeInfo_t modeInfo = vbeGetModeInfo(mode);
 
@@ -171,17 +175,10 @@ void vesaInit() {
     modeBpp = modeInfo.bpp;
     vbeBuffer = (uint32_t*)modeInfo.framebuffer;
 
+    
+
     // Now, switch the mode.
     vbeSetMode(mode);
-
-    int y = 0;
-    int r, g, b;
-    r = 5;
-    g = 0;
-    b = 0;
-
-    bool finalSteps = false;
-
 
     
 }
@@ -197,6 +194,3 @@ void vbePutPixel(int x, int y, uint32_t color) {
     *(vbeBuffer + p) = color;
 }
 
-
-
-// Here we have some functions that I should probably move to another file.

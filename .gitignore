@@ -6,3 +6,4 @@ oldcode/
 broken/
 test.img
 out/img/**
+*.img

@@ -34,11 +34,11 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
+- **Possibly severe:** VBE and ISR both cannot have PIE or they refuse to work. 
 - PSF font is not working properly.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code.
 - **Severe:** System crashes if you just type a space, system will leave one character in the buffer after you hit enter, and it doesn't play well with the command parser. Where to start?
-- When printing BUILD_DATE to the serial console, it is not printed properly. Possibly a bug with printf_putchar's `%u` handler.
-- For some reason, `printf()` can't handle a `%x` when paging values are passed. I added some code I found to fix it, it works fine in the function calling it but not in printf. It's not bad, the `%x` operator works fine otherwise. In the meantime, `printf_hex()` has been added to mitigate this.
+- For some reason, `printf()` can't handle a `%x` when paging values are passed.
 - A little bit of disgusting code in `keyboardGetChar()`, `commandHandler()`, and a few other functions (unknown how to fix)
 
 # Credits

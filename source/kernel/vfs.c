@@ -62,3 +62,13 @@ fsNode_t *findDirectoryFilesystem(fsNode_t *node, char *name) {
         return node->finddir(node, name);
     } else { return 0; }
 }
+
+// mountRootFilesystem(fsNode_t *node) - Mounts a root filesystem.
+void mountRootFilesystem(fsNode_t *node) {
+    fs_root = node;
+}
+
+// getRootFilesystem() - Returns root filesystem
+fsNode_t *getRootFilesystem() {
+    return fs_root;
+}

@@ -7,6 +7,7 @@
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/hal.h" // Hardware abstraction layer
 #include "include/isr.h" // IRQ handling
+#include "include/vfs.h" // Virtual File System
 #include "include/libc/sleep.h" // Sleep function
 
 
@@ -137,5 +138,5 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
 uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi); // Read from an ATAPI drive.
 void ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi); // Read from an ATA/ATAPI drive.
 void ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi); // Write to an ATA drive.
-
+int ideGetDriveCapacity(uint8_t drive); // Returns drive capacity
 #endif

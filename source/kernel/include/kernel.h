@@ -37,5 +37,4 @@
 #include "include/processor.h" // Procesor handler
 #include "include/vesa.h"
 
-
 #endif

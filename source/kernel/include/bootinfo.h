@@ -26,7 +26,7 @@ typedef struct {
 	uint32_t	m_drives_addr;		  // m_drives_addr - Address of drive
 	uint32_t	m_config_table;		  // m_config_table - Unused
 	uint32_t	m_bootloader_name;	  // m_bootloader_name - The name of the bootloader that loaded the kernel
-	uint32_t	m_apm_table;		  // m_apm_table - Unused
+	uint32_t	m_apm_table;		  // m_apm_table - APM information
 	uint32_t	m_vbe_control_info;   // m_vbe_control_info - VBE control info 
 	uint32_t	m_vbe_mode_info;      // m_vbe_mode_info - VBE mode info
 	uint16_t	m_vbe_mode;			  // m_vbe_mode - VBE mode
