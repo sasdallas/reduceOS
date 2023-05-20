@@ -43,6 +43,7 @@ void idtInit() {
     // Clear IDT entries table.
     memset(&idtEntries, 0, sizeof(idtEntry_t)*256);
 
+    // Enable PIC (pic.c is messy so do it manually for now)
     outportb(0x20, 0x11);
     outportb(0xA0, 0x11);
     outportb(0x21, 0x20);
@@ -53,6 +54,7 @@ void idtInit() {
     outportb(0xA1, 0x01);
     outportb(0x21, 0x0);
     outportb(0xA1, 0x0);
+
     isrInstall(); // Install handlers
 
     install_idt((uint32_t)&idtPtr);

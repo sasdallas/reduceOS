@@ -23,6 +23,8 @@ static char stack[16-1][16384];
 // Function prototypes.
 static page_table_t *clonePageTable(page_table_t *src, uint32_t *physicalAddress); // Clone a page table.
 
+// A few addresses we need to preallocate.
+extern uint32_t *vbeBuffer;
 
 // (from JamesM's kernel dev tutorials)
 #define INDEX_BIT(a) (a/(8*4))
@@ -140,7 +142,7 @@ void initPaging(uint32_t physicalMemorySize) {
         getPage(i, 1, kernelDir);
     }
 
-
+    
     // Now we can identity map using allocateFrame
     i = 0;
     while (i < placement_address + PAGE_ALIGN) {
@@ -159,7 +161,7 @@ void initPaging(uint32_t physicalMemorySize) {
     printf("Paging initialized!\n");
 
     
-
+    
     // Create the kernel heap
     kernelHeap = createHeap(HEAP_START, HEAP_START + HEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
     printf("Kernel heap initialized!\n");

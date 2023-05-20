@@ -19,13 +19,13 @@ void cpuInit() {
     // Load GDT and IDT (IDT method sets up ISR as well as PIC)
     gdtInit();
     idtInit();
-	printf("GDT and IDT initialized successfully.\n");
-	
     serialPrintf("GDT, IDT, and ISR have initialized successfully.\n");
 
     // Enable interrupts.
     enableHardwareInterrupts();
-    serialPrintf("sti instruction did not fault - interrupts enabled.\n");
+    serialPrintf("Interrupts successfully enabled.\n");
+
+	printf("CPU initialization completed.");
 }
 
 // detectCPUFrequency() - Detect the CPU frequency.

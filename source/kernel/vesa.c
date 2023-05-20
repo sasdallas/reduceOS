@@ -19,8 +19,10 @@ uint32_t *vbeBuffer; // This is the buffer we will be drawing in
 int selectedMode = -1; // The current mode selected.
 uint32_t modeWidth, modeHeight, modeBpp = 0; // The height and width of the mode
 
+uint32_t *framebuffer; // A seperate framebuffer.
 
-
+// Double buffering is utilized in this VBE driver. Basically, that means that instead of drawing directly to video memory, you draw to a framebuffer (the one above).
+// Every clock tick, the contents of the framebuffer are drawn to vbeBuffer and framebuffer is cleared out.
 
 
 // Static functions
@@ -45,6 +47,7 @@ static void vbeGetInfo() {
     // Change supported variable.
     isVBESupported = (out.ax == 0x4F);
 }
+
 
 // (static) vbeGetModeInfo(uint16_t mode) - Returns information on a certain mode.
 static vbeModeInfo_t vbeGetModeInfo(uint16_t mode) {
@@ -158,8 +161,8 @@ void vesaInit() {
     // There is a bug preventing us from checking some video modes - check vesaPrintModes() for the bug description.
     // For now, just use 1024x768 with colordepth 32
 
-    //uint32_t mode = vbeGetMode(800, 600, 32);
-    //if (mode == -1) return; // No valid mode was found.
+    // uint32_t mode = vbeGetMode(800, 600, 32);
+    // if (mode == -1) return; // No valid mode was found.
     
 
     // Bypass getting the mode and just set it like so.
@@ -179,10 +182,20 @@ void vesaInit() {
 
     // Now, switch the mode.
     vbeSetMode(mode);
-
-    
+    framebuffer = kmalloc(1024*768*4);
 }
 
+// vbeSwitchBuffers() - Switches the framebuffers
+int vbeSwitchBuffers() {
+    if (!isVBESupported) return -1; // Either VBE is not enabled or not supported.
+
+    // Switch the framebuffers
+    for (int i = 0; i < 1024*768; i++) {
+        vbeBuffer[i] = framebuffer[i];
+    }
+
+    return 0; // Updated buffers successfully.
+}
 
 
 // Most of the graphics functions in here should not be used, instead using other graphics functions.
@@ -191,6 +204,6 @@ void vesaInit() {
 void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
     uint32_t p = y * modeWidth + x;
-    *(vbeBuffer + p) = color;
+    *(framebuffer + p) = color;
 }
 
