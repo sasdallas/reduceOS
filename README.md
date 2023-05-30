@@ -34,6 +34,7 @@ Run `make qemu` to launch QEMU and start the OS.
 
 
 # Known Bugs
+- **Very severe:** Paging and heap are incredibly buggy and NEED to be replaced ASAP - we step over them for now, but that's aa temporary hotfix.
 - **Possibly severe:** VBE and ISR both cannot have PIE or they refuse to work. 
 - PSF font is not working properly.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code.
