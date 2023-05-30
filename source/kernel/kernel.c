@@ -265,19 +265,25 @@ void kmain(multiboot_info* mem) {
     // Initializing VESA will NOT work after this, so we have to ask the user what they want to do now:
     // Update: Found the reason, since paging includes 0x7E00 (temp memory for all bios32 calls), crashing all of reduceOS.
 
-    printf("VESA demo ready - if it doesn't work the first time, press the key again!\n");
-    printf("Press 'v' to begin VESA demo and any other key to continue...");
+
+    // Probably a bad hotfix, but it works, I suppose.
+    printf("To enter the backup command line, please press 'c' (5 seconds).");
     
-    bool didInitVesa = false;
+    bool didInitVesa = true;
+    int timeRemaining = 5000;
 
     while (true) {
-        char c = keyboardGetChar();
-        if (c != 'v') break;
-        else {
+        char c = isKeyPressed();
+        if (c == 'c') { 
+            didInitVesa = false;
+            break;
+        } else if (timeRemaining > 0) {
+            sleep(1);
+            timeRemaining--;
+            if (timeRemaining % 1000) printf("\rTo enter the backup command line, please press 'c' (%i seconds)", timeRemaining / 1000);
+        } else if (timeRemaining == 0) {
             vesaInit();
             bitmapInit();
-            bitmapDrawString("Hello, world!", 10, 10, RGB_VBE(255, 0, 0));
-            didInitVesa = true;
             break;
         }
     }
@@ -314,15 +320,8 @@ void kmain(multiboot_info* mem) {
     printf("Initrd image initialized!\n");
     serialPrintf("Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
-    // Start paging.
-    if (!didInitVesa) {
-        updateBottomText("Initializing paging and heap...");
-        initPaging(0xCFFFF000);
-        serialPrintf("Paging and kernel heap initialized successfully (address: 0xCFFFF000)\n");
-    }
-
     if (didInitVesa) {
-        bitmapDrawString("Paging temporarily disabled.", 50, 50, RGB_VBE(0, 255, 0));
+        bitmapDrawString("This is a test.", 50, 50, RGB_VBE(0, 255, 0));
         gfxDrawRect(80, 80, 100, 100, RGB_VBE(255, 0, 0), false);
         gfxDrawRect(150, 80, 180, 100, RGB_VBE(255, 0, 0), true);
         gfxDrawLine(500, 500, 750, 750, RGB_VBE(255, 0, 0));
@@ -330,58 +329,29 @@ void kmain(multiboot_info* mem) {
         gfxDrawLine(250, 750, 750, 750, RGB_VBE(255, 0, 0));
         vbeSwitchBuffers();
 
-        /*
-        int x = 0;
-        int y = 0;
-
-        // First, draw a small box.
-
-        for (y=100; y < 300; y++) {
-            for (x=0; x < 1280; x++) {
-                vbePutPixel(x, y, RGB_VBE(255, 0, 0));
-            }
-        }
-        vbeSwitchBuffers();
-
-        int yStart = 100;
-        y = 300;
-        x = 0;
-
-        while (true) {
-            if (yStart >= 780) {
-
-                // Draw another box
-                for (int t = 0; t < 200; t++) {
-                    for (int z = 0; z < 1280; z++) {
-                        vbePutPixel(z, t, RGB_VBE(255, 0, 0));
-                    }
-                }
-                yStart = 0;
-                y = 200;
-                vbeSwitchBuffers();
-            }
-
-
-            y++;
-            for (x=0; x < 1280; x++) {
-                vbePutPixel(x, y, RGB_VBE(255, 0, 0));
-            }
-
-            // Remove old.
-            for (x=0; x < 1280; x++) {
-                vbePutPixel(x, yStart, RGB_VBE(0, 0, 0));
-            }
-
-            yStart++;
-            
-            vbeSwitchBuffers();
-
-        }
-
-        */
-
     }
 
+
+
+
+    uint8_t seconds, minutes, hours, days, months;
+    int years;
+
+    rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
+    serialPrintf("Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
+    
+
+    // Start paging if VBE was not initialized.
+    if (!didInitVesa) {
+        updateBottomText("Initializing paging and heap...");
+        initPaging(0xCFFFF000);
+        serialPrintf("Paging and kernel heap initialized successfully (address: 0xCFFFF000)\n");
+        useCommands(); // Jump to command handler.
+    }
+}
+
+void useCommands() {
+    // The user entered the command handler. We will not return.
 
     initCommandHandler();
     registerCommand("system", (command*)getSystemInformation);
@@ -396,20 +366,7 @@ void kmain(multiboot_info* mem) {
     registerCommand("memory", (command*)memoryInfo);
     serialPrintf("All commands registered successfully.\n");
 
-
-    uint8_t seconds, minutes, hours, days, months;
-    int years;
-
-    rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
-    serialPrintf("Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
-
-    
-
-    
-    
-    
-    
-    printf("reduceOS 1.0-dev has completed basic initialization.\nThe command line is now enabled. Type 'help' for help!\n");
+    printf("Command handler initialized - type 'help' for help.\n");
 
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS> "); // Enable a boundary (our prompt)

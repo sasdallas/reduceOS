@@ -81,5 +81,6 @@ void setKBHandler(bool state); // setKBHandler() - Enables / disables the keyboa
 void keyboardGetLine(char *buffer); // keyboardGetLine() - Returns keyboard input after ENTER key is pressed.
 char keyboardGetChar(); // keyboardGetChar() - Returns the current character char (after waiting for it to be non-0)
 void keyboardGetKey(char key, bool printChars); // keyboardGetKey() - Returns whenever keyboardGetChar returns key (or a special character)
+char isKeyPressed(); // isKeyPressed() - Returns if a key is being pressed.
 
 #endif

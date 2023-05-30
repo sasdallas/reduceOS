@@ -200,6 +200,10 @@ char keyboardGetChar() {
     return c;
 }
 
+// isKeyPressed() - A small method to return the key currently being pressed (if any)
+char isKeyPressed() {
+    return ch;
+}
 
 
 // clearBuffer() - Clears the keyboard buffer.

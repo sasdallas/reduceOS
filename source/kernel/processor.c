@@ -25,7 +25,8 @@ void cpuInit() {
     enableHardwareInterrupts();
     serialPrintf("Interrupts successfully enabled.\n");
 
-	printf("CPU initialization completed.");
+	printf("CPU initialization completed.\n");
+	serialPrintf("CPU initialization completed\n");
 }
 
 // detectCPUFrequency() - Detect the CPU frequency.
