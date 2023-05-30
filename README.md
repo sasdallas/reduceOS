@@ -37,9 +37,9 @@ Run `make qemu` to launch QEMU and start the OS.
 - **Possibly severe:** VBE and ISR both cannot have PIE or they refuse to work. 
 - PSF font is not working properly.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code.
-- **Severe:** System crashes if you just type a space, system will leave one character in the buffer after you hit enter, and it doesn't play well with the command parser. Where to start?
+- **Downgraded severity (because we step over command parser):** System crashes if you just type a space, system will leave one character in the buffer after you hit enter, and it doesn't play well with the command parser.
 - For some reason, `printf()` can't handle a `%x` when paging values are passed.
-- A little bit of disgusting code in `keyboardGetChar()`, `commandHandler()`, and a few other functions (unknown how to fix)
+- A little bit of disgusting code in `keyboardGetChar()` and a few other functions (unknown how to fix)
 
 # Credits
 OSDev Wiki - Great resource for anyone looking into OS development. Helped with a ton of the basic principles and code. Link [here](https://wiki.osdev.org/)
