@@ -2,8 +2,8 @@
 ASM = nasm
 CC = gcc
 LD = ld
-GRUB_FILE = grub-file
 AS = as
+GRUB_FILE = grub-file
 OBJCOPY = objcopy
 
 RM = rm

@@ -18,6 +18,8 @@ extern fsNode_t *initrdDev;
 
 multiboot_info *globalInfo;
 
+extern void switchToUserMode(); // User mode switch function
+
 
 
 
@@ -163,6 +165,11 @@ int memoryInfo(int argc, char *args[]) {
     return 0;
 }
 
+void usermodeMain() {
+    // Made it to usermode. Execution doesn't continue after (BUG).
+    printf("Hello world!");
+}
+
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
@@ -212,8 +219,6 @@ void kmain(multiboot_info* mem) {
     printf("Serial logging initialized on COM1.\n");
 
 
-
-    
 
     updateBottomText("Initializing HAL...");
     cpuInit();
@@ -305,6 +310,11 @@ void kmain(multiboot_info* mem) {
     updateBottomText("Initializing ACPI...");
     acpiInit();
 
+    // Initialize physical memory manager
+    // updateBottomText("Initializing physical memory manager...");
+    // physMemInit((mem->m_memoryHi - mem->m_memoryLo), 0x100000 + (kernelEnd-kernelStart)*512, kernelEnd-kernelStart);
+
+   
     // Initialize paging
     
     // Calculate the initial ramdisk location in memory (panic if it's not there)
@@ -338,17 +348,27 @@ void kmain(multiboot_info* mem) {
     int years;
 
     rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
-    serialPrintf("Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
-    
+    serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
+    serialPrintf("kmain: Completed stage 1 of initialization - preparing for user mode...\n");
+    // Syscalls are bugged right now
+    // initSyscalls(); // Initialize system calls
+
+    serialPrintf("kmain: Leap of faith!\n");
+    switchToUserMode();
+
+
+    // CODE IS NOT ACTIVELY BEING USED RIGHT NOW (because of usermode jump):
     // Start paging if VBE was not initialized.
     if (!didInitVesa) {
         updateBottomText("Initializing paging and heap...");
         initPaging(0xCFFFF000);
         serialPrintf("Paging and kernel heap initialized successfully (address: 0xCFFFF000)\n");
         useCommands(); // Jump to command handler.
-    }
+    }    
 }
+
+
 
 void useCommands() {
     // The user entered the command handler. We will not return.

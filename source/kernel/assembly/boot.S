@@ -1,9 +1,9 @@
 # reduceOS multiboot loader - written by sasdallas.
-# Compatible with both multiboot 1 specifications (multiboot 2 is todo)
+# Compatible with multiboot 1 specifications (multiboot 2 is todo)
 
 
 # External variables
-.extern bss_start
+.extern  bss_start
 .extern bss_end
 .extern start
 
@@ -47,8 +47,8 @@ stack_top:
 .section .text
 .global _start
 .global stack_bottom
-.type _start, @function
 
+.type _start, @function
 _start:
     movl $stack_top, %esp
     call _init

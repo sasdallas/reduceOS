@@ -12,17 +12,18 @@ reduceOS has switched to a brand new kernel, with cleaner, commented code and mo
 We do still have to stick with multiboot for now, however. Still, the OS is coming along great.
 
 # Why does it look so messy?
-The assembly code shouldn't look that messy. If it is, start a pull request/contact me and I will update it.
+We're still in beta right now, so obviously it will be messy for a long time. It should change later, however.
 
 # What's the current stage?
-VBE and VESA stuff
+Usermode and ELF loading
 
 # Compiling
 ### Again, even though we were having trouble with Linux builds before, Windows builds are NOT supported. Use WSL, mingw-32, or MSys to build.
+### macOS users need further instruction - see further below.
+### It is recommended to use a 32-bit toolchain (i686) to build reduceOS, but that is optional.
 
 **To build reduceOS, you need these packages:** `gcc`, `nasm`, `make`, `grub`\
 **To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso` (for building an ISO - does not work in QEMU!)
-
 
 The makefile of reduceOS has two main targets for building - `all` and `dbg`.\
 The target to actually build the OS is `all`. If you need to do further debugging, use `dbg` **as well as** `all` (dbg only outputs some debugging symbols)
@@ -33,8 +34,15 @@ Finally, you need to launch the OS. This can be done in a variety of different w
 Run `make qemu` to launch QEMU and start the OS.
 
 
+**macOS users:** The default version of gcc and ld included WILL NOT work! You need to use a package manager such as [homebrew](https://brew.sh) to install a custom version of gcc and ld. See below.
+
+You can build reduceOS with a custom version of gcc or ld by passing these as parameters to make, like so: `make CC=<gcc version path> LD=<ld version path>`. See the makefile for all program variables.
+
+
+
 # Known Bugs
-- **Very severe:** Paging and heap are incredibly buggy and NEED to be replaced ASAP - we step over them for now, but that's aa temporary hotfix.
+- **Very severe:** Paging and heap are incredibly buggy and NEED to be replaced ASAP - we step over them for now, but that's a temporary hotfix.
+- **Severe:** System calls not working.
 - **Possibly severe:** VBE and ISR both cannot have PIE or they refuse to work. 
 - PSF font is not working properly.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code.

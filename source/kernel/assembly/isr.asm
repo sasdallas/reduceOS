@@ -311,8 +311,9 @@ isr31:
 
 ; isr128 - Reserved
 isr128:
+    cli                     ; Disable interrupts
     push byte 0
-    push 128
+    push 281
     jmp isrCommonStub
 
 
