@@ -1,6 +1,7 @@
 # reduceOS - the rewrite
 [![CodeFactor](https://www.codefactor.io/repository/github/sasdallas/reduceos/badge/rewrite)](https://www.codefactor.io/repository/github/sasdallas/reduceos/overview/rewrite)
 
+# ALERT - We have finished merging with main branch. Go there to see more information.
 Welcome to the in progress development of the new reduceOS.\
 If you would like to learn more about the development of the kernel, scroll down.
 
