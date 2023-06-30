@@ -1,16 +1,6 @@
-# reduceOS
+# reduceOS - alpha version
+# This is the alpha version of reduceOS, please see main for the updated version.
 A small, lightweight OS coded in C and Assembly.
-
-## DECEMBER NOTICE
-This branch of the code is not being maintained! **Please check the rewrite branch for a maintained version of reduceOS. The rewrite branch will be later merged into this, and the old code will be moved to another branch.**
-reduceOS is receieving a major infastructure rebuild, with more features and better code stability. Please check there!
-
-## NOTICE: JUNE 2022 - Please read the following!
-### Assembly kernel - reduceOS overall is receiving a massive restructure. A new kernel has been developed that allows for more opportunities and doesn't make use of multiboot. It is unsure whether this update will be applied.
-### No code outsourcing, entirely by me
-### Note: Please read the credits page!
-
-
 
 # About
 reduceOS is a small operating system built for people who have a very slow computer. It can do a few different things using barely any memory and disk space. \
