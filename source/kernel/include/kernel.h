@@ -27,7 +27,6 @@
 #include "include/command.h" // Command parser
 #include "include/pci.h" // PCI
 #include "include/serial.h" // Serial logging
-#include "include/phys_mem.h" // Physical memory manager.
 #include "include/initrd.h" // Initial ramdisk management.
 #include "include/vfs.h" // Virtual file system.
 #include "include/ide_ata.h" // ATA driver

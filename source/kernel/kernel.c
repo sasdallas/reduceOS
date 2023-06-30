@@ -166,8 +166,7 @@ int memoryInfo(int argc, char *args[]) {
 }
 
 void usermodeMain() {
-    // Made it to usermode. Execution doesn't continue after (BUG).
-    printf("Hello world!");
+    printf("Hello world!\n");
 }
 
 
@@ -309,11 +308,6 @@ void kmain(multiboot_info* mem) {
     // Initialize ACPI
     updateBottomText("Initializing ACPI...");
     acpiInit();
-
-    // Initialize physical memory manager
-    // updateBottomText("Initializing physical memory manager...");
-    // physMemInit((mem->m_memoryHi - mem->m_memoryLo), 0x100000 + (kernelEnd-kernelStart)*512, kernelEnd-kernelStart);
-
    
     // Initialize paging
     
@@ -323,8 +317,6 @@ void kmain(multiboot_info* mem) {
     uint32_t initrdEnd = *(uint32_t*)(mem->m_modsAddr + 4);
     placement_address = initrdEnd;
     serialPrintf("GRUB did pass an initial ramdisk.\n");
-    
-    
     
     fs_root = initrdInit(initrdLocation);    
     printf("Initrd image initialized!\n");
@@ -338,10 +330,7 @@ void kmain(multiboot_info* mem) {
         gfxDrawLine(500, 500, 250, 750, RGB_VBE(255, 0, 0));
         gfxDrawLine(250, 750, 750, 750, RGB_VBE(255, 0, 0));
         vbeSwitchBuffers();
-
     }
-
-
 
 
     uint8_t seconds, minutes, hours, days, months;
