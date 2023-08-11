@@ -7,9 +7,6 @@
 
 
 
-
-
-
 // gfxDrawRect(int x1, int y1, int x2, int y2, uint32_t color, bool fill) - Draws a rectangle.
 void gfxDrawRect(int x1, int y1, int x2, int y2, uint32_t color, bool fill) {
     // Begin by drawing the first top and bottom lines.
@@ -82,29 +79,29 @@ void gfxDrawLine(int x1, int y1, int x2, int y2, uint32_t color) {
     int y = y1;
 
     if (slope < 1) {
-        int error = (x2-x1)/2; // TODO: implement abs() and use it on this
+        int error = abs((x2-x1)/2);
 
         while (x != x2) {
             vbePutPixel(x, y, color);
 
             x += dx;
-            error -= (y2-y1); // TODO: implement abs() and use it on this.
+            error -= abs((y2-y1));
             if (error < 0) {
                 y += dy;
-                error += (x2-x1); // TODO: implement abs() and use it on this.
+                error += abs((x2-x1));
             }
         }
     } else if (slope > 1) {
-        int error = (y2-y1)/2; // TODO: implement abs() and use it on this.
+        int error = abs((y2-y1)/2);
         
         while (y != y2) {
             vbePutPixel(x, y, color);
 
             y += dy;
-            error -= (x2-x1); // TODO: implement abs() and use it on this.
+            error -= abs((x2-x1));
             if (error < 0) {
                 x += dx;
-                error += (y2-y1); // TODO: implement abs() and use it on this.
+                error += abs((y2-y1));
             }
         }
     } else if (slope == 1) {
