@@ -50,7 +50,7 @@ cat = cat
 
 # Flags for compilers
 ASM_FLAGS = -f bin
-CC_FLAGS = -m32 -std=gnu99 -ffreestanding -fno-pie -Wall -Wextra -I$(KERNEL_SOURCE)/
+CC_FLAGS = -m32 -g -std=gnu99 -ffreestanding -fno-pie -Wall -Wextra -I$(KERNEL_SOURCE)/
 LD_FLAGS = -m elf_i386 -T linker.ld 
 
 
@@ -84,26 +84,27 @@ INITRD_OBJS = $(patsubst $(INITRD_SRC)/src/%.c, $(INITRD_OBJ)/%.o, $(INITRD_SRCS
 # dbg - builds a kernel file (non-binary) for use with objdump or other examination tools (this target is most commonly used while testing new linking)
 
 all: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img
-dbg: $(OUT_KERNEL)/kernel $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
+dbg: $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
 
 
-
-$(OUT_KERNEL)/kernel: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
-	@printf "[ Linking debug kernel... ]\n"
-	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel
-	@printf "\n"
 
 $(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
-	@printf "[ Linking debug symbols... ]\n"
-	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) -o $(OUT_KERNEL)/kernel.elf
+	@printf "[ Linking debug kernel... ]\n"
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) -o $(OUT_KERNEL)/kernel.elf
+	@printf "[ Stripping debug symbols... ]\n"
+	$(OBJCOPY) -O binary $(OUT_KERNEL)/kernel.elf $(OUT_KERNEL)/kernel.bin
+	@printf "[ Copying debug symbols to kernel.sym... ]\n"
+	$(OBJCOPY) --only-keep-debug $(OUT_KERNEL)/kernel.elf $(OUT_KERNEL)/kernel.sym
+	@printf "\n"
+	
+
 
 
 $(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
-	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) -o $(OUT_KERNEL)/kernel.bin 
-	@printf "\n"
-	@printf "[ Verifying kernel is valid... ]\n"
-	$(GRUB_FILE) --is-x86-multiboot $(OUT_KERNEL)/kernel.bin
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) -o $(OUT_KERNEL)/kernel.elf
+	@printf "[ Stripping debug symbols... ]"
+	$(OBJCOPY) -O binary $(OUT_KERNEL)/kernel.elf $(OUT_KERNEL)/kernel.bin
 	@printf "\n"
 
 
@@ -179,15 +180,20 @@ $(OUT_INITRD)/initrd.img: $(INITRD_SRC)/generate_initrd
 
 qemu:
 	@printf "[ Launching QEMU... ]\n"
-	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.bin 
+	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.elf 
 
 qemu_dbg:
 	@printf "[ Launching QEMU with debug options... ]\n"
-	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.bin -serial stdio
+	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.elf -serial stdio
+
+qemu_dbg_gdb:
+	@printf "[ Launching QEMU with GDB and debug options... ]\n"
+	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.elf -serial stdio -s -S
+
 
 qemu_drive:
 	@printf "[ Launching QEMU with external drive (run make drive to get drive)... ]\n"
-	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.bin -serial stdio -hda test.img
+	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.elf -serial stdio -hda test.img
 
 drive:
 	@printf "[ Creating drive (requires qemu-img)... ]\n"

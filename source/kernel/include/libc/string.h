@@ -26,4 +26,5 @@ int strcmp(const char *str1, char *str2); // strcmp() - compares a string.
 int strncmp(const char *str1, char *str2, int length); // strncmp() - compares a string for x amount of chars.
 int strlen(char *str); // strlen() - checks length of a string
 char *strtok(char *str, const char *delim); // strtok() - splits a string into tokens, seperated by delim.
+long strtol(const char *nptr, char **endptr, int base); // strtol() - <todo add description>
 #endif

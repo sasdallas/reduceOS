@@ -204,6 +204,7 @@ char isKeyPressed() {
 // clearBuffer() - Clears the keyboard buffer.
 void clearBuffer() {
     memset(bufferPointer, 0, sizeof(char) * 256);
+    bindex = 0;
 }
 
 

@@ -46,9 +46,10 @@ You can build reduceOS with a custom version of gcc or ld by passing these as pa
 - **Possibly severe:** VBE and ISR both cannot have PIE or they refuse to work. 
 - PSF font is not working properly.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code.
-- **Downgraded severity (because we step over command parser):** System crashes if you just type a space, system will leave one character in the buffer after you hit enter, and it doesn't play well with the command parser.
+- **Downgraded severity:** System crashes if you just type a space and it doesn't play well with the command parser.
 - For some reason, `printf()` can't handle a `%x` when paging values are passed.
 - A little bit of disgusting code in `keyboardGetChar()` and a few other functions (unknown how to fix)
+- Too many spaces crashes backup command line
 
 # Credits
 OSDev Wiki - Great resource for anyone looking into OS development. Helped with a ton of the basic principles and code. Link [here](https://wiki.osdev.org/)
@@ -58,3 +59,9 @@ BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. 
 JamesM's kernel development tutorials - (no need for Internet Archive anymore) Really helped out with some of the basic concepts, especially paging and the initial ramdisk. Link [here](http://jamesmolloy.co.uk/tutorial_html/)
 
 eduOS by RWTH-OS - Helped with multitasking a ton, great resource if you need examples to build off. Link [here](https://github.com/RWTH-OS/eduOS)
+
+GCC - Basically the entire OS, but some code was copied for the internal libc. Link [here](https://github.com/gcc-mirror/gcc)
+
+# To Developers
+If you see your code in my repository and do not wish it to be there, please notify me to have it removed or to add credit! I am so sorry if you aren't in the credits list, I forget sometimes.
+Thank you for all you do, I appreciate it greatly!

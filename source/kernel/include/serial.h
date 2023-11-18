@@ -23,6 +23,8 @@ extern bool isSerialEnabled;
 
 // Functions
 void serialInit(); // Initialize serial (default port COM1, unchangable as of now.)
+char serialRead(); // Read one character from SERIAL_COM1
+void serialReadLine(bool printChars, char *bufferPtr); // Read line from SERIAL_COM1
 void serialWrite(char c); // Writes character 'c' to serial when transmit is empty.
 void serialPrintf(const char *str, ...); // Prints a formatted line to SERIAL_COM1.
 #endif

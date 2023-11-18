@@ -17,8 +17,8 @@ static int serialHasReceived() {
     return inportb(SERIAL_COM1 + 5) & 1;
 }
 
-// (static) serialRead() - Reads SERIAL_COM1 and returns whatever it found (only returns if serialHasReceived returns 1)
-static char serialRead() {
+// serialRead() - Reads SERIAL_COM1 and returns whatever it found (only returns if serialHasReceived returns 1)
+char serialRead() {
     while (serialHasReceived() == 0);
     return inportb(SERIAL_COM1);
 }
@@ -48,6 +48,21 @@ void serialPrintf(const char *str, ...) {
     va_end(ap);
 }
 
+// serialReadLine(bool printChars) - Reads a line from SERIAL_COM1
+void serialReadLine(bool printChars, char *bufferPtr) {
+    char *buffer = kmalloc(8); // prolly a security nightmare but lol idc
+    int bindex = 0;
+    char receivedChar = '\0';
+    while (receivedChar != 0xD) { // 0xD is a newline in serial
+        receivedChar = serialRead();
+        buffer[bindex] = receivedChar;
+        bindex++;
+        if (printChars) printf("%c", receivedChar);
+    }
+    if (printChars) serialPrintf("\n");
+    strcpy(bufferPtr, buffer);
+    return;
+}
 
 int testSerial() {
     // The first thing we need to do to test the serial chip is to set it in loopback mode.

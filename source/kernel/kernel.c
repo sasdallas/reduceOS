@@ -50,7 +50,50 @@ int getSystemInformation(int argc, char *args[]) {
 
 
 
+int dump(int argc, char *args[]) {
+    if (argc == 1) { printf("No arguments! Possible arguments: sysinfo, memory <addr>, memoryrange <addr1> <addr2>\n"); return -1; }
+    if (!strcmp(args[1], "sysinfo")) {
+        // Getting vendor ID and if the CPU is 16, 32, or 64 bits (32 at minimum so idk why we check for 16, but just in case)
+        uint32_t vendor[32];
+    
+        memset(vendor, 0, sizeof(vendor));
+    
+        __cpuid(0x80000002, (uint32_t *)vendor+0x0, (uint32_t *)vendor+0x1, (uint32_t *)vendor+0x2, (uint32_t *)vendor+0x3);
+        __cpuid(0x80000003, (uint32_t *)vendor+0x4, (uint32_t *)vendor+0x5, (uint32_t *)vendor+0x6, (uint32_t *)vendor+0x7);
+        __cpuid(0x80000004, (uint32_t *)vendor+0x8, (uint32_t *)vendor+0x9, (uint32_t *)vendor+0xa, (uint32_t *)vendor+0xb);
+        
+        printf("CPU model: %s (frequency: %i Hz)\n", vendor, getCPUFrequency());
+        printf("Available memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
+        printf("Drives available:\n");
+        printIDESummary();
+        printf("PCI devices:\n");
+        printPCIInfo();
 
+    } else if (!strcmp(args[1], "memory") && argc > 2) {
+        printf("Warning: Dumping memory in the wrong spots can crash the OS.\n");
+        int addr = (int)strtol(args[2], NULL, 16);
+        int *value;
+        memcpy(value, addr, sizeof(void*));
+        printf("Value at memory address 0x%x: 0x%x (%i)\n", addr, (uint8_t)value, value);
+    } else if (!strcmp(args[1], "memoryrange") && argc > 3) {
+        printf("Warning: Dumping memory in the wrong spots can crash the OS.\n");
+        int addr1 = (int)strtol(args[2], NULL, 16);
+        int addr2 = (int)strtol(args[3], NULL, 16);
+        printf("Values from memory addresses 0x%x - 0x%x:\n", addr1, addr2);
+        int *value;
+        for (addr1; addr1 < addr2; addr1++) {
+            memcpy(value, addr1, sizeof(void*));
+            printf("0x%x=0x%x", addr1, value);
+        }
+    } else {
+        printf("Invalid arguments, please check if your syntax is correct.\n");
+        printf("Possible arguments: sysinfo, memory <addr>, memoryrange <addr1> <addr2>");
+        return -1;
+    }
+
+    printf("Dump complete\n");
+    return 0;
+}
 
 int echo(int argc, char *args[]) {
     if (argc > 1) {
@@ -159,6 +202,11 @@ int readSectorTest(int argc, char *args[]) {
 
 
 
+static void gdbAttached(registers_t *r) {
+    // GDB was attached successfully
+    printf("GDB attached!!\n");
+    return 0;
+}
 
 int memoryInfo(int argc, char *args[]) {
     printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
@@ -299,7 +347,7 @@ void kmain(multiboot_info* mem) {
     // Probe for PCI devices
     updateBottomText("Probing PCI...");
     initPCI();
-    serialPrintf("PCI probe completed\n");
+    serialPrintf("initPCI: PCI probe completed\n");
 
     // Initialize the IDE controller.
     updateBottomText("Initializing IDE controller...");
@@ -320,7 +368,7 @@ void kmain(multiboot_info* mem) {
     
     fs_root = initrdInit(initrdLocation);    
     printf("Initrd image initialized!\n");
-    serialPrintf("Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
+    serialPrintf("initrdInit: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
     if (didInitVesa) {
         bitmapDrawString("This is a test.", 50, 50, RGB_VBE(0, 255, 0));
@@ -339,20 +387,15 @@ void kmain(multiboot_info* mem) {
     rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
-    serialPrintf("kmain: Completed stage 1 of initialization - preparing for user mode...\n");
-    // Syscalls are bugged right now
-    // initSyscalls(); // Initialize system calls
 
-    serialPrintf("kmain: Leap of faith!\n");
-    switchToUserMode();
+    // Skip usermode for now, we'll come back to it after we fix it.
 
-
-    // CODE IS NOT ACTIVELY BEING USED RIGHT NOW (because of usermode jump):
     // Start paging if VBE was not initialized.
     if (!didInitVesa) {
-        updateBottomText("Initializing paging and heap...");
-        initPaging(0xCFFFF000);
-        serialPrintf("Paging and kernel heap initialized successfully (address: 0xCFFFF000)\n");
+        // Paging is a crucial thing to have in the future - it's currently broken
+        //updateBottomText("Initializing paging and heap...");
+        //initPaging(0xCFFFF000);
+        //serialPrintf("Paging and kernel heap initialized successfully (address: 0xCFFFF000)\n");
         useCommands(); // Jump to command handler.
     }    
 }
@@ -360,6 +403,9 @@ void kmain(multiboot_info* mem) {
 
 
 void useCommands() {
+    clearScreen(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
+    clearBuffer();
+
     // The user entered the command handler. We will not return.
 
     initCommandHandler();
@@ -373,8 +419,10 @@ void useCommands() {
     registerCommand("sector", (command*)readSectorTest);
     registerCommand("shutdown", (command*)shutdown);
     registerCommand("memory", (command*)memoryInfo);
+    registerCommand("dump", (command*)dump);
     serialPrintf("All commands registered successfully.\n");
-
+    printf("WARNING: The command line may be unstable, please be careful and double check your commands.\n");
+    printf("I'm working on multiple other things right now - this is on the list, however.\n");
     printf("Command handler initialized - type 'help' for help.\n");
 
     char buffer[256]; // We will store keyboard input here.
