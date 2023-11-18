@@ -59,7 +59,9 @@ typedef struct {
 } __attribute__((packed)) vbeModeInfo_t;
 
 
-// Inline functions
+// Framebuffers (probably not a good idea but I could care less)
+extern uint32_t *vbeBuffer;
+extern uint32_t *framebuffer; // 2nd framebuffer.
 
 
 

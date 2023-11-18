@@ -39,9 +39,11 @@ INITRD_DIR = $(INITRD_SRC)/initrd
 FONT_SRC = source/fonts
 OUT_FONT = $(OUT_OBJ)/fonts
 
-# Files
-OUT_IMG = out/img
+IMAGE_SRC = source/images
+OUT_IMAGES = $(OUT_OBJ)/images
 
+# files
+OUT_IMG = out/img
 
 # Misc. things
 LOOP0 = /dev/loop0
@@ -49,7 +51,7 @@ cat = cat
 
 
 # Flags for compilers
-ASM_FLAGS = -f bin
+ASM_FLAGS = -f elf32 -F dwarf -g
 CC_FLAGS = -m32 -g -std=gnu99 -ffreestanding -fno-pie -Wall -Wextra -I$(KERNEL_SOURCE)/
 LD_FLAGS = -m elf_i386 -T linker.ld 
 
@@ -67,6 +69,8 @@ ASM_KLOADEROBJS = $(patsubst $(KLOADER_SOURCE)/%.asm, $(OUT_ASMOBJ)/%.o, $(ASM_K
 FONT_SRCS = $(wildcard $(FONT_SRC)/*.psf)
 FONT_OBJS = $(patsubst $(FONT_SRC)/%.psf, $(OUT_FONT)/%.o, $(FONT_SRCS))
 
+IMAGE_SRCS = $(wildcard $(IMAGE_SRC)/*.bmp)
+IMAGE_OBJS = $(patsubst $(IMAGE_SRC)/%.bmp, $(OUT_IMAGES)/%.o, $(IMAGE_SRCS))
 
 # All LIBC and C sources - this will need an update when we properly organize directories.
 
@@ -80,31 +84,31 @@ INITRD_OBJS = $(patsubst $(INITRD_SRC)/src/%.c, $(INITRD_OBJ)/%.o, $(INITRD_SRCS
 
 
 # Targets
-# all - builds a proper kernel.bin file for release
+# all - builds a proper kernel.elf file for release
 # dbg - builds a kernel file (non-binary) for use with objdump or other examination tools (this target is most commonly used while testing new linking)
 
-all: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img
-dbg: $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
+all: $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
+dbg: $(OUT_KERNEL)/kernel_debug.elf $(OUT_INITRD)/initrd.img
 
 
-
-$(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS) PATCH_TARGETS
+# I'm sorry for naming this target out/kernel/kernel_debug.elf when it does not produce a kernel_debug.elf
+$(OUT_KERNEL)/kernel_debug.elf: $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking debug kernel... ]\n"
-	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) -o $(OUT_KERNEL)/kernel.elf
-	@printf "[ Stripping debug symbols... ]\n"
-	$(OBJCOPY) -O binary $(OUT_KERNEL)/kernel.elf $(OUT_KERNEL)/kernel.bin
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
 	@printf "[ Copying debug symbols to kernel.sym... ]\n"
 	$(OBJCOPY) --only-keep-debug $(OUT_KERNEL)/kernel.elf $(OUT_KERNEL)/kernel.sym
+	@printf "[ Stripping debug symbols... ]\n"
+	$(OBJCOPY) --strip-debug $(OUT_KERNEL)/kernel.elf
 	@printf "\n"
 	
 
 
 
-$(OUT_KERNEL)/kernel.bin: $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) PATCH_TARGETS
+$(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
-	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) -o $(OUT_KERNEL)/kernel.elf
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
 	@printf "[ Stripping debug symbols... ]"
-	$(OBJCOPY) -O binary $(OUT_KERNEL)/kernel.elf $(OUT_KERNEL)/kernel.bin
+	$(OBJCOPY) --strip-debug $(OUT_KERNEL)/kernel.elf
 	@printf "\n"
 
 
@@ -115,7 +119,7 @@ $(OUT_OBJ)/%.o: $(KERNEL_SOURCE)/%.c | $(OUT_OBJ)
 
 $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.asm | $(OUT_ASMOBJ)
 	@printf "[ Compiling kernel ASM file... ]\n"
-	$(ASM) -f elf32 $< -o $@
+	$(ASM) $(ASM_FLAGS) $< -o $@
 	@printf "\n"
 
 $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o:
@@ -134,6 +138,10 @@ $(OUT_FONT)/%.o: $(FONT_SRC)/%.psf | $(OUT_FONT)
 	$(OBJCOPY) -O elf32-i386 -B i386 -I binary $< $@
 	@printf "\n"
 
+$(OUT_IMAGES)/%.o: $(IMAGE_SRC)/%.bmp | $(OUT_IMAGES)
+	@printf "[ Converting bitmap $< to binary object... ]\n"
+	$(OBJCOPY) -O elf32-i386 -B i386 -I binary $< $@
+	@printf "\n"
 
 img: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img
 	@printf "[ Creating directory for building image... ]\n"

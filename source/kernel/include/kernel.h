@@ -35,5 +35,6 @@
 #include "include/processor.h" // Procesor handler
 #include "include/vesa.h"
 #include "include/syscall.h" // System call
+#include "include/bitmap.h"
 
 #endif

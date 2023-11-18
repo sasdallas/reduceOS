@@ -189,6 +189,7 @@ void vesaInit() {
 int vbeSwitchBuffers() {
     if (!isVBESupported) return -1; // Either VBE is not enabled or not supported.
 
+    
     // Switch the framebuffers
     for (int i = 0; i < 1024*768; i++) {
         vbeBuffer[i] = framebuffer[i];

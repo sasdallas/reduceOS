@@ -7,22 +7,36 @@
 
 static char *shell = "\0"; // This will be used if we're handling typing - mainly used with backspace, to prevent deleting the prompt by accident. If this variable is \0, it will not be used.
 
+
+// The terminal's mode is either VGA or VESA VBE. VESA VBE is currently using PSF functions (todo: implement a system wide font API to allow for changing between different fonts)
+int terminalMode = 0; // 0 signifies VGA mode, 1 signifies VESA VBE.
+int vbeTerminalForeground, vbeTerminalBackground;
+
 // initTerminal() - Load the terminal, setup the buffers, reset the values, etc.
 void initTerminal(void) {
-    terminalX = 0, terminalY = 0; // Reset terminal X and Y
-    terminalColor = vgaColorEntry(COLOR_WHITE, COLOR_CYAN); // The terminal color will be white for the text and cyan for the BG on start.
-    terminalBuffer = VIDEO_MEM; // Initialize the terminal buffer as VIDEO_MEM (0xB8000)
+    if (!terminalMode) {
+        terminalX = 0, terminalY = 0; // Reset terminal X and Y
+        terminalColor = vgaColorEntry(COLOR_WHITE, COLOR_CYAN); // The terminal color will be white for the text and cyan for the BG on start.
+        terminalBuffer = VIDEO_MEM; // Initialize the terminal buffer as VIDEO_MEM (0xB8000)
 
-    // Now we need to setup the screen by clearing it with ' '.
+        // Now we need to setup the screen by clearing it with ' '.
 
-    for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
-        for (size_t x = 0; x < SCREEN_WIDTH; x++) {
-            const size_t index = y * SCREEN_WIDTH + x;
-            terminalBuffer[index] = vgaEntry(' ', terminalColor);
+        for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
+            for (size_t x = 0; x < SCREEN_WIDTH; x++) {
+                const size_t index = y * SCREEN_WIDTH + x;
+                terminalBuffer[index] = vgaEntry(' ', terminalColor);
+            }
         }
+    } else {
+        // VBE reinit code goes here
+        terminalX = 50, terminalY = 50; // Reset X and Y
+        vbeTerminalForeground = COLOR_WHITE;
+        vbeTerminalBackground = COLOR_BLACK;
     }
 }
 
+// changeTerminalMode(int mode) - Changes the mode of the terminal, VGA or VBE.
+void changeTerminalMode(int mode) { terminalMode = mode; initTerminal(); }
 
 // updateTerminalColor(uint8_t color) - Update the terminal color. Simple function.
 // Why not use gfxColors as the params? Other functions in terminal.c call this, and it's faster to use terminalColor. May change later though.
@@ -61,9 +75,6 @@ void scrollTerminal() {
 
         terminalY = SCREEN_HEIGHT - 1;
     }
-
-    
-
 }
 
 
@@ -112,6 +123,10 @@ void terminalMoveArrowKeys(int arrowKey) {
 
 // terminalPutchar(char c) - This is the recommended function to use (besides printf, that'll be later) as it incorporates scrollTerminal and terminalDeleteLastLine.
 void terminalPutchar(char c) {
+    if (terminalMode == 1) {
+        terminalPutcharVESA(c);
+        return;
+    }
     int line;
     unsigned char uc = c; // terminalPutcharXY() requires an unsigned char.
 
@@ -152,9 +167,40 @@ void terminalPutchar(char c) {
     updateTextCursor();
 }
 
+// terminalPutcharVESA(char c) - VESA VBE putchar method (using PSF as of now)
+void terminalPutcharVESA(char c) {
+    int line;
+    unsigned char uc = c;
+
+    if (terminalX == SCREEN_WIDTH) {
+        terminalY++;
+        terminalX = 0;
+    }
+
+    if (c == '\n') {
+        terminalY = terminalY + psfGetFontHeight();
+        terminalX = 0;
+    } else if (c == '\b') {
+        // TODO: Backspace
+    } else if (c == '\0') {
+        // Do nothing
+    } else if (c == '\t') {
+        for (int i = 0; i < 4; i++) {
+            terminalPutcharVESA(' ');
+        }
+    } else if (c == '\r') {
+        terminalX = 0;
+    } else {
+        psfDrawChar(c, terminalX, terminalY, vbeTerminalForeground, vbeTerminalBackground);
+        terminalX = terminalX + psfGetFontWidth(); 
+    }
+}
+
 // terminalWrite(const char *data, size_t size) - Writes a certain amount of data to the terminal.
 void terminalWrite(const char *data, size_t size) {
-    for (size_t i = 0; i < size; i++) terminalPutchar(data[i]);
+    for (size_t i = 0; i < size; i++) {
+        terminalPutchar(data[i]); 
+    }
 }
 
 

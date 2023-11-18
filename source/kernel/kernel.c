@@ -202,21 +202,18 @@ int readSectorTest(int argc, char *args[]) {
 
 
 
-static void gdbAttached(registers_t *r) {
-    // GDB was attached successfully
-    printf("GDB attached!!\n");
-    return 0;
-}
+
 
 int memoryInfo(int argc, char *args[]) {
     printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
     return 0;
 }
 
-void usermodeMain() {
-    printf("Hello world!\n");
-}
 
+
+void usermodeMain() {
+
+}
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(multiboot_info* mem) {
@@ -262,7 +259,9 @@ void kmain(multiboot_info* mem) {
     serialInit();
     serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
     serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", &kernelStart, &kernelEnd, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
+    serialPrintf("============================================================================================================================\n");
     serialPrintf("Serial logging initialized!\n");
+    
     printf("Serial logging initialized on COM1.\n");
 
 
@@ -317,12 +316,12 @@ void kmain(multiboot_info* mem) {
     // Initializing VESA will NOT work after this, so we have to ask the user what they want to do now:
     // Update: Found the reason, since paging includes 0x7E00 (temp memory for all bios32 calls), crashing all of reduceOS.
 
-
     // Probably a bad hotfix, but it works, I suppose.
     printf("To enter the backup command line, please press 'c' (5 seconds).");
     
     bool didInitVesa = true;
     int timeRemaining = 5000;
+
 
     while (true) {
         char c = isKeyPressed();
@@ -335,7 +334,7 @@ void kmain(multiboot_info* mem) {
             if (timeRemaining % 1000) printf("\rTo enter the backup command line, please press 'c' (%i seconds)", timeRemaining / 1000);
         } else if (timeRemaining == 0) {
             vesaInit();
-            bitmapInit();
+            bitmapFontInit();
             break;
         }
     }
@@ -370,13 +369,23 @@ void kmain(multiboot_info* mem) {
     printf("Initrd image initialized!\n");
     serialPrintf("initrdInit: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
+
+    
+
     if (didInitVesa) {
-        bitmapDrawString("This is a test.", 50, 50, RGB_VBE(0, 255, 0));
-        gfxDrawRect(80, 80, 100, 100, RGB_VBE(255, 0, 0), false);
-        gfxDrawRect(150, 80, 180, 100, RGB_VBE(255, 0, 0), true);
-        gfxDrawLine(500, 500, 750, 750, RGB_VBE(255, 0, 0));
-        gfxDrawLine(500, 500, 250, 750, RGB_VBE(255, 0, 0));
-        gfxDrawLine(250, 750, 750, 750, RGB_VBE(255, 0, 0));
+        // bitmap_t *wallpaper = createBitmap();
+        // displayBitmap(wallpaper);
+        // vbeSwitchBuffers();
+        
+        // Initialize PSF
+        psfInit();
+        
+        // bitmapFontDrawString("This is a test.", 50, 50, RGB_VBE(0, 255, 0));
+        // gfxDrawRect(80, 80, 100, 100, RGB_VBE(255, 0, 0), false);
+        // gfxDrawRect(150, 80, 180, 100, RGB_VBE(255, 0, 0), true);
+        // gfxDrawLine(500, 500, 750, 750, RGB_VBE(255, 0, 0));
+        // gfxDrawLine(500, 500, 250, 750, RGB_VBE(255, 0, 0));
+        // gfxDrawLine(250, 750, 750, 750, RGB_VBE(255, 0, 0));
         vbeSwitchBuffers();
     }
 
@@ -387,6 +396,7 @@ void kmain(multiboot_info* mem) {
     rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
+    
 
     // Skip usermode for now, we'll come back to it after we fix it.
 

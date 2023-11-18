@@ -27,6 +27,7 @@ static uint16_t *terminalBuffer; // The most important one: the terminal buffer.
 // Function declarations
 
 void terminalInit(void); // terminalInit() - load the terminal
+void changeTerminalMode(int mode); // changeTerminalMode() - Update the terminal mode (0 = VGA, 1 = VESA)
 void updateTerminalColor(uint8_t color); // updateTerminalColor() - Change the terminal color. Requires a vgaColorEntry already setup.
 void terminalPutcharXY(unsigned char c, uint8_t color, size_t x, size_t y); // terminalPutcharXY() - Place an unsigned char at a certain X and Y. Not recommended, doesn't include scrolling stuff.
 void terminalGotoXY(size_t x, size_t y); // terminalGotoXY() - Change the position to X and Y
