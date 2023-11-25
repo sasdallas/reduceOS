@@ -7,6 +7,8 @@ If you would like to learn more about the development of the kernel, scroll down
 ![reduceOS image](reduceOSDemo.png)
 
 #### Please read the credits!
+### FOREWARNING: reduceOS DOES NOT currently work on real hardware - I'm working on that
+
 # What's different?
 reduceOS has switched to a brand new kernel, with cleaner, commented code and more features. This kernel is also written entirely by me, without a base.\
 We do still have to stick with multiboot for now, however. Still, the OS is coming along great.
