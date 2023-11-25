@@ -11,6 +11,7 @@ static char *shell = "\0"; // This will be used if we're handling typing - mainl
 // The terminal's mode is either VGA or VESA VBE. VESA VBE is currently using PSF functions (todo: implement a system wide font API to allow for changing between different fonts)
 int terminalMode = 0; // 0 signifies VGA mode, 1 signifies VESA VBE.
 int vbeTerminalForeground, vbeTerminalBackground;
+int vbeWidth, vbeHeight;
 
 // initTerminal() - Load the terminal, setup the buffers, reset the values, etc.
 void initTerminal(void) {
@@ -29,9 +30,11 @@ void initTerminal(void) {
         }
     } else {
         // VBE reinit code goes here
-        terminalX = 50, terminalY = 50; // Reset X and Y
+        terminalX = 0, terminalY = 0; // Reset X and Y
         vbeTerminalForeground = COLOR_WHITE;
         vbeTerminalBackground = COLOR_BLACK;
+        vbeWidth = modeWidth;
+        vbeHeight = modeHeight;
     }
 }
 
@@ -168,12 +171,13 @@ void terminalPutchar(char c) {
 }
 
 // terminalPutcharVESA(char c) - VESA VBE putchar method (using PSF as of now)
+// Note: Don't call this directly! vbeSwitchBuffers is not called, could result in issues and annoyances later.
 void terminalPutcharVESA(char c) {
     int line;
     unsigned char uc = c;
 
-    if (terminalX == SCREEN_WIDTH) {
-        terminalY++;
+    if (terminalX == vbeWidth) {
+        terminalY = terminalY + psfGetFontHeight();
         terminalX = 0;
     }
 
@@ -181,7 +185,7 @@ void terminalPutcharVESA(char c) {
         terminalY = terminalY + psfGetFontHeight();
         terminalX = 0;
     } else if (c == '\b') {
-        // TODO: Backspace
+        terminalBackspaceVESA();
     } else if (c == '\0') {
         // Do nothing
     } else if (c == '\t') {
@@ -194,6 +198,7 @@ void terminalPutcharVESA(char c) {
         psfDrawChar(c, terminalX, terminalY, vbeTerminalForeground, vbeTerminalBackground);
         terminalX = terminalX + psfGetFontWidth(); 
     }
+    
 }
 
 // terminalWrite(const char *data, size_t size) - Writes a certain amount of data to the terminal.
@@ -201,13 +206,15 @@ void terminalWrite(const char *data, size_t size) {
     for (size_t i = 0; i < size; i++) {
         terminalPutchar(data[i]); 
     }
+
+    // printf() will handle the terminalPutchar
 }
 
 
 // terminalWriteString() - The exact same as terminal write, but shorter with no len option (we use strlen). Not recommended for use, use printf (further down in the file)!
 void terminalWriteString(const char *data) { terminalWrite(data, strlen(data)); }
 
-// terminalBackspace() - Removes the last character outputed.
+// terminalBackspace() - Removes the last character outputted.
 void terminalBackspace() {
     if (terminalX == 0) return; // terminalX being 0 would cause a lot of problems.
     if (terminalX <= strlen(shell) && shell != "\0") return; // Cannot overwrite the shell.
@@ -220,6 +227,22 @@ void terminalBackspace() {
     // Finally, set terminalX to one below current.
     terminalGotoXY(terminalX-1, terminalY);
 }
+
+// terminalBackspaceVESA() - Removes the last character outputted (VBE mode)
+void terminalBackspaceVESA() {
+    if (terminalX < psfGetFontWidth()) return;
+    if (terminalX <= strlen(shell)*psfGetFontWidth() && shell != "\0") return; // Cannot overwrite shell
+
+    // Go back one character.
+    terminalX = terminalX - psfGetFontWidth();
+    
+    // Then, write a space where the character is.
+    terminalPutcharVESA(' ');
+
+    // Set terminalX to one behind current.
+    terminalX = terminalX - psfGetFontWidth();
+}
+
 
 void terminalWriteStringXY(const char *data, size_t x, size_t y) {
     size_t previousX = terminalX; // Store terminalX and terminalY in temporary variables
@@ -383,11 +406,13 @@ int printf(const char*  format, ...) {
                 break;
             
             default:
-                terminalPutchar(format[i]);
+                terminalPutchar(format[i]); // If else place the character
                 break;
 
         }
     }
+    
+    if (terminalMode == 1) vbeSwitchBuffers(); // Call after done writing to remove typewriting effect.
 
     va_end(args);
     return charsWritten;

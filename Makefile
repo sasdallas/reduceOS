@@ -52,7 +52,7 @@ cat = cat
 
 # Flags for compilers
 ASM_FLAGS = -f elf32 -F dwarf -g
-CC_FLAGS = -m32 -g -std=gnu99 -ffreestanding -fno-pie -Wall -Wextra -I$(KERNEL_SOURCE)/
+CC_FLAGS = -m32 -fno-stack-protector -g -std=gnu99 -ffreestanding -fno-pie -Wall -Wextra -I$(KERNEL_SOURCE)/
 LD_FLAGS = -m elf_i386 -T linker.ld 
 
 
@@ -123,8 +123,8 @@ $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.asm | $(OUT_ASMOBJ)
 	@printf "\n"
 
 $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o:
-	@printf "[ Compiling GCC object $@... ]\n"
-	OBJ=`$(CC) $(CC_FLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
+	@printf "[ Copying GCC object $(@F)... ]\n"
+	OBJ=`$(CC) -m32 -O2 -g -ffreestanding -print-file-name=$(@F)` && cp "$$OBJ" $@
 	@printf "\n"
 
 

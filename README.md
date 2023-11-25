@@ -59,8 +59,6 @@ BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. 
 
 JamesM's kernel development tutorials - (no need for Internet Archive anymore) Really helped out with some of the basic concepts, especially paging and the initial ramdisk. Link [here](http://jamesmolloy.co.uk/tutorial_html/)
 
-eduOS by RWTH-OS - Helped with multitasking a ton, great resource if you need examples to build off. Link [here](https://github.com/RWTH-OS/eduOS)
-
 GCC - Basically the entire OS, but some code was copied for the internal libc. Link [here](https://github.com/gcc-mirror/gcc)
 
 # To Developers

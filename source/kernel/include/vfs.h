@@ -52,6 +52,7 @@ typedef struct {
     uint32_t inode;     // Device-specific, provides a way for a filesystem to identify files
     uint32_t length;    // Size of file.
     uint32_t impl;      // Implementation defined number.
+    uint32_t *impl_struct; // Implementation structure.
     read_t read;        // Read function
     write_t write;      // Write function
     open_t open;        // Open function

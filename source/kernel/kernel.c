@@ -166,6 +166,7 @@ int panicTest(int argc, char *args[]) {
 }
 
 int readSectorTest(int argc, char *args[]) {
+    // BUGGED: Cannot read/write
     // Read a sector from a disk using LBA (after checking if a disk exists with proper capacity).
     int drive = -1;
     for (int i = 0; i < 4; i++) { 
@@ -184,15 +185,14 @@ int readSectorTest(int argc, char *args[]) {
     // write message to drive
     const uint32_t LBA = 0;
     const uint8_t NO_OF_SECTORS = 1;
-    char buf[512];
+    char *wbuf = "Hello!";
 
-    memset(buf, 0, sizeof(buf));
-    
     // write message to drive
-    strcpy(buf, "Hello, world!");
-    ideWriteSectors((int)drive, NO_OF_SECTORS, LBA, (uint32_t)buf);
+    ideWriteSectors((int)drive, NO_OF_SECTORS, LBA, (uint32_t)&wbuf);
     printf("Wrote data.\n");
     
+
+    char buf[512];
     // read message from drive
     memset(buf, 0, sizeof(buf));
     ideReadSectors((int)drive, NO_OF_SECTORS, LBA, (uint32_t)buf);
@@ -234,9 +234,9 @@ void kmain(multiboot_info* mem) {
     extern uint32_t bss_start;
     extern uint32_t bss_end;
 
-    extern int modeWidth;
-    extern int modeHeight;
-    extern int modeBpp;
+    extern uint32_t modeWidth;
+    extern uint32_t modeHeight;
+    extern uint32_t modeBpp;
     extern uint32_t *vbeBuffer;
 
     // Perform some basic setup
@@ -369,7 +369,7 @@ void kmain(multiboot_info* mem) {
     printf("Initrd image initialized!\n");
     serialPrintf("initrdInit: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
-
+    fatInit();
     
 
     if (didInitVesa) {
@@ -379,6 +379,7 @@ void kmain(multiboot_info* mem) {
         
         // Initialize PSF
         psfInit();
+        
         
         // bitmapFontDrawString("This is a test.", 50, 50, RGB_VBE(0, 255, 0));
         // gfxDrawRect(80, 80, 100, 100, RGB_VBE(255, 0, 0), false);
@@ -401,13 +402,7 @@ void kmain(multiboot_info* mem) {
     // Skip usermode for now, we'll come back to it after we fix it.
 
     // Start paging if VBE was not initialized.
-    if (!didInitVesa) {
-        // Paging is a crucial thing to have in the future - it's currently broken
-        //updateBottomText("Initializing paging and heap...");
-        //initPaging(0xCFFFF000);
-        //serialPrintf("Paging and kernel heap initialized successfully (address: 0xCFFFF000)\n");
-        useCommands(); // Jump to command handler.
-    }    
+    useCommands();
 }
 
 

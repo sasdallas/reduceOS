@@ -13,6 +13,7 @@
 #include "include/libc/va_list.h" // va_list declared here.
 #include "include/graphics.h" // Utility functions
 #include "include/serial.h" // Serial logging
+#include "include/vesa.h" // VESA VBE
 
 // Variable declarations
 

@@ -4,7 +4,6 @@
 
 #include "include/bios32.h" // Main header file
 
-
 idtPtr_t realModeGDT;
 idtPtr_t realModeIDT;
 

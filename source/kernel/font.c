@@ -16,7 +16,6 @@ PSF2_Header *font; // TODO: PSF1 support
 extern char _binary_source_fonts_font_psf_start;
 extern char _binary_source_fonts_font_psf_end;
 extern uint32_t *vbeBuffer;
-extern int modeWidth, modeHeight, modeBpp;
 extern uint32_t font_data[127][20];
 
 uint32_t currentFont[127][20];
@@ -36,14 +35,6 @@ void bitmapLoadFont(uint32_t *font_data) {
 
 
 
-// bitmapFontGetVGAFont() - Gets the VGA font used in BIOS. Needs to be called BEFORE VBE initialization or will not work!
-extern void get_font(char);
-void bitmapFontGetVGAFont() {
-    serialPrintf("bitmapFontGetVGAFont: Grabbing VGA font...\n");
-    char buffer[4096];
-    get_font((uint32_t*)buffer);
-    serialPrintf("bitmapFontGetVGAFont: Grabbed font!\n");
-}
 
 // bitmapFontDrawChar(char ch, int x, int y, int color) - Puts a character of color 'color' at x, y
 void bitmapFontDrawChar(char ch, int x, int y, int color) {
@@ -139,36 +130,26 @@ int psfGetFontHeight() { return font->height; }
 void psfDrawChar(unsigned short int c, int cx, int cy, uint32_t fg, uint32_t bg) {
     // Check how many bytes encode one row.
     int bytesPerLine = (font->width + 7) / 8;
-
-
-
+    
     // Get a glyph for the character.
     unsigned char *glyph = (unsigned char*)&_binary_source_fonts_font_psf_start + font->header_size + (c > 0 && c < font->glyphs ? c : 0) * font->bytesPerGlyph;
 
-    // Calculate offset.
-    int scanline = modeWidth;
-    int offset = (cy * font->height * scanline) + (cx * (font->width + 1) * sizeof(uint32_t));
     // Display the pixels according to the bitmap.
-    int x, y, line, mask;
+    int x, y, mask;
     for (y = 0; y < font->height; y++) {
-        line = offset;
         mask = 1 << (font->width - 1);
         // Display a row.
         for (x = 0; x < font->width; x++) {
-            serialPrintf("RGBA value = %i\n", *((unsigned int*)glyph) & mask ? fg : bg);
             if ((*((unsigned int*)glyph) & mask ? fg : bg) == bg) {
-                serialPrintf("cx = %i - x = %i cy = %i - y = %i -  font->width = %i - font->height = %i\n", cx, x, cy, y, font->width, font->height);
                 vbePutPixel(cx + x, cy + y, RGB_VBE(0, 0, 0));
             } else {
                 vbePutPixel(cx + x, cy + y, RGB_VBE(255, 255, 255));
             }
             mask >>= 1;
-            line += sizeof(uint32_t);
         }
 
         // Adjust to next line
         glyph += bytesPerLine;
-        offset += scanline;
     }
 }
 
