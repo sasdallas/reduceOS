@@ -1,7 +1,7 @@
-# reduceOS - the rewrite
+# reduceOS
 [![CodeFactor](https://www.codefactor.io/repository/github/sasdallas/reduceos/badge/rewrite)](https://www.codefactor.io/repository/github/sasdallas/reduceos/overview/rewrite)
 
-Welcome to the in progress development of the new reduceOS.\
+Welcome to the in progress development of reduceOS.\
 If you would like to learn more about the development of the kernel, scroll down.
 
 ![reduceOS image](reduceOSDemo.png)
@@ -9,12 +9,12 @@ If you would like to learn more about the development of the kernel, scroll down
 #### Please read the credits!
 ### FOREWARNING: reduceOS DOES NOT currently work on real hardware - I'm working on that
 
-# What's different?
+# What's different from reduceOS alpha?
 reduceOS has switched to a brand new kernel, with cleaner, commented code and more features. This kernel is also written entirely by me, without a base.\
 We do still have to stick with multiboot for now, however. Still, the OS is coming along great.
 
 # Why does it look so messy?
-We're still in beta right now, so obviously it will be messy for a long time. It should change later, however.
+Please open a pull request to fix it.
 
 # What's the current stage?
 Usermode and ELF loading
