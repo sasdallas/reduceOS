@@ -22,8 +22,10 @@ uint32_t modeWidth, modeHeight, modeBpp = 0; // The height and width of the mode
 uint32_t *framebuffer; // A seperate framebuffer.
 
 // Double buffering is utilized in this VBE driver. Basically, that means that instead of drawing directly to video memory, you draw to a framebuffer (the one above).
-// Every clock tick, the contents of the framebuffer are drawn to vbeBuffer and framebuffer is cleared out.
+// For now we use manual swapping, but potentially later PIT will swap each tick.
 
+// Paging variables
+extern page_directory_t *kernelDir;
 
 // Static functions
 
@@ -178,7 +180,6 @@ void vesaInit() {
     modeBpp = modeInfo.bpp;
     vbeBuffer = (uint32_t*)modeInfo.framebuffer;
 
-    
 
     // Now, switch the mode.
     vbeSetMode(mode);

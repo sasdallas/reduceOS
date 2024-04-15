@@ -23,7 +23,8 @@
 			"sleep.h": "c",
 			"mem_phys.h": "c",
 			"font.h": "c",
-			"queue": "c"
+			"queue": "c",
+			"pmm.h": "c"
 		}
 	}
 }

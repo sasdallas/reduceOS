@@ -15,14 +15,23 @@ SUPPORTED FILESYSTEMS:
 // External variables
 extern ideDevice_t ideDevices[4];
 
+
+
 // impl_struct is a reference to fat_drive_t
 
 
-void parseRootDirectory(fat_drive_t *drive) {
+
+
+int fat_followClusterChain() {
+
+}
+
+// fat_parseRootDirectory(fat_drive_t *drive) - Parse the root directory of the drive, save the data, then move on to anotehr cluster.
+void fat_parseRootDirectory(fat_drive_t *drive) {
     // Read the root directory
     uint8_t buffer[512];
     if (readRootDirectory(drive, (uint32_t)buffer) == -1) {
-        serialPrintf("parseRootDirectory: Error while reading root directory.\n");
+        serialPrintf("fat_parseRootDirectory: Error while reading root directory.\n");
         return;
     }
 
@@ -34,47 +43,64 @@ void parseRootDirectory(fat_drive_t *drive) {
 
         // Check the first byte of the entry - if it is 0, no more entries to parse.
         if (fileEntry->fileName[0] == 0x0) {
-            serialPrintf("parseRootDirectory: Done parsing - %i total entries.\n", totalEntries);
+            serialPrintf("fat_parseRootDirectory: Done parsing - %i total entries.\n", totalEntries);
             break;
-        }
-
-        // If the first byte is 0xE5, it is an unused entry.
-        if (fileEntry->fileName[0] == 0xE5) {
-            serialPrintf("parseRootDirectory: Entry %i is an unused entry.\n", i);
+        } else if (fileEntry->fileName[0] == 0xE5) { // If the first byte is 0xE5, it is an unused entry.
+            serialPrintf("fat_parseRootDirectory: Entry %i is an unused entry.\n", i);
             totalEntries += 1;
             continue;
-        }
+        } else if (start_addr[11] == 0x0F) { // If the 11th byte of the entry == 0x0F, it is a LFN (long file name) entry.
+            serialPrintf("fat_parseRootDirectory: Entry %i is an LFN entry - name: ", i);
 
-        // If the 11th byte of the entry == 0x0F, it is a LFN (long file name) entry.
-        if (fileEntry->attributes == 0x0F) {
-            serialPrintf("parseRootDirectory: Entry %i is an LFN entry\n", i);
             // Read the LFN entry
             fat_lfnEntry_t *lfnEntry = start_addr;
             char testFileName[26];
             for (int i = 0; i < 10; i++) {
                 if (lfnEntry->firstChars[i] != 0xFF) testFileName[i] = lfnEntry->firstChars[i];
                 else testFileName[i] = 0x00;
+                serialPrintf("%c", testFileName[i]);
             }
 
             for (int i = 10; i < 22; i++) {
                 if (lfnEntry->secondChars[i-10] != 0xFF) testFileName[i] = lfnEntry->secondChars[i-10];
                 else testFileName[i] = 0x00;
+                serialPrintf("%c", testFileName[i]);
             }
 
             for (int i = 22; i < 26; i++) {
                 if (lfnEntry->thirdChars[i-22] != 0xFF) testFileName[i] = lfnEntry->thirdChars[i-22];
                 else testFileName[i] = 0x00;
+                serialPrintf("%c", testFileName[i]);
             }
-        }
+            serialPrintf("\n");
+        } else if (start_addr[11] == 0x10) { // If the 11th byte of the entry is 0x10, it is a directory.
+            serialPrintf("fat_parseRootDirectory: Entry %i is a directory - directory name is %s\n", i, fileEntry->fileName);
+        } else {
+            serialPrintf("fat_parseRootDirectory: Entry %i is a file - filename is %s\n", i, fileEntry->fileName);
 
-        if (fileEntry->attributes == 0x10) {
-            serialPrintf("parseRootDirectory: Entry %i is a directory\n", i);
-        }
+            // Calculate offset for the next cluster number in the FAT
 
-        if (fileEntry->attributes == 0x0) {
-            
+            unsigned char FAT_Table[drive->bpb->bytesPerSector * 2];
+            uint32_t first_cluster = fileEntry->firstClusterNumberLow | (fileEntry->firstClusterNumber << 8);
+            uint32_t fat_offset = first_cluster + (first_cluster / 2);
+            uint32_t fat_sector = drive->firstFatSector + (fat_offset / 512);
+            uint32_t ent_offset = fat_offset % 512;
+            ideReadSectors(drive->driveNum, 2, fat_sector, FAT_Table);
+
+            uint16_t table_value = *(unsigned short*)&FAT_Table[ent_offset];
+            table_value = (fileEntry->firstClusterNumber & 1) ? table_value >> 4 : table_value & 0xFFF;
+
+            if (table_value >= 0xFF8) {
+                serialPrintf("fat_parseRootDirectory: End of cluster chain.\n");
+            } else {
+                serialPrintf("fat_parseRootDirectory: table_value 0x%x\n", table_value);
+                uint16_t first_cluster_sector = ((table_value - 2) * (uint16_t)drive->bpb->sectorsPerCluster) + (uint16_t)drive->firstDataSector;
+                serialPrintf("fat_parseRootDirectory: first_cluster_sector 0x%x\n", first_cluster_sector);
+            } 
         }
+        totalEntries++;
     }
+    return;
 }
 
 int readRootDirectory(fat_drive_t *drive, uint32_t buffer) {
@@ -83,6 +109,7 @@ int readRootDirectory(fat_drive_t *drive, uint32_t buffer) {
         int firstRootDirectory = drive->firstDataSector - drive->rootDirSectors;
         
         // Read it
+        serialPrintf("readRootDirectory: First root directory located at 0x%x\n", (uint32_t)firstRootDirectory);
         ideReadSectors(drive->driveNum, 1, (uint32_t)firstRootDirectory, (uint32_t)buffer);
         return 1;
     }
@@ -172,6 +199,8 @@ void fatInit() {
             serialPrintf("fatInit: Total clusters = %i\n", totalClusters);
             serialPrintf("fatInit: First data sector = %i\n", firstDataSector);
             serialPrintf("fatInit: First FAT sector = %i\n", drive->bpb->reservedSectorCount);
+            serialPrintf("fatInit: Sectors per cluster = %i\n", drive->bpb->sectorsPerCluster);
+
 
             // Identify the FAT type.
             if (totalSectors < 4085) {
@@ -188,7 +217,14 @@ void fatInit() {
                 drive->fatType = 0;
             }
 
-            parseRootDirectory(drive);
+            // Read in the FATs in to an allocated memory address.
+            uint16_t FAT_Table[drive->fatSize * 2];
+            drive->FAT_Table = &FAT_Table;
+            ideReadSectors(drive->driveNum, 2, drive->bpb->reservedSectorCount, FAT_Table);
+
+
+            // Now parse the drive's root directory.
+            fat_parseRootDirectory(drive);
         }
     }
 

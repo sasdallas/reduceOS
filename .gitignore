@@ -6,6 +6,5 @@ oldcode/
 broken/
 test.img
 out/img/**
-obj/**
-obj/assembly/**
+
 *.img

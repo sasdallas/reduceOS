@@ -1,4 +1,6 @@
-// bitmap.h - TBD
+// bitmap.h - Header file for bitmap drawer/parser
+#ifndef BITMAP_H
+#define BITMAP_H
 
 #include "libc/string.h" // String functions
 #include "libc/stdint.h" // Integer types (uint32_t, ...)
@@ -44,3 +46,4 @@ typedef struct {
     uint8_t a;
 } palette_t;
 
+#endif

@@ -43,16 +43,16 @@ bitmap_t *createBitmap() {
     return ret;
 }
 
-// displayBitmap(bitmap_t *bmp) - Displays a bitmap image on 2nd framebuffer
-// TODO: Allow positioning of bitmap.
-void displayBitmap(bitmap_t *bmp) {
+// displayBitmap(bitmap_t *bmp, int x, int y) - Displays a bitmap image on 2nd framebuffer
+void displayBitmap(bitmap_t *bmp, int x, int y) {
+    // NOTE: x and y refer to the top left starting point of the bitmap, since I could honestly care less about my future self. 
     if (!bmp) return; // Stupid users.
 
     uint8_t *image = bmp->imageBytes;
     int j = 0;
     
     uint32_t height = 0;
-    if (bmp->height > 764) height = 764;
+    if (bmp->height > 764) height = 764; // BUG BUG BUG BUG BUG
     else height = bmp->height;
 
     for(int i = 0; i < bmp->height-4; i++) {

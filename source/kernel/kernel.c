@@ -10,6 +10,9 @@
 // heap.c defined variables.
 extern uint32_t placement_address;
 
+// paging.c defined variables
+extern page_directory_t *kernelDir;
+
 // ide_ata.c defined variables
 extern ideDevice_t ideDevices[4];
 
@@ -71,19 +74,20 @@ int dump(int argc, char *args[]) {
 
     } else if (!strcmp(args[1], "memory") && argc > 2) {
         printf("Warning: Dumping memory in the wrong spots can crash the OS.\n");
-        int addr = (int)strtol(args[2], NULL, 16);
-        int *value;
-        memcpy(value, addr, sizeof(void*));
-        printf("Value at memory address 0x%x: 0x%x (%i)\n", addr, (uint8_t)value, value);
+        uint32_t *addr = (uint32_t*)strtol(args[2], NULL, 16);
+
+        printf("Value at memory address 0x%x: 0x%x (%i)\n", addr, *addr, (int)*addr);
     } else if (!strcmp(args[1], "memoryrange") && argc > 3) {
         printf("Warning: Dumping memory in the wrong spots can crash the OS.\n");
-        int addr1 = (int)strtol(args[2], NULL, 16);
-        int addr2 = (int)strtol(args[3], NULL, 16);
+        uint32_t *addr1 = (uint32_t*)strtol(args[2], NULL, 16);
+        uint32_t *addr2 = (uint32_t*)strtol(args[3], NULL, 16);
         printf("Values from memory addresses 0x%x - 0x%x:\n", addr1, addr2);
-        int *value;
-        for (addr1; addr1 < addr2; addr1++) {
-            memcpy(value, addr1, sizeof(void*));
-            printf("0x%x=0x%x", addr1, value);
+        for (addr1; addr1 < addr2; addr1 += 4) {
+            printf("0x%x: ", addr1);
+            uint8_t bytes[4];
+            memcpy(bytes, addr1, sizeof(uint32_t));
+            printf("0x%x 0x%x 0x%x 0x%x", bytes[0], bytes[1], bytes[2], bytes[3]);
+            printf("\n");
         }
     } else {
         printf("Invalid arguments, please check if your syntax is correct.\n");
@@ -115,7 +119,14 @@ int crash(int argc, char *args[]) {
     panic("kernel", "kmain()", "Error in function crash()");
 }
 
-int pciInfo(int argc, char *args[]) { printPCIInfo(); return 1; }
+extern pciDevice **pciDevices;
+extern int dev_idx;
+
+int pciInfo(int argc, char *args[]) { 
+    printPCIInfo();
+    printf("Done executing");
+    return 1;
+}
 
 
 
@@ -220,11 +231,6 @@ void kmain(multiboot_info* mem) {
     // Update global multiboot info.
     globalInfo = mem;
 
-    // Get kernel size
-    extern uint32_t start;
-    uint32_t kernelStart = &start;
-    extern uint32_t end;
-    uint32_t kernelEnd = &end;
     
     // Some extra stuff
     extern uint32_t text_start;
@@ -233,6 +239,7 @@ void kmain(multiboot_info* mem) {
     extern uint32_t data_end;
     extern uint32_t bss_start;
     extern uint32_t bss_end;
+
 
     extern uint32_t modeWidth;
     extern uint32_t modeHeight;
@@ -258,7 +265,7 @@ void kmain(multiboot_info* mem) {
     // Initialize serial logging
     serialInit();
     serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
-    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", &kernelStart, &kernelEnd, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
+    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", &text_start, &bss_end, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
     serialPrintf("============================================================================================================================\n");
     serialPrintf("Serial logging initialized!\n");
     
@@ -270,34 +277,14 @@ void kmain(multiboot_info* mem) {
     cpuInit();
     printf("HAL initialization completed.\n");
 
+    
+    serialPrintf("kmain: CPU has long mode support: %i", isCPULongModeCapable());
+
+
 
     bios32_init();
     serialPrintf("bios32 initialized successfully!\n");
     
-    // Getting vendor ID and if the CPU is 16, 32, or 64 bits (32 at minimum so idk why we check for 16, but just in case)
-    uint32_t vendor[32];
-    int iedx = 0;
-    
-    memset(vendor, 0, sizeof(vendor));
-    
-    __cpuid(0x80000002, (uint32_t *)vendor+0x0, (uint32_t *)vendor+0x1, (uint32_t *)vendor+0x2, (uint32_t *)vendor+0x3);
-    __cpuid(0x80000003, (uint32_t *)vendor+0x4, (uint32_t *)vendor+0x5, (uint32_t *)vendor+0x6, (uint32_t *)vendor+0x7);
-    __cpuid(0x80000004, (uint32_t *)vendor+0x8, (uint32_t *)vendor+0x9, (uint32_t *)vendor+0xa, (uint32_t *)vendor+0xb);
-
-    // Now get if the CPU is 64 or 32.
-    // We are going to be calling cpuid (manually, through inline assembly), but first we need to move EAX to 0x80000001 to signify we want to check the capabilities.
-    asm volatile ("movl $0x80000001, %%eax\n"
-                "cpuid\n" : "=d"(iedx) :: "eax", "ebx", "ecx");
-
-    
-    // Tell the user.
-    printf("CPU Vendor: %s\n", vendor);
-    printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
-    serialPrintf("User is running with CPU vendor %s (64-bit capable: %s)\n", vendor, (iedx & (1 << 29)) ? "YES" : "NO");
-
-
-
-
 
     
     // Initialize Keyboard 
@@ -309,40 +296,16 @@ void kmain(multiboot_info* mem) {
 
     // PIT timer
     updateBottomText("Initializing PIT...");
-    i86_pitInit();
+    pitInit();
     serialPrintf("PIT started at 1000hz\n");
+
+    
+
 
     // bios32 stops to work after we initialize paging, so get all calls done now!
     // Initializing VESA will NOT work after this, so we have to ask the user what they want to do now:
     // Update: Found the reason, since paging includes 0x7E00 (temp memory for all bios32 calls), crashing all of reduceOS.
-
-    // Probably a bad hotfix, but it works, I suppose.
-    printf("To enter the backup command line, please press 'c' (5 seconds).");
-    
-    bool didInitVesa = true;
-    int timeRemaining = 5000;
-
-
-    while (true) {
-        char c = isKeyPressed();
-        if (c == 'c') { 
-            didInitVesa = false;
-            break;
-        } else if (timeRemaining > 0) {
-            sleep(1);
-            timeRemaining--;
-            if (timeRemaining % 1000) printf("\rTo enter the backup command line, please press 'c' (%i seconds)", timeRemaining / 1000);
-        } else if (timeRemaining == 0) {
-            vesaInit();
-            bitmapFontInit();
-            break;
-        }
-    }
-
-
    
-    printf("\nKernel is loaded at 0x%x, ending at 0x%x\n", kernelStart, kernelEnd);
-
     // Probe for PCI devices
     updateBottomText("Probing PCI...");
     initPCI();
@@ -369,8 +332,28 @@ void kmain(multiboot_info* mem) {
     printf("Initrd image initialized!\n");
     serialPrintf("initrdInit: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
+    // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
+    // Now that initial ramdisk has loaded, we can initialize memory management
+    updateBottomText("Initializing physical memory manager...");
+    pmmInit(0x100000);
+    serialPrintf("Initialized memory management successfully.\n");
+
+    updateBottomText("Initializing paging...");
+
+
+    // Finally, all setup has been completed. We can ask the user if they want to enter the backup command line.
+    // By ask, I mean check if they're holding c.
+
+    bool didInitVesa = true;
+    char c = isKeyPressed();
+    if (c == 'c') { 
+        didInitVesa = false;
+    } else {
+        vesaInit(); // Initialize VBE
+        bitmapFontInit();
+    }
+
     fatInit();
-    
 
     if (didInitVesa) {
         // bitmap_t *wallpaper = createBitmap();
@@ -397,9 +380,6 @@ void kmain(multiboot_info* mem) {
     rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
-    
-
-    // Skip usermode for now, we'll come back to it after we fix it.
 
     // Start paging if VBE was not initialized.
     useCommands();
@@ -426,13 +406,16 @@ void useCommands() {
     registerCommand("memory", (command*)memoryInfo);
     registerCommand("dump", (command*)dump);
     serialPrintf("All commands registered successfully.\n");
-    printf("WARNING: The command line may be unstable, please be careful and double check your commands.\n");
-    printf("I'm working on multiple other things right now - this is on the list, however.\n");
-    printf("Command handler initialized - type 'help' for help.\n");
+    serialPrintf("Warning: User is an unstable environment.\n");
 
+    
     char buffer[256]; // We will store keyboard input here.
+    printf("reduceOS v1.0 has finished loading successfully.\n");
+    printf("Please type your commands below.\n");
+    printf("Type 'help' for help.\n");
     enableShell("reduceOS> "); // Enable a boundary (our prompt)
-
+    
+    
 
     while (true) {
         printf("reduceOS> ");

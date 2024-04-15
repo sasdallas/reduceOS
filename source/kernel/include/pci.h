@@ -17,15 +17,40 @@
 #define MAX_BUS 16 
 #define MAX_SLOTS 32
 
+#define OFFSET_VENDORID 0
+#define OFFSET_STATUS 0x5
+#define OFFSET_COMMAND 0x5
+#define OFFSET_DEVICEID 2
+#define OFFSET_CLASSID 0xA
+#define OFFSET_SUBCLASSID 0xA
+
 // Typedefs
+
+struct __pciDriver; // Hack to make pciDevice work
+
 typedef struct {
-    uint8_t slot; // PCI slot
-    uint8_t bus; // PCI bus
-    uint8_t irq; // PCI IRQ
-    uint32_t base[6]; // The base of the PCI device
-    uint32_t size[6]; // The size of the PCI device.
-    uint8_t type[6]; // Type of the PCI device
-} pci_info;
+    uint32_t bus;
+    uint32_t slot;
+    uint32_t vendor;
+    uint32_t device;
+    uint32_t func;
+    struct __pciDriver *driver;
+} pciDevice;
+
+typedef struct {
+    uint32_t vendor;
+    uint32_t device;
+    uint32_t func;
+} pciDeviceID;
+
+typedef struct __pciDriver {
+    pciDeviceID devId;
+    char *deviceName;
+    uint8_t (*initDevice)(pciDevice*);
+    uint8_t (*initDriver)(void);
+    uint8_t (*stopDriver)(void);    
+} pciDriver;
+
 
 
 // Functions

@@ -24,6 +24,7 @@ Usermode and ELF loading
 ### macOS users need further instruction - see further below.
 ### It is recommended to use a 32-bit toolchain (i686) to build reduceOS, but that is optional.
 
+### IMPORTANT NOTE: If you are not using a 32-bit (i686) toolchain to build, you MUST download the obj/assembly/crtbegin.o and obj/assembly/crtend.o. They are REQUIRED.
 **To build reduceOS, you need these packages:** `gcc`, `nasm`, `make`, `grub`\
 **To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso` (for building an ISO - does not work in QEMU!)
 

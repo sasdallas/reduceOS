@@ -9,6 +9,7 @@
 #include "include/pic.h" // Programmable Interrupt Controller
 #include "include/pit.h" // Programmable interval Timer
 #include "include/libc/stdint.h" // Integer declarations (like uint8_t, uint16_t, etc..)
+#include "include/libc/stddef.h" // size_t declaration
 
 // Definitions
 

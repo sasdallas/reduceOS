@@ -213,7 +213,7 @@ void acpiInit() {
 
         uint64_t signature = *(uint64_t*)i;
         if (signature == 0x2052545020445352) {
-            serialPrintf("Found RSDP signature at 0x%x\n", i);
+            serialPrintf("acpiInit: Found RSDP signature at 0x%x\n", i);
             // We (might've) found the RSDP. Parse it.
             foundRSDP = true;
             if (acpiParseRSDP(i)) {

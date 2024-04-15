@@ -124,8 +124,12 @@ $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.asm | $(OUT_ASMOBJ)
 
 $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o:
 	@printf "[ Copying GCC object $(@F)... ]\n"
-	OBJ=`$(CC) -m32 -O2 -g -ffreestanding -print-file-name=$(@F)` && cp "$$OBJ" $@
-	@printf "\n"
+	$(CP) $(OUT_OBJ)/CRTFILES/$(@F) $(OUT_ASMOBJ)/
+	
+#originally:	
+#OBJ=`$(CC) -m32 -O2 -g -ffreestanding -print-file-name=$(@F)` && cp "$$OBJ" $@
+#@printf "\n"
+# i hate this hack but i can't do anything	
 
 
 $(OUT_ASMOBJ)/%.o: $(KLOADER_SOURCE)/%.S | $(OUT_ASMOBJ)

@@ -67,6 +67,7 @@ typedef struct {
     fat_BPB_t *bpb; // BPB in the FAT
     fat_extendedBPB16_t *extended16; // Is there a more memory-efficient way to do this?
     fat_extendedBPB32_t *extended32;
+    unsigned char *FAT_Table;
 } __attribute__((packed)) fat_drive_t;
 
 typedef struct {

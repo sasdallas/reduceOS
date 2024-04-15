@@ -7,6 +7,7 @@
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/libc/stdbool.h" // Boolean declarations
 #include "include/libc/stddef.h" // size_t declaration
+#include "include/libc/limits.h" // LONG_MIN and LONG_MAX
 #include "include/heap.h" // kmalloc and such.
 
 // TECHNICALLY this isn't supposed to be here but I don't care that much

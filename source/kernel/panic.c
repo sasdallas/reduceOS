@@ -17,6 +17,7 @@ static void stackTrace(uint32_t maximumFrames) {
     stack_frame *stk;
     asm volatile ("movl %%ebp, %0" :: "r"(stk));
     printf("\nStack trace:\n");
+    serialPrintf("\nSTACK TRACE (EBP based):\n");
     for (uint32_t frame = 0; stk && frame < maximumFrames; frame++) {
         printf("0x%x\n", stk->eip);
         stk = stk->ebp;
@@ -29,6 +30,8 @@ void *panic(char *caller, char *code, char *reason) {
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** [%s] %s: %s\n", caller, code, reason);
     serialPrintf("panic type: non-registers, called by external function.\n");
+
+
 
     clearScreen(terminalColor);
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
@@ -46,11 +49,15 @@ void *panic(char *caller, char *code, char *reason) {
     printf("*** [%s] %s: %s \n", caller, code, reason);
     printf("\nStack dump:\n\n");
     
+    
+    // Stop embarassing yourself THE CPUID FUNCTION DOES NOT RETURN REGISTERS
+    /*
     uint32_t eax, ebx, ecx, edx;
     for (uint32_t i = 0; i < 4; i++) {
         __cpuid(i, &eax, &ebx, &ecx, &edx);
         printf("Type: 0x%x, EAX: 0x%x, EBX: 0x%x, ECX: 0x%x, EDX: 0x%x\n", i, eax, ebx, ecx, edx);
-    }
+    } */
+
     
     // TODO: Add debug symbols into the initrd so we get function names.
     // stackTrace(5); // Get a stack trace.
@@ -63,8 +70,9 @@ void *panic(char *caller, char *code, char *reason) {
 
 
 void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
+    serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
-    serialPrintf("Panic reason: %s\n", reason);
+    serialPrintf("*** ISR threw exception: %s\n", reason);
     serialPrintf("panic type: registers, %s.\n", code);
 
     clearScreen(terminalColor);
@@ -88,8 +96,13 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     printf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
-    stackTrace(5);
+    serialPrintf("\nerr_code %d\n", reg->err_code);
+    serialPrintf("REGISTER DUMP:\n");
+    serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
+    serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
+    serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
+    stackTrace(5);
 
     asm volatile ("hlt");
     for (;;);

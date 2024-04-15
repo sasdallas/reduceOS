@@ -566,7 +566,7 @@ static const PCI_VENTABLE	PciVenTable [] =
 	{ 0x1231, "W McCoach", "Woodward McCoach Inc." } ,
 	{ 0x1232, "GPT", "GPT Ltd." } ,
 	{ 0x1233, "Bus-Tech", "Bus-Tech Inc." } ,
-	{ 0x1234, "Technical", "Technical Corp" } ,
+	{ 0x1234, "Technical", "Technical Corp (Potentially BOCHS emulator)" } ,
 	{ 0x1235, "Risq Mod", "Risq Modular Systems Inc." } ,
 	{ 0x1236, "Sigma", "Sigma Designs Corp." } ,
 	{ 0x1237, "Alta Tech", "Alta Technology Corp." } ,
@@ -1656,6 +1656,7 @@ static const PCI_DEVTABLE	PciDevTable [] =
 	{ 0xEDD8, 0xA099, "Stingray", "2000PV GUI Accelerator" } ,
 	{ 0xEDD8, 0xA0A1, "ark2000mt", "64-bit GUI accelerator w/DCI playback" } ,
 	{ 0xFFFF, 0x0140, "BAD !", "BAD Buslogic BT-946C SCSI?" } ,
+	{ 0x1234, 0x1111, "BOCHS", "BOCHS Emulator Graphics Adaptor"} // Custom addition
 } ;
 
 // Use this value for loop control during searching:
@@ -1666,11 +1667,11 @@ static const PCI_DEVTABLE	PciDevTable [] =
 typedef struct _PCI_CLASSCODETABLE
 {
 	/// Base class identifier
-	unsigned char	BaseClass ;
+	unsigned short	BaseClass ;
 	/// Sub class identifier
-	unsigned char	SubClass ;
+	unsigned short	SubClass ;
 	/// Programming interface identifier
-	unsigned char	ProgIf ;
+	unsigned short	ProgIf ;
 	/// Base class description string
 	char *		BaseDesc ;
 	/// Sub class description string

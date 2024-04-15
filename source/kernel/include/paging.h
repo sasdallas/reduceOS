@@ -12,6 +12,7 @@
 #include "include/heap.h" // Kernel heap management.
 #include "include/terminal.h"
 #include "include/serial.h"
+#include "include/pmm.h" // Physical memory management
 
 // Typedefs
 
@@ -36,7 +37,8 @@ typedef struct {
 } page_directory_t;
 
 // Macros
-
+#define IS_ALIGNED(addr) (((uint32_t)addr | 0xFFFFF000) == 0)
+#define ALIGN_PAGE(addr) (((uint32_t)addr & 0xFFFFF000) + PAGE_ALIGN)
 
 
 // Definitions
@@ -48,7 +50,7 @@ typedef struct {
 
 void allocateFrame(page_t *page, int kernel, int writable); // Allocating a frame.
 void freeFrame(page_t *page); // Deallocate (or "free") a frame.
-void initPaging(uint32_t physicalMemorySize); // Initialize paging
+void initPaging(); // Initialize paging
 void switchPageDirectory(page_directory_t *dir); // Switches the page directory using inline assembly
 page_t *getPage(uint32_t addr, int make, page_directory_t *dir); // Returns a page from an address, directory (creates one if make is non-zero).
 page_directory_t *clonePageDirectory(page_directory_t *src); // Clone a page directory.

@@ -11,12 +11,12 @@ static bool pit_isInit = false; // Is the PIT initialized?
 
 
 // PIT timer interrupt handler
-void i86_pitIRQ() { 
+void pitIRQ() { 
     pitTicks++; // Increment tick count
 }
 
 // Waits seconds.
-void i86_pitWaitSeconds(int seconds) {
+void pitWaitSeconds(int seconds) {
     int secondsPassed = 0;
     do {
         if (pitTicks % 100 == 0) secondsPassed++;
@@ -24,57 +24,57 @@ void i86_pitWaitSeconds(int seconds) {
 }
 
 
-// uint32_t i86_pitSetTickCount(uint32_t i) - Sets a new tick count and returns the previous one.
-uint32_t i86_pitSetTickCount(uint32_t i) {
+// uint32_t pitSetTickCount(uint32_t i) - Sets a new tick count and returns the previous one.
+uint32_t pitSetTickCount(uint32_t i) {
     uint32_t ret = pitTicks;
     pitTicks = i;
     return ret;
 }
 
-// uint32_t i86_pitGetTickCount() - Returns tick count
-uint32_t i86_pitGetTickCount() { return pitTicks; }
+// uint32_t pitGetTickCount() - Returns tick count
+uint32_t pitGetTickCount() { return pitTicks; }
 
-// void i86_pitSendCommand(uint8_t cmd) - Sends a command to PIT
-void i86_pitSendCommand(uint8_t cmd) {
-    outportb(I86_PIT_REG_COMMAND, cmd);
+// void pitSendCommand(uint8_t cmd) - Sends a command to PIT
+void pitSendCommand(uint8_t cmd) {
+    outportb(PIT_REG_COMMAND, cmd);
 }
 
-// void i86_pitSendData(uint16_t data, uint8_t counter) - Send data to a counter
-void i86_pitSendData(uint16_t data, uint8_t counter) {
-    uint8_t port = (counter == I86_PIT_OCW_COUNTER_0) ? I86_PIT_REG_COUNTER0:
-        ((counter==I86_PIT_OCW_COUNTER_1) ? I86_PIT_REG_COUNTER1 : I86_PIT_REG_COUNTER2);
+// void pitSendData(uint16_t data, uint8_t counter) - Send data to a counter
+void pitSendData(uint16_t data, uint8_t counter) {
+    uint8_t port = (counter == PIT_OCW_COUNTER_0) ? PIT_REG_COUNTER0:
+        ((counter==PIT_OCW_COUNTER_1) ? PIT_REG_COUNTER1 : PIT_REG_COUNTER2);
     
     outportb(port, (uint8_t) data); // Write the data.
 }
 
 
 
-// void i86_pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) - Starts a counter from the provided parameters.
-void i86_pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) {
+// void pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) - Starts a counter from the provided parameters.
+void pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) {
     if (freq == 0) return; // If the frequency is 0, return.
 
     uint16_t divisor = (uint16_t) (1193181 / (uint16_t)freq);
 
     // Sending the operational command
     uint8_t ocw = 0;
-    ocw = (ocw & ~I86_PIT_OCW_MASK_MODE) | mode;
-    ocw = (ocw & ~I86_PIT_OCW_MASK_RL) | I86_PIT_OCW_RL_DATA;
-    ocw = (ocw & ~I86_PIT_OCW_MASK_COUNTER) | counter;
-    i86_pitSendCommand(ocw);
+    ocw = (ocw & ~PIT_OCW_MASK_MODE) | mode;
+    ocw = (ocw & ~PIT_OCW_MASK_RL) | PIT_OCW_RL_DATA;
+    ocw = (ocw & ~PIT_OCW_MASK_COUNTER) | counter;
+    pitSendCommand(ocw);
 
     // Set frequency rate
-    i86_pitSendData(divisor & 0xff, 0);
-    i86_pitSendData((divisor >> 8) & 0xff, 0);
+    pitSendData(divisor & 0xff, 0);
+    pitSendData((divisor >> 8) & 0xff, 0);
 
     // Reset tick count
     pitTicks = 0;
 }
 
-// void i86_pitInit() - Initialize PIT
-void i86_pitInit() {
+// void pitInit() - Initialize PIT
+void pitInit() {
 
     // Install our interrupt handler (IRQ 0 uses INT 32)
-    isrRegisterInterruptHandler(32, i86_pitIRQ);
+    isrRegisterInterruptHandler(32, pitIRQ);
 
     // Update the isInitialized variable.
     pit_isInit = true;

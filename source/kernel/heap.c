@@ -27,8 +27,7 @@ uint32_t kmalloc_int(uint32_t size, int align, uint32_t* phys) {
     else {
         // If alignment is 1, align the placement address to 4096.
         if (align == 1 && (placement_address & 0x00000FFF)) {
-            placement_address &= 0xFFFFF000;
-            placement_address += 0x1000;
+            placement_address = ALIGN_PAGE(placement_address);
         }
 
         // If phys is not 0, set it to the physical address (without adding the size to it).
@@ -80,11 +79,7 @@ static void expand(uint32_t newSize, heap_t* heap) {
     ASSERT(newSize > heap->endAddress - heap->startAddress, "expand()", "new size is less than current size");
 
     // Get the nearest following page boundary
-    if (newSize & 0xFFFFF000 != 0) {
-        // phys. address alignment
-        newSize &= 0xFFFFF000;
-        newSize += PLACEMENT_ALIGN;
-    }
+    if (!IS_ALIGNED(newSize)) newSize = ALIGN_PAGE(newSize); // phys. address alignment
 
     // Check we aren't overreaching.
     ASSERT(heap->startAddress + newSize <= heap->maxAddress, "expand()", "new size expands beyond heap maximum");
@@ -180,10 +175,8 @@ heap_t* createHeap(uint32_t startAddress, uint32_t endAddress, uint32_t maxAddre
     startAddress += sizeof(type_t) * HEAP_INDEX_SIZE;
 
     // Make sure the start address is page aligned.
-    if (startAddress & 0xFFFFF000 != 0) {
-        startAddress &= 0xFFFFF000;
-        startAddress += PAGE_ALIGN;
-    }
+    if (!IS_ALIGNED(startAddress)) startAddress = ALIGN_PAGE(startAddress);
+    
 
     // Now setup the values for our heap.
     heap->startAddress = startAddress;
