@@ -4,7 +4,6 @@ debugNotes.txt
 todo.txt
 oldcode/
 broken/
-test.img
 out/img/**
-
+*.iso
 *.img
