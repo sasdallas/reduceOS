@@ -46,7 +46,7 @@ void cpuInit() {
 
 	// Print a summary
 	// Now print a little summary
-	serialPrintf("======== CPU Data Collection Summary ========");
+	serialPrintf("======== CPU Data Collection Summary ========\n");
 	serialPrintf("- CPU VENDOR ID: %s\n", processor_data->vendor);
 	serialPrintf("- Long Mode (x64) support: %i\n\n", processor_data->long_mode_capable);
 
@@ -64,7 +64,7 @@ void cpuInit() {
 	serialPrintf("\tXSAVE support: %s\n", processor_data->sse5_Data->XSAVE_support ? "YES" : "NO");
 	serialPrintf("\tAVX2 support: %s\n", processor_data->sse5_Data->AVX2_support ? "YES" : "NO");
 	serialPrintf("== End SSE Data Collection Summary ==\n");
-	serialPrintf("======== End CPU Data Collection Summary ========");
+	serialPrintf("======== End CPU Data Collection Summary ========\n");
 
 	// Done!
 	

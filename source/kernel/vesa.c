@@ -149,6 +149,43 @@ uint32_t RGB_VBE(uint8_t r, uint8_t g, uint8_t b) {
 	return color;
 }
 
+uint32_t VGA_TO_VBE(uint8_t vgaColor) {
+    switch (vgaColor) {
+        case COLOR_BLACK:
+            return RGB_VBE(0, 0, 0);
+        case COLOR_WHITE:
+            return RGB_VBE(255, 255, 255);
+        case COLOR_BLUE:
+            return RGB_VBE(0, 0, 170);
+        case COLOR_GREEN:
+            return RGB_VBE(0, 170, 0);
+        case COLOR_CYAN:
+            return RGB_VBE(0, 170, 170);
+        case COLOR_RED:
+            return RGB_VBE(170, 0, 0);
+        case COLOR_MAGENTA:
+            return RGB_VBE(170, 0, 170);
+        case COLOR_BROWN:
+            return RGB_VBE(170, 85, 0);
+        case COLOR_LIGHT_GRAY:
+            return RGB_VBE(170, 170, 170); // why did we do gray as light gray
+        case COLOR_LIGHT_BLUE:
+            return RGB_VBE(85, 85, 255);
+        case COLOR_LIGHT_GREEN:
+            return RGB_VBE(85, 85, 255);
+        case COLOR_LIGHT_CYAN:
+            return RGB_VBE(85, 255, 255);
+        case COLOR_LIGHT_RED:
+            return RGB_VBE(255, 85, 85);
+        case COLOR_LIGHT_MAGENTA:
+            return RGB_VBE(255, 85, 255);
+        default:
+            serialPrintf("VGA_TO_VBE: stupid users (color = %i)\n", vgaColor);
+            return;
+    }
+    // lmao
+}
+
 
 // vesaInit() - Initializes VESA VBE.
 void vesaInit() {

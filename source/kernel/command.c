@@ -19,8 +19,18 @@ static int index = 0; // Index of commands to add.
 static int parseArguments(char *cmd, char ***parsedArguments) {
     // Count number of arguments in the command.
     int commandAmount = 0;
+    int charactersFromLastSpace = 0;
     for (int i = 0; cmd[i] != '\0'; i++) {
-        if (cmd[i] == ' ') commandAmount++;
+        if (cmd[i] == ' ' && charactersFromLastSpace >= 1) {
+            commandAmount++;
+            charactersFromLastSpace = 0;
+        } else if (cmd[i] == ' ' && charactersFromLastSpace == 0) {
+            // users are attempting to crash the OS by typing only spaces!
+            // not on my watch!
+            return -1;
+        } else {
+            charactersFromLastSpace++;
+        }
     }
 
     // Add one for the command itself.
@@ -57,10 +67,10 @@ static int parseArguments(char *cmd, char ***parsedArguments) {
 int parseCommand(char *cmd) {
     if (index == 0 || strlen(cmd) == 0) return -1;
     
-    
     char **argv;
     int argc = parseArguments(cmd, &argv);
 
+    if (argc == -1) return -1;
    
 
     for (int i = 0; i < 1024; i++) {

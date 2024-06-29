@@ -21,6 +21,8 @@ static size_t terminalX; // X position of terminal buffer, or column
 static size_t terminalY; // Y position of terminal buffer, or row
 static uint8_t terminalColor; // The current color of the terminal.
 static uint16_t *terminalBuffer; // The most important one: the terminal buffer.
+extern int vbeWidth, vbeHeight;
+extern int terminalMode; // 0 signifies VGA mode, 1 signifies VESA VBE.
 
 
 // VGA memory address, width, height etc are stored in graphics.h.
@@ -34,7 +36,7 @@ void terminalPutcharXY(unsigned char c, uint8_t color, size_t x, size_t y); // t
 void terminalGotoXY(size_t x, size_t y); // terminalGotoXY() - Change the position to X and Y
 void scrollTerminal(); // scrollTerminal() - I don't see how this could be used outside of terminal.c, but just in case. Scrolls the terminal down.
 void terminalDeleteLastLine(); // terminalDeleteLastLine() - Removes the last line placed by the terminal.
-void clearScreen(uint8_t color); // clearScreen() - Clears the terminal screen.
+void clearScreen(uint8_t fg, uint8_t bg); // clearScreen() - Clears the terminal screen.
 void terminalPutchar(char c); // terminalPutchar() - Recommended function. Incorporates scrollTerminal and terminalDeleteLastLine.
 void terminalWrite(const char *data, size_t size); // terminalWrite() - This nor terminalWriteString is recommended for use. Use printf. It prints data using a for loop, but needs length.
 void terminalWriteString(const char* data); // terminalWriteString() - The exact same as terminalWrite but with strlen() included.

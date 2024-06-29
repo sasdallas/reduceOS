@@ -152,13 +152,13 @@ img: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img
 	-@$(MKDIR) $(OUT_IMG)/builddir/boot/grub
 
 	@printf "[ Copying files... ]\n"
-	$(CP) $(OUT_KERNEL)/kernel.bin $(OUT_IMG)/builddir/boot/
+	$(CP) $(OUT_KERNEL)/kernel.elf $(OUT_IMG)/builddir/boot/
 	$(CP) $(OUT_INITRD)/initrd.img $(OUT_IMG)/builddir/boot/
 
 	@printf "[ Writing GRUB configuration file... ]\n"
 	$(RM) $(OUT_IMG)/builddir/boot/grub/grub.cfg
 
-	$(echo) "menuentry "reduceOS" {\n\tmultiboot /boot/kernel.bin\n\tmodule /boot/initrd.img\n}" >> $(OUT_IMG)/builddir/boot/grub/grub.cfg
+	$(echo) "menuentry "reduceOS" {\n\tmultiboot /boot/kernel.elf\n\tmodule /boot/initrd.img\n}" >> $(OUT_IMG)/builddir/boot/grub/grub.cfg
 	
 	@printf "[ Creating reduceOS image (requires xorriso!)... ]\n"
 	@$(MKIMAGE) -o $(OUT_IMG)/reduceOS.iso $(OUT_IMG)/builddir

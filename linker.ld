@@ -8,7 +8,9 @@ SECTIONS
     .text BLOCK(4K) : ALIGN(4K)
     {
         text_start = .;
-        *(.multiboot)
+        LONG(0x1BADB002)
+        LONG(0x00000003)
+        LONG(0xE4524FFB)
         *(.text)
         . = ALIGN(4096);
         text_end = .;

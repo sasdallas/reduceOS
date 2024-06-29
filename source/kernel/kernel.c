@@ -278,7 +278,7 @@ void kmain(multiboot_info* mem) {
     printf("HAL initialization completed.\n");
 
     
-    serialPrintf("kmain: CPU has long mode support: %i", isCPULongModeCapable());
+    serialPrintf("kmain: CPU has long mode support: %i\n", isCPULongModeCapable());
 
 
 
@@ -335,11 +335,11 @@ void kmain(multiboot_info* mem) {
     // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
     // Now that initial ramdisk has loaded, we can initialize memory management
     updateBottomText("Initializing physical memory manager...");
-    pmmInit(0x100000);
+    pmmInit(globalInfo->m_memoryHi - globalInfo->m_memoryLo);
     serialPrintf("Initialized memory management successfully.\n");
 
     updateBottomText("Initializing paging...");
-
+    //initPaging();
 
     // Finally, all setup has been completed. We can ask the user if they want to enter the backup command line.
     // By ask, I mean check if they're holding c.
@@ -386,10 +386,49 @@ void kmain(multiboot_info* mem) {
 }
 
 
+char* strMemoryTypes[] = {
+
+	{"Available"},			//memory_region.type==0
+	{"Reserved"},			//memory_region.type==1
+	{"ACPI Reclaim"},		//memory_region.type==2
+	{"ACPI NVS Memory"}		//memory_region.type==3
+};
 
 void useCommands() {
-    clearScreen(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
+    clearScreen(COLOR_WHITE, COLOR_CYAN);
     clearBuffer();
+
+    bitmap_t *bmp = createBitmap();
+    displayBitmap(bmp);
+
+
+    // PMM check real quick
+    extern uint32_t text_start;
+    extern uint32_t text_end;
+
+    printf("== CHECK PMM ==\n");
+    printf("physical memory map:\n");
+    memoryRegion_t *region = (memoryRegion_t*)globalInfo->m_mmap_addr;
+
+    serialPrintf("map address is 0x%x\n", globalInfo->m_mmap_addr);
+    for (int i = 0; i < 15; i++) {
+        if (region[i].type > 4) {
+            serialPrintf("PMM CHECK: WARNING! Marking region of type %i as reserved.\n", region[i].type);
+            region[i].type = 1;
+        }
+
+        if (i > 0 && region[i].startLo == 0) break;
+
+        printf("region %i: start: 0x%x%x length: 0x%x%x type: %i (%s)\n", i, region[i].startHi, region[i].startLo, region[i].sizeHi, region[i].sizeLo, region[i].type, strMemoryTypes[region[i].type-1]);
+        if (region[i].type == 1) {
+            pmm_initRegion(region[i].startLo, region[i].sizeLo);
+        }
+    }
+
+    pmm_deinitRegion(0x100000, 51 * 4096);
+    printf("PMM online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
+    printf("Initialized regions: %i allocation blocks\nUsed or reserved blocks: %i\nFree blocks: 0x%x\n", pmm_getMaxBlocks(), pmm_getUsedBlocks(), pmm_getFreeBlocks());
+
 
     // The user entered the command handler. We will not return.
 

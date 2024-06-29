@@ -33,13 +33,19 @@ void *panic(char *caller, char *code, char *reason) {
 
 
 
-    clearScreen(terminalColor);
-    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
+    clearScreen(COLOR_WHITE, COLOR_RED);
+    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
 
     printf("reduceOS v1.0 (Development Build) - Kernel Panic");
-    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" ");
+    if (terminalMode == 0) {
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+    } else {
+        printf("                                                                                \n"); // cry about it neat freaks
+    }
 
-    updateBottomText("A fatal error occurred!");
+    // updateBottomText("A fatal error occurred!");
+
+    updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED);
 
     printf("reduceOS encountered a fatal error and needs to shutdown.\n");
     printf("The error cause will be printed below. If you start an issue on GitHub, please include the following text.\n");
@@ -50,14 +56,7 @@ void *panic(char *caller, char *code, char *reason) {
     printf("\nStack dump:\n\n");
     
     
-    // Stop embarassing yourself THE CPUID FUNCTION DOES NOT RETURN REGISTERS
-    /*
-    uint32_t eax, ebx, ecx, edx;
-    for (uint32_t i = 0; i < 4; i++) {
-        __cpuid(i, &eax, &ebx, &ecx, &edx);
-        printf("Type: 0x%x, EAX: 0x%x, EBX: 0x%x, ECX: 0x%x, EDX: 0x%x\n", i, eax, ebx, ecx, edx);
-    } */
-
+    
     
     // TODO: Add debug symbols into the initrd so we get function names.
     // stackTrace(5); // Get a stack trace.
@@ -75,13 +74,19 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     serialPrintf("*** ISR threw exception: %s\n", reason);
     serialPrintf("panic type: registers, %s.\n", code);
 
-    clearScreen(terminalColor);
-    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
+    clearScreen(COLOR_WHITE, COLOR_RED);
+    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
 
     printf("reduceOS v1.0 (Development Build) - Kernel Panic");
-    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" ");
+    if (terminalMode == 0) {
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+    } else {
+        printf("                                                                                \n"); // cry about it neat freaks
+    }
 
-    updateBottomText("A fatal error occurred!");
+    // updateBottomText("A fatal error occurred!");
+
+    updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED);
 
     printf("reduceOS encountered a fatal error and needs to shutdown.\n");
     printf("The error cause will be printed below. If you start an issue on GitHub, please include the following text.\n");
@@ -126,13 +131,19 @@ void *pageFault(registers_t *reg) {
     int user = reg->err_code & 0x4; // Were we in user-mode?
     int reserved = reg->err_code & 0x8; // Were the overwritten CPU reserved bits of page entry?
 
-    clearScreen(terminalColor);
-    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
+    clearScreen(COLOR_WHITE, COLOR_RED);
+    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
 
     printf("reduceOS v1.0 (Development Build) - Kernel Panic");
-    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" ");
+    if (terminalMode == 0) {
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+    } else {
+        printf("                                                                                \n"); // cry about it neat freaks
+    }
 
-    updateBottomText("A fatal error occurred!");
+    // updateBottomText("A fatal error occurred!");
+
+    updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED);
 
     printf("reduceOS encountered a fatal error and needs to shutdown.\n");
     printf("The error cause will be printed below. If you start an issue on GitHub, please include the following text.\n");

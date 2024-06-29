@@ -9,8 +9,8 @@ static char *shell = "\0"; // This will be used if we're handling typing - mainl
 
 
 // The terminal's mode is either VGA or VESA VBE. VESA VBE is currently using PSF functions (todo: implement a system wide font API to allow for changing between different fonts)
-int terminalMode = 0; // 0 signifies VGA mode, 1 signifies VESA VBE.
 int vbeTerminalForeground, vbeTerminalBackground;
+int terminalMode; // 0 signifies VGA mode, 1 signifies VESA VBE.
 int vbeWidth, vbeHeight;
 
 // initTerminal() - Load the terminal, setup the buffers, reset the values, etc.
@@ -32,7 +32,7 @@ void initTerminal(void) {
         // VBE reinit code goes here
         terminalX = 0, terminalY = 0; // Reset X and Y
         vbeTerminalForeground = COLOR_WHITE;
-        vbeTerminalBackground = COLOR_BLACK;
+        vbeTerminalBackground = COLOR_CYAN;
         vbeWidth = modeWidth;
         vbeHeight = modeHeight;
     }
@@ -42,8 +42,15 @@ void initTerminal(void) {
 void changeTerminalMode(int mode) { terminalMode = mode; initTerminal(); }
 
 // updateTerminalColor(uint8_t color) - Update the terminal color. Simple function.
-// Why not use gfxColors as the params? Other functions in terminal.c call this, and it's faster to use terminalColor. May change later though.
+// ! OBSOLETE AND TO BE REMOVED !
 void updateTerminalColor(uint8_t color) { terminalColor = color; }
+
+// updateTerminalColor_gfx(uint8_t fg, uint8_t bg)
+void updateTerminalColor_gfx(uint8_t fg, uint8_t bg) {
+    vbeTerminalForeground = fg;
+    vbeTerminalBackground = bg;
+    terminalColor = vgaColorEntry(fg, bg);
+}
 
 
 // terminalPutcharXY(unsigned char c, uint8_t color, size_t x, size_t y) - Specific function to place a vgaEntry() at a specific point on the screen.
@@ -91,8 +98,35 @@ void terminalDeleteLastLine() {
     }
 }
 
-// clearScreen(uint8_t color) - clears the screen 
-void clearScreen(uint8_t color) {
+void clearScreen_VESA(uint8_t fg, uint8_t bg) {
+    updateTerminalColor_gfx(fg, bg);
+
+    terminalX = 0;
+    terminalY = 0;
+
+
+    for (size_t y = 0; y < vbeHeight; y++) {
+        for (size_t x = 0; x < vbeWidth; x++) {
+            // bad code fix later
+            vbePutPixel(x, y, VGA_TO_VBE(vbeTerminalBackground));
+        }
+    }
+    vbeSwitchBuffers();
+
+    terminalX = 0;
+    terminalY = 0;
+}
+
+// clearScreen(uint8_t fg, uint8_t bg) - clears the screen 
+void clearScreen(uint8_t fg, uint8_t bg) {
+
+    if (terminalMode) {
+        clearScreen_VESA(fg, bg);
+        return;
+    }
+
+    terminalColor = vgaColorEntry(fg, bg);
+
     for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
         for (size_t x = 0; x < SCREEN_WIDTH; x++) {
             terminalPutcharXY(' ', terminalColor, x, y); // Reset all characters to be ' '. Obviously initTerminal() already does this, but we want to reimplement it without all the setup stuff.
@@ -195,7 +229,7 @@ void terminalPutcharVESA(char c) {
     } else if (c == '\r') {
         terminalX = 0;
     } else {
-        psfDrawChar(c, terminalX, terminalY, vbeTerminalForeground, vbeTerminalBackground);
+        psfDrawChar(c, terminalX, terminalY, VGA_TO_VBE(vbeTerminalForeground), VGA_TO_VBE(vbeTerminalBackground));
         terminalX = terminalX + psfGetFontWidth(); 
     }
     

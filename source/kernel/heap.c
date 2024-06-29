@@ -15,6 +15,7 @@ extern page_directory_t* kernelDir; // Defined in paging.c
 
 
 uint32_t kmalloc_int(uint32_t size, int align, uint32_t* phys) {
+
     if (kernelHeap) {
         void* address = alloc(size, (uint8_t)align, kernelHeap); // Get the address of what we are allocating.
         if (phys != 0) {

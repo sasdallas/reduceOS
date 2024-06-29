@@ -35,7 +35,7 @@ void initPaging() {
     kernelDir = (page_directory_t*)kmalloc_a(sizeof(page_directory_t)); // Allocate a page directory for the kernel...
     memset(kernelDir, 0, sizeof(page_directory_t));
     kernelDir->physicalAddress = (uint32_t)kernelDir->tablePhysical;
-
+    serialPrintf("kernelDir->physicalAddress: 0x%x\n", kernelDir->physicalAddress);
 
     // Now, map some pages in the kernel's heap area - here we call getPage but not allocateFrame, causing page tables to be created where necessary.
     int i = 0;
@@ -60,17 +60,20 @@ void initPaging() {
 
 
     // Register interrupt handlers and enable paging.
-    isrRegisterInterruptHandler(14, pageFault); // pageFault is defined in panic.c
+    //isrRegisterInterruptHandler(14, pageFault); // pageFault is defined in panic.c
     uint32_t *ptr = (uint32_t*)0xA0000000;
-    uint32_t do_page_fault = *ptr;
     switchPageDirectory(kernelDir); // Switch the page directory to kernel directory.
 
     printf("Paging initialized!\n");
-    
-    
+    serialPrintf("ready, set...\n");
+    enablePaging();
+    serialPrintf("done :D\n");    
+
+
     // Create the kernel heap
     kernelHeap = createHeap(HEAP_START, HEAP_START + HEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
     printf("Kernel heap initialized!\n");
+
 
 }
 
@@ -83,14 +86,24 @@ void switchPageDirectory(page_directory_t* dir) {
 
 void enablePaging() {
     uint32_t cr0;
+    uint32_t cr3 = kernelDir->physicalAddress;
     uint32_t cr4;
+
+    //asm volatile ("mov %0, %%cr3" :: "r"(cr3));
     
     asm volatile ("mov %%cr4, %0" : "=r"(cr4)); // Set cr4 to the value of reg cr4
     cr4 = cr4 & 0xFFFFFFEF; // Clear PSE bit (is this necessary?)
-    asm volatile ("mov %0, %%cr4" :: "r"(cr4));
+    asm volatile ("mov %0, %%cr4" :: "r"(cr4)); 
 
     asm volatile ("mov %%cr0, %0" : "=r"(cr0));
-    cr0 = cr0 | 0x80000000; // Set paging bit
+    cr0 = cr0 | (1 << 0); // Set protection flag (will cause GPF if not done!)
+    cr0 = cr0 | (1 << 31);
+
+    for (int i = 0; i < 32; i++) {
+        serialPrintf("%i", ((cr0 & ( 1 << i )) >> i));
+    }
+    serialPrintf("b\n");
+
     asm volatile ("mov %0, %%cr0" :: "r"(cr0));
 }
 
@@ -192,3 +205,33 @@ void *createStack(unsigned int id) {
     return (void*)stack[id-1];  
 }
 
+
+// allocateFrame(page_t *page, int kernel, int writable) - Allocating a frame.
+void allocateFrame(page_t* page, int kernel, int writable) {
+    if (page->frame != 0)
+    {
+        return;
+    }
+    else
+    {
+        uint32_t idx = firstFrame();
+        if (idx == (uint32_t)-1) {
+            panic("pmm", "allocateFrame()", "No free frames available!");
+        }
+        setFrame(idx * 0x1000);
+        page->present = 1;
+        page->rw = (writable) ? 1 : 0;
+        page->user = (kernel) ? 0 : 1;
+        page->frame = idx;
+    }
+}
+
+
+// freeFrame(page_t *page) - Deallocate (or "free") a frame.
+void freeFrame(page_t* page) {
+    uint32_t frame;
+    if (!(frame = page->frame)) return; // Invalid frame.
+
+    clearFrame(frame); // Clear the frame from the bitmap
+    page->frame = 0x0; // Clear the frame value in the page.
+}

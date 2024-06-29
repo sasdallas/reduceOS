@@ -141,9 +141,9 @@ void psfDrawChar(unsigned short int c, int cx, int cy, uint32_t fg, uint32_t bg)
         // Display a row.
         for (x = 0; x < font->width; x++) {
             if ((*((unsigned int*)glyph) & mask ? fg : bg) == bg) {
-                vbePutPixel(cx + x, cy + y, RGB_VBE(0, 0, 0));
+                vbePutPixel(cx + x, cy + y, bg);
             } else {
-                vbePutPixel(cx + x, cy + y, RGB_VBE(255, 255, 255));
+                vbePutPixel(cx + x, cy + y, fg);
             }
             mask >>= 1;
         }

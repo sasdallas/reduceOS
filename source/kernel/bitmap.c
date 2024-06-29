@@ -5,14 +5,14 @@
 
 #include "include/bitmap.h" // Main header file
 
-extern char _binary_source_images_wallpaper_bmp_start;
-extern char _binary_source_images_wallpaper_bmp_end;
+extern char _binary_source_images_cheeseburger_bmp_start;
+extern char _binary_source_images_cheeseburger_bmp_end;
 
 
 bitmap_t *createBitmap() {
     // The image we attempt to display is burned into the code by the linker (thankfully, initrd's interface sucks and that's totally not my fault)
     bitmap_t *ret = kmalloc(sizeof(bitmap_t));
-    char *start_addr = &_binary_source_images_wallpaper_bmp_start;
+    char *start_addr = &_binary_source_images_cheeseburger_bmp_start;
     bitmap_fileHeader_t *h = start_addr;
 
     // Validate signature
