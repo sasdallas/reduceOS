@@ -30,7 +30,7 @@ enum gfxColor {
     COLOR_LIGHT_CYAN = 11,
     COLOR_LIGHT_RED = 12,
     COLOR_LIGHT_MAGENTA = 13,
-    COLOR_LIGHT_BROWN = 14,
+    COLOR_YELLOW = 14,
     COLOR_WHITE = 15
 };
 

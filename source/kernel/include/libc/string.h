@@ -28,4 +28,5 @@ int strncmp(const char *str1, char *str2, int length); // strncmp() - compares a
 int strlen(char *str); // strlen() - checks length of a string
 char *strtok(char *str, const char *delim); // strtok() - splits a string into tokens, seperated by delim.
 long strtol(const char *nptr, char **endptr, int base); // strtol() - <todo add description>
+int atoi(char *str); // atoi() - string to integer
 #endif

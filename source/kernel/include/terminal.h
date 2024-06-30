@@ -48,6 +48,8 @@ void enableShell(char *shellToUse); // Enables a boundary that cannot be overwri
 int printf(const char* restrict format, ...); // printf() - the main function of the entire file. Handles unlimited arguments, %s and %c, and scrolling.
 void printf_putchar(const char *format, void(*put_method)(char), va_list args); // printf_putchar() - Special printf() function. Prints a put_method instead of VIDEO_MEM.
 void printf_hex(uint32_t hex); // Fixed function to get around printf's buggy %x.
+void updateTextCursor_vesa(); // Updating the text cursor in VESA VBE. 
+void instantUpdateTerminalColor(uint8_t fg, uint8_t bg); // Instantly update the terminal color (VESA only)
 // As described in the C file, certain printf functions are NOT present in this file, like putc and print, as they are only helper functions for printf.
 // They are likely going to be removed and merged into terminal.c.
 

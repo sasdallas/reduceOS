@@ -33,7 +33,7 @@ readSector:
     mov ch, 0                   ; Cylinder 0
     mov cl, 2                   ; Starting from sector 2(begins from 1 not 0)
     mov dh, 0                   ; Drive #0
-    mov bx, 0x07C0              ; Read to 0x0000:0x0600
+    mov bx, 0x07C0              ; Read to 0x0000:0x07C0
     int 13h                     ; Read!
     jnc loadGood                ; Return if it's good.
 

@@ -66,11 +66,43 @@ void terminalGotoXY(size_t x, size_t y) {
 }
 
 
+// This might seem bad, but it's actually not the worst.
+extern uint32_t *framebuffer;
+extern int psfGetFontHeight();
+
+// scrollTerminal_vesa() - I wonder what this function does.
+void scrollTerminal_vesa() {
+    if (terminalY >= modeHeight) {
+        
+        // Reading directly from vmem is very slow, but reading from our secondary buffer is not
+        for (int y = psfGetFontHeight(); y < modeHeight; y++) {
+            for (int x = 0; x < modeWidth; x++) {
+                vbePutPixel(x, y - psfGetFontHeight(), *(framebuffer + (y*modeWidth + x))); // Copy the pixels one line below to the current line.
+            }    
+        }
+
+        // Blank the bottom line.
+        for (int y = modeHeight-psfGetFontHeight(); y < modeWidth; y++) {
+            for (int x = 0; x < modeWidth; x++) {
+                vbePutPixel(x, y, VGA_TO_VBE(vbeTerminalBackground));
+            }
+        }
+
+
+        // Update terminalY to the new position after scrolling
+        terminalY = modeHeight - psfGetFontHeight();
+    }
+}
 
 
 // Unlike the alpha, this one has terminal scrolling!
 // scrollTerminal() - Scrolls the terminal
 void scrollTerminal() {
+    if (terminalMode == 1) {
+        scrollTerminal_vesa();
+        return;
+    }
+
     uint16_t blank = 0x20 | (terminalColor << 8);
 
     if (terminalY >= SCREEN_HEIGHT) {
@@ -148,6 +180,54 @@ void updateTextCursor() {
     outportb(0x3D5, pos);
 }
 
+
+// updateTextCursor_vesa() - Does the same thing but in VESA (aka much more complex) - event in PIT IRQ
+
+static int blinkTime = 0; // Time since last blink (~500ms)
+static int blinkedLast = 0; // Did it blink last time? Do we need to clear/draw it?
+void updateTextCursor_vesa() {
+    // This function is called by pitTicks on a reasonable level
+    if (blinkTime > 500) {
+        if (blinkedLast) {
+            for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
+                vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalBackground));
+            }
+            blinkedLast = 0;
+        } else {
+            for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
+                vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalForeground));
+            }
+            blinkedLast = 1;
+        }
+
+        vbeSwitchBuffers();
+        blinkTime = 0;
+    } else {
+        blinkTime++;
+    }
+}
+
+
+
+// When a character is typed, we want the cursor to follow it.
+static void redrawTextCursor_vesa() {
+    if (blinkedLast) {
+        blinkTime = 0;
+        for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
+                vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalForeground));
+        }    
+    }
+}
+
+// If a newline is typed, remove the text cursor if it existed.
+static void clearTextCursor_vesa() {
+    if (blinkedLast) {
+        for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
+            vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalBackground));
+        }
+    }
+}
+
 // No function description. Proprietary function used only by keyboard driver.
 void terminalMoveArrowKeys(int arrowKey) {
     if (arrowKey == 0 && terminalX != 0) {
@@ -216,9 +296,11 @@ void terminalPutcharVESA(char c) {
     }
 
     if (c == '\n') {
+        clearTextCursor_vesa(); // Clear the text cursor.
         terminalY = terminalY + psfGetFontHeight();
         terminalX = 0;
     } else if (c == '\b') {
+        clearTextCursor_vesa(); // Clear the text cursor.
         terminalBackspaceVESA();
     } else if (c == '\0') {
         // Do nothing
@@ -232,6 +314,8 @@ void terminalPutcharVESA(char c) {
         psfDrawChar(c, terminalX, terminalY, VGA_TO_VBE(vbeTerminalForeground), VGA_TO_VBE(vbeTerminalBackground));
         terminalX = terminalX + psfGetFontWidth(); 
     }
+
+    scrollTerminal_vesa();
     
 }
 
@@ -309,6 +393,36 @@ void updateBottomText(char *bottomText) {
 void enableShell(char *shellToUse) { shell = shellToUse; }
 
 
+// instantUpdateTerminalColor(uint8_t fg, uint8_t bg) - Instantly update the terminal color (VESA only)
+void instantUpdateTerminalColor(uint8_t fg, uint8_t bg) {
+    if (terminalMode != 1) return; // VESA only
+
+    // NOTE: Function breaks if it tries to update a section where fg and bg are the same.
+    // The way we do this is to iterate over the entire thing two times - once to update bg, once to update fg.
+
+    for (int y = 0; y < modeHeight; y++) {
+        for (int x = 0; x < modeWidth; x++) {
+            if (vbeGetPixel(x, y) == VGA_TO_VBE(vbeTerminalBackground)) {
+                vbePutPixel(x, y, VGA_TO_VBE(bg));
+            }
+        }
+    }
+
+    for (int y = 0; y < modeHeight; y++) {
+        for (int x = 0; x < modeWidth; x++) {
+            if (vbeGetPixel(x, y) == VGA_TO_VBE(vbeTerminalForeground)) {
+                vbePutPixel(x, y, VGA_TO_VBE(fg));
+            }
+        }
+    }
+
+    vbeTerminalBackground = bg;
+    vbeTerminalForeground = fg;
+
+    vbeSwitchBuffers();
+}
+
+
 
 // *************************************************************************************************
 // Some of the following functions are helper functions to printf, as they need to return a value. 
@@ -333,6 +447,7 @@ static bool print(const char *data, size_t length) {
     }
     return true;
 }
+
 
 // Now we move to the actual main function, printf.
 
@@ -446,7 +561,11 @@ int printf(const char*  format, ...) {
         }
     }
     
-    if (terminalMode == 1) vbeSwitchBuffers(); // Call after done writing to remove typewriting effect.
+    if (terminalMode == 1) {
+        updateTextCursor_vesa(); // Update the cursor
+        vbeSwitchBuffers(); // Call after done writing to remove typewriting effect.
+    }
+
 
     va_end(args);
     return charsWritten;

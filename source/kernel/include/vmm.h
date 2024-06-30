@@ -38,7 +38,7 @@ typedef struct {
 // Macros
 #define PAGEDIR_INDEX(x) (((x) >> 22) & 0x3ff) // Returns the index of x within the PDE
 #define PAGETBL_INDEX(x) (((x) >> 12) & 0x3ff) // Returns the index of x within the PTE
-#define VIRTUAL_TO_PHYS(addr) (*x & ~0xFFF) // Returns the physical address of addr.
+#define VIRTUAL_TO_PHYS(addr) (*addr & ~0xFFF) // Returns the physical address of addr.
 
 
 #endif

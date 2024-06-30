@@ -13,7 +13,7 @@ void interruptCompleted(uint32_t intNo) {
     outportb(0x20, 0x20);
 
     // Do we need to send EOI to second PIC?
-    if (intNo >= 8) outportb(0xA0, 0x20);
+    if (intNo >= 40) outportb(0xA0, 0x20);
 }
 
 

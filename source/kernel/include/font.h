@@ -65,6 +65,8 @@ void bitmapLoadFont(uint32_t *font_data); // Loads a a new font for the bitmap.
 void bitmapFontDrawChar(char ch, int x, int y, int color); // Puts a character of color 'color' at x, y
 void bitmapFontDrawString(char *str, int x, int y, int color); // Draw a string from the bitmap
 void psfInit(); // Initializes the default PSF font for reduceOS.
+int psfGetFontWidth(); // Get PSF font width
+int psfGetFontHeight(); // Get PSF font eheight
 void psfDrawChar(unsigned short int c, int cx, int cy, uint32_t fg, uint32_t bg); // Draw a PC screen font character.
 
 #endif

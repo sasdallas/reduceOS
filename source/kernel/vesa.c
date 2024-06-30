@@ -169,6 +169,8 @@ uint32_t VGA_TO_VBE(uint8_t vgaColor) {
             return RGB_VBE(170, 85, 0);
         case COLOR_LIGHT_GRAY:
             return RGB_VBE(170, 170, 170); // why did we do gray as light gray
+        case COLOR_DARK_GRAY:
+            return RGB_VBE(85, 85, 85);
         case COLOR_LIGHT_BLUE:
             return RGB_VBE(85, 85, 255);
         case COLOR_LIGHT_GREEN:
@@ -179,6 +181,8 @@ uint32_t VGA_TO_VBE(uint8_t vgaColor) {
             return RGB_VBE(255, 85, 85);
         case COLOR_LIGHT_MAGENTA:
             return RGB_VBE(255, 85, 255);
+        case COLOR_YELLOW:
+            return RGB_VBE(255, 255, 85);
         default:
             serialPrintf("VGA_TO_VBE: stupid users (color = %i)\n", vgaColor);
             return;
@@ -244,5 +248,9 @@ void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
     uint32_t p = y * modeWidth + x;
     *(framebuffer + p) = color;
+}
+
+uint32_t vbeGetPixel(int x, int y) {
+    return *(framebuffer + (y * modeWidth + x));
 }
 

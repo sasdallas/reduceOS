@@ -10,12 +10,12 @@
 
 // pte_addattrib(pte_t *entry, uint32_t attribute) - Add an attribute to the PTE.
 void pte_addattrib(pte_t *entry, uint32_t attribute) {
-    *entry = *entry | attribute;
+    *entry |= attribute;
 }
 
 // pte_delattrib(pte_t *entry, uint32_t attribute) - Delete an attribute from the PTE.
 void pte_delattrib(pte_t *entry, uint32_t attribute) {
-    *entry = *entry & ~(attribute);
+    *entry &= ~attribute;
 }
 
 // pte_setframe(pte_t *entry, uint32_t physical_addr) - Set the PTE frame.

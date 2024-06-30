@@ -1,0 +1,25 @@
+============================================================================================================================
+	reduceOS v1.2 Vaporwave - written by sasdallas
+	New kernel, same trash.
+	Build 3-DEBUG, compiled on 06/30/24, 11:00:25
+============================================================================================================================
+
+Kernel location: 0x100000 - 0x5FBF24
+Text section: 0x100000 - 0x10D000; Data section: 0x135000 - 0x5BA038; BSS section: 0x5BB000 - 0x5FBF24
+Loader magic: 0x43D8C305
+
+Serial logging initialized!
+GDT, IDT, and ISR have initialized successfully.
+Interrupts success===========================================================
+panic() called! FATAL ERROR!
+*** ISR threw exception: General protection
+panic type: registers, ISR Exception.
+
+err_code 0
+REGISTER DUMP:
+eax=0x10F3A5, ebx=0x2F, ecx=0x80, edx=0x11
+edi=0x0, esi=0x0, ebp=0x5BEF3C, esp=0x5BEED0
+eip=0x104FC8, cs=0x3F, ss=0x10206, eflags=0x2E, useresp=0x0
+
+STACK TRACE (EBP based):
+

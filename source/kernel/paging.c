@@ -71,9 +71,10 @@ void initPaging() {
 
 
     // Create the kernel heap
-    kernelHeap = createHeap(HEAP_START, HEAP_START + HEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
+    //kernelHeap = createHeap(HEAP_START, HEAP_START + HEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
     printf("Kernel heap initialized!\n");
 
+    uint32_t *fault = *ptr;
 
 }
 
@@ -99,10 +100,6 @@ void enablePaging() {
     cr0 = cr0 | (1 << 0); // Set protection flag (will cause GPF if not done!)
     cr0 = cr0 | (1 << 31);
 
-    for (int i = 0; i < 32; i++) {
-        serialPrintf("%i", ((cr0 & ( 1 << i )) >> i));
-    }
-    serialPrintf("b\n");
 
     asm volatile ("mov %0, %%cr0" :: "r"(cr0));
 }
@@ -214,7 +211,7 @@ void allocateFrame(page_t* page, int kernel, int writable) {
     }
     else
     {
-        uint32_t idx = firstFrame();
+        uint32_t idx = pmm_firstFrame();
         if (idx == (uint32_t)-1) {
             panic("pmm", "allocateFrame()", "No free frames available!");
         }

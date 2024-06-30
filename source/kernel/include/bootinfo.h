@@ -7,7 +7,21 @@
 #include "include/libc/stdint.h" // Definitions of integer types, like uint8_t
 
 #define MULTIBOOT_MAGIC 0x1BADB002
-#define MULTIBOOT2_MAGIC 0x2BADB002 // this is probably wrong but whatever
+
+
+typedef struct {
+	uint32_t tab_size;
+	uint32_t string_size;
+	uint32_t address;
+	uint32_t reserved;
+} aoutSymbolTable_t;
+
+typedef struct {
+	uint32_t number;
+	uint32_t size;
+	uint32_t address;
+	uint32_t shndx;
+} elfHeader_t;
 
 typedef struct {
 	uint32_t	m_flags; 			  // m_flags - Multiboot flags (useless without a multiboot bootloader like GRUB)
@@ -17,9 +31,10 @@ typedef struct {
 	uint32_t	m_cmdLine;			  // m_cmdLine - command used to boot OS
 	uint32_t	m_modsCount;		  // m_modsCount - Amount of mods passed (used with initrd)
 	uint32_t	m_modsAddr;			  // m_modsAddr - Address of mods passed (used with initrd)
-	uint32_t	m_syms0;			  // m_syms0 - Unused
-	uint32_t	m_syms1;			  // m_syms1 - Unused
-	uint32_t	m_syms2;			  // m_syms2 - Unused
+	union {
+        aoutSymbolTable_t aout_sym;
+        elfHeader_t elf_sec;
+    } u;
 	uint32_t	m_mmap_length;		  // m_mmap_length - Length of memory map
 	uint32_t	m_mmap_addr;		  // m_mmap_addr - Address of memory map
 	uint32_t	m_drives_length;	  // m_drives_length - Length of drive
@@ -32,6 +47,12 @@ typedef struct {
 	uint16_t	m_vbe_mode;			  // m_vbe_mode - VBE mode
 	uint32_t	m_vbe_interface_addr; // m_vbe_interface_addr - VBE interface address
 	uint16_t	m_vbe_interface_len;  // m_vbe_interface_len - VBE interface length
+	uint64_t framebuffer_addr;
+    uint32_t framebuffer_pitch;
+    uint32_t framebuffer_width;
+    uint32_t framebuffer_height;
+    uint8_t framebuffer_bpp;
+    uint8_t framebuffer_type;  // indexed = 0, RGB = 1, EGA = 2
 } multiboot_info;
 
 

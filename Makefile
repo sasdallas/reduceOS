@@ -5,6 +5,7 @@ LD = ld
 AS = as
 GRUB_FILE = grub-file
 OBJCOPY = objcopy
+PYTHON = python3
 
 RM = rm
 MKDIR = mkdir -p
@@ -41,6 +42,8 @@ OUT_FONT = $(OUT_OBJ)/fonts
 
 IMAGE_SRC = source/images
 OUT_IMAGES = $(OUT_OBJ)/images
+
+BUILDSCRIPTS_DIR = buildscripts/
 
 # files
 OUT_IMG = out/img
@@ -92,7 +95,7 @@ dbg: $(OUT_KERNEL)/kernel_debug.elf $(OUT_INITRD)/initrd.img
 
 
 # I'm sorry for naming this target out/kernel/kernel_debug.elf when it does not produce a kernel_debug.elf
-$(OUT_KERNEL)/kernel_debug.elf: $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
+$(OUT_KERNEL)/kernel_debug.elf: BUILDSCRIPTS_DEBUG $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking debug kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
 	@printf "[ Copying debug symbols to kernel.sym... ]\n"
@@ -104,13 +107,20 @@ $(OUT_KERNEL)/kernel_debug.elf: $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAG
 
 
 
-$(OUT_KERNEL)/kernel.elf: $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
+$(OUT_KERNEL)/kernel.elf: BUILDSCRIPTS_RELEASE $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
-	@printf "[ Stripping debug symbols... ]"
+	@printf "[ Stripping debug symbols... ]\n"
 	$(OBJCOPY) --strip-debug $(OUT_KERNEL)/kernel.elf
 	@printf "\n"
 
+BUILDSCRIPTS_RELEASE:
+	@printf "[ Running buildscripts for RELEASE build of reduceOS... ]\n"
+	$(PYTHON) $(BUILDSCRIPTS_DIR)/update_build_no_and_date.py RELEASE
+
+BUILDSCRIPTS_DEBUG:
+	@printf "[ Running buildscripts for DEBUG build of reduceOS... ]\n"
+	$(PYTHON) $(BUILDSCRIPTS_DIR)/update_build_no_and_date.py DEBUG
 
 $(OUT_OBJ)/%.o: $(KERNEL_SOURCE)/%.c | $(OUT_OBJ)
 	@printf "[ Compiling C file $<... ]\n"
@@ -173,6 +183,7 @@ PATCH_TARGETS:
 	@printf "[ Recompiling files that need optimization... ]\n"
 	$(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/isr.c -o $(OUT_OBJ)/isr.o 
 	@printf "\n"
+	$(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/vmm.c -o $(OUT_OBJ)/vmm.o
 	
 
 $(INITRD_OBJ)/%.o : $(INITRD_SRC)/src/%.c | $(INITRD_OBJ)

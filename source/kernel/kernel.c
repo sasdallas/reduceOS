@@ -89,9 +89,21 @@ int dump(int argc, char *args[]) {
             printf("0x%x 0x%x 0x%x 0x%x", bytes[0], bytes[1], bytes[2], bytes[3]);
             printf("\n");
         }
+    } else if (!strcmp(args[1], "multiboot")) {
+        printf("Multiboot information:\n");
+        printf("m_flags: 0x%x\n", globalInfo->m_flags);
+        printf("m_memoryLo: 0x%x\n", globalInfo->m_memoryLo);
+        printf("m_memoryHi: 0x%x\n", globalInfo->m_memoryHi);
+        printf("m_bootDevice: 0x%x\n", globalInfo->m_bootDevice);
+        printf("m_cmdLine: %s\n", globalInfo->m_cmdLine);
+        printf("m_modsCount: %d\n", globalInfo->m_modsCount);
+        printf("m_modsAddr: 0x%x\n", globalInfo->m_modsAddr);
+        printf("m_mmap_addr: 0x%x\n", globalInfo->m_mmap_addr);
+        printf("m_mmap_length: 0x%x\n", globalInfo->m_mmap_length);
+        printf("m_bootloader_name: %s\n", globalInfo->m_bootloader_name);
     } else {
         printf("Invalid arguments, please check if your syntax is correct.\n");
-        printf("Possible arguments: sysinfo, memory <addr>, memoryrange <addr1> <addr2>");
+        printf("Possible arguments: sysinfo, memory <addr>, memoryrange <addr1> <addr2>, multiboot\n");
         return -1;
     }
 
@@ -171,6 +183,54 @@ int ataPoll(int argc, char *args[]) {
     return 1;
 }
 
+
+int testISRException(int argc, char *args[]) {
+    asm volatile ("div %0" :: "r"(0));
+    printf("ISR fail\n");
+    return 0;
+}
+
+
+int about(int argc, char *args[]) {
+    printf("reduceOS v%s (codename %s)\n", VERSION, CODENAME);
+    printf("Build number %s-%s - build date %s\n", BUILD_NUMBER, BUILD_CONFIGURATION, BUILD_DATE);
+    printf("Created by @sasdallas\n");
+}
+
+int color(int argc, char *args[]) {
+    if (argc != 3) {
+        printf("Usage: color <fg> <bg>\n");
+        printf("\"fg\" and \"bg\" are VGA color integers.\n");
+        return 1;
+    }
+
+    if (terminalMode != 1) {
+        printf("This command only works in VESA VBE mode.\n");
+        return 1;
+    }
+
+    int fg = atoi(args[1]);
+    int bg = atoi(args[2]);
+
+    if (fg < 0 || fg > 15) {
+        printf("Invalid foreground color.\n");
+        return 1;
+    }
+
+    if (bg < 0 || bg > 15) {
+        printf("Invalid background color.\n");
+        return 1;
+    }
+
+    if (fg == bg) {
+        printf("Colors must be different (else code breaks)\n");
+        return 1;
+    }
+
+    instantUpdateTerminalColor(fg, bg);
+    return 0;
+}
+
 // Used for debugging
 int panicTest(int argc, char *args[]) {
     panic("kernel", "panicTest()", "Testing panic function");
@@ -227,10 +287,12 @@ void usermodeMain() {
 }
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
-void kmain(multiboot_info* mem) {
+void kmain(unsigned long addr, unsigned long loader_magic) {
     // Update global multiboot info.
-    globalInfo = mem;
 
+    multiboot_info *mboot;
+
+    globalInfo = (multiboot_info*)addr;
     
     // Some extra stuff
     extern uint32_t text_start;
@@ -252,8 +314,8 @@ void kmain(multiboot_info* mem) {
 
 
     // First, setup the top bar.
-    printf("reduceOS v1.0 - Development Build");
-    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 - Development Build")); i++) printf(" ");
+    printf("reduceOS v%s %s (created by @sasdallas)", VERSION, CODENAME);
+    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 - Development Build")); i++) printf(" "); // tbf
 
     // Next, update terminal color to the proper color.
     updateTerminalColor(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
@@ -264,12 +326,24 @@ void kmain(multiboot_info* mem) {
 
     // Initialize serial logging
     serialInit();
-    serialPrintf("reduceOS v1.0-dev - written by sasdallas\n");
-    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", &text_start, &bss_end, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
     serialPrintf("============================================================================================================================\n");
+    serialPrintf("\treduceOS v%s %s - written by sasdallas\n", VERSION, CODENAME);
+    serialPrintf("\tNew kernel, same trash.\n");
+    serialPrintf("\tBuild %s-%s, compiled on %s\n", BUILD_NUMBER, BUILD_CONFIGURATION, BUILD_DATE);
+    serialPrintf("============================================================================================================================\n\n");
+    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", &text_start, &bss_end, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
+    serialPrintf("Loader magic: 0x%x\n\n", loader_magic);
     serialPrintf("Serial logging initialized!\n");
     
+
     printf("Serial logging initialized on COM1.\n");
+
+
+
+    if (loader_magic != 0x43D8C305) {
+        serialPrintf("loader magic: 0x%x addr: 0x%x\n", loader_magic, addr);
+        panic("kernel", "kmain", "loader_magic != 0x43D8C305"); 
+    }
 
 
 
@@ -300,12 +374,6 @@ void kmain(multiboot_info* mem) {
     serialPrintf("PIT started at 1000hz\n");
 
     
-
-
-    // bios32 stops to work after we initialize paging, so get all calls done now!
-    // Initializing VESA will NOT work after this, so we have to ask the user what they want to do now:
-    // Update: Found the reason, since paging includes 0x7E00 (temp memory for all bios32 calls), crashing all of reduceOS.
-   
     // Probe for PCI devices
     updateBottomText("Probing PCI...");
     initPCI();
@@ -318,14 +386,12 @@ void kmain(multiboot_info* mem) {
     // Initialize ACPI
     updateBottomText("Initializing ACPI...");
     acpiInit();
-   
-    // Initialize paging
-    
+
     // Calculate the initial ramdisk location in memory (panic if it's not there)
-    ASSERT(mem->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
-    uint32_t initrdLocation = *((uint32_t*)mem->m_modsAddr);
-    uint32_t initrdEnd = *(uint32_t*)(mem->m_modsAddr + 4);
-    placement_address = initrdEnd;
+    ASSERT(globalInfo->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
+    uint32_t initrdLocation = *((uint32_t*)globalInfo->m_modsAddr);
+    uint32_t initrdEnd = *(uint32_t*)(globalInfo->m_modsAddr + 4);
+    placement_address = initrdEnd; // Hack
     serialPrintf("GRUB did pass an initial ramdisk.\n");
     
     fs_root = initrdInit(initrdLocation);    
@@ -335,11 +401,24 @@ void kmain(multiboot_info* mem) {
     // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
     // Now that initial ramdisk has loaded, we can initialize memory management
     updateBottomText("Initializing physical memory manager...");
-    pmmInit(globalInfo->m_memoryHi - globalInfo->m_memoryLo);
+    pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
+
+    // Initialize the memory map
+    pmm_initializeMemoryMap(globalInfo);
+
+    // Deallocate the kernel's region.
+    uint32_t kernelStart = (uint32_t)&text_start;
+    uint32_t kernelEnd = (uint32_t)&bss_end;
+    pmm_deinitRegion(0x100000, (kernelEnd - kernelStart));
+
+    // Initialize VMM
+    vmmInit();
+
+    //uint32_t *ptr = (uint32_t*)0xA0000000;
+    //uint32_t pagefault = *ptr;
     serialPrintf("Initialized memory management successfully.\n");
 
-    updateBottomText("Initializing paging...");
-    //initPaging();
+
 
     // Finally, all setup has been completed. We can ask the user if they want to enter the backup command line.
     // By ask, I mean check if they're holding c.
@@ -356,20 +435,9 @@ void kmain(multiboot_info* mem) {
     fatInit();
 
     if (didInitVesa) {
-        // bitmap_t *wallpaper = createBitmap();
-        // displayBitmap(wallpaper);
-        // vbeSwitchBuffers();
-        
         // Initialize PSF
         psfInit();
         
-        
-        // bitmapFontDrawString("This is a test.", 50, 50, RGB_VBE(0, 255, 0));
-        // gfxDrawRect(80, 80, 100, 100, RGB_VBE(255, 0, 0), false);
-        // gfxDrawRect(150, 80, 180, 100, RGB_VBE(255, 0, 0), true);
-        // gfxDrawLine(500, 500, 750, 750, RGB_VBE(255, 0, 0));
-        // gfxDrawLine(500, 500, 250, 750, RGB_VBE(255, 0, 0));
-        // gfxDrawLine(250, 750, 750, 750, RGB_VBE(255, 0, 0));
         vbeSwitchBuffers();
     }
 
@@ -386,53 +454,27 @@ void kmain(multiboot_info* mem) {
 }
 
 
-char* strMemoryTypes[] = {
-
-	{"Available"},			//memory_region.type==0
-	{"Reserved"},			//memory_region.type==1
-	{"ACPI Reclaim"},		//memory_region.type==2
-	{"ACPI NVS Memory"}		//memory_region.type==3
-};
 
 void useCommands() {
     clearScreen(COLOR_WHITE, COLOR_CYAN);
     clearBuffer();
 
-    bitmap_t *bmp = createBitmap();
-    displayBitmap(bmp);
 
 
-    // PMM check real quick
-    extern uint32_t text_start;
-    extern uint32_t text_end;
 
     printf("== CHECK PMM ==\n");
-    printf("physical memory map:\n");
-    memoryRegion_t *region = (memoryRegion_t*)globalInfo->m_mmap_addr;
+    pmm_printMemoryMap(globalInfo);
+    
 
-    serialPrintf("map address is 0x%x\n", globalInfo->m_mmap_addr);
-    for (int i = 0; i < 15; i++) {
-        if (region[i].type > 4) {
-            serialPrintf("PMM CHECK: WARNING! Marking region of type %i as reserved.\n", region[i].type);
-            region[i].type = 1;
-        }
 
-        if (i > 0 && region[i].startLo == 0) break;
-
-        printf("region %i: start: 0x%x%x length: 0x%x%x type: %i (%s)\n", i, region[i].startHi, region[i].startLo, region[i].sizeHi, region[i].sizeLo, region[i].type, strMemoryTypes[region[i].type-1]);
-        if (region[i].type == 1) {
-            pmm_initRegion(region[i].startLo, region[i].sizeLo);
-        }
-    }
-
-    pmm_deinitRegion(0x100000, 51 * 4096);
     printf("PMM online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
-    printf("Initialized regions: %i allocation blocks\nUsed or reserved blocks: %i\nFree blocks: 0x%x\n", pmm_getMaxBlocks(), pmm_getUsedBlocks(), pmm_getFreeBlocks());
+    printf("Initialized regions: %i allocation blocks\nUsed or reserved blocks: %i\nFree blocks: %i\n", pmm_getMaxBlocks(), pmm_getUsedBlocks(), pmm_getFreeBlocks());
 
 
     // The user entered the command handler. We will not return.
 
     initCommandHandler();
+    registerCommand("isr", (command*)testISRException);
     registerCommand("system", (command*)getSystemInformation);
     registerCommand("echo", (command*)echo);
     registerCommand("crash", (command*)crash);
@@ -444,12 +486,15 @@ void useCommands() {
     registerCommand("shutdown", (command*)shutdown);
     registerCommand("memory", (command*)memoryInfo);
     registerCommand("dump", (command*)dump);
+    registerCommand("about", (command*)about);
+    registerCommand("version", (command*)about);
+    registerCommand("color", (command*)color);
     serialPrintf("All commands registered successfully.\n");
     serialPrintf("Warning: User is an unstable environment.\n");
 
     
     char buffer[256]; // We will store keyboard input here.
-    printf("reduceOS v1.0 has finished loading successfully.\n");
+    printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
     enableShell("reduceOS> "); // Enable a boundary (our prompt)

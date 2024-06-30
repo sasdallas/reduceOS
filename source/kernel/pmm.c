@@ -14,27 +14,69 @@
 uint32_t* frames;
 uint32_t nframes;
 
-uint32_t *mmap = 0;
 
 // Useful information for OOM errors.
 uint32_t pmm_memorySize; // Physical memory size
 uint32_t pmm_usedBlocks; // Used blocks of physical memory
 uint32_t pmm_maxBlocks; // Total amount of blocks of physical memory
 
+char* strMemoryTypes[] = {
+	{"Available"},			// Initialize me!
+	{"Reserved"},			// I'm reserved!
+	{"ACPI Reclaim"},		// I'm ACPI related!
+	{"ACPI NVS Memory"}		// I'm ACPI NVS related!
+};
+
+// pmm_printMemoryMap(multiboot_info *info) - Prints a memory map
+void pmm_printMemoryMap(multiboot_info *info) {
+    printf("Physical memory map:\n");
+    serialPrintf("DUMPING PHYSICAL MEMORY MAP:\n");
+
+    for (uint32_t i = 0; i < info->m_mmap_length; i += sizeof(memoryRegion_t)) {
+        memoryRegion_t *region = (memoryRegion_t*)((info->m_mmap_addr) + i);
+        printf("\tRegion %i: size: %d address: 0x%x%x length: %d%d bytes type: %d (%s)\n", i, region->size, region->addressLo, region->addressHi, region->lengthLo, region->lengthHi, region->type, strMemoryTypes[region->type-1]);
+        serialPrintf("\tRegion %i: size: %d address: 0x%x%x length: %d%d bytes type: %d (%s)\n", i, region->size, region->addressLo, region->addressHi, region->lengthLo, region->lengthHi, region->type, strMemoryTypes[region->type-1]);
+    }
+}
+
+// pmm_initializeMemoryMap(multiboot_info *info) - Initializes available memory sections in the memory map
+void pmm_initializeMemoryMap(multiboot_info *info) {
+    for (uint32_t i = 0; i < info->m_mmap_length; i += sizeof(memoryRegion_t)) {
+        memoryRegion_t *region = (memoryRegion_t*)((info->m_mmap_addr) + i);
+        if (region->type == 1) pmm_initRegion(region->addressLo, region->lengthLo);
+    }
+}
 
 // pmmInit(uint32_t physMemorySize) - Initializes frames and nframes
 void pmmInit(uint32_t physMemorySize) {
-    nframes = physMemorySize / PAGE_SIZE; // Calculate number of frames
-    frames = (uint32_t*)kmalloc(INDEX_BIT(nframes)); // Allocate frames array & clear it
-    memset(frames, 0, INDEX_BIT(nframes));
-
     pmm_memorySize = physMemorySize;
     pmm_maxBlocks = (pmm_memorySize * 1024) / 4096;
     pmm_usedBlocks = pmm_maxBlocks;
+
+    nframes = pmm_maxBlocks;
+    frames = kmalloc(nframes);
+
+    // All memory is in use by default.
+    memset(frames, 0xF, pmm_maxBlocks / 8);
 }
 
 
-// setFrame(uint32_t addr) - Setting a bit in the frames bitset.
+// pmm_setFrame(int frame) - Set a frame/bit in the frames array
+void pmm_setFrame(int frame) {
+    frames[INDEX_BIT(frame)] |= (1 << OFFSET_BIT(frame));
+}
+
+// pmm_clearFrame(int frame) - Clear a frame/bit in the frames array
+void pmm_clearFrame(int frame) {
+    frames[INDEX_BIT(frame)] &= ~(1 << OFFSET_BIT(frame));
+}
+
+bool pmm_testFrame(int frame) {
+    return frames[INDEX_BIT(frame)] & (1 << OFFSET_BIT(frame));
+}
+
+
+// setFrame(uint32_t addr) - Setting a bit in the frames bitset. (stupid paging code OBSOLETE)
 void setFrame(uint32_t addr) {
     uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
     uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
@@ -44,7 +86,7 @@ void setFrame(uint32_t addr) {
 }
 
 
-// clearFrame(uint32_t addr) - Clear a bit in the frames bitset
+// clearFrame(uint32_t addr) - Clear a bit in the frames bitset (stupid paging code OBSOLETE)
 void clearFrame(uint32_t addr) {
     // Same as setFrame, but with a few differences.
     uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
@@ -55,7 +97,7 @@ void clearFrame(uint32_t addr) {
     frames[index] &= ~(0x1 << offset);
 }
 
-// testFrame(uint32_t addr) - Test if a frame is set
+// testFrame(uint32_t addr) - Test if a frame is set (stupid paging code OBSOLETE)
 uint32_t testFrame(uint32_t addr) {
     // Same as all previous functions, but we return a value.
     uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
@@ -66,8 +108,8 @@ uint32_t testFrame(uint32_t addr) {
 }
 
 
-// firstFrame() - Find the first free frame
-uint32_t firstFrame() {
+// pmm_firstFrame() - Find the first free frame
+uint32_t pmm_firstFrame() {
     // Loop through to find a free frame.
     for (uint32_t i = 0; i < INDEX_BIT(nframes); i++) {
         // Only continue if we have enough memory.
@@ -84,10 +126,10 @@ uint32_t firstFrame() {
 
 }
 
-// firstFrames(size_t n) - Finds n amount of frames and returns it.
-uint32_t firstFrames(size_t n) {
+// pmm_firstFrames(size_t n) - Finds n amount of frames and returns it.
+uint32_t pmm_firstFrames(size_t n) {
     if (n == 0) return 0; // stupid users
-    if (n == 1) return firstFrame();
+    if (n == 1) return pmm_firstFrame();
 
     for (uint32_t i = 0; i < INDEX_BIT(nframes); i++) {
         if (frames[i] != 0xFFFFFFFF) {
@@ -101,9 +143,8 @@ uint32_t firstFrames(size_t n) {
 
                     uint32_t free = 0; // Check each bit to see if enough frames are present.
                     for (uint32_t count = 0; count < n; count++) {
-                        if (!testFrame(startingBit + count)) free++; // Check me for bugs!
+                        if (!pmm_testFrame(startingBit + count)) free++;
                         if (free == n) return i*4*8+j;
-                        else serialPrintf("firstFrames: free != size when locating %i frames\n", n);
                     }
     
                 }
@@ -116,41 +157,51 @@ uint32_t firstFrames(size_t n) {
 
 
 
-// BrokenThorn Entertainment's PMM architecture involves using memory blocks/regions. To get the architecture to work correctly, we need to do the same.
+// pmm_initRegion(uint32_t base, size_t size) - Initialize a region as available memory
 void pmm_initRegion(uint32_t base, size_t size) {
     int align = base / 4096;
     int blocks = size / 4096;
 
     for (; blocks > 0; blocks--) {
-        clearFrame(align++);
+        pmm_clearFrame(align++);
         pmm_usedBlocks--;
     }
 
-    setFrame(0); // First block is always set.
+    pmm_setFrame(0); // First block is always set.
+
+    serialPrintf("pmm_initRegion: Region at 0x%x (size 0x%x) initialized. Blocks used: %i. Free blocks: %i\n", base, size, blocks, (pmm_maxBlocks - pmm_usedBlocks));
 }
 
+// pmm_deinitRegion(uint32_t base, size_t size) - Marks a region as unusable memory (e.g. kernel region)
 void pmm_deinitRegion(uint32_t base, size_t size) {
+    // maybe bugged? dunno
     int align = base / 4096;
     int blocks = size / 4096;
 
-    serialPrintf("blocks used %i\n", blocks);
     for (; blocks > 0; blocks--) {
         setFrame(align++);
         pmm_usedBlocks++;
     }
 
-    setFrame(0);
+    pmm_setFrame(0);
 
-    serialPrintf("pmm_deinitRegion: Region at 0x%x (size 0x%x) deinitialized. Blocks used: %i. Free blocks: %i\n", base, size, blocks, (pmm_maxBlocks - pmm_usedBlocks));
+    serialPrintf("pmm_deinitRegion: Region at 0x%x (size 0x%x) deinitialized. Blocks used: %i. Free blocks: %i\n", base, size, pmm_usedBlocks, (pmm_maxBlocks - pmm_usedBlocks));
 }
 
+// pmm_allocateBlock() - Allocates a block
 void *pmm_allocateBlock() {
-    if ((pmm_maxBlocks - pmm_usedBlocks) <= 0) return 0; // OOM
+    if ((pmm_maxBlocks - pmm_usedBlocks) <= 0) {
+        serialPrintf("pmm_allocateBlock: Out of memory!\n");
+        return 0; // OOM
+    }
 
-    int frame = firstFrame();
-    if (frame == -1) return 0; // OOM
+    int frame = pmm_firstFrame();
+    if (frame == -1) {
+        serialPrintf("pmm_allocateBlock: Failed to allocate block.\n");
+        return 0; // OOM
+    }
 
-    setFrame(frame);
+    pmm_setFrame(frame);
 
     uint32_t addr = frame * 4096;
     pmm_usedBlocks++;
@@ -158,25 +209,27 @@ void *pmm_allocateBlock() {
     return (void*)addr;
 }
 
+// pmm_freeBlock(void *block) - Frees a block
 void pmm_freeBlock(void *block) {
     uint32_t addr = (uint32_t)block;
     int frame = addr / 4096;
 
-    clearFrame(frame);
+    pmm_clearFrame(frame);
 
     pmm_usedBlocks--;
 }
 
+// pmm_allocateBlocks(size_t size) - Allocates size amount of blocks
 void *pmm_allocateBlocks(size_t size) {
     if ((pmm_maxBlocks - pmm_usedBlocks) <= size) return 0; // Not enough memory is available
-    int frame = firstFrames(size);
+    int frame = pmm_firstFrames(size);
     if (frame == -1) {
         serialPrintf("pmm_allocateBlocks: Failed to allocate %i blocks\n", size);
         return 0;
     }
 
     for (uint32_t i=0; i < size; i++) {
-        setFrame(frame + i);
+        pmm_setFrame(frame + i);
     }
 
     uint32_t addr = frame * 4096;
@@ -184,16 +237,18 @@ void *pmm_allocateBlocks(size_t size) {
     return (void*)addr;
 }
 
-
+// pmm_freeBlocks(void *ptr, size_t size) - Frees blocks in memory
 void pmm_freeBlocks(void *ptr, size_t size) {
     uint32_t addr = (uint32_t)ptr;
     int frame = addr / 4096;
 
-    for (uint32_t i = 0; i < size; i++) clearFrame(frame + i);
+    for (uint32_t i = 0; i < size; i++) pmm_clearFrame(frame + i);
 
     pmm_usedBlocks -= size;
 }
 
+
+// Getter functions
 uint32_t pmm_getPhysicalMemorySize() {
     return pmm_memorySize;
 }

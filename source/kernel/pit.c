@@ -13,6 +13,7 @@ static bool pit_isInit = false; // Is the PIT initialized?
 // PIT timer interrupt handler
 void pitIRQ() { 
     pitTicks++; // Increment tick count
+    updateTextCursor_vesa(); // To be replaced with some sort of handler/caller list
 }
 
 // Waits seconds.

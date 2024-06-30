@@ -159,8 +159,7 @@ isr7:
     
 ; isr8 - double fault
 isr8:
-    push byte 0
-    push 8
+    push byte 8
     jmp isrCommonStub
     
     
@@ -173,36 +172,31 @@ isr9:
     
 ; isr10 - invalid TSS
 isr10:
-    push byte 0
-    push 10
+    push byte 10
     jmp isrCommonStub
     
     
 ; isr11 - segment not present
 isr11:
-    push byte 0
-    push 11
+    push byte 11
     jmp isrCommonStub
     
     
 ; isr12 - stack segment fault
 isr12:
-    push byte 0
-    push 12
+    push byte 12
     jmp isrCommonStub
     
     
 ; isr13 - general protection
 isr13:
-    push byte 0
-    push 13
+    push byte 13
     jmp isrCommonStub
     
     
 ; isr14 - page fault
 isr14:
-    push byte 0
-    push 14
+    push byte 14
     jmp isrCommonStub
     
     

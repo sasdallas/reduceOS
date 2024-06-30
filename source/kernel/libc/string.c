@@ -167,7 +167,16 @@ int strncmp(const char *str1, char *str2, int length) {
     return 1;
 }
 
+// atoi() - Converts a string to an integer
+// Needs more parameters and isn't complete.
+int atoi(char *str) {
+    int ret = 0;
+    for (int i = 0; i < strlen(str); i++) {
+        ret = ret * 10 + str[i] - '0';
+    }
 
+    return ret;
+}
 
 // strtok() - Splits a string into tokens, seperated by characters in delim.
 char *strtok(char *str, const char *delim) {
