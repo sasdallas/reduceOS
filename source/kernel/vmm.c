@@ -152,7 +152,7 @@ void vmmInit() {
         pte_setframe(&page, frame);
 
         // Add the above page to the page table.
-        table2->entries[PAGETBL_INDEX(virt)] = page;
+        table->entries[PAGETBL_INDEX(virt)] = page;
     }
 
 
@@ -164,7 +164,7 @@ void vmmInit() {
         pte_setframe(&page, frame);
 
         // Add the above page to the page table.
-        table->entries[PAGETBL_INDEX(virt)] = page;
+        table2->entries[PAGETBL_INDEX(virt)] = page;
     }
 
     for (int i = 0, frame=0x800000, virt=0x00800000; i < 1024; i++, frame += 4096, virt += 4096) {
