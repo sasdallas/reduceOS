@@ -315,8 +315,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // First, setup the top bar.
     printf("reduceOS v%s %s (created by @sasdallas)", VERSION, CODENAME);
-    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 - Development Build")); i++) printf(" "); // tbf
-
+    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (created by @sasdallas) ") - strlen(CODENAME)); i++) printf(" "); // tbf
     // Next, update terminal color to the proper color.
     updateTerminalColor(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
     printf("reduceOS is loading, please wait...\n");

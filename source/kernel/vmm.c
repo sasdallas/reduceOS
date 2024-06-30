@@ -40,7 +40,9 @@ bool vmm_switchDirectory(pagedirectory_t *directory) {
 
 // vmm_flushTLBEntry(uint32_t addr) - Invalidate the current TLB entry
 void vmm_flushTLBEntry(uint32_t addr) {
-    asm volatile ("cli ; invlpg (%0) ; sti" :: "r"(addr));
+    asm volatile ("cli");
+    asm volatile ("invlpg (%0)" :: "r"(addr));
+    asm volatile ("sti");
 }
 
 // vmm_getCurrentDirectory() - Returns the current page directory
@@ -118,9 +120,7 @@ void vmm_enablePaging() {
     cr0 = cr0 | 0x80000000;
 
     asm volatile ("mov %0, %%cr0" :: "r"(cr0));
-    while (true) {
-
-    }
+    
 }
 
 // vmmInit() - Initialize the VMM.
@@ -129,12 +129,19 @@ void vmmInit() {
     pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
     if (!table) return; // failed to get the block
 
-    // Allocate 3gb page table
+
+    // Allocate a second page table
     pagetable_t *table2 = (pagetable_t*)pmm_allocateBlock();
     if (!table2) return; // failed to get the block
 
+    // Allocate a third for our big boy kernel
+    pagetable_t *table3 = (pagetable_t*)pmm_allocateBlock();
+    if (!table3) return; // failed to get the block
+
     // Clear the page table.
     memset(table, 0, sizeof(pagetable_t));
+    memset(table2, 0, sizeof(pagetable_t));
+    memset(table3, 0, sizeof(table3));
 
     // Identity map the first 4MB, since when paging is enabled, all addresses are made virtual.
     for (int i = 0, frame=0x0, virt=0x00000000; i < 1024; i++, frame += 4096, virt += 4096) {
@@ -149,7 +156,7 @@ void vmmInit() {
     }
 
 
-    for (int i = 0, frame=0x100000, virt=0xC0000000; i < 1024; i++, frame += 4096, virt += 4096) {
+    for (int i = 0, frame=0x400000, virt=0x00400000; i < 1024; i++, frame += 4096, virt += 4096) {
         // Create a new page and change its frame.
         pte_t page = 0;
         pte_addattrib(&page, PTE_PRESENT);
@@ -160,16 +167,28 @@ void vmmInit() {
         table->entries[PAGETBL_INDEX(virt)] = page;
     }
 
+    for (int i = 0, frame=0x800000, virt=0x00800000; i < 1024; i++, frame += 4096, virt += 4096) {
+        // Create a new page and change its frame.
+        pte_t page = 0;
+        pte_addattrib(&page, PTE_PRESENT);
+        pte_addattrib(&page, PTE_WRITABLE);
+        pte_setframe(&page, frame);
+
+        // Add the above page to the page table.
+        table3->entries[PAGETBL_INDEX(virt)] = page;
+    }
+
+
 
     // Create the default page directory and clear it.
-    pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlocks(3);
+    pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlocks(4);
     if (!dir) return; // failed to get the block
 
     memset(dir, 0, sizeof(pagedirectory_t));
 
     // Now, since we identity mapped the first 4MB, we need to create a PDE for that (two for both tables).
     // The first PDE is for the first 4MB, the second is for the next, ...
-    pde_t *entry = &dir->entries[PAGEDIR_INDEX(0xc0000000)];
+    pde_t *entry = &dir->entries[PAGEDIR_INDEX(0x00400000)];
     pde_addattrib(entry, PDE_PRESENT);
     pde_addattrib(entry, PDE_WRITABLE);
     pde_setframe(entry, (uint32_t)table);
@@ -178,6 +197,12 @@ void vmmInit() {
     pde_addattrib(entry2, PDE_PRESENT);
     pde_addattrib(entry2, PDE_WRITABLE);
     pde_setframe(entry2, (uint32_t)table2);
+
+    pde_t *entry3 = &dir->entries[PAGEDIR_INDEX(0x00800000)];
+    pde_addattrib(entry3, PDE_PRESENT);
+    pde_addattrib(entry3, PDE_WRITABLE);
+    pde_setframe(entry3, (uint32_t)table3);
+
 
     // Set our ISR interrupt handler
     isrRegisterInterruptHandler(14, pageFault);
@@ -211,4 +236,5 @@ void vmmInit() {
     vmm_enablePaging();
 
     serialPrintf("vmmInit: Successfully initialized paging.\n");
+    //while (true);
 }
