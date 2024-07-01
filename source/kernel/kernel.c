@@ -281,6 +281,22 @@ int memoryInfo(int argc, char *args[]) {
 }
 
 
+// This is my tradition now ;)
+int vaporwave(int argc, char *args[]) {
+    clearScreen(COLOR_WHITE, COLOR_MAGENTA);
+    bitmap_t *vaporwave = createBitmap();
+    displayBitmap(vaporwave, 0, psfGetFontHeight()*3);
+    setKBHandler(false);
+    printf("Through the code lies the sunset\n");
+    sleep(2000);
+    printf("reduceOS v1.2 Vaporwave\n");
+    sleep(4000);
+    printf("The first release since the anniversary\n");
+    sleep(10000);
+    
+    setKBHandler(true);
+    return 0;
+}
 
 void usermodeMain() {
 
@@ -461,6 +477,7 @@ void useCommands() {
 
 
 
+
     printf("== CHECK PMM ==\n");
     pmm_printMemoryMap(globalInfo);
     
@@ -488,6 +505,7 @@ void useCommands() {
     registerCommand("about", (command*)about);
     registerCommand("version", (command*)about);
     registerCommand("color", (command*)color);
+    registerCommand("vaporwave", (command*)vaporwave);
     serialPrintf("All commands registered successfully.\n");
     serialPrintf("Warning: User is an unstable environment.\n");
 

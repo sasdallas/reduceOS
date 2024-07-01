@@ -4,6 +4,10 @@
 // This file is a part of the reduceOS C kernel. If you use this code, please credit the implementation's original owner (if you directly copy and paste this, also add me please)
 // This implementation is not by me - credits for the implementation are present in paging.h
 
+// WARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNING
+// THIS FILE IS DEPRECATED !! DO NOT USE!!
+// WARNINGWARNINGWARNINGWARNINGWARNINGWARNINGWARNING
+
 #include "include/paging.h" // Main header file
 
 page_directory_t* kernelDir = 0; // The kernel's page directory

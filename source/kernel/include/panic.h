@@ -10,7 +10,7 @@
 #include "include/hal.h" // Hardware Abstraction Layer
 #include "include/regs.h" // registers_t typedef
 #include "include/serial.h" // Serial logging
-
+#include "include/CONFIG.h" // Configuration
 
 // Functions
 void *panic(char *caller, char *code, char *reason);

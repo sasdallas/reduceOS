@@ -36,11 +36,11 @@ void *panic(char *caller, char *code, char *reason) {
     clearScreen(COLOR_WHITE, COLOR_RED);
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
 
-    printf("reduceOS v1.0 (Development Build) - Kernel Panic");
+    printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
     if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0  - Kernel Panic") - strlen(CODENAME)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
     } else {
-        printf("                                                                                \n"); // cry about it neat freaks
+        printf("                                                                                          \n"); // cry about it neat freaks
     }
 
     // updateBottomText("A fatal error occurred!");
@@ -77,11 +77,11 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     clearScreen(COLOR_WHITE, COLOR_RED);
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
 
-    printf("reduceOS v1.0 (Development Build) - Kernel Panic");
+    printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
     if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0  - Kernel Panic") - strlen(CODENAME)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
     } else {
-        printf("                                                                                \n"); // cry about it neat freaks
+        printf("                                                                                          \n"); // cry about it neat freaks
     }
 
     // updateBottomText("A fatal error occurred!");
@@ -134,11 +134,11 @@ void *pageFault(registers_t *reg) {
     clearScreen(COLOR_WHITE, COLOR_RED);
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
 
-    printf("reduceOS v1.0 (Development Build) - Kernel Panic");
+    printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
     if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0 (Development Build) - Kernel Panic")); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0  - Kernel Panic") - strlen(CODENAME)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
     } else {
-        printf("                                                                                \n"); // cry about it neat freaks
+        printf("                                                                                          \n"); // cry about it neat freaks
     }
 
     // updateBottomText("A fatal error occurred!");

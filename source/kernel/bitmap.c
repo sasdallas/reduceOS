@@ -5,14 +5,14 @@
 
 #include "include/bitmap.h" // Main header file
 
-extern char _binary_source_images_cheeseburger_bmp_start;
-extern char _binary_source_images_cheeseburger_bmp_end;
+extern char _binary_source_images_vaporwave_bmp_start;
+extern char _binary_source_images_vaporwave_bmp_end;
 
 
 bitmap_t *createBitmap() {
     // The image we attempt to display is burned into the code by the linker (thankfully, initrd's interface sucks and that's totally not my fault)
     bitmap_t *ret = kmalloc(sizeof(bitmap_t));
-    char *start_addr = &_binary_source_images_cheeseburger_bmp_start;
+    char *start_addr = &_binary_source_images_vaporwave_bmp_start;
     bitmap_fileHeader_t *h = start_addr;
 
     // Validate signature
@@ -55,7 +55,7 @@ void displayBitmap(bitmap_t *bmp, int x, int y) {
     if (bmp->height > 764) height = 764; // BUG BUG BUG BUG BUG
     else height = bmp->height;
 
-    for(int i = 0; i < bmp->height-4; i++) {
+    for(int i = 0; i < bmp->height-4-y; i++) {
         // Copy the image to the framebuffer.
         char * imageRow = image + i * bmp->width * 3; // Needed to get BGR values.
         uint32_t * framebufferRow = (void*)framebuffer + (bmp->height - 1 - i) * bmp->width * 4;
