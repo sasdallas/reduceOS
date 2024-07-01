@@ -32,13 +32,15 @@ void cpuInit() {
 	memset(processor_data->vendor, 0, sizeof(processor_data->vendor));
 	__cpuid(0, &eaxvar, &processor_data->vendor[0], &processor_data->vendor[8], &processor_data->vendor[4]);	
 	
+	int edx = 0;
 
 	// Also, get CPU long mode support.
     asm volatile ("movl $0x80000001, %%eax\n"
-                "cpuid\n" : "=d"(processor_data->long_mode_capable) :: "eax", "ebx", "ecx");
+                "cpuid\n" : "=d"(edx) :: "eax", "ebx", "ecx");
 
-	processor_data->long_mode_capable = processor_data->long_mode_capable & (1 << 29);
+	serialPrintf("EDX: %i\n", edx);
 
+	processor_data->long_mode_capable = edx & (1 << 29) ? 1 : 0;
 
 	// SSE Support Checking
 	cpuCheckSSE();

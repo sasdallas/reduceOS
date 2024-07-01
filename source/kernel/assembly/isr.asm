@@ -146,7 +146,7 @@ isr5:
     push 5
     jmp isrCommonStub
 
-; isr2 - invalid opcode
+; isr6 - invalid opcode
 isr6:
     push byte 0
     push 6

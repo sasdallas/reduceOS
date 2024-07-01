@@ -474,10 +474,6 @@ void useCommands() {
     clearScreen(COLOR_WHITE, COLOR_CYAN);
     clearBuffer();
 
-
-
-
-
     printf("== CHECK PMM ==\n");
     pmm_printMemoryMap(globalInfo);
     

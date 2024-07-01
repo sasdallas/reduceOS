@@ -87,6 +87,9 @@ int testSerial() {
 
 // serialInit() - Initializes serial properly.
 void serialInit() {
+    serialTestPassed = false;
+    return;
+
     // TODO: Allow user to choose ports.
     outportb(SERIAL_COM1 + 1, 0x00); // Disable all interrupts
     outportb(SERIAL_COM1 + 3, 0x80); // Enable DLAB (set the baud rate divisor).

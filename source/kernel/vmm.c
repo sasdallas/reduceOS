@@ -138,10 +138,12 @@ void vmmInit() {
     pagetable_t *table3 = (pagetable_t*)pmm_allocateBlock();
     if (!table3) return; // failed to get the block
 
+
+
     // Clear the page table.
     memset(table, 0, sizeof(pagetable_t));
     memset(table2, 0, sizeof(pagetable_t));
-    memset(table3, 0, sizeof(table3));
+    memset(table3, 0, sizeof(pagetable_t));
 
     // Identity map the first 4MB, since when paging is enabled, all addresses are made virtual.
     for (int i = 0, frame=0x0, virt=0x00000000; i < 1024; i++, frame += 4096, virt += 4096) {
@@ -179,7 +181,6 @@ void vmmInit() {
     }
 
 
-
     // Create the default page directory and clear it.
     pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlocks(4);
     if (!dir) return; // failed to get the block
@@ -191,17 +192,18 @@ void vmmInit() {
     pde_t *entry = &dir->entries[PAGEDIR_INDEX(0x00000000)];
     pde_addattrib(entry, PDE_PRESENT);
     pde_addattrib(entry, PDE_WRITABLE);
-    pde_setframe(entry, (uint32_t)table2); // yes this is really how stupid i am
+    pde_setframe(entry, (uint32_t)table); // yes this is really how stupid i am
 
     pde_t *entry2 = &dir->entries[PAGEDIR_INDEX(0x00400000)];
     pde_addattrib(entry2, PDE_PRESENT);
     pde_addattrib(entry2, PDE_WRITABLE);
-    pde_setframe(entry2, (uint32_t)table);
+    pde_setframe(entry2, (uint32_t)table2);
 
     pde_t *entry3 = &dir->entries[PAGEDIR_INDEX(0x00800000)];
     pde_addattrib(entry3, PDE_PRESENT);
     pde_addattrib(entry3, PDE_WRITABLE);
     pde_setframe(entry3, (uint32_t)table3);
+
 
     // Set our ISR interrupt handler
     isrRegisterInterruptHandler(14, pageFault);
@@ -213,22 +215,7 @@ void vmmInit() {
     vmm_switchDirectory(dir);
 
 
-    serialPrintf("==== VMM DUMP =====\n");
-    serialPrintf("table1 dump:\n");
-    for (int i = 0; i < 1024; i++) {
-        pte_t *entry = &table->entries[i];
-        if (entry && pte_ispresent(entry)) {
-            serialPrintf("\tPresent entry %i: present=%i writable=%i frame=0x%x\n", i, pte_ispresent(entry), pte_iswritable(entry), pte_getframe(entry));
-        }
-    }
 
-    serialPrintf("table2 dump:\n");
-    for (int i = 0; i < 1024; i++) {
-        pte_t *entry = table2->entries[i];
-        if (entry && pte_ispresent(entry)) {
-            serialPrintf("\tPresent entry %i: present=%i writable=%i frame=0x%x\n", i, pte_ispresent(entry), pte_iswritable(entry), pte_getframe(entry));
-        }
-    }
 
 
     // Enable paging!
