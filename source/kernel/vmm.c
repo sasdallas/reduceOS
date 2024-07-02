@@ -120,8 +120,17 @@ void vmm_enablePaging() {
     cr0 = cr0 | 0x80000000;
 
     asm volatile ("mov %0, %%cr0" :: "r"(cr0));
-    
 }
+
+
+// vmm_disablePaging() - Disables paging
+void vmm_disablePaging() {
+    uint32_t cr0;
+    asm volatile ("mov %%cr0, %0" : "=r"(cr0));
+    cr0 = cr0 & 0x7FFFFFFF;
+    asm volatile ("mov %0, %%cr0" :: "r"(cr0));
+}
+
 
 // vmmInit() - Initialize the VMM.
 void vmmInit() {

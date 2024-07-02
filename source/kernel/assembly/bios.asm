@@ -1,5 +1,12 @@
 [bits 32]
 
+
+ENABLE_PAGING equ 0x80000001
+DISABLE_PAGING equ 0x7FFFFFFF
+
+
+
+
 ; Written by pritamzope - not by me!
 ; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -16,6 +23,7 @@ section .text
     global bios32_out_reg16_ptr ; OUT REGISTERS16
     global bios32_int_number_ptr ; bios interrupt number to be called
 
+
 ; 32 bit protected mode
 BIOS32_START:use32
     pusha
@@ -24,15 +32,24 @@ BIOS32_START:use32
     ; jumping to 16 bit protected mode
     ; disable interrupts
     cli
-    ; clear cr3 by saving cr3 data in ebx register
+
+
+    ; Turn off paging
+    mov cr0, eax
+    and eax, DISABLE_PAGING
+    mov eax, cr0
+
+    ; Executing this corrupts CR3 (page table index) so save it in EBX
     xor ecx, ecx
     mov ebx, cr3
     mov cr3, ecx
-    ; load new empty GDT
+
+
+    ; Load GDT
     lgdt [REBASE_ADDRESS(bios32_gdt_ptr)]
-    ; load new empty IDT
+    ; Load IDT
     lidt [REBASE_ADDRESS(bios32_idt_ptr)]
-    ; jump to 16 bit protected mode
+    ; Jump to 16-bit protected mode
     jmp 0x30:REBASE_ADDRESS(__protected_mode_16)
 
 ; 16 bit protected mode
@@ -51,14 +68,18 @@ __protected_mode_16:use16
     mov cr0, eax
     jmp 0x0:REBASE_ADDRESS(__real_mode_16)
 
+
 ; 16 bit real mode
 __real_mode_16:use16
+
+
     xor ax, ax
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
+
     mov sp, 0x8c00
     ; enable bios interrupts to call
     sti
@@ -140,10 +161,18 @@ __protected_mode_32:use32
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    ; restore cr3
+
+    ; Restore CR3
     mov cr3, ebx
-    ; restore esp
+    
+    ; Enable paging
+    mov ecx, cr0
+    or ecx, ENABLE_PAGING
+    mov cr0, ecx
+
+    ; Restore ESP
     mov esp, edx
+
     sti
     popa
     ret

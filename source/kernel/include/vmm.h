@@ -40,5 +40,8 @@ typedef struct {
 #define PAGETBL_INDEX(x) (((x) >> 12) & 0x3ff) // Returns the index of x within the PTE
 #define VIRTUAL_TO_PHYS(addr) (*addr & ~0xFFF) // Returns the physical address of addr.
 
+// Functions
+void vmm_disablePaging();
+
 
 #endif
