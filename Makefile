@@ -87,10 +87,11 @@ INITRD_OBJS = $(patsubst $(INITRD_SRC)/src/%.c, $(INITRD_OBJ)/%.o, $(INITRD_SRCS
 
 
 # Targets
-# all - builds a proper kernel.elf file for release
+# rel - builds a proper kernel.elf file for release
 # dbg - builds a kernel file (non-binary) for use with objdump or other examination tools (this target is most commonly used while testing new linking)
 
-all: $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
+all: rel
+rel: $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
 dbg: $(OUT_KERNEL)/kernel_debug.elf $(OUT_INITRD)/initrd.img
 
 

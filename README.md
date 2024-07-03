@@ -28,10 +28,10 @@ Usermode and ELF loading
 **To build reduceOS, you need these packages:** `gcc`, `nasm`, `make`, `grub`\
 **To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso` (for building an ISO - does not work in QEMU!)
 
-The makefile of reduceOS has two main targets for building - `all` and `dbg`.\
-The target to actually build the OS is `all`. If you need to do further debugging, use `dbg` (outputs debug symbols)
+The makefile of reduceOS has two main targets for building - `rel` and `dbg`.\
+The target to actually build the OS is `rel`. If you need to do further debugging, use `dbg` (outputs debug symbols)
 
-Run `make` to build the OS, or `make all dbg` if you're trying to debug it.
+Run `make rel` to build the OS in a release configuration, or `make dbg` if you're trying to debug it.
 
 Finally, you need to launch the OS. This can be done in a variety of different ways, but the Makefile uses QEMU.\
 Run `make qemu` to launch QEMU and start the OS.
