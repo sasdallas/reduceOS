@@ -37,11 +37,11 @@ int idtInstallIR(uint8_t i, uint8_t flags, uint16_t segmentSelector, uint32_t ba
 
 void idtInit() {
     // Setup the IDT pointer.
-    idtPtr.limit = sizeof(idtEntry_t) * 256 - 1;
+    idtPtr.limit = sizeof(idtEntries)-1;
     idtPtr.base_addr = (uint32_t)idtEntries;
-    
+
     // Clear IDT entries table.
-    memset(&idtEntries, 0, sizeof(idtEntry_t)*256);
+    memset(&idtEntries, 0, sizeof(idtEntries));
 
     // Enable PIC manually, pic.c DOES NOT WORK.
     outportb(0x20, 0x11);
@@ -60,6 +60,6 @@ void idtInit() {
     isrInstall(); // Install handlers
 
     install_idt((uint32_t)&idtPtr);
-    
+
     return;
 }

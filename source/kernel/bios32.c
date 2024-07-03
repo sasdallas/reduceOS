@@ -41,7 +41,7 @@ void bios32_call(uint8_t interrupt, REGISTERS_16 *in, REGISTERS_16 *out) {
 
     // Copy the in registers to their pointers.
     memcpy(&bios32_in_reg16_ptr, in, sizeof(REGISTERS_16));
-    
+
     // Get the in registers' address.
     void *in_reg16_address = REBASE_ADDRESS(&bios32_in_reg16_ptr);
 
@@ -58,8 +58,4 @@ void bios32_call(uint8_t interrupt, REGISTERS_16 *in, REGISTERS_16 *out) {
     // Copy the output registers to the out ptr.
     in_reg16_address = REBASE_ADDRESS(&bios32_out_reg16_ptr);
     memcpy(out, in_reg16_address, sizeof(REGISTERS_16));
-
-    // Reinitialize GDT and IDT
-    gdtInit();
-    idtInit();
 }

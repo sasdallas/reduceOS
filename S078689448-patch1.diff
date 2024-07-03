@@ -1,0 +1,342 @@
+diff --git a/source/kernel/assembly/bios.asm b/source/kernel/assembly/bios.asm
+index 8a3a580..9cf3fc7 100644
+--- a/source/kernel/assembly/bios.asm
++++ b/source/kernel/assembly/bios.asm
+@@ -26,24 +26,29 @@ section .text
+
+ ; 32 bit protected mode
+ BIOS32_START:use32
++    pushf
+     pusha
+-    ; save current esp to edx
+-    mov edx, esp
++
++    ; Save the original IDTR and GDTR onto the stack
++    sub esp, 32
++    sidt [esp]
++    sgdt [esp+16]
++
++    ; save current protected mode esp
++    mov [REBASE_ADDRESS(prot_esp)], esp
++
+     ; jumping to 16 bit protected mode
+     ; disable interrupts
+     cli
+
+-
+     ; Turn off paging
+-    mov cr0, eax
+-    and eax, DISABLE_PAGING
+     mov eax, cr0
++    and eax, DISABLE_PAGING
++    mov cr0, eax
+
+-    ; Executing this corrupts CR3 (page table index) so save it in EBX
+-    xor ecx, ecx
+-    mov ebx, cr3
+-    mov cr3, ecx
+-
++    ; Flush TLB
++    mov eax, cr3
++    mov cr3, eax
+
+     ; Load GDT
+     lgdt [REBASE_ADDRESS(bios32_gdt_ptr)]
+@@ -97,11 +102,11 @@ __real_mode_16:use16
+     push cx
+     pushf
+     ; get current stack pointer & save it to current_esp
+-    mov ax, sp
+-    mov edi, current_esp
+-    stosw
++    mov eax, esp
++    mov edi, REBASE_ADDRESS(current_esp)
++    stosd
+     ; load our custom registers context
+-    mov esp, REBASE_ADDRESS(bios32_in_reg16_ptr)
++    mov sp, REBASE_ADDRESS(bios32_in_reg16_ptr)
+     ; only use some general register from the given context
+     popa
+     ; set a new stack for bios interrupt
+@@ -129,9 +134,9 @@ bios32_int_number_ptr: ; will be bios interrupt number passed
+     push cx
+     pusha
+     ; restore the current_esp to continue
+-    mov esi, current_esp
+-    lodsw
+-    mov sp, ax
++    mov esi, REBASE_ADDRESS(current_esp)
++    lodsd
++    mov esp, eax
+     ; restore all current context, all general, segment registers, flags
+     popf
+     pop cx
+@@ -148,8 +153,9 @@ bios32_int_number_ptr: ; will be bios interrupt number passed
+
+     ; jumping to 32 bit protected mode
+     ; set bit 0 in cr0 to 1
++    cli
+     mov eax, cr0
+-    inc eax
++    or eax, ENABLE_PAGING
+     mov cr0, eax
+     jmp 0x08:REBASE_ADDRESS(__protected_mode_32)
+
+@@ -162,29 +168,26 @@ __protected_mode_32:use32
+     mov gs, ax
+     mov ss, ax
+
+-    ; Restore CR3
+-    mov cr3, ebx
+-
+-    ; Enable paging
+-    mov ecx, cr0
+-    or ecx, ENABLE_PAGING
+-    mov cr0, ecx
+-
+     ; Restore ESP
+-    mov esp, edx
++    mov esp, [REBASE_ADDRESS(prot_esp)]
+
+-    sti
++    ; Reload the original IDTR and GDTR from the stack
++    lidt [esp]
++    lgdt [esp+16]
++    add esp, 32
++
++    ; Restore all registers
+     popa
++
++    ; Restore flags including Interrupt flag state
++    popf
+     ret
+
++align 4
+
+-__padding:
+-    db 0x0
+-    db 0x0
+-    db 0x0
+ bios32_gdt_entries:
+     ; 8 gdt entries
+-    resb 64
++    TIMES 8 dq 0
+ bios32_gdt_ptr:
+     dd 0x00000000
+     dd 0x00000000
+@@ -192,7 +195,7 @@ bios32_idt_ptr:
+     dd 0x00000000
+     dd 0x00000000
+ bios32_in_reg16_ptr:
+-    resw 14
++    TIMES 14 dw 0
+ bios32_out_reg16_ptr:
+     dd 0xaaaaaaaa
+     dd 0xaaaaaaaa
+@@ -202,6 +205,8 @@ bios32_out_reg16_ptr:
+     dd 0xaaaaaaaa
+     dd 0xaaaaaaaa
+ current_esp:
+-    dw 0x0000
++    dd 0x0000
++prot_esp:
++    dd 0x0000
+
+-BIOS32_END:
+\ No newline at end of file
++BIOS32_END:
+diff --git a/source/kernel/bios32.c b/source/kernel/bios32.c
+index 811c432..ec42146 100644
+--- a/source/kernel/bios32.c
++++ b/source/kernel/bios32.c
+@@ -35,31 +35,27 @@ void bios32_call(uint8_t interrupt, REGISTERS_16 *in, REGISTERS_16 *out) {
+     // Update the base address of the GDT entries, starting from 0x7C00.
+     realModeGDT.base_addr = (uint32_t)REBASE_ADDRESS((&bios32_gdt_entries));
+
+-    // Copy the real mode GDT and IDT to their respective pointers.
+-    memcpy(&bios32_gdt_ptr, &realModeGDT, sizeof(idtPtr_t));
+-    memcpy(&bios32_idt_ptr, &realModeIDT, sizeof(idtPtr_t));
+-
+-    // Copy the in registers to their pointers.
+-    memcpy(&bios32_in_reg16_ptr, in, sizeof(REGISTERS_16));
+-
+-    // Get the in registers' address.
+-    void *in_reg16_address = REBASE_ADDRESS(&bios32_in_reg16_ptr);
+-
+-    // Copy the BIOS interrupt number to its respective pointer.
+-    memcpy(&bios32_int_number_ptr, &interrupt, sizeof(uint8_t));
+-
++    // Copy the real mode GDT and IDT to their respective pointers.
++    memcpy(&bios32_gdt_ptr, &realModeGDT, sizeof(idtPtr_t));
++    memcpy(&bios32_idt_ptr, &realModeIDT, sizeof(idtPtr_t));
++
++    // Copy the in registers to their pointers.
++    memcpy(&bios32_in_reg16_ptr, in, sizeof(REGISTERS_16));
++
++    // Get the in registers' address.
++    void *in_reg16_address = REBASE_ADDRESS(&bios32_in_reg16_ptr);
++
++    // Copy the BIOS interrupt number to its respective pointer.
++    memcpy(&bios32_int_number_ptr, &interrupt, sizeof(uint8_t));
++
+     // Copy the bios32 code to a new address.
+     uint32_t size = (uint32_t)BIOS32_END - (uint32_t)BIOS32_START;
+     memcpy(newCodeBase, BIOS32_START, size);
+
+-    // Start executing the BIOS32 code.
+-    bios32_execute();
+-
+-    // Copy the output registers to the out ptr.
+-    in_reg16_address = REBASE_ADDRESS(&bios32_out_reg16_ptr);
+-    memcpy(out, in_reg16_address, sizeof(REGISTERS_16));
+-
+-    // Reinitialize GDT and IDT
+-    gdtInit();
+-    idtInit();
+-}
+\ No newline at end of file
++    // Start executing the BIOS32 code.
++    bios32_execute();
++
++    // Copy the output registers to the out ptr.
++    in_reg16_address = REBASE_ADDRESS(&bios32_out_reg16_ptr);
++    memcpy(out, in_reg16_address, sizeof(REGISTERS_16));
++}
+diff --git a/source/kernel/gdt.c b/source/kernel/gdt.c
+index f64818d..6b857a1 100644
+--- a/source/kernel/gdt.c
++++ b/source/kernel/gdt.c
+@@ -30,19 +30,19 @@ void gdtSetGate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint
+
+     gdtEntries[num].granularity |= gran & 0xF0;
+     gdtEntries[num].access = access;
+-}
+-
+-
+-// gdtInit() - Initializes GDT and sets up all the pointers
+-void gdtInit() {
+-    // Setup the gdtPtr to point to our gdtEntires
+-    gdtPtr.limit = 0xFFFFF;
+-    gdtPtr.base = (uint32_t)&gdtEntries;
+-
+-    // Now setup the GDT entries
+-    gdtSetGate(0, 0, 0, 0, 0); // Null segment
+-    gdtSetGate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment
+-    gdtSetGate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
++}
++
++
++// gdtInit() - Initializes GDT and sets up all the pointers
++void gdtInit() {
++    // Setup the gdtPtr to point to our gdtEntires
++    gdtPtr.limit = sizeof(gdtEntries)-1;
++    gdtPtr.base = (uint32_t)&gdtEntries;
++
++    // Now setup the GDT entries
++    gdtSetGate(0, 0, 0, 0, 0); // Null segment
++    gdtSetGate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment
++    gdtSetGate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
+     gdtSetGate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
+     gdtSetGate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment.
+     tssWrite(5, 0x10, 0x0); // Task state segment
+diff --git a/source/kernel/idt.c b/source/kernel/idt.c
+index cd08c69..8ba087b 100644
+--- a/source/kernel/idt.c
++++ b/source/kernel/idt.c
+@@ -31,23 +31,23 @@ int idtInstallIR(uint8_t i, uint8_t flags, uint16_t segmentSelector, uint32_t ba
+     idtEntries[i].flags = flags;
+
+     return 0;
+-}
+-
+-
+-
+-void idtInit() {
+-    // Setup the IDT pointer.
+-    idtPtr.limit = sizeof(idtEntry_t) * 256 - 1;
+-    idtPtr.base_addr = (uint32_t)idtEntries;
+-
+-    // Clear IDT entries table.
+-    memset(&idtEntries, 0, sizeof(idtEntry_t)*256);
+-
+-    // Enable PIC manually, pic.c DOES NOT WORK.
+-    outportb(0x20, 0x11);
+-    outportb(0xA0, 0x11);
+-    outportb(0x21, 0x20);
+-    outportb(0xA1, 0x28);
++}
++
++
++
++void idtInit() {
++    // Setup the IDT pointer.
++    idtPtr.limit = sizeof(idtEntries)-1;
++    idtPtr.base_addr = (uint32_t)idtEntries;
++
++    // Clear IDT entries table.
++    memset(&idtEntries, 0, sizeof(idtEntries));
++
++    // Enable PIC manually, pic.c DOES NOT WORK.
++    outportb(0x20, 0x11);
++    outportb(0xA0, 0x11);
++    outportb(0x21, 0x20);
++    outportb(0xA1, 0x28);
+     outportb(0x21, 0x04);
+     outportb(0xA1, 0x02);
+     outportb(0x21, 0x01);
+@@ -56,10 +56,10 @@ void idtInit() {
+     outportb(0xA1, 0x0);
+
+
+-
+-    isrInstall(); // Install handlers
+-
+-    install_idt((uint32_t)&idtPtr);
+-
+-    return;
+-}
+\ No newline at end of file
++
++    isrInstall(); // Install handlers
++
++    install_idt((uint32_t)&idtPtr);
++
++    return;
++}
+diff --git a/source/kernel/libc/string.c b/source/kernel/libc/string.c
+index 4aeff5b..b9d759b 100644
+--- a/source/kernel/libc/string.c
++++ b/source/kernel/libc/string.c
+@@ -56,19 +56,19 @@ void* memmove(void* destination, const void* source, size_t n) {
+     return destination;
+ }
+
+-
+-// memset() - Set a buffer in memory to a given value.
+-// Three parameters - buffer, value, amount of times to set
+-
+-void* memset(void *buf, char c, size_t n) {
+-    unsigned char *temp = (unsigned char *)buf;
+-    for (; n != 0; n--) temp[n] = c;
+-    return buf;
+-}
+-
+-// strlen() - Returns the length of a string(size_t)
+-// One parameter - str
+-int strlen(char *str) {
++
++// memset() - Set a buffer in memory to a given value.
++// Three parameters - buffer, value, amount of times to set
++
++void* memset(void *buf, char c, size_t n) {
++    unsigned char *temp = (unsigned char *)buf;
++    for (; n != 0; n--) temp[n-1] = c;
++    return buf;
++}
++
++// strlen() - Returns the length of a string(size_t)
++// One parameter - str
++int strlen(char *str) {
+     int i = 0;
+     while (*str++) {
+         i++;

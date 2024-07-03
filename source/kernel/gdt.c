@@ -36,7 +36,7 @@ void gdtSetGate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint
 // gdtInit() - Initializes GDT and sets up all the pointers
 void gdtInit() {
     // Setup the gdtPtr to point to our gdtEntires
-    gdtPtr.limit = 0xFFFFF;
+    gdtPtr.limit = sizeof(gdtEntries)-1;
     gdtPtr.base = (uint32_t)&gdtEntries;
 
     // Now setup the GDT entries

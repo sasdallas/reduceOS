@@ -132,6 +132,41 @@ void vmm_disablePaging() {
 }
 
 
+void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) {
+    serialPrintf("start alloc\n");
+
+    // size should be at minimum 1024*4096, as I recommend but let them specify any value.
+    // SIZE NEEDS TO BE A MULTIPLE OF 4096
+    if (size < 1) return; // Except 0. I hate users.
+
+    // Allocate a page table.
+    pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
+
+    // Clear the page table
+    memset(table, 0, sizeof(pagetable_t));
+
+    // Identity map physical_address to virtual_address.
+    for (int i = 0, frame=physical_address, virt=virtual_address; i < size / 4096; i++, frame += 4096, virt += 4096) {
+        pte_t page = 0;
+        pte_addattrib(&page, PTE_PRESENT);
+        pte_addattrib(&page, PTE_WRITABLE);
+        pte_setframe(&page, frame);
+
+        // Add the above page to the page table.
+        table->entries[PAGETBL_INDEX(virt)] = page;
+    }
+
+    // Create a new page directory entry
+    pde_t *pagedir_entry = &(vmm_getCurrentDirectory())->entries[PAGEDIR_INDEX(virtual_address)];
+    pde_addattrib(pagedir_entry, PDE_PRESENT);
+    pde_addattrib(pagedir_entry, PDE_WRITABLE);
+    pde_setframe(pagedir_entry, (uint32_t)table);
+
+    // Should be good to go!
+
+    serialPrintf("Identity mapped ok.\n");
+}
+
 // vmmInit() - Initialize the VMM.
 void vmmInit() {
     // Allocate the default page table.

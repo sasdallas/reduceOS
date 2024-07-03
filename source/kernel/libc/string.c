@@ -62,7 +62,7 @@ void* memmove(void* destination, const void* source, size_t n) {
 
 void* memset(void *buf, char c, size_t n) {
     unsigned char *temp = (unsigned char *)buf;
-    for (; n != 0; n--) temp[n] = c;
+    for (; n != 0; n--) temp[n-1] = c;
     return buf;
 }
 

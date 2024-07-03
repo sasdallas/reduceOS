@@ -87,6 +87,7 @@ void keyboardWaitForNewline() {
 
 // keyboardHandler(registers_t *r) - The handler assigned by keyboardInitialize to IRQ 33. Handles all scancode stuff.
 static void keyboardHandler(registers_t *r) {
+    serialPrintf("keyboardHandler() called\n");
     uint8_t scancode = inportb(0x60); // No matter if the handler is enabled or not, we need to read from port 0x60 or the keyboard might stop responding.
 
     if (!isEnabled) { return; } // Do not continue if not enabled.

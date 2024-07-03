@@ -39,7 +39,7 @@ void isrExceptionHandler(registers_t *reg) {
 
 void isrIRQHandler(registers_t *reg) {
     // Some debug code I left in in case anyone is modifying reduceOS.
-    // printf("isrIRQHandler received IRQ. IRQ: %i. Valid handler present: %s.\nINT NO: %i. Valid handler present (for INT_NO): %s", reg->err_code, (interruptHandlers[reg->err_code]) ? "YES" : "NO", reg->int_no, (interruptHandlers[reg->int_no]) ? "YES" : "NO");
+    //serialPrintf("isrIRQHandler received IRQ. IRQ: %i. Valid handler present: %s.\nINT NO: %i. Valid handler present (for INT_NO): %s", reg->err_code, (interruptHandlers[reg->err_code]) ? "YES" : "NO", reg->int_no, (interruptHandlers[reg->int_no]) ? "YES" : "NO");
     
     if (interruptHandlers[reg->int_no] != NULL) {
         // We now know there is a valid handler present. Execute it.

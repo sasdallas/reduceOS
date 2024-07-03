@@ -26,24 +26,29 @@ section .text
 
 ; 32 bit protected mode
 BIOS32_START:use32
+    pushf
     pusha
-    ; save current esp to edx
-    mov edx, esp
+
+    ; Save the original IDTR and GDTR onto the stack
+    sub esp, 32
+    sidt [esp]
+    sgdt [esp+16]
+
+    ; save current protected mode esp
+    mov [REBASE_ADDRESS(prot_esp)], esp
+
     ; jumping to 16 bit protected mode
     ; disable interrupts
     cli
 
-
     ; Turn off paging
-    mov cr0, eax
-    and eax, DISABLE_PAGING
     mov eax, cr0
+    and eax, DISABLE_PAGING
+    mov cr0, eax
 
-    ; Executing this corrupts CR3 (page table index) so save it in EBX
-    xor ecx, ecx
-    mov ebx, cr3
-    mov cr3, ecx
-
+    ; Flush TLB
+    mov eax, cr3
+    mov cr3, eax
 
     ; Load GDT
     lgdt [REBASE_ADDRESS(bios32_gdt_ptr)]
@@ -97,11 +102,11 @@ __real_mode_16:use16
     push cx
     pushf
     ; get current stack pointer & save it to current_esp
-    mov ax, sp
-    mov edi, current_esp
-    stosw
+    mov eax, esp
+    mov edi, REBASE_ADDRESS(current_esp)
+    stosd
     ; load our custom registers context
-    mov esp, REBASE_ADDRESS(bios32_in_reg16_ptr)
+    mov sp, REBASE_ADDRESS(bios32_in_reg16_ptr)
     ; only use some general register from the given context
     popa
     ; set a new stack for bios interrupt
@@ -129,9 +134,9 @@ bios32_int_number_ptr: ; will be bios interrupt number passed
     push cx
     pusha
     ; restore the current_esp to continue
-    mov esi, current_esp
-    lodsw
-    mov sp, ax
+    mov esi, REBASE_ADDRESS(current_esp)
+    lodsd
+    mov esp, eax
     ; restore all current context, all general, segment registers, flags
     popf
     pop cx
@@ -148,8 +153,9 @@ bios32_int_number_ptr: ; will be bios interrupt number passed
 
     ; jumping to 32 bit protected mode
     ; set bit 0 in cr0 to 1
+    cli
     mov eax, cr0
-    inc eax
+    or eax, ENABLE_PAGING
     mov cr0, eax
     jmp 0x08:REBASE_ADDRESS(__protected_mode_32)
 
@@ -162,29 +168,26 @@ __protected_mode_32:use32
     mov gs, ax
     mov ss, ax
 
-    ; Restore CR3
-    mov cr3, ebx
-    
-    ; Enable paging
-    mov ecx, cr0
-    or ecx, ENABLE_PAGING
-    mov cr0, ecx
-
     ; Restore ESP
-    mov esp, edx
+    mov esp, [REBASE_ADDRESS(prot_esp)]
 
-    sti
+    ; Reload the original IDTR and GDTR from the stack
+    lidt [esp]
+    lgdt [esp+16]
+    add esp, 32
+
+    ; Restore all registers
     popa
+
+    ; Restore flags including Interrupt flag state
+    popf
     ret
 
+align 4
 
-__padding:
-    db 0x0
-    db 0x0
-    db 0x0
 bios32_gdt_entries:
     ; 8 gdt entries
-    resb 64
+    TIMES 8 dq 0
 bios32_gdt_ptr:
     dd 0x00000000
     dd 0x00000000
@@ -192,7 +195,7 @@ bios32_idt_ptr:
     dd 0x00000000
     dd 0x00000000
 bios32_in_reg16_ptr:
-    resw 14
+    TIMES 14 dw 0
 bios32_out_reg16_ptr:
     dd 0xaaaaaaaa
     dd 0xaaaaaaaa
@@ -202,6 +205,8 @@ bios32_out_reg16_ptr:
     dd 0xaaaaaaaa
     dd 0xaaaaaaaa
 current_esp:
-    dw 0x0000
+    dd 0x0000
+prot_esp:
+    dd 0x0000
 
 BIOS32_END:

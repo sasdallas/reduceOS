@@ -221,6 +221,8 @@ void vesaInit() {
     modeBpp = modeInfo.bpp;
     vbeBuffer = (uint32_t*)modeInfo.framebuffer;
 
+    // Identity map it!
+    vmm_allocateRegion(vbeBuffer, vbeBuffer, 1024*768*4);
 
     // Now, switch the mode.
     vbeSetMode(mode);
