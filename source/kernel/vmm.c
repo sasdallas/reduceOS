@@ -131,7 +131,7 @@ void vmm_disablePaging() {
     asm volatile ("mov %0, %%cr0" :: "r"(cr0));
 }
 
-
+// vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) - Identity map a region
 void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) {
     serialPrintf("start alloc\n");
 

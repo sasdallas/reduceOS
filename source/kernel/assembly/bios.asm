@@ -86,8 +86,10 @@ __real_mode_16:use16
     mov ss, ax
 
     mov sp, 0x8c00
-    ; enable bios interrupts to call
-    sti
+    ; We can't enable STI because IRQs ahve been remapped and external interrupts will faila.
+    ; sti
+
+
     ; save current context, all general, segment registers, flags
     pusha
     mov cx, ss
