@@ -133,11 +133,7 @@ void vmm_disablePaging() {
 
 // vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) - Identity map a region
 void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) {
-    serialPrintf("start alloc\n");
-
-    // size should be at minimum 1024*4096, as I recommend but let them specify any value.
-    // SIZE NEEDS TO BE A MULTIPLE OF 4096
-    if (size < 1) return; // Except 0. I hate users.
+    if (size < 1) return; // Size 0. I hate users.
 
     // Allocate a page table.
     pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
@@ -161,10 +157,6 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
     pde_addattrib(pagedir_entry, PDE_PRESENT);
     pde_addattrib(pagedir_entry, PDE_WRITABLE);
     pde_setframe(pagedir_entry, (uint32_t)table);
-
-    // Should be good to go!
-
-    serialPrintf("Identity mapped ok.\n");
 }
 
 // vmmInit() - Initialize the VMM.
