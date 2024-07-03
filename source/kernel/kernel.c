@@ -272,6 +272,15 @@ int readSectorTest(int argc, char *args[]) {
 }
 
 
+int doPageFault(int argc, char *args[]) {
+    // haha page fault
+    uint32_t *fault = (uint32_t*)0xF0000000;
+    uint32_t dofault = *fault;
+
+    printf("what\n");
+    return -1;
+}
+
 
 
 
@@ -474,14 +483,11 @@ void useCommands() {
     clearScreen(COLOR_WHITE, COLOR_CYAN);
     clearBuffer();
 
-    printf("== CHECK PMM ==\n");
-    pmm_printMemoryMap(globalInfo);
     
 
 
-    printf("PMM online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
-    printf("Initialized regions: %i allocation blocks\nUsed or reserved blocks: %i\nFree blocks: %i\n", pmm_getMaxBlocks(), pmm_getUsedBlocks(), pmm_getFreeBlocks());
-
+    printf("Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
+    
 
     // The user entered the command handler. We will not return.
 
@@ -502,6 +508,7 @@ void useCommands() {
     registerCommand("version", (command*)about);
     registerCommand("color", (command*)color);
     registerCommand("vaporwave", (command*)vaporwave);
+    registerCommand("pagefault", (command*)doPageFault);
     serialPrintf("All commands registered successfully.\n");
     serialPrintf("Warning: User is an unstable environment.\n");
 

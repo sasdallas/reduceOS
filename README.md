@@ -45,7 +45,7 @@ You can build reduceOS with a custom version of gcc or ld by passing these as pa
 
 
 # Known Bugs
-- **Very severe:** Paging and heap are incredibly buggy and NEED to be replaced ASAP - we step over them for now, but that's a temporary hotfix.
+- **TBD:** Need to remove old paging code.
 - **Severe:** System calls not working.
 - **Possibly severe:** VBE and ISR both cannot have PIE or they refuse to work. 
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code (temporary fix: auto uses 1024*768)
@@ -56,6 +56,8 @@ You can build reduceOS with a custom version of gcc or ld by passing these as pa
 - Bitmaps can only be displayed at a max of 764 (you can load a 1024x768 image and it will work, but it will only display up to 764 lines).
 
 # Credits
+Michael Petch - Patched my terrible interrupts and helped me fix my VMM, even though he didn't have to. Link to this awesome person [here](https://stackoverflow.com/users/3857942/michael-petch)
+
 OSDev Wiki - Great resource for anyone looking into OS development. Helped with a ton of the basic principles and code. Link [here](https://wiki.osdev.org/)
 
 BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)

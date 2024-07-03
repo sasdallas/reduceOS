@@ -26,15 +26,14 @@ void isrEndInterrupt(int num) {
 }
 
 void isrExceptionHandler(registers_t *reg) {
-    if (reg->int_no < 32) {
-        panicReg("i86", "ISR Exception", exception_messages[reg->int_no], reg);
-    }
-
     if (interruptHandlers[reg->int_no] != NULL) {
         ISR handler = interruptHandlers[reg->int_no];
         handler(reg);
     }
 
+    if (reg->int_no < 32) {
+        panicReg("i86", "ISR Exception", exception_messages[reg->int_no], reg);
+    }
 }
 
 void isrIRQHandler(registers_t *reg) {

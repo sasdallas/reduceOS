@@ -1,81 +1,0 @@
-============================================================================================================================
-	reduceOS v1.2 Vaporwave - written by sasdallas
-	New kernel, same trash.
-	Build 179-DEBUG, compiled on 07/03/24, 08:00:00
-============================================================================================================================
-
-Kernel location: 0x100000 - 0x8422AC
-Text section: 0x100000 - 0x10E000; Data section: 0x136000 - 0x7FB022; BSS section: 0x7FC000 - 0x8422AC
-Loader magic: 0x43D8C305
-
-Serial logging initialized!
-GDT, IDT, and ISR have initialized successfully.
-Interrupts successfully enabled.
-EDX: 0
-======== CPU Data Collection Summary ========
-- CPU VENDOR ID: AuthenticAMD
-- Long Mode (x64) support: 0
-
-== SSE Data Collection Summary ==
-SSE support: YES
-SSE2 support: YES
-SSE3 support: NO
-SSSE3 support: NO
-SSE4 support: NO
-SSE5 support data summary:
-	XOP support: NO
-	FMA4 support: NO
-	CVT16 support: NO
-	AVX support: NO
-	XSAVE support: NO
-	AVX2 support: NO
-== End SSE Data Collection Summary ==
-======== End CPU Data Collection Summary ========
-CPU initialization completed
-kmain: CPU has long mode support: 0
-bios32 initialized successfully!
-Keyboard handler initialized.
-PIT started at 1000hz
-pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x1237)
-pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x7000)
-pciProbeForDevices: Found PCI device (function = 0x1, vendor ID = 0x8086, device ID = 0x7010)
-pciProbeForDevices: Found PCI device (function = 0x3, vendor ID = 0x8086, device ID = 0x7113)
-initPCI: PCI probe completed
-IDE driver completed initialization.
-Found ATAPI drive - Generic 1234                            
-	Capacity: 0 GB 0 MB 0 KB
-acpiInit: Found RSDP signature at 0xFA330
-acpiParseRSDP: (dbg) OEM is BOCHS 
-acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
-ACPI table signatures (RSDT):
-	FACP 0x1FF0000
-acpiParseFacp: ACPI enabled succesfully.
-	APIC 0x1FF0F00
-acpiParseApic: local APIC address is 0x1FF0F94
-Found CPU: 0 0 1
-Found I/O APIC: 1 0x1FF0FA8 0
-Found interrupt override: 0 0 2 0x0
-	SSDT 0x1FF0F00
-	HPET 0x1FF0F00
-acpiInit: Successfully enabled ACPI.
-GRUB did pass an initial ramdisk.
-initrdInit: Initial ramdisk loaded - location is 0x848000 and end address is 0x84932F
-pmm_initRegion: Region at 0x0 (size 0x9F000) initialized. Blocks used: 0. Free blocks: 159
-pmm_initRegion: Region at 0x100000 (size 0x1EF0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x7422AC) deinitialized. Blocks used: 1540. Free blocks: 6221
-vmmInit: Successfully initialized paging.
-Initialized memory management successfully.
-start alloc
-Identity mapped ok.
-Searching for drive...
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/3/2036 8:6:19
-DUMPING PHYSICAL MEMORY MAP:
-	Region 0: size: 20 address: 0x00 length: 6512640 bytes type: 1 (Available)
-	Region 24: size: 20 address: 0x9F0000 length: 40960 bytes type: 2 (Reserved)
-	Region 48: size: 20 address: 0xE80000 length: 983040 bytes type: 2 (Reserved)
-	Region 72: size: 20 address: 0x1000000 length: 324403200 bytes type: 1 (Available)
-	Region 96: size: 20 address: 0x1FF00000 length: 655360 bytes type: 3 (ACPI Reclaim)
-	Region 120: size: 20 address: 0x-400000 length: 2621440 bytes type: 2 (Reserved)
-All commands registered successfully.
-Warning: User is an unstable environment.
-

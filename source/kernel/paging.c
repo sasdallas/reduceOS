@@ -34,51 +34,7 @@ extern uint32_t *vbeBuffer;
 
 // initPaging() - Initialize paging
 void initPaging() {
-    // Make a page directory.
-    uint32_t phys;
-    kernelDir = (page_directory_t*)kmalloc_a(sizeof(page_directory_t)); // Allocate a page directory for the kernel...
-    memset(kernelDir, 0, sizeof(page_directory_t));
-    kernelDir->physicalAddress = (uint32_t)kernelDir->tablePhysical;
-    serialPrintf("kernelDir->physicalAddress: 0x%x\n", kernelDir->physicalAddress);
-
-    // Now, map some pages in the kernel's heap area - here we call getPage but not allocateFrame, causing page tables to be created where necessary.
-    int i = 0;
-    for (i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE; i += PAGE_ALIGN) {
-        getPage(i, 1, kernelDir);
-    }
-
-
-    // Now we can identity map using allocateFrame
-    i = 0;
-    while (i < placement_address + PAGE_ALIGN) {
-        allocateFrame(getPage(i, 1, kernelDir), 0, 0);
-        i += PAGE_ALIGN;
-    }
-
-
-
-    // Allocate the pages we mapped earlier
-    for (i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE; i += PAGE_ALIGN) {
-        allocateFrame(getPage(i, 1, kernelDir), 0, 0);
-    }
-
-
-    // Register interrupt handlers and enable paging.
-    //isrRegisterInterruptHandler(14, pageFault); // pageFault is defined in panic.c
-    uint32_t *ptr = (uint32_t*)0xA0000000;
-    switchPageDirectory(kernelDir); // Switch the page directory to kernel directory.
-
-    printf("Paging initialized!\n");
-    serialPrintf("ready, set...\n");
-    enablePaging();
-    serialPrintf("done :D\n");    
-
-
-    // Create the kernel heap
-    //kernelHeap = createHeap(HEAP_START, HEAP_START + HEAP_INITIAL_SIZE, 0xCFFFF000, 0, 0);
-    printf("Kernel heap initialized!\n");
-
-    uint32_t *fault = *ptr;
+    panic("paging.c", "initPaging", "Someone tried to enable paging");
 
 }
 

@@ -117,19 +117,18 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
 
 // Oh no! We encountered a page fault!
 void *pageFault(registers_t *reg) {
-    // Get the faulting address
+    // Get the faulting address from CR2
     uint32_t faultAddress;
     asm volatile("mov %%cr2, %0" : "=r" (faultAddress));
 
+    serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
-    serialPrintf("*** page fault at address 0x%x\n", faultAddress);
-    serialPrintf("panic type: page-fault\n");
-
+    serialPrintf("*** Page fault at address 0x%x\n", faultAddress);
     // Get the flags
     int present = !(reg->err_code & 0x1); // Page not present?
     int rw = reg->err_code & 0x2; // Was this a write operation?
     int user = reg->err_code & 0x4; // Were we in user-mode?
-    int reserved = reg->err_code & 0x8; // Were the overwritten CPU reserved bits of page entry?
+    int reserved = reg->err_code & 0x8; // Were the reserved bits of page entry overwritten?
 
     clearScreen(COLOR_WHITE, COLOR_RED);
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
@@ -159,7 +158,7 @@ void *pageFault(registers_t *reg) {
     printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     printf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
-    serialPrintf("Page flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0", (reserved) ? "reserved " : "\0");
+    serialPrintf("*** Flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0", (reserved) ? "reserved " : "\0");
 
 
     asm volatile ("hlt");
