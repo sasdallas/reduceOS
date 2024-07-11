@@ -158,7 +158,7 @@ $(OUT_IMAGES)/%.o: $(IMAGE_SRC)/%.bmp | $(OUT_IMAGES)
 	$(OBJCOPY) -O elf32-i386 -B i386 -I binary $< $@
 	@printf "\n"
 
-img: $(OUT_KERNEL)/kernel.bin $(OUT_INITRD)/initrd.img
+img: $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
 	@printf "[ Creating directory for building image... ]\n"
 	-@$(MKDIR) $(OUT_IMG)/builddir/boot/grub
 

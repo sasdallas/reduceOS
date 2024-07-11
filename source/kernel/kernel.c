@@ -136,7 +136,7 @@ extern int dev_idx;
 
 int pciInfo(int argc, char *args[]) { 
     printPCIInfo();
-    printf("Done executing");
+    printf("Done executing\n");
     return 1;
 }
 
@@ -236,6 +236,77 @@ int panicTest(int argc, char *args[]) {
     panic("kernel", "panicTest()", "Testing panic function");
 }
 
+int readFloppyTest(int sect) {
+    // dont use for testing
+    printf("Writing sector, first...\n");
+    uint8_t *write_buffer = 0;
+    memset(write_buffer, 0xFF, 512);
+    floppy_writeSector(0, write_buffer);
+
+
+    printf("Reading sector...\n");
+
+    uint32_t sector = (uint32_t)sect;
+    uint8_t *buffer = 0;
+
+    int ret = floppy_readSector(sector, &buffer);
+    
+    if (ret != FLOPPY_OK) {
+        printf("Could not read sector. Error code %i\n", ret);
+        return -1;
+    }
+
+    printf("Contents of sector %i:\n", sector);
+
+    if (buffer != 0) {
+        int i = 0;
+        for (int c = 0; c < 4; c++) {
+            for (int j = 0; j < 128; j++) printf("0x%x ", buffer[i + j]);
+            i += 128;
+
+            printf("Press any key to continue.\n");
+            keyboardGetChar();
+        }
+    }
+
+    return 0;
+}
+
+
+int read_floppy(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: read_floppy <sector>\nThis command will read out a sector.");
+        return -1;
+    }
+
+    uint32_t sector = (uint32_t)atoi(args[1]);
+    uint8_t *buffer = 0;
+
+    printf("Reading sector %i...\n", sector);
+
+    int ret = floppy_readSector(sector, &buffer);
+    
+    if (ret != FLOPPY_OK) {
+        printf("Could not read sector. Error code %i\n", ret);
+        return -1;
+    }
+
+    printf("Contents of sector %i:\n", sector);
+
+    if (buffer != 0) {
+        int i = 0;
+        for (int c = 0; c < 4; c++) {
+            for (int j = 0; j < 128; j++) printf("0x%x ", buffer[i + j]);
+            i += 128;
+
+            printf("Press any key to continue.\n");
+            keyboardGetChar();
+        }
+    }
+
+    return 0;
+}
+
 int readSectorTest(int argc, char *args[]) {
     // BUGGED: Cannot read/write
     // Read a sector from a disk using LBA (after checking if a disk exists with proper capacity).
@@ -286,24 +357,6 @@ int doPageFault(int argc, char *args[]) {
 
 int memoryInfo(int argc, char *args[]) {
     printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
-    return 0;
-}
-
-
-// This is my tradition now ;)
-int vaporwave(int argc, char *args[]) {
-    clearScreen(COLOR_WHITE, COLOR_MAGENTA);
-    bitmap_t *vaporwave = createBitmap();
-    displayBitmap(vaporwave, 0, psfGetFontHeight()*3);
-    setKBHandler(false);
-    printf("Through the code lies the sunset\n");
-    sleep(2000);
-    printf("reduceOS v1.2 Vaporwave\n");
-    sleep(4000);
-    printf("The first release since the anniversary\n");
-    sleep(10000);
-    
-    setKBHandler(true);
     return 0;
 }
 
@@ -437,11 +490,10 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Initialize VMM
     vmmInit();
-
-    //uint32_t *ptr = (uint32_t*)0xA0000000;
-    //uint32_t pagefault = *ptr;
     serialPrintf("Initialized memory management successfully.\n");
 
+    floppy_init();
+    serialPrintf("Initialized floppy drive successfully.\n");
 
 
     // Finally, all setup has been completed. We can ask the user if they want to enter the backup command line.
@@ -483,11 +535,8 @@ void useCommands() {
     clearScreen(COLOR_WHITE, COLOR_CYAN);
     clearBuffer();
 
-    
-
-
     printf("Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
-    
+
 
     // The user entered the command handler. We will not return.
 
@@ -507,8 +556,9 @@ void useCommands() {
     registerCommand("about", (command*)about);
     registerCommand("version", (command*)about);
     registerCommand("color", (command*)color);
-    registerCommand("vaporwave", (command*)vaporwave);
     registerCommand("pagefault", (command*)doPageFault);
+    registerCommand("read_floppy", (command*)read_floppy);
+    
     serialPrintf("All commands registered successfully.\n");
     serialPrintf("Warning: User is an unstable environment.\n");
 

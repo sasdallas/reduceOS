@@ -25,7 +25,7 @@
 #include "include/panic.h" // Kernel panicking
 #include "include/bootinfo.h" // Boot information
 #include "include/command.h" // Command parser
-#include "include/pci.h" // PCI
+#include "include/pci.h" // PCI driver
 #include "include/serial.h" // Serial logging
 #include "include/initrd.h" // Initial ramdisk management.
 #include "include/vfs.h" // Virtual file system.
@@ -33,9 +33,10 @@
 #include "include/rtc.h" // Real-time clock.
 #include "include/bios32.h" // BIOS32 calls
 #include "include/processor.h" // Procesor handler
-#include "include/vesa.h"
+#include "include/vesa.h" // VESA VBE graphics driver
 #include "include/syscall.h" // System call
-#include "include/bitmap.h"
+#include "include/bitmap.h" // Bitmap image controls
 #include "include/CONFIG.h" // reduceOS configuration
+#include "include/floppy.h" // FDC driver
 
 #endif

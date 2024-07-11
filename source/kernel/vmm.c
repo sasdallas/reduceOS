@@ -223,12 +223,12 @@ void vmmInit() {
 
     memset(dir, 0, sizeof(pagedirectory_t));
 
-    // Now, since we identity mapped the first 4MB, we need to create a PDE for that (two for both tables).
+    // Now, since we identity mapped the first 4MB, we need to create a PDE for that (three for all tables).
     // The first PDE is for the first 4MB, the second is for the next, ...
     pde_t *entry = &dir->entries[PAGEDIR_INDEX(0x00000000)];
     pde_addattrib(entry, PDE_PRESENT);
     pde_addattrib(entry, PDE_WRITABLE);
-    pde_setframe(entry, (uint32_t)table); // yes this is really how stupid i am
+    pde_setframe(entry, (uint32_t)table);
 
     pde_t *entry2 = &dir->entries[PAGEDIR_INDEX(0x00400000)];
     pde_addattrib(entry2, PDE_PRESENT);

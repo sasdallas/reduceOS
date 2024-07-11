@@ -95,6 +95,8 @@ void cpuCheckSSE() {
 
 	__cpuid(1, &eax, &ebx, &ecx, &edx);
 
+	serialPrintf("EAX: %i\nEDX: %i\nECX: 0x%x\nEBX: 0x%x\n", eax, edx, ecx, ebx);
+
 	processor_data->sse_support = edx & (1 << 25); // SSE support (bit 25 of EDX)
 	processor_data->sse2_support = edx & (1 << 26); // SSE2 support (bit 26 of EDX)
 	processor_data->sse3_support = ecx & (1 << 0); // SSE3 support (bit 0 of ECX)

@@ -25,7 +25,8 @@
 			"font.h": "c",
 			"queue": "c",
 			"pmm.h": "c",
-			"panic.h": "c"
+			"panic.h": "c",
+			"floppy.h": "c"
 		}
 	}
 }
