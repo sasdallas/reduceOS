@@ -165,7 +165,6 @@ void vmmInit() {
     pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
     if (!table) return; // failed to get the block
 
-
     // Allocate a second page table
     pagetable_t *table2 = (pagetable_t*)pmm_allocateBlock();
     if (!table2) return; // failed to get the block
@@ -175,11 +174,15 @@ void vmmInit() {
     if (!table3) return; // failed to get the block
 
 
+    // Why do we do this instead of calling vmm_allocateRegion? Well that is a very simple question, and here is my answer:
+    pagetable_t *table4 = (pagetable_t*)pmm_allocateBlock();
+    if (!table4) return; // failed to get the block
 
     // Clear the page table.
     memset(table, 0, sizeof(pagetable_t));
     memset(table2, 0, sizeof(pagetable_t));
     memset(table3, 0, sizeof(pagetable_t));
+    memset(table4, 0, sizeof(pagetable_t));
 
     // Identity map the first 4MB, since when paging is enabled, all addresses are made virtual.
     for (int i = 0, frame=0x0, virt=0x00000000; i < 1024; i++, frame += 4096, virt += 4096) {
@@ -216,9 +219,19 @@ void vmmInit() {
         table3->entries[PAGETBL_INDEX(virt)] = page;
     }
 
+    for (int i = 0, frame=0xC00000, virt=0x00C00000; i < 1024; i++, frame += 4096, virt += 4096) {
+        // Create a new page and change its frame.
+        pte_t page = 0;
+        pte_addattrib(&page, PTE_PRESENT);
+        pte_addattrib(&page, PTE_WRITABLE);
+        pte_setframe(&page, frame);
+
+        // Add the above page to the page table.
+        table4->entries[PAGETBL_INDEX(virt)] = page;
+    }
 
     // Create the default page directory and clear it.
-    pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlocks(4);
+    pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlocks(6);
     if (!dir) return; // failed to get the block
 
     memset(dir, 0, sizeof(pagedirectory_t));
@@ -240,6 +253,10 @@ void vmmInit() {
     pde_addattrib(entry3, PDE_WRITABLE);
     pde_setframe(entry3, (uint32_t)table3);
 
+    pde_t *entry4 = &dir->entries[PAGEDIR_INDEX(0x00C00000)];
+    pde_addattrib(entry4, PDE_PRESENT);
+    pde_addattrib(entry4, PDE_WRITABLE);
+    pde_setframe(entry4, (uint32_t)table4);
 
     // Set our ISR interrupt handler
     isrRegisterInterruptHandler(14, pageFault);
