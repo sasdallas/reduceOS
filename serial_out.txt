@@ -1,7 +1,7 @@
 ============================================================================================================================
-	reduceOS v1.2 Vaporwave - written by sasdallas
+	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 437-DEBUG, compiled on 07/11/24, 18:54:52
+	Build 451-DEBUG, compiled on 07/11/24, 19:04:33
 ============================================================================================================================
 
 Kernel location: 0x100000 - 0x8442CC
@@ -72,8 +72,7 @@
 Initialized memory management successfully.
 Initialized floppy drive successfully.
 Searching for drive...
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/17/2036 24:86:25
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/17/2036 25:16:19
 All commands registered successfully.
 Warning: User is an unstable environment.
-floppy_readDataRegister: Command timeout!
 

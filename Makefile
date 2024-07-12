@@ -96,7 +96,7 @@ dbg: $(OUT_KERNEL)/kernel_debug.elf $(OUT_INITRD)/initrd.img
 
 
 # I'm sorry for naming this target out/kernel/kernel_debug.elf when it does not produce a kernel_debug.elf
-$(OUT_KERNEL)/kernel_debug.elf: BUILDSCRIPTS_DEBUG $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
+$(OUT_KERNEL)/kernel_debug.elf: DELETE_KERNEL_OBJ BUILDSCRIPTS_DEBUG $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking debug kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
 	@printf "[ Copying debug symbols to kernel.sym... ]\n"
@@ -108,12 +108,15 @@ $(OUT_KERNEL)/kernel_debug.elf: BUILDSCRIPTS_DEBUG $(ASM_KLOADEROBJS) $(C_OBJS) 
 
 
 
-$(OUT_KERNEL)/kernel.elf: BUILDSCRIPTS_RELEASE $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
+$(OUT_KERNEL)/kernel.elf: DELETE_KERNEL_OBJ BUILDSCRIPTS_RELEASE $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
 	@printf "[ Stripping debug symbols... ]\n"
 	$(OBJCOPY) --strip-debug $(OUT_KERNEL)/kernel.elf
 	@printf "\n"
+
+DELETE_KERNEL_OBJ:
+	-@$(RM) $(OUT_OBJ)/kernel.o
 
 BUILDSCRIPTS_RELEASE:
 	@printf "[ Running buildscripts for RELEASE build of reduceOS... ]\n"

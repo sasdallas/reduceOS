@@ -46,7 +46,6 @@ You can build reduceOS with a custom version of gcc or ld by passing these as pa
 
 # Known Bugs
 - **TBD:** Need to remove old paging code.
-- **To be fixed:** QEMU throws an absolute tantrum about floppy drives and throws some weird "no address mark" error. Bochs works fine.
 - **Severe:** System calls not working.
 - **Possibly severe:** VBE and ISR both cannot have PIE or they refuse to work. 
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code (temporary fix: auto uses 1024*768)
