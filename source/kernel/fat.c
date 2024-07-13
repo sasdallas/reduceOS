@@ -5,6 +5,10 @@
 
 #include "include/fat.h" // Main header file
 
+// This driver is currently a SKELETON. It is NOT fully complete.
+// Better VFS impl., mountpoints, and much others are required, not to mention being able to initialize the driver on MULTIPLE DEVICES is not available.
+
+
 /* 
 SUPPORTED FILESYSTEMS:
     - FAT12
@@ -15,107 +19,330 @@ SUPPORTED FILESYSTEMS:
 // External variables
 extern ideDevice_t ideDevices[4];
 
+// NOTE: impl_struct is a reference to fat_drive_t
+
+// Variables
+uint8_t FAT[1024]; // File allocation table
+fsNode_t driver; // Driver inode
+fat_drive_t *drive = NULL;
 
 
-// impl_struct is a reference to fat_drive_t
 
+// Functions
 
+// fatToDOSName(char *filename, char *output, int length) - Convert a filename to DOS 8.3 file format
+// NOTE: RESULT MUST BE NULL TERMINATED!!!!
+int fatToDOSName(char *filename, char *output, int length) {
+    if (length > 11 || strlen(filename) > length) return -1; // Users.
 
+    memset(output, ' ', length);
 
-int fat_followClusterChain() {
+    // So, the FAT filesystem stores filenames as DOS 8.3 style filenames.
+    // For example, test.txt would be "TEST    TXT"
+    // Another example, dir would be "DIR        "
+    // NOTE: LFNs are different! They can be stored as normal filenames, like "TEST.TXT" Future support will be coming soon.
 
-}
+    // The first thing we need to do is convert the normal filename to uppercase, until we encounter a period.  
+    bool adjustExtension = false; // Set to true if we're dealing with a file.
+    int i;
 
-// fat_parseRootDirectory(fat_drive_t *drive) - Parse the root directory of the drive, save the data, then move on to anotehr cluster.
-void fat_parseRootDirectory(fat_drive_t *drive) {
-    // Read the root directory
-    uint8_t buffer[512];
-    if (readRootDirectory(drive, (uint32_t)buffer) == -1) {
-        serialPrintf("fat_parseRootDirectory: Error while reading root directory.\n");
-        return;
-    }
-
-    // Max 16 entries per root directory
-    int totalEntries = 0;
-    for (int i = 0; i < 16; i++) {
-        char *start_addr = &(buffer[i*32]);
-        fat_fileEntry_t *fileEntry = start_addr;
-
-        // Check the first byte of the entry - if it is 0, no more entries to parse.
-        if (fileEntry->fileName[0] == 0x0) {
-            serialPrintf("fat_parseRootDirectory: Done parsing - %i total entries.\n", totalEntries);
+    for (i = 0; i < length && i < strlen(filename); i++) {
+        if (filename[i] == '.') {
+            adjustExtension = true;
+            output[i] = ' ';
+            i++;
             break;
-        } else if (fileEntry->fileName[0] == 0xE5) { // If the first byte is 0xE5, it is an unused entry.
-            serialPrintf("fat_parseRootDirectory: Entry %i is an unused entry.\n", i);
-            totalEntries += 1;
-            continue;
-        } else if (start_addr[11] == 0x0F) { // If the 11th byte of the entry == 0x0F, it is a LFN (long file name) entry.
-            serialPrintf("fat_parseRootDirectory: Entry %i is an LFN entry - name: ", i);
-
-            // Read the LFN entry
-            fat_lfnEntry_t *lfnEntry = start_addr;
-            char testFileName[26];
-            for (int i = 0; i < 10; i++) {
-                if (lfnEntry->firstChars[i] != 0xFF) testFileName[i] = lfnEntry->firstChars[i];
-                else testFileName[i] = 0x00;
-                serialPrintf("%c", testFileName[i]);
-            }
-
-            for (int i = 10; i < 22; i++) {
-                if (lfnEntry->secondChars[i-10] != 0xFF) testFileName[i] = lfnEntry->secondChars[i-10];
-                else testFileName[i] = 0x00;
-                serialPrintf("%c", testFileName[i]);
-            }
-
-            for (int i = 22; i < 26; i++) {
-                if (lfnEntry->thirdChars[i-22] != 0xFF) testFileName[i] = lfnEntry->thirdChars[i-22];
-                else testFileName[i] = 0x00;
-                serialPrintf("%c", testFileName[i]);
-            }
-            serialPrintf("\n");
-        } else if (start_addr[11] == 0x10) { // If the 11th byte of the entry is 0x10, it is a directory.
-            serialPrintf("fat_parseRootDirectory: Entry %i is a directory - directory name is %s\n", i, fileEntry->fileName);
+        } else if (filename[i] == ' ') {
+            output[i] = ' ';
         } else {
-            serialPrintf("fat_parseRootDirectory: Entry %i is a file - filename is %s\n", i, fileEntry->fileName);
-
-            // Calculate offset for the next cluster number in the FAT
-
-            unsigned char FAT_Table[drive->bpb->bytesPerSector * 2];
-            uint32_t first_cluster = fileEntry->firstClusterNumberLow | (fileEntry->firstClusterNumber << 8);
-            uint32_t fat_offset = first_cluster + (first_cluster / 2);
-            uint32_t fat_sector = drive->firstFatSector + (fat_offset / 512);
-            uint32_t ent_offset = fat_offset % 512;
-            ideReadSectors(drive->driveNum, 2, fat_sector, FAT_Table);
-
-            uint16_t table_value = *(unsigned short*)&FAT_Table[ent_offset];
-            table_value = (fileEntry->firstClusterNumber & 1) ? table_value >> 4 : table_value & 0xFFF;
-
-            if (table_value >= 0xFF8) {
-                serialPrintf("fat_parseRootDirectory: End of cluster chain.\n");
-            } else {
-                serialPrintf("fat_parseRootDirectory: table_value 0x%x\n", table_value);
-                uint16_t first_cluster_sector = ((table_value - 2) * (uint16_t)drive->bpb->sectorsPerCluster) + (uint16_t)drive->firstDataSector;
-                serialPrintf("fat_parseRootDirectory: first_cluster_sector 0x%x\n", first_cluster_sector);
-            } 
+            output[i] = toupper(filename[i]);
         }
-        totalEntries++;
     }
-    return;
+
+    if (adjustExtension) {
+        for (int j = 0; j < 3; j++) {
+            output[i + (8 - i) + j] = toupper(filename[i + j]);
+        }
+    } else if (i < length) {
+        for (i; i < length; i++) {
+            output[i] = ' ';
+        }
+    }
+
+    return 0;
 }
 
-int readRootDirectory(fat_drive_t *drive, uint32_t buffer) {
-    if (drive->fatType == 1 || drive->fatType == 2) {
-        // In FAT12/FAT16, the first root directory is right after the FATs
-        int firstRootDirectory = drive->firstDataSector - drive->rootDirSectors;
-        
-        // Read it
-        serialPrintf("readRootDirectory: First root directory located at 0x%x\n", (uint32_t)firstRootDirectory);
-        ideReadSectors(drive->driveNum, 1, (uint32_t)firstRootDirectory, (uint32_t)buffer);
-        return 1;
+
+
+
+// fatParseRootDirectory(char *path) - Locate a file or directory in the root directory
+fsNode_t fatParseRootDirectory(char *path) {
+    fsNode_t file;
+    uint8_t *buffer = kmalloc(512);
+    
+    // Call helper function for 8.3 filename
+    char filename[11];
+    if (fatToDOSName(path, filename, 11) != 0) {
+        file.flags = -1;
+        return file;
     }
 
-    return -1;
-}    
+    filename[11] = 0;
+
+
+    for (int sector = 0; sector < 14; sector++) {
+        // Read in the sector.
+        int lba = ((drive->bpb->tableCount * drive->bpb->tableSize16) + 1) + sector;
+        ideReadSectors(drive->driveNum, 1, (uint32_t)lba, buffer);
+        fat_fileEntry_t *directory = (fat_fileEntry_t*)buffer;
+
+        for (int i = 0; i < 16; i++) {
+            // Nasty hack we have here
+
+            uint8_t attributes = directory->fileName[11]; // Save the attributes byte, as we need to null-terminate the string and compare.
+            directory->fileName[11] = 0; // Null-terminate
+                                         // Something's absolutely horrendously wrong in the stack that I can't copy this to an external variable.
+
+            // strcmp() will return a 0 if the other string is totally blank, bad!
+            // Solve with this if statement
+            if (strlen(directory->fileName) <= 0) continue;
+
+            if (!strcmp(directory->fileName, filename)) {
+                // We found the file! Congrats!
+
+                // Reset the attributes byte
+                directory->fileName[11] = attributes;
+
+                // Now, let's allocate fileEntry for the impl_struct and copy the contents of our directory.
+                file.impl_struct = kmalloc(sizeof(fat_fileEntry_t));
+                memcpy(file.impl_struct, directory, sizeof(fat_fileEntry_t));
+                
+                if (((fat_fileEntry_t*)file.impl_struct)->size != directory->size) {
+                    // There was an error in the memcpy()
+                    file.flags = -1;
+                    return file;
+                }
+
+                strcpy(file.name, path); // Copy the file name into the result value
+                
+                // Check if its a directory or a file
+                if (directory->fileName[11] == 0x10) file.flags = VFS_DIRECTORY;
+                else file.flags = VFS_FILE;
+
+                // Set the current cluster
+                file.impl = ((fat_fileEntry_t*)file.impl_struct)->firstClusterNumberLow;
+                
+                // Setup a few other fields
+                file.length = ((fat_fileEntry_t*)file.impl_struct)->size;
+                
+
+                
+                return file;
+            }
+
+            directory++;
+        }
+        
+
+        memset(buffer, 0, sizeof(buffer));
+    }
+
+    // Could not find file.
+    file.flags = -1; // TBD: Make a VFS_INVALID flag
+    return file;
+}
+
+
+// fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) - Reads a file in the FAT
+int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
+    if (file) {
+        // Calculate and read in the starting physical sector
+        uint16_t cluster = file->impl;
+        uint32_t sector = ((cluster - 2) * drive->bpb->sectorsPerCluster) + drive->firstDataSector;
+
+        uint8_t *sector_buffer;
+        ideReadSectors(drive->driveNum, 1, (uint32_t)sector, sector_buffer);
+        
+
+
+        // Copy the sector buffer to the output buffer
+        memcpy(buffer, sector_buffer, 512);
+
+        // Locate the File Allocation Table sector
+        uint32_t fatOffset = cluster + (cluster / 2);
+        uint32_t fatSector = drive->firstFatSector + (fatOffset / 512);
+        uint32_t entryOffset = fatOffset % 512;
+
+        // Read the FATs
+        ideReadSectors(drive->driveNum, 1, fatSector, (uint8_t*)FAT);
+        ideReadSectors(drive->driveNum, 1, fatSector + 512, (uint8_t*)FAT + 512);
+
+        // Read entry for the next cluster
+        uint16_t nextCluster = *(uint16_t*)&FAT[entryOffset];
+
+        // Convert the cluster
+        nextCluster = (cluster & 1) ? nextCluster >> 4 : nextCluster & 0xFFF;
+
+        // Test for EOF
+        if (nextCluster >= 0xFF8) {
+            return EOF;
+        }
+
+        // Test for file corruption
+        if (nextCluster == 0) {
+            return EOF;
+        }
+
+        // Set the next cluster
+        file->impl = nextCluster;
+    }
+
+    return 0;
+}
+
+// fatParseSubdirectory(fsNode_t file, const char *path) - Locate a file/folder in a subdirectory.
+fsNode_t fatParseSubdirectory(fsNode_t file, const char *path) {
+    fsNode_t ret;
+    ret.impl = file.impl;
+    ret.impl_struct = file.impl_struct;
+
+    // First, get the DOS 8.3 filename.
+    char filename[11];
+    if (fatToDOSName(path, filename, 11) != 0) {
+        ret.flags = -1;
+        return ret;
+    }
+    filename[11] = 0;
+
+    // Search the directory (note: just randomly picked a value for retries because orig. impl is seemingly bugged)
+    for (int count = 0; count < 5; count++) {
+        // Read in the directory
+        uint8_t buffer[512];
+        
+        int status = fatReadInternal(&ret, buffer, 512);
+        
+
+        // Setup the directory
+        fat_fileEntry_t *directory = (fat_fileEntry_t*)buffer;
+
+        // 16 entries in a directory
+        for (int i = 0; i < 16; i++) {
+            // Get the filename
+            uint8_t attributes = directory->fileName[11]; // Save attributes
+            directory->fileName[11] = 0;
+
+            if (!strcmp(filename, directory->fileName)) {
+                // We found it! Setup the return file.
+                // Reset the attributes byte
+                directory->fileName[11] = attributes;
+
+                // Now, let's allocate fileEntry for the impl_struct and copy the contents of our directory.
+                ret.impl_struct = kmalloc(sizeof(fat_fileEntry_t));
+                memcpy(ret.impl_struct, directory, sizeof(fat_fileEntry_t));
+                
+                if (((fat_fileEntry_t*)ret.impl_struct)->size != directory->size) {
+                    // There was an error in the memcpy()
+                    ret.flags = -1;
+                    return ret;
+                }
+
+                strcpy(ret.name, path); // Copy the file name into the result value
+                
+                // Check if its a directory or a file
+                if (directory->fileName[11] == 0x10) ret.flags = VFS_DIRECTORY;
+                else ret.flags = VFS_FILE;
+
+                // Set the current cluster
+                ret.impl = ((fat_fileEntry_t*)ret.impl_struct)->firstClusterNumberLow;
+                
+                // Setup a few other fields
+                ret.length = ((fat_fileEntry_t*)ret.impl_struct)->size;
+                
+
+                return ret;
+
+            }
+
+            directory++;
+        }
+
+
+        // Check if EOF
+        if (status == EOF) break;
+    }
+
+    ret.flags = -1;
+    return ret;
+
+}
+
+
+// fatOpenInternal(char *filename) - VFS file open, can parse slashes and subdirectories
+fsNode_t fatOpenInternal(char *filename) {
+    fsNode_t file, directory; // directory is our current directory
+    bool isRootDir = true;
+
+
+    // First, we do some hacky logic to determine if the file is in a subdirectory.
+    char *filepath = filename;
+    char *slash = strchr(filepath, '/'); // Should definitely be updated to allow for future inode paths like /device/hda0
+   
+    if (!slash) {
+        // The file is not in a subdirectory. Scan the root directory.
+        directory = fatParseRootDirectory(filepath);
+
+        if (directory.flags == VFS_FILE) {
+            return directory; // Nailed it
+        }
+
+        // Failed to find
+        file.flags = -1; // TBD: Make a VFS_INVALID flag.
+        return file;
+    }
+
+    slash++; // Go to next character
+    while (slash) {
+        // Get the path name.
+        char path[16];
+        int i = 0;
+        for (i = 0; i < 16; i++) {
+            if (slash[i] == '/' || slash[i] == '\0') break;
+
+            // Copy the character.
+            path[i] = slash[i];
+        }
+
+        path[i] = 0; // Null-terminate.
+
+        // Open subdirectory or file
+        if (isRootDir) {
+            directory = fatParseRootDirectory(path);
+            isRootDir = false;
+        } else {
+            directory = fatParseSubdirectory(directory, path);
+        }
+
+        // Found directory or file?
+        if (directory.flags == -1) {
+            break;
+        }
+
+        // Found file?
+        if (directory.flags == VFS_FILE) {
+            return directory;
+        }
+
+        // Find the next '/'
+        slash = strchr(slash + 1, '/');
+        if (slash) slash++;
+    }
+
+    // Unable to find.
+    serialPrintf("fatOpen: File %s not found.\n", filename);
+    file.flags = -1;
+    return file;
+}
+
 
 void fatInit() {
     // First, find all drives that COULD have a FAT FS on them.
@@ -146,7 +373,7 @@ void fatInit() {
         ideReadSectors(drives[i], 1, (uint32_t)0, buffer); // LBA = 0, SECTORS = 1
         char *start_addr = &buffer;
         
-        fat_drive_t *drive = kmalloc(sizeof(fat_drive_t));
+        drive = kmalloc(sizeof(fat_drive_t));
         drive->bpb = start_addr;
         serialPrintf("fatInit: Starting sequence is %x %x %x\n",drive->bpb->bootjmp[0], drive->bpb->bootjmp[1], drive->bpb->bootjmp[2]);
 
@@ -191,6 +418,8 @@ void fatInit() {
             
             drive->firstFatSector = drive->bpb->reservedSectorCount;
 
+            int rootOffset = (drive->bpb->tableCount * drive->bpb->tableSize16) + 1;
+
             serialPrintf("fatInit: Total sectors = %i\n", totalSectors);
             serialPrintf("fatInit: Bytes per sector = %u\n", drive->bpb->bytesPerSector);
             serialPrintf("fatInit: FAT size = %i\n", fatSize);
@@ -200,7 +429,6 @@ void fatInit() {
             serialPrintf("fatInit: First data sector = %i\n", firstDataSector);
             serialPrintf("fatInit: First FAT sector = %i\n", drive->bpb->reservedSectorCount);
             serialPrintf("fatInit: Sectors per cluster = %i\n", drive->bpb->sectorsPerCluster);
-
 
             // Identify the FAT type.
             if (totalSectors < 4085) {
@@ -217,18 +445,16 @@ void fatInit() {
                 drive->fatType = 0;
             }
 
-            // Read in the FATs in to an allocated memory address.
-            uint16_t FAT_Table[drive->fatSize * 2];
-            drive->FAT_Table = &FAT_Table;
-            ideReadSectors(drive->driveNum, 2, drive->bpb->reservedSectorCount, FAT_Table);
 
+            serialPrintf("Reading in /dir/nested/nest.txt...\n");
+            fsNode_t file = fatOpenInternal("/dir/nested/nest.txt");
+            uint8_t buffer[512];
+            fatReadInternal(&file, buffer, file.length);
+            serialPrintf("Contents of file %s (size = 0x%x)\n", file.name, ((fat_fileEntry_t*)file.impl_struct)->size);
+            for (int j = 0; j < file.length; j++) serialPrintf("%c", buffer[j]);
+            
 
-            // Now parse the drive's root directory.
-            fat_parseRootDirectory(drive);
+            
         }
-    }
-
-
-
-    
+    }  
 }

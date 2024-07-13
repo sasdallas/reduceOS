@@ -1,11 +1,11 @@
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 451-DEBUG, compiled on 07/11/24, 19:04:33
+	Build 844-DEBUG, compiled on 07/13/24, 16:38:17
 ============================================================================================================================
 
-Kernel location: 0x100000 - 0x8442CC
-Text section: 0x100000 - 0x10F000; Data section: 0x138000 - 0x7FD182; BSS section: 0x7FE000 - 0x8442CC
+Kernel location: 0x100000 - 0x8447AC
+Text section: 0x100000 - 0x10F000; Data section: 0x138000 - 0x7FD182; BSS section: 0x7FE000 - 0x8447AC
 Loader magic: 0x43D8C305
 
 Serial logging initialized!
@@ -47,6 +47,8 @@
 pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x1234, device ID = 0x1111)
 initPCI: PCI probe completed
 IDE driver completed initialization.
+Found ATA drive - Generic 1234                            
+	Capacity: 0 GB 2 MB 832 KB
 Found ATAPI drive - Generic 1234                            
 	Capacity: 0 GB 0 MB 0 KB
 acpiInit: Found RSDP signature at 0xFA330
@@ -67,12 +69,30 @@
 initrdInit: Initial ramdisk loaded - location is 0x84A000 and end address is 0x84B32F
 pmm_initRegion: Region at 0x0 (size 0x9F000) initialized. Blocks used: 0. Free blocks: 159
 pmm_initRegion: Region at 0x100000 (size 0x1EF0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x7442CC) deinitialized. Blocks used: 1542. Free blocks: 6219
+pmm_deinitRegion: Region at 0x100000 (size 0x7447AC) deinitialized. Blocks used: 1542. Free blocks: 6219
 vmmInit: Successfully initialized paging.
 Initialized memory management successfully.
 Initialized floppy drive successfully.
 Searching for drive...
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/17/2036 25:16:19
+fatInit: Trying drive 0...
+fatInit: Starting sequence is EB 58 90
+fatInit: bootjmp identified
+fatInit: OEM is WINIMAGE
+fatInit: Total sectors = 2880
+fatInit: Bytes per sector = 512
+fatInit: FAT size = 9
+fatInit: Root directory sectors = 14
+fatInit: Data sectors = 2847
+fatInit: Total clusters = 2847
+fatInit: First data sector = 33
+fatInit: First FAT sector = 1
+fatInit: Sectors per cluster = 1
+fatInit: FS type is FAT12
+Reading in test.txt...
+ret.flags = 1
+Contents of file nest.txt (size = 0xC)
+NESTED??!!!
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/19/2036 22:56:72
 All commands registered successfully.
 Warning: User is an unstable environment.
 

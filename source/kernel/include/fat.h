@@ -85,6 +85,10 @@ typedef struct {
     uint32_t size; // Size of the file in bytes
 } __attribute__((packed)) fat_fileEntry_t;
 
+
+
+
+
 typedef struct {
     uint8_t entryOrder;
     uint8_t firstChars[10];
@@ -95,3 +99,6 @@ typedef struct {
     uint8_t reserved[2];
     uint8_t thirdChars[4];
 } __attribute__((packed)) fat_lfnEntry_t;
+
+
+// Definitions

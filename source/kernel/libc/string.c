@@ -289,3 +289,14 @@ long strtol(const char *nptr, char **endptr, int base) {
 		*endptr = (char *) (any ? s - 1 : nptr);
 	return (acc);
 }
+
+// strchr(char *str, int ch) - Locate the first occurance of a character in a string (credit to BrokenThorn Entertainment)
+char *strchr(char *str, int ch) {
+    do {
+        if (*str == ch) {
+            return (char*)str;
+        }
+    } while (*str++);
+
+    return 0; // Nothing.
+}

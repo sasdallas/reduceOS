@@ -29,4 +29,5 @@ int strlen(char *str); // strlen() - checks length of a string
 char *strtok(char *str, const char *delim); // strtok() - splits a string into tokens, seperated by delim.
 long strtol(const char *nptr, char **endptr, int base); // strtol() - <todo add description>
 int atoi(char *str); // atoi() - string to integer
+char *strchr(char *str, int ch); // Locate the first occurance of a character in a string (credit to BrokenThorn Entertainment)
 #endif

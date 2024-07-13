@@ -7,3 +7,8 @@ broken/
 out/img/**
 *.iso
 *.img
+.gdbinit
+*.code-workspace
+serial_out.txt
+*.vfd
+*.tags
