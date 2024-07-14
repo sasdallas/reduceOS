@@ -77,10 +77,13 @@ IMAGE_OBJS = $(patsubst $(IMAGE_SRC)/%.bmp, $(OUT_IMAGES)/%.o, $(IMAGE_SRCS))
 
 # All LIBC and C sources - this will need an update when we properly organize directories.
 
-C_SRCS = $(wildcard $(KERNEL_SOURCE)/*.c) 
+C_SRCS = $(shell find $(KERNEL_SOURCE) -name '*.c')
+C_OBJS = $(patsubst $(KERNEL_SOURCE)/%.c, $(OUT_OBJ)/%.o, $(C_SRCS))
 
-LIBC_SRCS = $(wildcard $(KERNEL_SOURCE)/libc/*.c)
-C_OBJS = $(patsubst $(KERNEL_SOURCE)/%.c, $(OUT_OBJ)/%.o, $(C_SRCS)) $(patsubst $(KERNEL_SOURCE)/libc/%.c, $(OUT_OBJ)/libc/%.o, $(LIBC_SRCS))
+
+# EDIT THIS WHEN NEW DIRECTORIES ARE ADDED (NOTE: assembly/ is handled separately)
+SOURCE_DIRECTORIES = kernel libc drivers base gfx fs mem tasks
+DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES))
 
 INITRD_SRCS = $(wildcard $(INITRD_SRC)/src/*.c)
 INITRD_OBJS = $(patsubst $(INITRD_SRC)/src/%.c, $(INITRD_OBJ)/%.o, $(INITRD_SRCS))
@@ -96,7 +99,7 @@ dbg: $(OUT_KERNEL)/kernel_debug.elf $(OUT_INITRD)/initrd.img
 
 
 # I'm sorry for naming this target out/kernel/kernel_debug.elf when it does not produce a kernel_debug.elf
-$(OUT_KERNEL)/kernel_debug.elf: DELETE_KERNEL_OBJ BUILDSCRIPTS_DEBUG $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
+$(OUT_KERNEL)/kernel_debug.elf: MAKE_DIRS DELETE_KERNEL_OBJ BUILDSCRIPTS_DEBUG $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking debug kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
 	@printf "[ Copying debug symbols to kernel.sym... ]\n"
@@ -104,19 +107,23 @@ $(OUT_KERNEL)/kernel_debug.elf: DELETE_KERNEL_OBJ BUILDSCRIPTS_DEBUG $(ASM_KLOAD
 	@printf "[ Stripping debug symbols... ]\n"
 	$(OBJCOPY) --strip-debug $(OUT_KERNEL)/kernel.elf
 	@printf "\n"
-	
 
 
 
-$(OUT_KERNEL)/kernel.elf: DELETE_KERNEL_OBJ BUILDSCRIPTS_RELEASE $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
+$(OUT_KERNEL)/kernel.elf: MAKE_DIRS DELETE_KERNEL_OBJ BUILDSCRIPTS_RELEASE $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
 	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
 	@printf "[ Stripping debug symbols... ]\n"
 	$(OBJCOPY) --strip-debug $(OUT_KERNEL)/kernel.elf
 	@printf "\n"
 
+MAKE_DIRS:
+	-$(MKDIR) $(DIRECTORIES)
+
+# Fixes a CONFIG.h not updating bug
 DELETE_KERNEL_OBJ:
 	-@$(RM) $(OUT_OBJ)/kernel.o
+	-@$(RM) $(OUT_OBJ)/panic.o
 
 BUILDSCRIPTS_RELEASE:
 	@printf "[ Running buildscripts for RELEASE build of reduceOS... ]\n"
@@ -185,9 +192,8 @@ img: $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
 # Needed for now because some files don't work without -O2
 PATCH_TARGETS:
 	@printf "[ Recompiling files that need optimization... ]\n"
-	$(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/isr.c -o $(OUT_OBJ)/isr.o 
-	@printf "\n"
-	$(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/vmm.c -o $(OUT_OBJ)/vmm.o
+	$(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/base/isr.c -o $(OUT_OBJ)/base/isr.o 
+	
 	
 
 $(INITRD_OBJ)/%.o : $(INITRD_SRC)/src/%.c | $(INITRD_OBJ)
@@ -227,8 +233,8 @@ drive:
 	@${qemu-img} create test.img 1M
 
 clean:
-	@printf "[ Deleting C object files... ]\n"
-	@$(RM) $(OUT_OBJ)/*.o
-	@$(RM) $(OUT_OBJ)/libc/*.o
+	@printf "[ Deleting object files... ]\n"
+	-@$(RM) -rf $(SOURCE_DIRECTORIES)
+
 	@printf "[ Deleting ASM object files... ]\n"
-	@$(RM) $(OUT_ASMOBJ)/*.o
+	-@$(RM) -rf $(OUT_ASMOBJ)/*.o
