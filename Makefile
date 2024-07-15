@@ -82,7 +82,7 @@ C_OBJS = $(patsubst $(KERNEL_SOURCE)/%.c, $(OUT_OBJ)/%.o, $(C_SRCS))
 
 
 # EDIT THIS WHEN NEW DIRECTORIES ARE ADDED (NOTE: assembly/ is handled separately)
-SOURCE_DIRECTORIES = kernel libc drivers base gfx fs mem tasks
+SOURCE_DIRECTORIES = kernel libc drivers base gfx fs mem tasks mem/liballoc
 DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES))
 
 INITRD_SRCS = $(wildcard $(INITRD_SRC)/src/*.c)
@@ -234,7 +234,7 @@ drive:
 
 clean:
 	@printf "[ Deleting object files... ]\n"
-	-@$(RM) -rf $(SOURCE_DIRECTORIES)
+	-@$(RM) -rf $(DIRECTORIES)
 
 	@printf "[ Deleting ASM object files... ]\n"
 	-@$(RM) -rf $(OUT_ASMOBJ)/*.o

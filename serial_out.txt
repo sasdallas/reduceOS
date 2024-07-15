@@ -1,11 +1,11 @@
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 844-DEBUG, compiled on 07/13/24, 16:38:17
+	Build 1010-DEBUG, compiled on 07/15/24, 10:21:18
 ============================================================================================================================
 
-Kernel location: 0x100000 - 0x8447AC
-Text section: 0x100000 - 0x10F000; Data section: 0x138000 - 0x7FD182; BSS section: 0x7FE000 - 0x8447AC
+Kernel location: 0x100000 - 0x8087B4
+Text section: 0x100000 - 0x10F000; Data section: 0x138000 - 0x7FD196; BSS section: 0x7FE000 - 0x8087B4
 Loader magic: 0x43D8C305
 
 Serial logging initialized!
@@ -36,10 +36,38 @@
 == End SSE Data Collection Summary ==
 ======== End CPU Data Collection Summary ========
 CPU initialization completed
-kmain: CPU has long mode support: 0
 bios32 initialized successfully!
+pmm_initRegion: Region at 0x0 (size 0x9F000) initialized. Blocks used: 0. Free blocks: 159
+pmm_initRegion: Region at 0x100000 (size 0x1EF0000) initialized. Blocks used: 0. Free blocks: 8079
+vmmInit: Successfully initialized paging.
+Initialized memory management successfully.
+pmm_deinitRegion: Region at 0x100000 (size 0x7087B4) deinitialized. Blocks used: 1492. Free blocks: 6269
+liballoc: initialization of liballoc 1.1
+NEED TO ALLOCATE 0x10 PAGES
+vmm_mapPage: Mapping 0x40000 - 0x40000
+vmm_mapPage: Mapping 0x41000 - 0x41000
+vmm_mapPage: Mapping 0x42000 - 0x42000
+vmm_mapPage: Mapping 0x43000 - 0x43000
+vmm_mapPage: Mapping 0x44000 - 0x44000
+vmm_mapPage: Mapping 0x45000 - 0x45000
+vmm_mapPage: Mapping 0x46000 - 0x46000
+vmm_mapPage: Mapping 0x47000 - 0x47000
+vmm_mapPage: Mapping 0x48000 - 0x48000
+vmm_mapPage: Mapping 0x49000 - 0x49000
+vmm_mapPage: Mapping 0x4A000 - 0x4A000
+vmm_mapPage: Mapping 0x4B000 - 0x4B000
+vmm_mapPage: Mapping 0x4C000 - 0x4C000
+vmm_mapPage: Mapping 0x4D000 - 0x4D000
+vmm_mapPage: Mapping 0x4E000 - 0x4E000
+vmm_mapPage: Mapping 0x4F000 - 0x4F000
+Allocated successfully.
+liballoc: Resource allocated 40000 of 16 pages (65536 bytes) for 40 size.
+liballoc: Total memory usage = 64 KB
+liballoc: set up first memory major 40000
+liballoc: 10D7CC PREFIX(malloc)( 40 ): CASE 2: returning 40040
 Keyboard handler initialized.
 PIT started at 1000hz
+liballoc: 10C118 PREFIX(malloc)( 928 ): CASE 4.1: returning 40080
 pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x1237)
 pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x7000)
 pciProbeForDevices: Found PCI device (function = 0x1, vendor ID = 0x8086, device ID = 0x7010)
@@ -48,51 +76,43 @@
 initPCI: PCI probe completed
 IDE driver completed initialization.
 Found ATA drive - Generic 1234                            
-	Capacity: 0 GB 2 MB 832 KB
+	Capacity: 0 GB 2 MB 0 KB
 Found ATAPI drive - Generic 1234                            
 	Capacity: 0 GB 0 MB 0 KB
-acpiInit: Found RSDP signature at 0xFA330
-acpiParseRSDP: (dbg) OEM is BOCHS 
-acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
-ACPI table signatures (RSDT):
-	FACP 0x1FF0000
-acpiParseFacp: ACPI enabled succesfully.
-	APIC 0x1FF0F00
-acpiParseApic: local APIC address is 0x1FF0F94
-Found CPU: 0 0 1
-Found I/O APIC: 1 0x1FF0FA8 0
-Found interrupt override: 0 0 2 0x0
-	SSDT 0x1FF0F00
-	HPET 0x1FF0F00
-acpiInit: Successfully enabled ACPI.
 GRUB did pass an initial ramdisk.
-initrdInit: Initial ramdisk loaded - location is 0x84A000 and end address is 0x84B32F
-pmm_initRegion: Region at 0x0 (size 0x9F000) initialized. Blocks used: 0. Free blocks: 159
-pmm_initRegion: Region at 0x100000 (size 0x1EF0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x7447AC) deinitialized. Blocks used: 1542. Free blocks: 6219
-vmmInit: Successfully initialized paging.
-Initialized memory management successfully.
+liballoc: 10EACA PREFIX(malloc)( 228 ): CASE 4.1: returning 40440
+liballoc: 10EBD2 PREFIX(malloc)( 228 ): CASE 4.1: returning 40540
+liballoc: 10ECE3 PREFIX(malloc)( 424 ): CASE 4.1: returning 40630
+initrdInit: Initial ramdisk loaded - location is 0x80E000 and end address is 0x80F32F
+liballoc: 10D285 PREFIX(malloc)( 4128 ): CASE 4.1: returning 407F0
 Initialized floppy drive successfully.
+ok time for vesa
 Searching for drive...
 fatInit: Trying drive 0...
-fatInit: Starting sequence is EB 58 90
+liballoc: 10E44F PREFIX(malloc)( 84 ): CASE 4.1: returning 41830
+fatInit: Starting sequence is EB 3C 90
 fatInit: bootjmp identified
-fatInit: OEM is WINIMAGE
-fatInit: Total sectors = 2880
+fatInit: OEM is mkfs.fat
+fatInit: Total sectors = 2048
 fatInit: Bytes per sector = 512
-fatInit: FAT size = 9
-fatInit: Root directory sectors = 14
-fatInit: Data sectors = 2847
-fatInit: Total clusters = 2847
-fatInit: First data sector = 33
+fatInit: FAT size = 2
+fatInit: Root directory sectors = 32
+fatInit: Data sectors = 2011
+fatInit: Total clusters = 502
+fatInit: First data sector = 37
 fatInit: First FAT sector = 1
-fatInit: Sectors per cluster = 1
+fatInit: Sectors per cluster = 4
 fatInit: FS type is FAT12
-Reading in test.txt...
-ret.flags = 1
+Reading in /dir/nested/nest.txt...
+liballoc: 10DBCA PREFIX(malloc)( 544 ): CASE 4.1: returning 418A0
+liballoc: 10DCD7 PREFIX(malloc)( 64 ): CASE 4.1: returning 41AD0
+liballoc: 10E020 PREFIX(malloc)( 64 ): CASE 4.1: returning 41B30
+liballoc: 10E020 PREFIX(malloc)( 64 ): CASE 4.1: returning 41B80
 Contents of file nest.txt (size = 0xC)
 NESTED??!!!
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/19/2036 22:56:72
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/21/2036 16:34:57
 All commands registered successfully.
 Warning: User is an unstable environment.
+liballoc: 109258 PREFIX(malloc)( 36 ): CASE 4.1: returning 400A0
+liballoc: 10936B PREFIX(malloc)( 37 ): CASE 4.1: returning 400E0
 

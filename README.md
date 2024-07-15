@@ -7,22 +7,13 @@ If you would like to learn more about the development of the kernel, scroll down
 ![reduceOS image](reduceOSDemo.png)
 
 #### Please read the credits!
-### FOREWARNING: reduceOS DOES NOT currently work on real hardware - I'm working on that
 
 # What's different from reduceOS alpha?
 reduceOS has switched to a brand new kernel, with cleaner, commented code and more features. This kernel is also written entirely by me, without a base.\
 We do still have to stick with multiboot for now, however. Still, the OS is coming along great.
 
-# Why does it look so messy?
-Please open a pull request to fix it.
-
-# What's the current stage?
-Usermode and ELF loading
-
 # Compiling
-### Again, even though we were having trouble with Linux builds before, Windows builds are NOT supported. Use WSL, mingw-32, or MSys to build.
-### macOS users need further instruction - see further below.
-### It is recommended to use a 32-bit toolchain (i686) to build reduceOS, but that is optional.
+### Windows builds are NOT supported!
 
 ### IMPORTANT NOTE: If you are not using a 32-bit (i686) toolchain to build, you MUST download the obj/assembly/crtbegin.o and obj/assembly/crtend.o. They are REQUIRED.
 **To build reduceOS, you need these packages:** `gcc`, `nasm`, `make`, `grub`\
@@ -47,13 +38,9 @@ You can build reduceOS with a custom version of gcc or ld by passing these as pa
 # Known Bugs
 - **TBD:** Need to remove old paging code.
 - **Severe:** System calls not working.
-- **Possibly severe:** VBE and ISR both cannot have PIE or they refuse to work. 
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code (temporary fix: auto uses 1024*768)
-- **Downgraded severity:** System crashes if you just type a space and it doesn't play well with the command parser.
-- For some reason, `printf()` can't handle a `%x` when paging values are passed.
-- A little bit of disgusting code in `keyboardGetChar()` and a few other functions (unknown how to fix)
-- Too many spaces crashes backup command line
 - Bitmaps can only be displayed at a max of 764 (you can load a 1024x768 image and it will work, but it will only display up to 764 lines).
+- FAT driver is probably very unstable
 
 # Credits
 Michael Petch - Patched my terrible interrupts and helped me fix my VMM, even though he didn't have to. Link to this awesome person [here](https://stackoverflow.com/users/3857942/michael-petch)
