@@ -72,6 +72,12 @@ void vmm_freePage(pte_t *entry) {
     pte_delattrib(entry, PTE_PRESENT);
 }
 
+// vmm_getPageTable(void *virtual_address) - Returns the page table
+pde_t *vmm_getPageTable(void *virtual_address) {
+    pagedirectory_t *pageDirectory = vmm_getCurrentDirectory();
+    return &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)];
+}
+
 // vmm_mapPage(void *physical_addr, void *virtual_addr) - Maps a page from the physical address to its virtual address
 void vmm_mapPage(void *physical_addr, void *virtual_addr) {
     // Get page directory

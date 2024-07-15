@@ -78,7 +78,7 @@ bool pmm_testFrame(int frame) {
 
 // setFrame(uint32_t addr) - Setting a bit in the frames bitset. (stupid paging code OBSOLETE)
 void setFrame(uint32_t addr) {
-    uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
+    uint32_t frame = addr / 4096; // Get the frame's actual address (aligned by 4k)
     uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
     uint32_t offset = OFFSET_BIT(frame);
 
@@ -89,7 +89,7 @@ void setFrame(uint32_t addr) {
 // clearFrame(uint32_t addr) - Clear a bit in the frames bitset (stupid paging code OBSOLETE)
 void clearFrame(uint32_t addr) {
     // Same as setFrame, but with a few differences.
-    uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
+    uint32_t frame = addr / 4096; // Get the frame's actual address (aligned by 4k)
     uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
     uint32_t offset = OFFSET_BIT(frame);
 
@@ -100,7 +100,7 @@ void clearFrame(uint32_t addr) {
 // testFrame(uint32_t addr) - Test if a frame is set (stupid paging code OBSOLETE)
 uint32_t testFrame(uint32_t addr) {
     // Same as all previous functions, but we return a value.
-    uint32_t frame = addr / PAGE_ALIGN; // Get the frame's actual address (aligned by 4k)
+    uint32_t frame = addr / 4096; // Get the frame's actual address (aligned by 4k)
     uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
     uint32_t offset = OFFSET_BIT(frame);
 

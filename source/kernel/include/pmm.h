@@ -6,7 +6,6 @@
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/libc/string.h" // String functions
-#include "include/paging.h" // Paging declarations
 #include "include/heap.h" // kmalloc()
 #include "include/bootinfo.h" // Multiboot info
 #include "include/serial.h"

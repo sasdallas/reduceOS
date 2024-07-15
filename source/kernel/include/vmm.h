@@ -41,7 +41,19 @@ typedef struct {
 #define VIRTUAL_TO_PHYS(addr) (*addr & ~0xFFF) // Returns the physical address of addr.
 
 // Functions
-void vmm_disablePaging();
-
+pte_t *vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr); // Look up an entry within the page table
+pde_t *vmm_directoryLookupEntry(pagedirectory_t *directory, uint32_t virtual_addr); // Look up an entry within the page directory
+void vmm_loadPDBR(uint32_t pdbr_addr); // Loads a new value into the PDBR address
+bool vmm_switchDirectory(pagedirectory_t *directory); // Changes the current page directory
+void vmm_flushTLBEntry(uint32_t addr); // Invalidates the current TLB entry
+pagedirectory_t *vmm_getCurrentDirectory(); // Returns the current page directory
+bool vmm_allocatePage(pte_t *entry); // Allocates VMM pages
+void vmm_freePage(pte_t *entry); // Frees a page
+pde_t *vmm_getPageTable(void *virtual_address); // Returns the page table for a virtual address
+void vmm_mapPage(void *physical_addr, void *virtual_addr); // Maps a page from the physical address to its virtual address
+void vmm_enablePaging(); // Enables paging
+void vmm_disablePaging(); // Disables paging
+void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size); // Identity map a region
+void vmmInit(); // Initialize the VMM
 
 #endif

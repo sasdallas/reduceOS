@@ -7,12 +7,6 @@
 #include "include/kernel.h" // Kernel header file
 
 
-// heap.c defined variables.
-extern uint32_t placement_address;
-
-// paging.c defined variables
-extern page_directory_t *kernelDir;
-
 // ide_ata.c defined variables
 extern ideDevice_t ideDevices[4];
 
@@ -468,7 +462,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     ASSERT(globalInfo->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
     uint32_t initrdLocation = *((uint32_t*)globalInfo->m_modsAddr);
     uint32_t initrdEnd = *(uint32_t*)(globalInfo->m_modsAddr + 4);
-    placement_address = initrdEnd; // Hack
     serialPrintf("GRUB did pass an initial ramdisk.\n");
     
     fs_root = initrdInit(initrdLocation);    
@@ -492,6 +485,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     vmmInit();
     serialPrintf("Initialized memory management successfully.\n");
 
+
+    
+
     floppy_init();
     serialPrintf("Initialized floppy drive successfully.\n");
 
@@ -508,6 +504,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         bitmapFontInit();
     }
 
+
     fatInit();
 
     if (didInitVesa) {
@@ -516,6 +513,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         
         vbeSwitchBuffers();
     }
+
+
+    // DEFINITELY sketchy! What's going on with this system? Why can't
+    serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
+    enable_liballoc();
 
 
     uint8_t seconds, minutes, hours, days, months;
