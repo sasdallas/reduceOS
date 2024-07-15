@@ -56,7 +56,7 @@ void kfree(void *a) {
     if (liballoc_enabled) {
         return liballoc_kfree(a);
     } else {
-        serialPrintf("kfree: Something tride to call kfree but we don't have liballoc running!\n");
+        serialPrintf("kfree: Something tried to call kfree but we don't have liballoc running!\n");
     }
 }
 

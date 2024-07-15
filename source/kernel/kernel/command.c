@@ -81,8 +81,8 @@ int parseCommand(char *cmd) {
                 int ret;
                 ret = func(argc, argv);
                 // Free the memory allocated for the parsed command
-                for (int i = 0; i < argc; i++) { memset(argv[i], 0, strlen(argv[i])); }
-                memset(argv, 0, argc * sizeof(char *));
+                for (int arg = 0; arg < argc; arg++) kfree(argv[arg]);
+                kfree(argv);
                 return ret;
             }
         }
@@ -95,7 +95,7 @@ int parseCommand(char *cmd) {
 
 // Help command - prints all available commands.
 int help(int argc, char *args[]) {
-    printf("reduceOS v1.1 - help command\nAvailable commands: ");
+    printf("reduceOS v%s - help command\nAvailable commands: ", VERSION);
     
     for (int i = 0; i < index; i++) {
         cmdData *data = &cmdFunctions[i];
