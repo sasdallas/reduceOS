@@ -207,6 +207,12 @@ void vmmInit() {
         // Add the above page to the page table.
         table->entries[PAGETBL_INDEX(virt)] = page;
     }
+    
+    // Remove the present flag for the first 4KB, for debugging, as if a pointer goes to 0x0, we'll know
+    pte_t page = table->entries[PAGETBL_INDEX(0x00000000)];
+    pte_delattrib(&page, PTE_WRITABLE);
+    pte_delattrib(&page, PTE_PRESENT);
+    
 
 
     for (int i = 0, frame=0x400000, virt=0x00400000; i < 1024; i++, frame += 4096, virt += 4096) {
