@@ -7,7 +7,7 @@
 
 
 // Variables
-static cpuInfo_t *processor_data;
+static cpuInfo_t processor_data;
 
 // Functions:
 
@@ -25,12 +25,12 @@ void cpuInit() {
 
 	
 	// We want a fast boot so we'll only detect CPU frequency when needed.
-	processor_data->frequency = 0;
+	processor_data.frequency = 0;
 
 	// Now grab some vendor data.
 	uint32_t eaxvar; // Unused
-	memset(processor_data->vendor, 0, sizeof(processor_data->vendor));
-	__cpuid(0, &eaxvar, &processor_data->vendor[0], &processor_data->vendor[8], &processor_data->vendor[4]);	
+	memset(processor_data.vendor, 0, sizeof(processor_data.vendor));
+	__cpuid(0, &eaxvar, &processor_data.vendor[0], &processor_data.vendor[8], &processor_data.vendor[4]);	
 	
 	int edx = 0;
 
@@ -38,9 +38,8 @@ void cpuInit() {
     asm volatile ("movl $0x80000001, %%eax\n"
                 "cpuid\n" : "=d"(edx) :: "eax", "ebx", "ecx");
 
-	serialPrintf("EDX: %i\n", edx);
 
-	processor_data->long_mode_capable = edx & (1 << 29) ? 1 : 0;
+	processor_data.long_mode_capable = edx & (1 << 29) ? 1 : 0;
 
 	// SSE Support Checking
 	cpuCheckSSE();
@@ -49,22 +48,22 @@ void cpuInit() {
 	// Print a summary
 	// Now print a little summary
 	serialPrintf("======== CPU Data Collection Summary ========\n");
-	serialPrintf("- CPU VENDOR ID: %s\n", processor_data->vendor);
-	serialPrintf("- Long Mode (x64) support: %i\n\n", processor_data->long_mode_capable);
+	serialPrintf("- CPU VENDOR ID: %s\n", processor_data.vendor);
+	serialPrintf("- Long Mode (x64) support: %i\n\n", processor_data.long_mode_capable);
 
 	serialPrintf("== SSE Data Collection Summary ==\n");
-	serialPrintf("SSE support: %s\n", processor_data->sse_support ? "YES" : "NO");
-	serialPrintf("SSE2 support: %s\n", processor_data->sse2_support ? "YES" : "NO");
-	serialPrintf("SSE3 support: %s\n", processor_data->sse3_support ? "YES" : "NO");
-	serialPrintf("SSSE3 support: %s\n", processor_data->ssse3_support ? "YES" : "NO");
-	serialPrintf("SSE4 support: %s\n", processor_data->sse4_support ? "YES" : "NO");
+	serialPrintf("SSE support: %s\n", processor_data.sse_support ? "YES" : "NO");
+	serialPrintf("SSE2 support: %s\n", processor_data.sse2_support ? "YES" : "NO");
+	serialPrintf("SSE3 support: %s\n", processor_data.sse3_support ? "YES" : "NO");
+	serialPrintf("SSSE3 support: %s\n", processor_data.ssse3_support ? "YES" : "NO");
+	serialPrintf("SSE4 support: %s\n", processor_data.sse4_support ? "YES" : "NO");
 	serialPrintf("SSE5 support data summary:\n");
-	serialPrintf("\tXOP support: %s\n", processor_data->sse5_Data->XOP_support ? "YES" : "NO");
-	serialPrintf("\tFMA4 support: %s\n", processor_data->sse5_Data->FMA4_support ? "YES" : "NO");
-	serialPrintf("\tCVT16 support: %s\n", processor_data->sse5_Data->CVT16_support ? "YES" : "NO");
-	serialPrintf("\tAVX support: %s\n", processor_data->sse5_Data->AVX_support ? "YES" : "NO");
-	serialPrintf("\tXSAVE support: %s\n", processor_data->sse5_Data->XSAVE_support ? "YES" : "NO");
-	serialPrintf("\tAVX2 support: %s\n", processor_data->sse5_Data->AVX2_support ? "YES" : "NO");
+	serialPrintf("\tXOP support: %s\n", processor_data.sse5_Data.XOP_support ? "YES" : "NO");
+	serialPrintf("\tFMA4 support: %s\n", processor_data.sse5_Data.FMA4_support ? "YES" : "NO");
+	serialPrintf("\tCVT16 support: %s\n", processor_data.sse5_Data.CVT16_support ? "YES" : "NO");
+	serialPrintf("\tAVX support: %s\n", processor_data.sse5_Data.AVX_support ? "YES" : "NO");
+	serialPrintf("\tXSAVE support: %s\n", processor_data.sse5_Data.XSAVE_support ? "YES" : "NO");
+	serialPrintf("\tAVX2 support: %s\n", processor_data.sse5_Data.AVX2_support ? "YES" : "NO");
 	serialPrintf("== End SSE Data Collection Summary ==\n");
 	serialPrintf("======== End CPU Data Collection Summary ========\n");
 
@@ -90,39 +89,34 @@ void cpuCheckSSE() {
 
 	uint32_t eax; // Unused
 	uint32_t edx; // SSE and SSE2 bits found here
-	uint32_t ecx; // SSE3, SSE4, and most of SSE5 are found here (bugged lol)
+	uint32_t ecx; // SSE3, SSE4, and most of SSE5 are found here 
 	uint32_t ebx; // AVX2 support checking
 
 	__cpuid(1, &eax, &ebx, &ecx, &edx);
 
-	serialPrintf("EAX: %i\nEDX: %i\nECX: 0x%x\nEBX: 0x%x\n", eax, edx, ecx, ebx);
-
-	processor_data->sse_support = edx & (1 << 25); // SSE support (bit 25 of EDX)
-	processor_data->sse2_support = edx & (1 << 26); // SSE2 support (bit 26 of EDX)
-	processor_data->sse3_support = ecx & (1 << 0); // SSE3 support (bit 0 of ECX)
-	processor_data->ssse3_support = ecx & (1 << 9); // SSSE3 support (Supplemntal Streaming SIMD Extensions, bit 9 of ECX)
+	processor_data.sse_support = edx & (1 << 25); // SSE support (bit 25 of EDX)
+	processor_data.sse2_support = edx & (1 << 26); // SSE2 support (bit 26 of EDX)
+	processor_data.sse3_support = ecx & (1 << 0); // SSE3 support (bit 0 of ECX)
+	processor_data.ssse3_support = ecx & (1 << 9); // SSSE3 support (Supplemntal Streaming SIMD Extensions, bit 9 of ECX)
 	
 
 	// ok so basically I don't actually know if it changes whether SSE4.1, SSE4.2, or SSE4A is on or off
 	// soo only enable SSE4 support if all 3 are supported
-	processor_data->sse4_support = 0;
+	processor_data.sse4_support = 0;
 
 	if ((ecx & (1 << 19)) && (ecx & (1 << 20)) && (ecx & (1 << 6))) {
-		processor_data->sse4_support = 1;
+		processor_data.sse4_support = 1;
 	}
 
 	// SSE5 time, this is more complex, because it's split up
 	// I created a type called sseData_t to help out
-	sseData_t *sseData; // This is also inside processor_info
 
-	sseData->XOP_support = ecx & (1 << 11); // XOP support
-	sseData->FMA4_support = ecx & (1 << 16); // FMA4 support
-	sseData->CVT16_support = ecx & (1 << 29); // CVT16 support
-	sseData->AVX_support = ecx & (1 << 28); // AVX support
-	sseData->XSAVE_support = ecx & (1 << 26); // XSAVE support
-	sseData->AVX2_support = ecx & (1 << 5); // AVX2 support (potentially wrong page for CPUID?)
-	
-	processor_data->sse5_Data = sseData;
+	processor_data.sse5_Data.XOP_support = ecx & (1 << 11); // XOP support
+	processor_data.sse5_Data.FMA4_support = ecx & (1 << 16); // FMA4 support
+	processor_data.sse5_Data.CVT16_support = ecx & (1 << 29); // CVT16 support
+	processor_data.sse5_Data.AVX_support = ecx & (1 << 28); // AVX support
+	processor_data.sse5_Data.XSAVE_support = ecx & (1 << 26); // XSAVE support
+	processor_data.sse5_Data.AVX2_support = ecx & (1 << 5); // AVX2 support (potentially wrong page for CPUID?)
 
 	// Hopefully done (praying I don't have to debug but some SSE stuff doesn't seem to work)
 
@@ -136,8 +130,8 @@ uint32_t detectCPUFrequency() {
 	uint64_t start, end, diff;
 	uint64_t ticks, old;
 
-	if (processor_data->frequency > 0)
-		return processor_data->frequency;
+	if (processor_data.frequency > 0)
+		return processor_data.frequency;
 
 	old = pitGetTickCount();
 
@@ -150,16 +144,16 @@ uint32_t detectCPUFrequency() {
 	asm volatile ("rdtsc" : "=A"(end));
 
 	diff = end > start ? end - start : start - end;
-	processor_data->frequency = (uint32_t) (diff / (uint64_t) 1000000);
+	processor_data.frequency = (uint32_t) (diff / (uint64_t) 1000000);
 
-	return processor_data->frequency;
+	return processor_data.frequency;
 }
 
 
 // getCPUFrequency() - Returns the CPU frequency and gets it if it is not present.
 uint32_t getCPUFrequency() {	
-	if (processor_data->frequency > 0)
-		return processor_data->frequency;
+	if (processor_data.frequency > 0)
+		return processor_data.frequency;
 
 	return detectCPUFrequency();
 }
@@ -168,9 +162,9 @@ uint32_t getCPUFrequency() {
 
 // getCPUVendorData() - Returns CPU vendor data
 char *getCPUVendorData() {
-	return processor_data->vendor;
+	return processor_data.vendor;
 }
 
 bool isCPULongModeCapable() {
-	return processor_data->long_mode_capable ? true : false;
+	return processor_data.long_mode_capable ? true : false;
 }

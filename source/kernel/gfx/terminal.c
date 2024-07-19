@@ -485,13 +485,9 @@ int printf(const char*  format, ...) {
                     // %s is for strings (or address of).
                     case 's': {
                         const char *c = va_arg(args, const char *); // Char promotes to integer, and we're trying to get the address of the string.
-                        char *str = {0}; // The array where the character will go.
+                        if (!print(c, strlen(c))) return -1; // Print error!
 
-                        strcpy(str, (const char *)c); // Copy c to str (dest is the first parameter)
-                        
-                        if (!print(str, strlen(str))) return -1; // Print error!
-
-                        charsWritten++; // Increment charsWritten
+                        charsWritten += strlen(c); // Increment charsWritten
                         i++; // Increment i.
                         break;
                     }
@@ -621,14 +617,10 @@ void printf_putchar(const char *format, void(*put_method)(char), va_list args) {
                     // %s is for strings (or address of).
                     case 's': {
                         const char *c = va_arg(args, const char *); // Char promotes to integer, and we're trying to get the address of the string.
-                        char *s = {0}; // The array where the character will go.
-
-                        strcpy(s, (const char *)c); // Copy c to str (dest is the first parameter)
-                        
-                        for (int i = 0; i < strlen(s); i++) {
-                            put_method(s[i]);
+                        for (int i = 0; i < strlen(c); i++) {
+                            put_method(c[i]);
                         }
-                        charsWritten++; // Increment charsWritten
+                        charsWritten += strlen(c); // Increment charsWritten
                         i++; // Increment i.
                         break;
                     }

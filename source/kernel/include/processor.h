@@ -34,7 +34,7 @@ typedef struct {
     int sse3_support; // SSE3 support 
     int ssse3_support; // SSSE3 Support (Supplemental Streaming SIMD Extensions)
     int sse4_support; // SSE4 support
-    sseData_t *sse5_Data; // SSE5 data
+    sseData_t sse5_Data; // SSE5 data
 } cpuInfo_t;
 
 
