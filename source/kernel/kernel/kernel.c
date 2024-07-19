@@ -347,6 +347,17 @@ int doPageFault(int argc, char *args[]) {
 }
 
 
+int serviceBIOS32(int argc, char *args[]) {
+    printf("Serving INT 0x15...\n");
+    REGISTERS_16 in, out = {0};
+
+    in.ax = 0xE820;
+    bios32_call(0x15, &in, &out);
+
+    printf("Interrupt serviced. Results:\n");
+    printf("AX = 0x%x BX = 0x%x CX = 0x%x DX = 0x%x\n", out.ax, out.bx, out.cx, out.dx);
+}
+
 
 
 int memoryInfo(int argc, char *args[]) {
@@ -450,6 +461,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     initPCI();
     serialPrintf("initPCI: PCI probe completed\n");
 
+    // Initialize the VFS
+    vfsInit();
+
     // Initialize the IDE controller.
     updateBottomText("Initializing IDE controller...");
     ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
@@ -492,6 +506,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("Initialized floppy drive successfully.\n");
 
 
+
     // Finally, all setup has been completed. We can ask the user if they want to enter the backup command line.
     // By ask, I mean check if they're holding c.
 
@@ -504,8 +519,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         bitmapFontInit();
     }
 
+    fatInit(); // BUG: FAT can only be initialized after VESA, apparently. Don't ask.
 
-    fatInit();
+
 
     if (didInitVesa) {
         // Initialize PSF

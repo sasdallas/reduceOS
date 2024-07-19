@@ -22,7 +22,7 @@ uint32_t kmalloc(uint32_t size){
 
     // Check if liballoc is enabled, and if so, use that instead.
     if (liballoc_enabled) {
-        liballoc_kmalloc(size);
+        return liballoc_kmalloc(size);
     } else {
         // I'm going mentally insane
         if ((placement_address && 0x00000FFF)) {

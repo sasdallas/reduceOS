@@ -9,6 +9,8 @@
 // Variables
 pagedirectory_t *currentDirectory = 0; // Current page directory 
 uint32_t currentPDBR = 0; // Current page directory base register address
+bool pagingEnabled = false;
+
 
 // vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr) - Look up an entry within the page table.
 pte_t *vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr) {
@@ -126,6 +128,8 @@ void vmm_enablePaging() {
     cr0 = cr0 | 0x80000000;
 
     asm volatile ("mov %0, %%cr0" :: "r"(cr0));
+
+    pagingEnabled = true;
 }
 
 
@@ -135,6 +139,8 @@ void vmm_disablePaging() {
     asm volatile ("mov %%cr0, %0" : "=r"(cr0));
     cr0 = cr0 & 0x7FFFFFFF;
     asm volatile ("mov %0, %%cr0" :: "r"(cr0));
+
+    pagingEnabled = false;
 }
 
 // vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) - Identity map a region

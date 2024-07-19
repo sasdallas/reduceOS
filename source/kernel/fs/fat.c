@@ -346,7 +346,7 @@ fsNode_t fatOpenInternal(char *filename) {
 /* VFS FUNCTIONS */
 
 uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf) {
-
+    
 }
 
 

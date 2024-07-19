@@ -75,7 +75,7 @@ static vbeModeInfo_t vbeGetModeInfo(uint16_t mode) {
 }
 
 // DEBUG FUNCTION!!
-static void vesaPrintModes() {
+void vesaPrintModes() {
     uint16_t *modes = (uint16_t*)vbeInfo.videoModePtr;
     uint16_t currentMode = *modes++;
 

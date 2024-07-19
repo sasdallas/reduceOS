@@ -82,6 +82,7 @@ void acpiParseRSDT(ACPIHeader *rsdt) {
     uint32_t *tablePtr = (uint32_t *)(rsdt + 1);
     uint32_t *endAddr = (uint32_t*)((uint8_t*)rsdt + rsdt->length);
     
+    
     serialPrintf("ACPI table signatures (RSDT):\n");
 
 
@@ -173,7 +174,11 @@ bool acpiParseRSDP(uint8_t *ptr) {
         serialPrintf("acpiParseRSDP: found ACPI version 1.0, parsing RSDT...\n");
         
         uint32_t addr = *(uint32_t*)(ptr + 16);
-        acpiParseRSDT((ACPIHeader*)(uint64_t)addr);
+        
+        
+        ACPIHeader *rsdt = (ACPIHeader*)(uint64_t)addr;
+        //vmm_allocateRegion(addr, addr, (uint32_t)(addr + (sizeof(char)*4)));
+        acpiParseRSDT(rsdt);
     } else if (header->revision == 2) {
         // (for debugging purposes)
         serialPrintf("acpiParseRSDP: found ACPI version 2.0, parsing XSDT...\n");
@@ -182,6 +187,9 @@ bool acpiParseRSDP(uint8_t *ptr) {
         uint32_t rsdtAddress = *(uint32_t*)(ptr + 16);
         uint64_t xsdtAddress = *(uint64_t*)(ptr + 24);
         
+        //vmm_allocateRegion(rsdtAddress, rsdtAddress, (uint32_t)(rsdtAddress + (sizeof(char) * 4)));
+        //vmm_allocateRegion(xsdtAddress, xsdtAddress, (uint32_t)(xsdtAddress + (sizeof(char) * 4)));
+
         if (xsdtAddress) {
             // Parse the XSDT.
             acpiParseXSDT((ACPIHeader*)(uint64_t)xsdtAddress);

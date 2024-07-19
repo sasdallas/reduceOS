@@ -87,13 +87,13 @@ fsNode_t *getRootFilesystem() {
 void vfsInit() {
     fs_tree = tree_create(); // Create the monuntpoint tree
 
-    vfsEntry_t *root = kmalloc(sizeof(vfsEntry_t));
-    root->name = "/";
-    root->file = NULL; // Nothing is mounted
-    root->fs_type = NULL;
-    root->device = NULL;
+    vfsEntry_t root;
+    root.name = "/";
+    root.file = NULL; // Nothing is mounted
+    root.fs_type = NULL;
+    root.device = NULL;
 
-    tree_set_root(fs_tree, root);
+    tree_set_root(fs_tree, &root);
 }
 
 

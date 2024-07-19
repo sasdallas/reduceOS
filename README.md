@@ -36,7 +36,8 @@ You can build reduceOS with a custom version of gcc or ld by passing these as pa
 
 
 # Known Bugs
-- **TBD:** Need to remove old paging code.
+- **Severe:** `liballoc` is super buggy, but so is the current memory implementation. In other words: memory bad.
+- FAT can only be initialized after VESA
 - **Severe:** System calls not working.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code (temporary fix: auto uses 1024*768)
 - Bitmaps can only be displayed at a max of 764 (you can load a 1024x768 image and it will work, but it will only display up to 764 lines).

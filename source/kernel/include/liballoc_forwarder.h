@@ -7,6 +7,7 @@
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/libc/string.h" // String functions
 #include "include/libc/assert.h"
+#include "include/vmm.h"
 
 // Macros
 #define ALIGN_PAGE(addr) (((uint32_t)addr & 0xFFFFF000) + 4096)
@@ -15,6 +16,7 @@
 
 // (variables)
 extern uint32_t end; // end is defined in the linker.ld script we added (thanks James Molloy!)
+extern bool pagingEnabled;
 
 // Functions
 
