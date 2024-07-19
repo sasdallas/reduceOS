@@ -436,6 +436,23 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     
     serialPrintf("kmain: CPU has long mode support: %i\n", isCPULongModeCapable());
 
+    // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
+    // Now that initial ramdisk has loaded, we can initialize memory management
+    updateBottomText("Initializing physical memory manager...");
+    pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
+
+    // Initialize the memory map
+    pmm_initializeMemoryMap(globalInfo);
+
+    // Deallocate the kernel's region.
+    uint32_t kernelStart = (uint32_t)&text_start;
+    uint32_t kernelEnd = (uint32_t)&bss_end;
+    pmm_deinitRegion(0x100000, (kernelEnd - kernelStart));
+
+    // Initialize VMM
+    vmmInit();
+    serialPrintf("Initialized memory management successfully.\n");
+
 
 
     bios32_init();
@@ -478,27 +495,12 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     uint32_t initrdEnd = *(uint32_t*)(globalInfo->m_modsAddr + 4);
     serialPrintf("GRUB did pass an initial ramdisk.\n");
     
-    fs_root = initrdInit(initrdLocation);    
+    // Bugged initrd driver.
+    //fs_root = initrdInit(initrdLocation);    
     printf("Initrd image initialized!\n");
     serialPrintf("initrdInit: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
-    // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
-    // Now that initial ramdisk has loaded, we can initialize memory management
-    updateBottomText("Initializing physical memory manager...");
-    pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
-
-    // Initialize the memory map
-    pmm_initializeMemoryMap(globalInfo);
-
-    // Deallocate the kernel's region.
-    uint32_t kernelStart = (uint32_t)&text_start;
-    uint32_t kernelEnd = (uint32_t)&bss_end;
-    pmm_deinitRegion(0x100000, (kernelEnd - kernelStart));
-
-    // Initialize VMM
-    vmmInit();
-    serialPrintf("Initialized memory management successfully.\n");
-
+    
 
     
 

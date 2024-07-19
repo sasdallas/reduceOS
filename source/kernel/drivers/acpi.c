@@ -177,7 +177,7 @@ bool acpiParseRSDP(uint8_t *ptr) {
         
         
         ACPIHeader *rsdt = (ACPIHeader*)(uint64_t)addr;
-        //vmm_allocateRegion(addr, addr, (uint32_t)(addr + (sizeof(char)*4)));
+        vmm_allocateRegion(addr, addr, (uint32_t)(addr + (sizeof(char)*4)));
         acpiParseRSDT(rsdt);
     } else if (header->revision == 2) {
         // (for debugging purposes)
@@ -187,8 +187,8 @@ bool acpiParseRSDP(uint8_t *ptr) {
         uint32_t rsdtAddress = *(uint32_t*)(ptr + 16);
         uint64_t xsdtAddress = *(uint64_t*)(ptr + 24);
         
-        //vmm_allocateRegion(rsdtAddress, rsdtAddress, (uint32_t)(rsdtAddress + (sizeof(char) * 4)));
-        //vmm_allocateRegion(xsdtAddress, xsdtAddress, (uint32_t)(xsdtAddress + (sizeof(char) * 4)));
+        vmm_allocateRegion(rsdtAddress, rsdtAddress, (uint32_t)(rsdtAddress + (sizeof(char) * 4)));
+        vmm_allocateRegion(xsdtAddress, xsdtAddress, (uint32_t)(xsdtAddress + (sizeof(char) * 4)));
 
         if (xsdtAddress) {
             // Parse the XSDT.

@@ -346,7 +346,7 @@ fsNode_t fatOpenInternal(char *filename) {
 /* VFS FUNCTIONS */
 
 uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf) {
-    
+
 }
 
 
@@ -443,7 +443,7 @@ void fatInit() {
             serialPrintf("Testing FAT, please wait...\n");
             fsNode_t ret = fatOpenInternal("/test.txt");
             serialPrintf("ret.flags = %i\n", ret.flags);
-            uint8_t *buffer = (uint8_t*)kmalloc(512);
+            uint8_t buffer[512];
             fatReadInternal(&ret, buffer, ret.length);
             for (int j = 0; j < ret.length; j++) serialPrintf("%c", buffer[j]);
             kfree(buffer);

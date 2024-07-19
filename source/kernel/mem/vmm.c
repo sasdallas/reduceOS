@@ -147,6 +147,7 @@ void vmm_disablePaging() {
 void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) {
     if (size < 1) return; // Size 0. I hate users.
 
+
     // Allocate a page table.
     pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
 
@@ -212,7 +213,7 @@ void vmmInit() {
     pte_t page = table->entries[PAGETBL_INDEX(0x00000000)];
     pte_delattrib(&page, PTE_WRITABLE);
     pte_delattrib(&page, PTE_PRESENT);
-    
+
 
 
     for (int i = 0, frame=0x400000, virt=0x00400000; i < 1024; i++, frame += 4096, virt += 4096) {
