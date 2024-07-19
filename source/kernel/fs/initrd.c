@@ -82,6 +82,10 @@ static fsNode_t *initrdFinddir(fsNode_t *node, char *name) {
 // initrdInit(uint32_t location) - Initializes the initrd image (located at location)
 fsNode_t *initrdInit(uint32_t location) {
     // First, iniitalize the main and file header pointers and populate the root directory.
+    
+    serialPrintf("Location: 0x%x\n", location);
+    
+
     initrdHeader = (initrd_imageHeader_t*)location;
     fileHeaders = (initrd_fileHeader_t*) (location + sizeof(initrd_imageHeader_t));
 
