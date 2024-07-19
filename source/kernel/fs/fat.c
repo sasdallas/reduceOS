@@ -343,6 +343,13 @@ fsNode_t fatOpenInternal(char *filename) {
     return file;
 }
 
+/* VFS FUNCTIONS */
+
+uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf) {
+
+}
+
+
 
 void fatInit() {
     // First, find all drives that COULD have a FAT FS on them.
@@ -418,42 +425,28 @@ void fatInit() {
             
             drive->firstFatSector = drive->bpb->reservedSectorCount;
 
-            int rootOffset = (drive->bpb->tableCount * drive->bpb->tableSize16) + 1;
-
-            serialPrintf("fatInit: Total sectors = %i\n", totalSectors);
-            serialPrintf("fatInit: Bytes per sector = %u\n", drive->bpb->bytesPerSector);
-            serialPrintf("fatInit: FAT size = %i\n", fatSize);
-            serialPrintf("fatInit: Root directory sectors = %i\n", rootDirSectors);
-            serialPrintf("fatInit: Data sectors = %i\n", dataSectors);
-            serialPrintf("fatInit: Total clusters = %i\n", totalClusters);
-            serialPrintf("fatInit: First data sector = %i\n", firstDataSector);
-            serialPrintf("fatInit: First FAT sector = %i\n", drive->bpb->reservedSectorCount);
-            serialPrintf("fatInit: Sectors per cluster = %i\n", drive->bpb->sectorsPerCluster);
+            int rootOffset = (drive->bpb->tableCount * drive->bpb->tableSize16) + 1;        
 
             // Identify the FAT type.
             if (totalSectors < 4085) {
-                serialPrintf("fatInit: FS type is FAT12\n");
                 drive->fatType = 1;
             } else if (totalSectors < 65525) {
-                serialPrintf("fatInit: FS type is FAT16\n");
                 drive->fatType = 2;
             } else if (rootDirSectors == 0) {
-                serialPrintf("fatInit: FS type is FAT32\n");
                 drive->fatType = 3;
             } else {
-                serialPrintf("fatInit: FS type is most likely exFAT\n");
                 drive->fatType = 0;
             }
 
-
-            serialPrintf("Reading in /dir/nested/nest.txt...\n");
-            fsNode_t file = fatOpenInternal("/dir/nested/nest.txt");
-            uint8_t buffer[512];
-            fatReadInternal(&file, buffer, file.length);
-            serialPrintf("Contents of file %s (size = 0x%x)\n", file.name, ((fat_fileEntry_t*)file.impl_struct)->size);
-            for (int j = 0; j < file.length; j++) serialPrintf("%c", buffer[j]);
+            serialPrintf("fatInit: FAT initialized on drive %i\n", drive->driveNum);
             
-
+            serialPrintf("Testing FAT, please wait...\n");
+            fsNode_t ret = fatOpenInternal("/test.txt");
+            serialPrintf("ret.flags = %i\n", ret.flags);
+            uint8_t *buffer = (uint8_t*)kmalloc(512);
+            fatReadInternal(&ret, buffer, ret.length);
+            for (int j = 0; j < ret.length; j++) serialPrintf("%c", buffer[j]);
+            kfree(buffer);
             
         }
     }  

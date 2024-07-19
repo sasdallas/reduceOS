@@ -6,6 +6,16 @@
 #include "include/vfs.h" // Main header file
 
 fsNode_t *fs_root = 0; // Root of the filesystem
+tree_t *fs_tree = NULL; // Mountpoint tree
+
+
+/*
+    In reduceOS, we follow a UNIX like structure with one device being the root device and having a filesystem tree.
+    We structure the root directory like UNIX, where it is /
+    Other devices are mounted in /device/
+    For things like hard drives, they are mounted in hd01, where 0 is the drive number and 1 is the partition.
+    At least, that's the plan ;)
+*/
 
 // Functions:
 
@@ -71,4 +81,101 @@ void mountRootFilesystem(fsNode_t *node) {
 // getRootFilesystem() - Returns root filesystem
 fsNode_t *getRootFilesystem() {
     return fs_root;
+}
+
+// vfsInit() - Initializes the VFS
+void vfsInit() {
+    fs_tree = tree_create(); // Create the monuntpoint tree
+
+    vfsEntry_t *root = kmalloc(sizeof(vfsEntry_t));
+    root->name = "/";
+    root->file = NULL; // Nothing is mounted
+    root->fs_type = NULL;
+    root->device = NULL;
+
+    tree_set_root(fs_tree, root);
+}
+
+
+
+// vfsMount(char *path, fsNode_t *localRoot) - Mount a filesystem to the specified path (ToaruOS has a really good impl. of this)
+void *vfsMount(char *path, fsNode_t *localRoot) {
+    if (!fs_tree) {
+        serialPrintf("vfsMount: Attempt to mount filesystem when tree is non-existant\n");
+        return NULL;
+    } 
+    if (!path || path[0] != '/') {
+        serialPrintf("vfsMount: We don't know current working directory - cannot mount to %s\n", path);
+        return NULL;
+    }
+
+    tree_node_t *ret_val = NULL;
+
+
+    // Slice up the path
+    char *p;
+    memcpy(p, path, strlen(path)); // Memory safety!
+
+    char *i = p;
+
+    while (i < p + strlen(path)) {
+        if (*i == '/') *i = '\0';
+        i++;
+    }
+
+    p[strlen(path)] = '\0';
+    i = p + 1;
+
+    // Setup the root node
+    tree_node_t *rootNode = fs_tree->root;
+
+    if (*i == '\0') {
+        // We are setting the root node! Should be easy, I think.
+        vfsEntry_t *root = (vfsEntry_t*)rootNode->value;
+        if (root->file) serialPrintf("vfsMount: Path %s is already mounted - please do the correct thing and UNMOUNT.\n", path);
+        root->file = localRoot;
+        fs_root = localRoot;
+        ret_val = rootNode;
+    } else {
+        tree_node_t *node = rootNode;
+        char *at = i;
+        while (true) {
+            if (at >= p + strlen(path)) break;
+            int found = 0;
+            serialPrintf("vfsMount: Searching for %s...\n", at);
+
+            foreach(child, node->children) {
+                tree_node_t *tchild = (tree_node_t *)child->value;
+                vfsEntry_t *entry = (vfsEntry_t*)tchild->value;
+                if (!strcmp(entry->name, at)) {
+                    found = 1;
+                    node = tchild;
+                    ret_val = node;
+                    break;
+                }
+            }
+
+            if (!found) {
+                serialPrintf("vfsMount: Could not find %s - creating it.\n", at);
+                vfsEntry_t *entry = kmalloc(sizeof(vfsEntry_t));
+                memcpy(entry->name, at, strlen(at));
+                entry->file = NULL;
+                entry->device = NULL;
+                entry->fs_type = NULL;
+                node = tree_node_insert_child(fs_tree, node, entry);
+            }
+            at = at + strlen(at) + 1;
+        }
+
+        vfsEntry_t *entry = (vfsEntry_t*)node->value;
+        if (entry->file) {
+            serialPrintf("vfsMount: Path %s is already mounted - please do the correct thing and UNMOUNT.\n", path);
+        }
+
+        entry->file = localRoot;
+        ret_val = node;
+    }
+
+    kfree(p);
+    return ret_val;
 }

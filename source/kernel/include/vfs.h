@@ -9,7 +9,7 @@
 
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
-
+#include "include/libc/tree.h" // Mountpoint tree
 
 // Definitions
 #define VFS_FILE 0x01
@@ -69,6 +69,16 @@ struct dirent {
     char name[128];     // Filename
     uint32_t ino;       // (required by POSIX) Inode number.
 };
+
+// Entry for the filesystem tree
+typedef struct vfsEntry {
+    char *name;
+    fsNode_t *file; 
+    char *device;
+    char *fs_type;
+} vfsEntry_t;
+
+
 
 extern fsNode_t *fs_root; // Filesystem root
 

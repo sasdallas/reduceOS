@@ -80,15 +80,14 @@ int strlen(char *str) {
 // itoa() - converts an integer to a string
 // Three parameters - Integer, string buffer, integer base (1-16)
 void itoa(int num, char *buffer, int base) {
-    char bchars[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}; // int -> char conversion thingy
+    static char bchars[] = {"FEDCBA9876543210123456789ABCDEF"};
     char tbuf[32]; // Temporary buffer
     int pos = 0;
     int opos = 0;
     int top = 0;
 
-    if (num < 0) { // We need to do a little extra work if the value is negative.
+    if (num < 0 && base == 10) { // We need to do a little extra work if the value is negative.
         *buffer++ = '-';
-        num *= -1;
     }
 
     if (num == 0 || base > 16) { // Don't even bother if the base is greater than 16 or the number is 0.
@@ -99,7 +98,7 @@ void itoa(int num, char *buffer, int base) {
 
     // First, get the character
     while (num != 0) {
-        tbuf[pos] = bchars[num % base];
+        tbuf[pos] = bchars[15 + num % base];
         pos++;
         num /= base;
     }
