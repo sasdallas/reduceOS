@@ -131,6 +131,7 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
 
     if (*i == '\0') {
         // We are setting the root node! Should be easy, I think.
+        serialPrintf("vfsMount: Mounting to /\n");
         vfsEntry_t *root = (vfsEntry_t*)rootNode->value;
         if (root->file) serialPrintf("vfsMount: Path %s is already mounted - please do the correct thing and UNMOUNT.\n", path);
         root->file = localRoot;

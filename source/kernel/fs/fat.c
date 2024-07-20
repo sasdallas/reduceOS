@@ -154,6 +154,7 @@ fsNode_t fatParseRootDirectory(char *path) {
 
 
 // fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) - Reads a file in the FAT
+// NOTE: DO NOT CALL DIRECTLY. length MUST BE <= 512. CALL fatRead AND IT WILL SOLVE ALL YOUR PROBLEMS!
 int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
     if (file) {
         // Calculate and read in the starting physical sector
@@ -166,7 +167,7 @@ int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
 
 
         // Copy the sector buffer to the output buffer
-        memcpy(buffer, sector_buffer, 512);
+        memcpy(buffer, sector_buffer, length);
 
         // Locate the File Allocation Table sector
         uint32_t fatOffset = cluster + (cluster / 2);
@@ -175,13 +176,18 @@ int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
 
         // Read the FATs
         ideReadSectors(drive->driveNum, 1, fatSector, (uint8_t*)FAT);
-        ideReadSectors(drive->driveNum, 1, fatSector + 512, (uint8_t*)FAT + 512);
+        ideReadSectors(drive->driveNum, 1, fatSector + 1, (uint8_t*)FAT + 512);
+
+         
 
         // Read entry for the next cluster
         uint16_t nextCluster = *(uint16_t*)&FAT[entryOffset];
 
         // Convert the cluster
         nextCluster = (cluster & 1) ? nextCluster >> 4 : nextCluster & 0xFFF;
+
+        serialPrintf("The current cluster is 0x%x, the next cluster is 0x%x after modification.\n", cluster, nextCluster);
+        
 
         // Test for EOF
         if (nextCluster >= 0xFF8) {
@@ -329,6 +335,7 @@ fsNode_t fatOpenInternal(char *filename) {
 
         // Found file?
         if (directory.flags == VFS_FILE) {
+            serialPrintf("directory.impl = 0x%x\n", directory.impl);
             return directory;
         }
 
@@ -346,7 +353,42 @@ fsNode_t fatOpenInternal(char *filename) {
 /* VFS FUNCTIONS */
 
 uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf) {
+    // First, check if size is greater than 512.
+    if (size > 512) {
+        // Unlucky. We have to read more than 512 bytes.
+        int length = size; // First, move size to this variable. That way we can modify it.
+        int offset = 0; // THIS IS NOT FILE READING OFFSET. This is buffer offset.
 
+        while (length > 512) {
+            // All we have to do is keep reading until EOF or length <= 512.
+            if (fatReadInternal(node, buf + offset, 512)) {
+                // We read it in okay. node->impl should contain the next cluster number.
+                offset += 512;
+                length -= 512;
+                serialPrintf("fatRead: Read completed. Offset is now %i, length is now %i\n", offset, length);
+            } else {
+                // Reset impl. and return EOF.
+                serialPrintf("fatRead: Resetting node->impl from 0x%x to 0x%x\n", ((fsNode_t*)node)->impl, ((fat_fileEntry_t*)((fsNode_t*)node)->impl_struct)->firstClusterNumberLow);
+                ((fsNode_t*)node)->impl = ((fat_fileEntry_t*)((fsNode_t*)node)->impl_struct)->firstClusterNumberLow;
+                return EOF; // End of file.
+            }
+        }
+
+        // Finish off the read.
+        fatReadInternal(node, buf + offset, length);
+        serialPrintf("fatRead: Resetting node->impl from 0x%x to 0x%x\n", ((fsNode_t*)node)->impl, ((fat_fileEntry_t*)((fsNode_t*)node)->impl_struct)->firstClusterNumberLow);
+        ((fsNode_t*)node)->impl = ((fat_fileEntry_t*)((fsNode_t*)node)->impl_struct)->firstClusterNumberLow;
+        return EOF;
+    } else {
+        // We got lucky and can just call fatReadInternal, reset impl and return.
+        fatReadInternal(node, buf, size);
+        serialPrintf("fatRead: Resetting node->impl from 0x%x to 0x%x\n", ((fsNode_t*)node)->impl, ((fat_fileEntry_t*)((fsNode_t*)node)->impl_struct)->firstClusterNumberLow);
+        ((fsNode_t*)node)->impl = ((fat_fileEntry_t*)((fsNode_t*)node)->impl_struct)->firstClusterNumberLow;
+    }
+}
+
+uint32_t fatWrite(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf) {
+    return 0;
 }
 
 
@@ -441,12 +483,13 @@ void fatInit() {
             serialPrintf("fatInit: FAT initialized on drive %i\n", drive->driveNum);
             
             serialPrintf("Testing FAT, please wait...\n");
-            fsNode_t ret = fatOpenInternal("/test.txt");
+            fsNode_t ret = fatOpenInternal("/long.txt");
             serialPrintf("ret.flags = %i\n", ret.flags);
-            uint8_t buffer[512];
-            fatReadInternal(&ret, buffer, ret.length);
-            for (int j = 0; j < ret.length; j++) serialPrintf("%c", buffer[j]);
-            kfree(buffer);
+
+            fat_fileEntry_t *entry = (fat_fileEntry_t*)(ret.impl_struct);
+            serialPrintf("attributes: 0x%x\ncreationTime_tenths: 0x%x\ncreationTime: 0x%x\xcreationDate: 0x%x\nlastAccessDate: 0x%x\nfirstClusterNumber: 0x%x\nlastModificationTime: 0x%x\nlastModificatinoDate: 0x%x\nfirstClusterNumberLow: 0x%x\nsize: 0x%x\n", entry->attributes, entry->creationTime_tenths, entry->creationTime, entry->creationDate, entry->lastAccessDate, entry->firstClusterNumber, entry->lastModificationTime, entry->lastModificationDate, entry->firstClusterNumberLow, entry->size);
+
+            
             
         }
     }  

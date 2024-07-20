@@ -445,9 +445,40 @@ int test(int argc, char *args[]) {
         printf("\tAX = 0x%x BX = 0x%x CX = 0x%x DX = 0x%x\n", out.ax, out.bx, out.cx, out.dx);
 
         printf("=== TESTS COMPLETED ===\n");
+    } else if (!strcmp(args[1], "floppy")) {
+        printf("=== TESTING FLOPPY ===\n");
+
+        
+        uint32_t sector = 0;
+        uint8_t *buffer = 0;
+
+        printf("\tReading sector %i...\n", sector);
+
+        int ret = floppy_readSector(sector, &buffer);
+    
+        if (ret != FLOPPY_OK) {
+            printf("Could not read sector. Error code %i\n", ret);
+            printf("=== TESTS FAILED ===\n");
+            return -1;
+        }
+
+        printf("\tContents of sector %i:\n", sector);
+
+        if (buffer != 0) {
+            int i = 0;
+            for (int c = 0; c < 4; c++) {
+                for (int j = 0; j < 128; j++) printf("0x%x ", buffer[i + j]);
+                i += 128;
+
+                printf("Press any key to continue.\n");
+                keyboardGetChar();
+            }
+        }
+
+        printf("=== TESTS COMPLETED ===\n");
     } else {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy\n");
     }
 
     return 0;
