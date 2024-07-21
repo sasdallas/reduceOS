@@ -365,124 +365,6 @@ int memoryInfo(int argc, char *args[]) {
     return 0;
 }
 
-// This function is hopefully going to serve as a function to test multiple modules of the OS.
-int test(int argc, char *args[]) {
-    if (argc != 2) { printf("Usage: test <module>\n"); return -1; }
-
-    if (!strcmp(args[1], "pmm")) {
-        printf("=== TESTING PHYSICAL MEMORY MANAGEMENT ===\n");
-        void *a = pmm_allocateBlock();
-        printf("\tAllocated 1 block to a to 0x%x\n", a);
-        
-        void *b = pmm_allocateBlocks(2);
-        printf("\tAllocated 2 blocks to b at 0x%x\n", b);
-
-        void *c = pmm_allocateBlock();
-        printf("\tAllocated 1 block to c to 0x%x\n", c);
-
-        pmm_freeBlock(a);
-        pmm_freeBlock(c);
-
-        c = pmm_allocateBlock();
-        a = pmm_allocateBlock();
-
-        printf("\tFreed a and c\n");
-        printf("\tReallocated c to 0x%x\n", c);
-        printf("\tReallocated a to 0x%x\n", a);
-
-        pmm_freeBlocks(b, 2);
-        printf("\tFreed 2 blocks of b\n");
-        
-        void *d = pmm_allocateBlock();
-        printf("\tAllocated d to 0x%x\n", d);
-
-        pmm_freeBlock(a);
-        pmm_freeBlock(c);
-        pmm_freeBlock(d);
-
-        printf("=== TESTS COMPLETED ===\n");
-    } else if (!strcmp(args[1], "liballoc")) {
-        printf("=== TESTING LIBALLOC ===\n");
-        void *a = kmalloc(8);
-        printf("\tAllocated 8 bytes to a to 0x%x\n", a);
-        
-        void *b = kmalloc(16);
-        printf("\tAllocated 16 bytes to b at 0x%x\n", b);
-
-        void *c = kmalloc(8);
-        printf("\tAllocated 8 bytes to c to 0x%x\n", c);
-
-        kfree(a);
-        kfree(c);
-
-        c = kmalloc(8);
-        a = kmalloc(8);
-
-        printf("\tFreed a and c\n");
-        printf("\tReallocated c to 0x%x\n", c);
-        printf("\tReallocated a to 0x%x\n", a);
-
-        kfree(b);
-        printf("\tFreed 16 bytes of b\n");
-        
-        void *d = kmalloc(8);
-        printf("\tAllocated 8 bytes to d to 0x%x\n", d);
-
-        kfree(a);
-        kfree(c);
-        kfree(d);
-        printf("=== TESTS COMPLETED ===\n");
-    } else if (!strcmp(args[1], "bios32")) {
-        printf("=== TESTING BIOS32 ===\n");
-
-        printf("\tServing INT 0x15...\n");
-        REGISTERS_16 in, out = {0};
-
-        in.ax = 0xE820;
-        bios32_call(0x15, &in, &out);
-
-        printf("\tInterrupt serviced. Results:\n");
-        printf("\tAX = 0x%x BX = 0x%x CX = 0x%x DX = 0x%x\n", out.ax, out.bx, out.cx, out.dx);
-
-        printf("=== TESTS COMPLETED ===\n");
-    } else if (!strcmp(args[1], "floppy")) {
-        printf("=== TESTING FLOPPY ===\n");
-
-        
-        uint32_t sector = 0;
-        uint8_t *buffer = 0;
-
-        printf("\tReading sector %i...\n", sector);
-
-        int ret = floppy_readSector(sector, &buffer);
-    
-        if (ret != FLOPPY_OK) {
-            printf("Could not read sector. Error code %i\n", ret);
-            printf("=== TESTS FAILED ===\n");
-            return -1;
-        }
-
-        printf("\tContents of sector %i:\n", sector);
-
-        if (buffer != 0) {
-            int i = 0;
-            for (int c = 0; c < 4; c++) {
-                for (int j = 0; j < 128; j++) printf("0x%x ", buffer[i + j]);
-                i += 128;
-
-                printf("Press any key to continue.\n");
-                keyboardGetChar();
-            }
-        }
-
-        printf("=== TESTS COMPLETED ===\n");
-    } else {
-        printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy\n");
-    }
-
-    return 0;
-}
 
 void usermodeMain() {
 
@@ -640,10 +522,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         bitmapFontInit();
     }
 
-    fatInit(); // BUG: FAT can only be initialized after VESA, apparently. Don't ask.
-
-
-
+    
     if (didInitVesa) {
         // Initialize PSF
         psfInit();
@@ -655,6 +534,12 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // DEFINITELY sketchy! What's going on with this system? Why can't
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
+
+    
+    fatInit(); // BUG: FAT can only be initialized after VESA, apparently. Don't ask.
+    
+    ext2_init();
+
 
 
     uint8_t seconds, minutes, hours, days, months;

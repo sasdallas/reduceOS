@@ -38,5 +38,6 @@
 #include "include/bitmap.h" // Bitmap image controls
 #include "include/CONFIG.h" // reduceOS configuration
 #include "include/floppy.h" // FDC driver
+#include "include/test.h" // Test command
 
 #endif

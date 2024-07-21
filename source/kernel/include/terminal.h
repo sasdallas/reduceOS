@@ -15,6 +15,7 @@
 #include "include/serial.h" // Serial logging
 #include "include/vesa.h" // VESA VBE
 
+
 // Variable declarations
 
 static size_t terminalX; // X position of terminal buffer, or column

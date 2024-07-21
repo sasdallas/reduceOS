@@ -1,21 +1,16 @@
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 1010-DEBUG, compiled on 07/15/24, 10:21:18
+	Build 1146-DEBUG, compiled on 07/21/24, 08:56:15
 ============================================================================================================================
 
-Kernel location: 0x100000 - 0x8087B4
-Text section: 0x100000 - 0x10F000; Data section: 0x138000 - 0x7FD196; BSS section: 0x7FE000 - 0x8087B4
+Kernel location: 0x100000 - 0x81D874
+Text section: 0x100000 - 0x113000; Data section: 0x14D000 - 0x812656; BSS section: 0x813000 - 0x81D874
 Loader magic: 0x43D8C305
 
 Serial logging initialized!
 GDT, IDT, and ISR have initialized successfully.
 Interrupts successfully enabled.
-EDX: 0
-EAX: 1587
-EDX: -1343489025
-ECX: 0x8
-EBX: 0x10800
 ======== CPU Data Collection Summary ========
 - CPU VENDOR ID: AuthenticAMD
 - Long Mode (x64) support: 0
@@ -36,38 +31,15 @@
 == End SSE Data Collection Summary ==
 ======== End CPU Data Collection Summary ========
 CPU initialization completed
-bios32 initialized successfully!
+kmain: CPU has long mode support: 0
 pmm_initRegion: Region at 0x0 (size 0x9F000) initialized. Blocks used: 0. Free blocks: 159
 pmm_initRegion: Region at 0x100000 (size 0x1EF0000) initialized. Blocks used: 0. Free blocks: 8079
+pmm_deinitRegion: Region at 0x100000 (size 0x71D874) deinitialized. Blocks used: 1503. Free blocks: 6258
 vmmInit: Successfully initialized paging.
 Initialized memory management successfully.
-pmm_deinitRegion: Region at 0x100000 (size 0x7087B4) deinitialized. Blocks used: 1492. Free blocks: 6269
-liballoc: initialization of liballoc 1.1
-NEED TO ALLOCATE 0x10 PAGES
-vmm_mapPage: Mapping 0x40000 - 0x40000
-vmm_mapPage: Mapping 0x41000 - 0x41000
-vmm_mapPage: Mapping 0x42000 - 0x42000
-vmm_mapPage: Mapping 0x43000 - 0x43000
-vmm_mapPage: Mapping 0x44000 - 0x44000
-vmm_mapPage: Mapping 0x45000 - 0x45000
-vmm_mapPage: Mapping 0x46000 - 0x46000
-vmm_mapPage: Mapping 0x47000 - 0x47000
-vmm_mapPage: Mapping 0x48000 - 0x48000
-vmm_mapPage: Mapping 0x49000 - 0x49000
-vmm_mapPage: Mapping 0x4A000 - 0x4A000
-vmm_mapPage: Mapping 0x4B000 - 0x4B000
-vmm_mapPage: Mapping 0x4C000 - 0x4C000
-vmm_mapPage: Mapping 0x4D000 - 0x4D000
-vmm_mapPage: Mapping 0x4E000 - 0x4E000
-vmm_mapPage: Mapping 0x4F000 - 0x4F000
-Allocated successfully.
-liballoc: Resource allocated 40000 of 16 pages (65536 bytes) for 40 size.
-liballoc: Total memory usage = 64 KB
-liballoc: set up first memory major 40000
-liballoc: 10D7CC PREFIX(malloc)( 40 ): CASE 2: returning 40040
+bios32 initialized successfully!
 Keyboard handler initialized.
 PIT started at 1000hz
-liballoc: 10C118 PREFIX(malloc)( 928 ): CASE 4.1: returning 40080
 pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x1237)
 pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x7000)
 pciProbeForDevices: Found PCI device (function = 0x1, vendor ID = 0x8086, device ID = 0x7010)
@@ -79,40 +51,77 @@
 	Capacity: 0 GB 2 MB 0 KB
 Found ATAPI drive - Generic 1234                            
 	Capacity: 0 GB 0 MB 0 KB
-GRUB did pass an initial ramdisk.
-liballoc: 10EACA PREFIX(malloc)( 228 ): CASE 4.1: returning 40440
-liballoc: 10EBD2 PREFIX(malloc)( 228 ): CASE 4.1: returning 40540
-liballoc: 10ECE3 PREFIX(malloc)( 424 ): CASE 4.1: returning 40630
-initrdInit: Initial ramdisk loaded - location is 0x80E000 and end address is 0x80F32F
-liballoc: 10D285 PREFIX(malloc)( 4128 ): CASE 4.1: returning 407F0
+acpiInit: Found RSDP signature at 0xFA330
+acpiParseRSDP: (dbg) OEM is BOCHS 
+acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
+ACPI table signatures (RSDT):
+acpiInit: Successfully enabled ACPI.
+GRUB did pass an initial ramdisk at 0x100B0.
+initrdInit: Initial ramdisk loaded - location is 0x824000 and end address is 0x82532F
 Initialized floppy drive successfully.
-ok time for vesa
+WARNING: Enabling liballoc! Stand away from the flames!
 Searching for drive...
 fatInit: Trying drive 0...
-liballoc: 10E44F PREFIX(malloc)( 84 ): CASE 4.1: returning 41830
+liballoc: initialization of liballoc 1.1
+liballoc: Resource allocated 40000 of 16 pages (65536 bytes) for 84 size.
+liballoc: Total memory usage = 64 KB
+liballoc: set up first memory major 40000
+liballoc: 107C61 PREFIX(malloc)( 84 ): CASE 2: returning 40040
 fatInit: Starting sequence is EB 3C 90
 fatInit: bootjmp identified
 fatInit: OEM is mkfs.fat
-fatInit: Total sectors = 2048
-fatInit: Bytes per sector = 512
-fatInit: FAT size = 2
-fatInit: Root directory sectors = 32
-fatInit: Data sectors = 2011
-fatInit: Total clusters = 502
-fatInit: First data sector = 37
-fatInit: First FAT sector = 1
-fatInit: Sectors per cluster = 4
-fatInit: FS type is FAT12
-Reading in /dir/nested/nest.txt...
-liballoc: 10DBCA PREFIX(malloc)( 544 ): CASE 4.1: returning 418A0
-liballoc: 10DCD7 PREFIX(malloc)( 64 ): CASE 4.1: returning 41AD0
-liballoc: 10E020 PREFIX(malloc)( 64 ): CASE 4.1: returning 41B30
-liballoc: 10E020 PREFIX(malloc)( 64 ): CASE 4.1: returning 41B80
-Contents of file nest.txt (size = 0xC)
-NESTED??!!!
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/21/2036 16:34:57
+fatInit: FAT initialized on drive 0
+Testing FAT, please wait...
+liballoc: 107C61 PREFIX(malloc)( 544 ): CASE 4.1: returning 400B0
+liballoc: 107C61 PREFIX(malloc)( 64 ): CASE 4.1: returning 402F0
+ret.flags = 1
+liballoc: 107C61 PREFIX(malloc)( 1197 ): CASE 4.1: returning 40340
+The current cluster is 0xD, the next cluster is 0xFFF after modification.
+File read successfully. Contents of file:
+Hi! This is a file designed to break the fatReadInternal function, as it's borked and is only reading 512 bytes.
+Therefore, this file will be more than 512 bytes.
+
+1234567890qwertyuiopaSDFGHJKLzxcvbnm!!!!
+mnbvcxzlkjhgfdsapoiuytrewq=-0987654321~~~
+MORETHAN512MORETHAN512MORETHAN512MORETHAN512MORETHAN512
+
+
+UPD:
+WHYHASITNOTCRASHEDYETWHYHASITNOTCRASHEDYET
+HOW IS MY CODE SO BAD AND YET SO GOOD? THIS FILE IS TOTALLY MORE THAN 512!
+I hate my VFS.
+
+In reduceOS, we follow a UNIX like structure with one device being the root device and having a filesystem tree.
+    We structure the root directory like UNIX, where it is /
+    Other devices are mounted in /device/
+    For things like hard drives, they are mounted in hd01, where 0 is the drive number and 1 is the partition.
+    At least, that's the plan ;)
+
+In reduceOS, we follow a UNIX like structure with one device being the root device and having a filesystem tree.
+    We structure the root directory like UNIX, where it is /
+    Other devices are mounted in /device/
+    For things like hard drives, they are mounted in hd01, where 0 is the drive number and 1 is the partition.
+    At least, that's the plan ;)
+
+=== END ===
+liballoc: 107D22 PREFIX(free)( 4032C ): OK
+ext2_init: Searching for drive...
+liballoc: 107C61 PREFIX(malloc)( 228 ): CASE 4.1: returning 40340
+ext2_readSuperblock: Reading superblock on drive 0...
+liballoc: 107C61 PREFIX(malloc)( 1056 ): CASE 4.1: returning 40440
+liballoc: 107D22 PREFIX(free)( 40428 ): OK
+liballoc: 107D22 PREFIX(free)( 4032C ): OK
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/33/2036 9:7:82
 All commands registered successfully.
 Warning: User is an unstable environment.
-liballoc: 109258 PREFIX(malloc)( 36 ): CASE 4.1: returning 400A0
-liballoc: 10936B PREFIX(malloc)( 37 ): CASE 4.1: returning 400E0
+liballoc: 107C61 PREFIX(malloc)( 40 ): CASE 4.1: returning 40340
+liballoc: 107C61 PREFIX(malloc)( 37 ): CASE 4.1: returning 40380
+liballoc: 107C61 PREFIX(malloc)( 36 ): CASE 4.1: returning 403C0
+liballoc: 107C61 PREFIX(malloc)( 228 ): CASE 4.1: returning 40400
+liballoc: 107C61 PREFIX(malloc)( 544 ): CASE 4.1: returning 40500
+liballoc: 107C61 PREFIX(malloc)( 544 ): CASE 4.1: returning 40730
+===========================================================
+panic() called! FATAL ERROR!
+*** Page fault at address 0x1
+*** Flags: present 
 

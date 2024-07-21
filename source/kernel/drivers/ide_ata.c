@@ -159,11 +159,11 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
     ataRoot.flags = VFS_DIRECTORY;
     ataRoot.open = 0; // No lol
     ataRoot.close = 0;
-    ataRoot.read = &ideReadSectors;
-    ataRoot.write = &ideWriteSectors;
+    ataRoot.read = &ideRead_vfs;
+    ataRoot.write = &ideWrite_vfs;
     ataRoot.readdir = 0;
     ataRoot.finddir = 0;
-    ataRoot.impl = 0;
+    ataRoot.impl = 0; // THIS WILL BE DRIVENUM
     ataRoot.ptr = 0;
     
     mountRootFilesystem(&ataRoot);
@@ -174,6 +174,53 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
     
 
 }
+
+
+// ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) - Read function for the VFS
+uint32_t ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) {
+    // Create a temporary buffer that rounds up size to the nearest 512 multiple.
+    uint8_t temporary_buffer[((size + 512) - ((size + 512) % 512))]; 
+
+    // Calculate the LBA, based off of offset rounded down
+    int lba = (off - (off % 512)) / 512;
+
+    // Read in the sectors
+    int ret = ideReadSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, temporary_buffer);
+    if (ret != IDE_OK) return ret;
+
+    // We've now read in about one sector greater than our size, for offset purposes
+    // We can now copy the contents to our buffer.
+    int offset = off - (lba * 512); // This is the offset we need to memcpy() our buffer to
+
+    memcpy(buffer, temporary_buffer + offset, size);
+
+    return IDE_OK;
+}
+
+// ideWrite_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) - Write function for the VFS
+uint32_t ideWrite_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) {
+    // First, create a padded buffer that rounds up size to the nearest 512 multiple.
+    // This buffer will serve as the actual things to write to the sector.
+    // We're first going to read in the sector at LBA, then replace the contents at offset to be the input buffer.
+    uint8_t padded_buffer[((size + 512) - ((size + 512) % 512))]; 
+
+    // Calculate the LBA, based off of offset rounded down
+    int lba = (off - (off % 512)) / 512;
+
+    // Read in the sector for our offset
+    int ret = ideReadSectors(((fsNode_t*)node)->impl, 1, lba, (uint32_t*)padded_buffer);
+    if (ret != IDE_OK) return ret;
+ 
+    // Copy the contents of buffer to padded_buffer with an offset
+    memcpy(padded_buffer + (off-(lba*512)), buffer, size);
+
+    // Write the sectors
+    ret = ideWriteSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, padded_buffer);
+    if (ret != IDE_OK) return ret;
+
+    return IDE_OK;
+}
+
 
 // printIDESummary() - Print a basic summary of all available IDE drives.
 void printIDESummary() {
@@ -554,31 +601,33 @@ uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t ed
 uint8_t package[8]; // package[0] contains err code
 
 // ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) - Read from an ATA/ATAPI drive.
-void ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) {
+int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) {
     // Check if the drive is present.
     if (drive > 3 | ideDevices[drive].reserved == 0) {
         package[0] = 0x1;
         serialPrintf("ideReadSectors: drive not found - cannot continue.\n");
-        return;
+        return IDE_DRIVE_NOT_FOUND;
     }
     
     // Check if the inputs are valid.
     else if (((lba + sectorNum) > ideDevices[drive].size) && (ideDevices[drive].type == IDE_ATA)) { 
         package[0] = 0x2; // Seeking to invalid position.
         serialPrintf("ideReadSectors: LBA address invalid - greater than available sectors.\n");
-        return;
+        return IDE_LBA_INVALID;
     }
     // Read in PIO mode through polling and IRQs.
     else {
         uint8_t error;
         if (ideDevices[drive].type == IDE_ATA) {
             error = ideAccessATA(ATA_READ, drive, lba, sectorNum, edi);
-            
+            return error;
         } else if (ideDevices[drive].type == IDE_ATAPI) {
             for (int i = 0; i < sectorNum; i++) {
                 error = ideReadATAPI(drive, lba + i, 1, edi + (i*2048));
             }
             package[0] = idePrintErrors(drive, error);
+            
+            return package[0];
         }
     }
 }
@@ -586,20 +635,20 @@ void ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi
 
 
 // ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) - Write to an ATA drive.
-void ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) {
+int ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) {
     // Like the above funtion, we follow similar steps.
     // Check if the drive is present.
     if (drive > 3 | ideDevices[drive].reserved == 0) {
         package[0] = 0x1;
         serialPrintf("ideWriteSectors: drive not found - cannot continue.\n");
-        return;
+        return IDE_DRIVE_NOT_FOUND;
     }
 
     // Check if the inputs are valid.
     else if (((lba + sectorNum) > ideDevices[drive].size) && (ideDevices[drive].type == IDE_ATA)) { 
         package[0] = 0x2; // Seeking to invalid position.
         serialPrintf("ideWriteSectors: LBA address invalid - greater than available sectors.\n");
-        return;
+        return IDE_LBA_INVALID;
     }
     // Now, write in PIO mode through polling and IRQs
     else {
@@ -608,6 +657,8 @@ void ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t ed
             error = ideAccessATA(ATA_WRITE, drive, lba, sectorNum, edi);
         } else if (ideDevices[drive].type == IDE_ATAPI) error = 4; // Drive is write protected.
         package[0] = idePrintErrors(drive, error);
+
+        return package[0];
     }
 }
 

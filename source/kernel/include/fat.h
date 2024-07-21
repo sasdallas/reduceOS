@@ -101,4 +101,9 @@ typedef struct {
 } __attribute__((packed)) fat_lfnEntry_t;
 
 
-// Definitions
+// Functions
+
+void fatInit();
+uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf);
+fsNode_t fatOpenInternal(char *filename);
+int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length);

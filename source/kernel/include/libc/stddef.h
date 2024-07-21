@@ -4,6 +4,7 @@
 
 // Definitions
 #define null 0
+#define NULL 0
 
 // Typedef declarations
 typedef unsigned size_t;

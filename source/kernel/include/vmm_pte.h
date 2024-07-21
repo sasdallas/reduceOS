@@ -3,9 +3,17 @@
 #ifndef VMM_PTE_H
 #define VMM_PTE_H
 
-// Includes
+
+// We get an include loop if we include string.h before defining pte_t.
+
 #include "include/libc/stdint.h" // Integer declarations
-#include "include/pmm.h"
+
+// Typedefs
+typedef uint32_t pte_t;
+
+
+// Includes
+#include "include/libc/string.h"
 
 // Definitions
 #define PAGEDIR_ADDRSPACE 0x100000000 // 4 GB address space
@@ -25,8 +33,6 @@ enum PTE_FLAGS {
     PTE_FRAME = 0x7FFFF000
 };
 
-// Typedefs
-typedef uint32_t pte_t;
 
 // Functions
 void pte_addattrib(pte_t *entry, uint32_t attribute);

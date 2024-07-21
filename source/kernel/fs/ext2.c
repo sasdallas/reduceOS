@@ -1,0 +1,671 @@
+// ============================================================
+// ext2.c - EXT2 filesystem driver for reduceOS
+// ============================================================
+// This file is part of the reduceOS C kernel. Please credit me if you use this code.
+
+#include "include/ext2.h" // Main header file
+
+// External variables
+extern ideDevice_t ideDevices[4];
+
+/* BLOCK FUNCTIONS */
+
+// ext2_readBlock(ext2_t *fs, uint32_t block, uint8_t *buf) - Read a block from the device
+int ext2_readBlock(ext2_t *fs, uint32_t block, uint8_t *buf) {
+    return fs->drive->read(fs->drive, fs->block_size * block, fs->block_size, buf);
+}
+
+// ext2_writeBlock(ext2_t *fs, uint32_t block, uint8_t *buf) - Write a block to the device
+int ext2_writeBlock(ext2_t *fs, uint32_t block, uint8_t *buf) {
+    return fs->drive->write(fs->drive, fs->block_size * block, fs->block_size, buf);
+}
+
+// ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock) - Reads a block in the specified inode
+uint8_t *ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock) {
+    uint8_t *buffer = kmalloc(fs->block_size);
+
+    // Get the disk block number and read it in
+    uint32_t diskBlock = ext2_getDiskBlockNumber(fs, inode, inodeBlock);
+    ext2_readBlock(fs, diskBlock, buffer);
+
+    return buffer;
+}
+
+// ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, uint8_t *buffer) - Writes a block in the specified inode
+void ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, uint8_t *buffer) {
+    // Get the disk block number and write it
+    uint32_t diskBlock = ext2_getDiskBlockNumber(fs, inode, inodeBlock);
+    ext2_writeBlock(fs, diskBlock, buffer);
+}
+
+// ext2_getDiskBlockNumber(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock) - Gets the actual index of inodeBlock on the disk
+uint32_t ext2_getDiskBlockNumber(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock) {
+    // This function is stupidly complex, and you know what they say: "steal from the best, invent the rest."
+    // This function and ext2_setDiskBlockNumber, as well as a few others are sourced from szhou42's osdev project with a decent amount of modifications and bugfixes
+
+    // Could be bugged because it's reading into the same buffer. Will test and find out.
+    uint32_t p = fs->block_size / 4, ret;
+    int b, c, d, e, f, g;
+    uint32_t *tmp = kmalloc(fs->block_size);
+
+    // Check how many blocks are left, minus direct blocks.
+    int remainingBlocks = inodeBlock - EXT2_DIRECT_BLOCKS;
+    if (remainingBlocks < 0) {
+        ret = inode->blocks [inodeBlock];
+        return ret;
+    }
+
+    b = remainingBlocks - p;
+    if (b < 0) {
+        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS], (uint8_t*)tmp);
+        ret = tmp[remainingBlocks];
+        goto done; // Disgusting
+    }
+
+    c = b - p * p;
+    if (c < 0) {
+        c = b / p;
+        d = b - c * p;
+        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS] + 1, (uint8_t*)tmp);
+        ext2_readBlock(fs, tmp[c], (uint8_t*)tmp);
+        ret = tmp[d];
+        goto done;
+    }
+
+    d = c - p * p * p;
+    if (d < 0) {
+        e = c / (p * p);
+        f = (c - e * p * p) / p;
+        g = (c - e * p *p - f * p);
+        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS + 2], (uint8_t*)tmp);
+        ext2_readBlock(fs, tmp[e], (uint8_t*)tmp);
+        ext2_readBlock(fs, tmp[f], (uint8_t*)tmp);
+        ret = tmp[g];
+        goto done;
+    }
+
+    done:
+    kfree(tmp);
+    return ret;
+}
+
+// ext2_setDiskBlockNumber(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t inodeBlock, uint32_t diskBlock) - Sets a disk block number
+void ext2_setDiskBlockNumber(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t inodeBlock, uint32_t diskBlock) {
+    uint32_t p = fs->block_size / 4;
+    int a, b, c, d, e, f, g;
+    int iblock = inodeBlock;
+    uint32_t *tmp = kmalloc(fs->block_size);
+
+    a = iblock - EXT2_DIRECT_BLOCKS;
+    if (a <= 0) {
+        inode->blocks[inodeBlock] = diskBlock;
+        goto done;
+    }
+
+    b = a - p;
+    if (b <= 0) {
+        if (!ext2_allocateInodeMetadataBlock(fs, &(inode->blocks[EXT2_DIRECT_BLOCKS]), inode, index, NULL, 0));
+        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS], (uint8_t*)tmp);
+        ((uint32_t*)tmp)[a] = diskBlock;
+        ext2_writeBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS], (uint8_t*)tmp);
+        tmp[a] = diskBlock;
+        goto done;
+    }
+
+    c = b - p * p;
+    if (c <= 0) {
+        c = b / p;
+        d = b - c * p;
+        if (!ext2_allocateInodeMetadataBlock(fs, &(inode->blocks[EXT2_DIRECT_BLOCKS + 1]), inode, index, NULL, 0));
+        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS + 1], (uint8_t*)tmp);
+        if (!ext2_allocateInodeMetadataBlock(fs, &(tmp[c]), inode, index, (uint8_t*)tmp, inode->blocks[EXT2_DIRECT_BLOCKS + 1]));
+        uint32_t temp = tmp[c];
+        ext2_readBlock(fs, temp, (uint8_t*)tmp);
+        tmp[d] = diskBlock;
+        ext2_writeBlock(fs, temp, (uint8_t*)tmp);
+        goto done;
+    }
+    d = c - p * p * p;
+    if (d <= 0) {
+        e = c / (p * p);
+        f = (c - e * p * p) / p;
+        g = (c - e * p * p - f * p);
+
+        if (!ext2_allocateInodeMetadataBlock(fs, &(inode->blocks[EXT2_DIRECT_BLOCKS + 2]), inode, index, NULL, 0));
+        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS + 2], (uint8_t*)tmp);
+        if (!ext2_allocateInodeMetadataBlock(fs, &(tmp[e]), inode, index, (uint8_t*)tmp, inode->blocks[EXT2_DIRECT_BLOCKS + 2]));
+        uint32_t temp = tmp[e];
+        ext2_readBlock(fs, tmp[e], (uint8_t*)tmp);
+        if (!ext2_allocateInodeMetadataBlock(fs, &(tmp[f]), inode, index, (uint8_t*)tmp, temp));
+        temp = tmp[f];
+        ext2_readBlock(fs, tmp[f], (uint8_t*)tmp);
+        tmp[g] = diskBlock;
+        ext2_writeBlock(fs, temp, (uint8_t*)tmp);
+        goto done;
+    }
+
+done:
+    kfree(tmp);
+}
+
+// ext2_allocateBlock(ext2_t *fs) - Allocate a block from the ext2 block bitmaps
+uint32_t ext2_allocateBlock(ext2_t *fs) {
+    // Create a buffer of block_size to hold the bitmap
+    uint32_t *buffer = kmalloc(fs->block_size);
+
+    // Read in the inode bitmap
+    for (int i = 0; i < fs->total_groups; i++) {
+        if (!fs->bgd_list[i].unallocated_blocks) continue; // No free blocks available
+
+        // Get the block usage bitmap
+        uint32_t bitmapBlock = fs->bgd_list[i].block_usage_bitmap;
+        ext2_readBlock(fs, bitmapBlock, (uint8_t*)buffer);
+        
+        // Iterate through it
+        for (int j = 0; j < fs->block_size / 4; j++) {
+            uint32_t sub_bitmap = buffer[j];
+            if (sub_bitmap == 0xFFFFFFFF) continue; // Nothing
+
+            // Iterate through each entry & check if it's free
+            for (int k = 0; k < 32; k++) {
+                int free = !((sub_bitmap >> k) & 0x1);
+                if (free) {
+                    // Set the bitmap and return
+                    uint32_t mask = (0x1 << k);
+                    buffer[j] = buffer[j] | mask;
+                    ext2_writeBlock(fs, bitmapBlock, (uint8_t*)buffer);
+
+                    // Update free inodes
+                    fs->bgd_list[i].unallocated_blocks--;
+                    ext2_rewriteBGDs(fs);
+
+                    kfree(buffer);
+                    return i * fs->blocks_per_group + j * 32 + k;
+                }
+            }
+        }
+    }
+
+    kfree(buffer);
+    panic("ext2", "ext2_allocateBlock", "No free blocks");
+    return -1;
+}
+
+// ext2_freeBlock(ext2_t *fs, uint32_t block) - Frees a block from the ext2 block bitmaps
+void ext2_freeBlock(ext2_t *fs, uint32_t block) {
+    uint32_t *buffer = kmalloc(fs->block_size); 
+
+    // Calculate the group and sub bitmap the block belongs to.
+    uint32_t group = block / fs->blocks_per_group;
+    uint32_t subBitmap = (block - (fs->blocks_per_group * group)) / 4;
+
+    // Calculate the index in the sub bitmap
+    uint32_t index = (block - (fs->blocks_per_group * group)) % 4;
+
+    // Read in the block usage bitmap
+    uint32_t bitmapBlock =  fs->bgd_list[group].block_usage_bitmap;
+    ext2_readBlock(fs, bitmapBlock, (uint8_t*)buffer);
+
+    // Mask out the inode and write it back to the bitmap
+    uint32_t mask = ~(0x1 << index);
+    buffer[subBitmap] = buffer[subBitmap] & mask;
+
+    ext2_writeBlock(fs, bitmapBlock, (uint8_t*)buffer);
+
+    // Update unalloacted blocks and rewrite BGDs
+    fs->bgd_list[group].unallocated_blocks++;
+    ext2_rewriteBGDs(fs);
+}
+
+
+
+
+/* SUPERBLOCK FUNCTIONS */
+
+// ext2_readSuperblock(fsNode_t *device) - Reads and returns the superblock for a drive
+ext2_superblock_t *ext2_readSuperblock(fsNode_t *device) {
+    serialPrintf("ext2_readSuperblock: Reading superblock on drive %i...\n", device->impl);
+
+    // Allocate memory for the superblock.
+    ext2_superblock_t *superblock = (ext2_superblock_t*)kmalloc(sizeof(ext2_superblock_t));
+    
+    // Read in the superblock
+    uint8_t buffer[1024];
+    int ret = device->read(device, 1024, 1024, buffer); // Superblock always starts at LBA 2 and occupies 1024 bytes.
+
+    // Copy the buffer contents to the superblock and return.
+    memcpy(superblock, buffer, sizeof(ext2_superblock_t));
+    return superblock;
+}
+
+
+
+// ext2_writeSuperblock(ext2_t *fs) - Rewrites the superblock according to the superblock currently on the structure
+int ext2_writeSuperBlock(ext2_t *fs) {
+    ext2_writeBlock(fs, 1, (uint8_t*)(fs->superblock)); // Could be buggy if block size isn't 1024 (check me later).
+}
+
+
+
+/* BLOCK GROUP DESCRIPTOR FUNCTIONS */
+
+// ext2_rewriteBGDs(ext2_t *fs) - Rewrite the block group descriptors
+void ext2_rewriteBGDs(ext2_t *fs) {
+    for (int i = 0; i < fs->bgd_blocks; i++) ext2_writeBlock(fs, 2, (uint8_t*)fs->bgd_list + i * fs->block_size);
+}
+
+
+/* INODE FUNCTIONS */
+
+// ext2_readInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index) - Given an inode number, find the inode on the disk and read it.
+int ext2_readInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index) {
+    // First, we need to determine which block group the inode belongs to.
+    int blockGroup = (index - 1) / fs->superblock->blockgroup_inodes;
+
+    // Now, get the inode table from the BGD at blockGroup and calculate the table index.
+    uint32_t inode_table = fs->bgd_list[blockGroup].inode_table;
+    uint32_t tableIndex = index - blockGroup * fs->inodes_per_group;
+
+    // Find the block that inode lives in
+    uint32_t blockOffset = (tableIndex - 1) * fs->superblock->extension.inode_struct_size / fs->block_size;
+
+    // Calculate the offset within that block
+    uint32_t offsetInBlock = (tableIndex - 1) - blockOffset * (fs->block_size / fs->superblock->extension.inode_struct_size);
+    
+    // Read in the block
+    uint8_t *buffer = kmalloc(fs->block_size);
+    ext2_readBlock(fs, inode_table + blockOffset, buffer);
+
+    // Copy the contents
+    memcpy(inode, buffer + offsetInBlock * fs->superblock->extension.inode_struct_size, fs->superblock->extension.inode_struct_size);
+    
+
+    return 0;
+}
+
+// ext2_writeInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index) - Write an inode metadata at index
+void ext2_writeInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index) {
+    // Calculate which group the inode lives in
+    uint32_t group = index / fs->inodes_per_group;
+
+    // Calculate the inode table block and the inode's block offset
+    uint32_t inodeTableBlock = fs->bgd_list[group].inode_table;
+    uint32_t blockOffset = (index - 1) * fs->superblock->extension.inode_struct_size / fs->block_size;
+
+    // Calculate the offset within the block
+    uint32_t offsetInBlock = (index - 1) - blockOffset * (fs->block_size / fs->superblock->extension.inode_struct_size);
+
+    // Read in the block
+    char *blockBuffer = kmalloc(fs->block_size);
+    ext2_readBlock(fs, inodeTableBlock + blockOffset, blockBuffer);
+
+    memcpy(blockBuffer + offsetInBlock * fs->superblock->extension.inode_struct_size, inode, fs->superblock->extension.inode_struct_size);
+    ext2_writeBlock(fs, inodeTableBlock + blockOffset, blockBuffer);
+
+    kfree(blockBuffer);
+}
+
+
+// ext2_readInodeFiledata(ext2_t *fs, ext2_inode_t *inode, uint32_t offset, uint32_t size, uint8_t *buffer) - Read the actual file data referenced from the inode
+uint32_t ext2_readInodeFiledata(ext2_t *fs, ext2_inode_t *inode, uint32_t offset, uint32_t size, uint8_t *buffer) {
+    // Calculate the end offset
+    uint32_t endOffset = (inode->size >= offset + size) ? (offset + size) : (inode->size);
+    
+    // Convert the offset/size to starting/ending inode block numbers
+    uint32_t startBlock = offset / fs->block_size;
+    uint32_t endBlock = endOffset / fs->block_size;
+    
+    // Calculate the starting block offset
+    uint32_t startOffset = offset % fs->block_size;
+
+    // Calculate how many bytes to read for the end block
+    uint32_t endSize = endOffset - endBlock * fs->block_size;
+
+    // Now, we actually read the stuff
+    uint32_t i = startBlock;
+    uint32_t currentOffset;
+    while (i <= endBlock) {
+        uint32_t left = 0, right = fs->block_size - 1;
+        char *blockBuffer = ext2_readInodeBlock(fs, inode, i);
+
+        if (i == startBlock) left = startOffset;
+        if (i == endBlock) right = endSize - 1;
+
+        memcpy(buffer + currentOffset, blockBuffer + left, (right - left + 1));
+        currentOffset = currentOffset + (right - left + 1);
+
+        kfree(blockBuffer);
+        i++;
+    }
+
+    return endOffset - offset;
+}
+
+
+// ext2_allocateInodeMetadataBlock(ext2_t *fs, uint32_t *blockPtr, ext2_inode_t *inode, uint32_t index, uint8_t *buffer, uint32_t blockOverwrite) - Helper functino to allocate a block for an inode
+int ext2_allocateInodeMetadataBlock(ext2_t *fs, uint32_t *blockPtr, ext2_inode_t *inode, uint32_t index, uint8_t *buffer, uint32_t blockOverwrite) {
+    if (!(*blockPtr)) {
+        // Allocate a block and write it either to disk or to inode metadata.
+        uint32_t blockNumber = ext2_allocateBlock(fs);
+
+        if (!blockNumber) return 1; // Could not alloacte
+
+        *blockPtr = blockNumber;
+        if (buffer) ext2_writeBlock(fs, blockOverwrite, (uint8_t*)buffer);
+        else ext2_writeInodeMetadata(fs, inode, index);
+
+        return 0;
+    }
+    return 1;
+}
+
+// ext2_allocateInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block) - Allocate an inode block
+void ext2_allocateInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block) {
+    uint32_t ret = ext2_allocateBlock(fs);
+    ext2_setDiskBlockNumber(fs, inode, index, block, ret);
+    inode->disk_sectors = (block + 1) * (fs->block_size / 512);
+    ext2_writeInodeMetadata(fs, inode, index);
+}
+
+
+// ext2_freeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block) - Frees an inode block
+void ext2_freeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block) {
+    uint32_t ret = ext2_getDiskBlockNumber(fs, inode, block);
+    ext2_freeBlock(fs, ret);
+    ext2_setDiskBlockNumber(fs, inode, index, ret, 0);
+    ext2_writeInodeMetadata(fs, inode, index);
+}
+
+// ext2_allocateInode(ext2_t *fs) - Allocate an inode from the inode bitmap
+uint32_t ext2_allocateInode(ext2_t *fs) {
+    uint32_t *buffer = kmalloc(fs->block_size);
+    
+    // Read in the inode bitmap, find a free inode, and return its index
+    for (int i = 0; i < fs->total_groups; i++) {
+        if (!fs->bgd_list[i].unallocated_inodes) continue;
+
+        uint32_t bitmapBlock = fs->bgd_list[i].inode_usage_bitmap;
+        ext2_readBlock(fs, bitmapBlock, (uint8_t*)buffer);
+
+        for (int j = 0; j < fs->block_size / 4; j++) {
+            uint32_t subBitmap = buffer[j];
+            if (subBitmap == 0xFFFFFFFF) continue; // Nothing here
+
+
+            for (int k = 0; k < 32; k++) {
+                uint32_t free = !((subBitmap >> k) & 0x01);
+                if (free) { 
+                    // Set bitmap and return
+                    uint32_t mask = (0x1 << k);
+                    buffer[j] = buffer[j] | mask;
+                    ext2_writeBlock(fs, bitmapBlock, (uint8_t*)buffer);
+
+                    // Update free inodes
+                    fs->bgd_list[i].unallocated_inodes--;
+                    ext2_rewriteBGDs(fs);
+                    return i * fs->inodes_per_group + j * 32 + k;
+                }
+            }
+        }
+    }
+
+    panic("ext2", "ext2_allocateInode", "No free inodes available");
+    return -1;
+}
+
+// ext2_freeInode(ext2_t *fs, uint32_t inode) - Frees an inode from the inode bitmap
+void ext2_freeInode(ext2_t *fs, uint32_t inode) {
+    uint32_t *buffer = kmalloc(fs->block_size);
+
+    // Calculate the group, subbitmap, and the index in the sub bitmap the inode is in
+    uint32_t group = inode / fs->inodes_per_group;
+    uint32_t subbitmap = (inode - (fs->inodes_per_group * group)) / 4;
+    uint32_t index = (inode - (fs->inodes_per_group * group)) % 4;
+
+    // Read in the bitmap
+    uint32_t bitmapBlock = fs->bgd_list[group].inode_usage_bitmap;
+    ext2_readBlock(fs, bitmapBlock, (uint8_t*)buffer);
+
+    // Mask out the inode and write it back to the bitmap
+    uint32_t mask = ~(0x1 << index);
+    buffer[subbitmap] = buffer[subbitmap] & mask;
+    ext2_writeBlock(fs, bitmapBlock, (uint8_t*)buffer);
+
+    // Update free inodes
+    fs->bgd_list[group].unallocated_inodes++;
+    ext2_rewriteBGDs(fs);
+}
+
+
+/* VFS FUNCTIONS */
+void ext2_createEntry(fsNode_t *parent, char *name, uint32_t entryInode) {
+    // Get the filesystem and the inode metadata
+    ext2_t *fs = (ext2_t*)(parent->impl_struct);
+    ext2_inode_t *inodep = kmalloc(sizeof(ext2_inode_t));
+    ext2_readInodeMetadata(fs, inodep, parent->inode);
+
+    // Now let's do this.
+    uint32_t currentOffset, blockOffset, inBlockOffset, found;
+    currentOffset = blockOffset = inBlockOffset = found = 0;
+    uint32_t entryNameLength = strlen(name);
+    char *check = kmalloc(entryNameLength + 1);
+    uint8_t *blockBuffer = ext2_readInodeBlock(fs, inodep, blockOffset);
+
+    while (currentOffset < inodep->size) {
+        if (inBlockOffset >= fs->block_size) {
+            blockOffset++;
+            inBlockOffset = 0;
+            blockBuffer = ext2_readInodeBlock(fs, inodep, blockOffset);
+        }
+
+        ext2_dirent_t *currentDirectory = (ext2_dirent_t*)(blockBuffer + inBlockOffset);
+        if (currentDirectory->name_length == entryNameLength) {
+            memcpy(check, currentDirectory->name, entryNameLength);
+            if (currentDirectory->inode != 0 && !strcmp(name, check)) {
+                serialPrintf("ext2_createEntry: Entry by the name of %s already exists!\n", check);
+                return; // TBD: Error codes
+            }
+        }
+
+        // Found the last entry
+        if (found) {
+            // Overwrite the last entry with our new entry
+            // This isn't very good coding practice and should be updated.
+
+            currentDirectory->inode = entryInode;
+            currentDirectory->entry_size = (uint32_t)blockBuffer + fs->block_size - (uint32_t)currentDirectory;
+            currentDirectory->name_length = strlen(name);
+            currentDirectory->type = 0;
+
+            // Use memcpy because dirent does not have a \0
+            memcpy(currentDirectory->name, name, strlen(name));
+            ext2_writeInodeBlock(fs, inodep, blockOffset, blockBuffer);
+
+            // Append a new entry to the end
+            inBlockOffset += currentDirectory->entry_size;
+            if (inBlockOffset >= fs->block_size) {
+                blockOffset++;
+                inBlockOffset = 0;
+                blockBuffer = ext2_readInodeBlock(fs, inodep, blockOffset);
+            }
+
+            currentDirectory = (ext2_dirent_t*)(blockBuffer + inBlockOffset);
+            memset(currentDirectory, 0, sizeof(ext2_dirent_t));
+            ext2_writeInodeBlock(fs, inodep, blockOffset, blockBuffer);
+            return;
+        }
+
+        uint32_t expected = ((sizeof(ext2_dirent_t) + currentDirectory->name_length) & 0xFFFFFFFC) + 0x4;
+        uint32_t real = currentDirectory->entry_size;
+        if (real != expected) {
+            // Mark found and fix the size
+            found = 1;
+            currentDirectory->entry_size = expected;
+            inBlockOffset += expected;
+            currentOffset += expected;
+            continue;
+        }
+
+        inBlockOffset += currentDirectory->entry_size;
+        currentOffset += currentDirectory->entry_size;
+    }
+}
+
+void ext2_mkfile(fsNode_t *parent, char *name, uint16_t permission) {
+    // Get the filesystem and inode metadata
+    ext2_t *fs = (ext2_t*)(parent->impl_struct);
+
+    uint32_t index = ext2_allocateInode(fs);
+    ext2_inode_t *inode = kmalloc(sizeof(ext2_inode_t));
+    ext2_readInodeMetadata(fs, inode, index);
+
+    //serialPrintf("inode->last_access = 0x%x\n", inode->last_access);
+
+    // Now, setup the inode
+    inode->permissions = EXT2_INODE_FILE;
+    inode->permissions |= 0xFFF & permission;
+    inode->last_access = inode->last_modification = inode->creation_time = inode->deletion_time = inode->gid = inode->uid = 0;
+    inode->fragment_block_addr = inode->disk_sectors = 0;
+
+    inode->size = fs->block_size;
+    inode->hard_links = 2;
+    inode->flags = 0;
+    inode->extended_attr_block = 0;
+    inode->dir_acl = 0;
+    inode->generation = 0;
+    inode->os_specific1 = 0;
+
+    memset(inode->blocks, 0, sizeof(inode->blocks));
+    memset(inode->os_specific2, 0, 12);
+
+    // Allocate an inode block and write the metadata
+    ext2_allocateInodeBlock(fs, inode, index, 0);
+    ext2_writeInodeMetadata(fs, inode, index);
+    ext2_createEntry(parent, name, index);
+
+    // Get inodep
+    ext2_inode_t *inodep = kmalloc(sizeof(ext2_inode_t));
+    ext2_readInodeMetadata(fs, inodep, parent->inode);
+    inodep->hard_links++;
+    ext2_writeInodeMetadata(fs, inodep, parent->inode);
+    ext2_rewriteBGDs(fs);
+}
+
+
+
+/* OTHER FUNCTIONS */
+
+// (static) ext2_getIDENode(int driveNum) - Creates a filesystem node for an IDE/ATA device
+static fsNode_t *ext2_getIDENode(int driveNum) {
+    fsNode_t *ret = kmalloc(sizeof(fsNode_t));
+
+    ret->mask = ret->uid = ret->gid = ret->inode = ret->length = 0;
+    ret->flags = VFS_DIRECTORY;
+    ret->open = 0; // No lol
+    ret->close = 0;
+    ret->read = &ideRead_vfs;
+    ret->write = &ideWrite_vfs;
+    ret->readdir = 0;
+    ret->finddir = 0;
+    ret->impl = driveNum;
+    ret->ptr = 0;
+
+    return ret;
+}
+
+
+
+// ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) - Returns the VFS node for the driver
+fsNode_t *ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) {
+    fsNode_t node;
+    node.uid = node.gid = 0;
+    
+    // Allocate memory for the impl_struct and copy fs to it.
+    node.impl_struct = fs;
+    
+    node.inode = EXT2_ROOT_INODE_NUMBER;
+    node.mask = inode->permissions;
+
+    node.flags = VFS_DIRECTORY;
+    node.read = NULL;
+    node.write = NULL;
+    node.open = NULL;
+    node.close = NULL;
+    node.mkdir = NULL;
+    node.create = NULL;
+    node.readdir = NULL;
+    node.finddir = NULL;
+    
+    return &node;
+}
+
+// ext2_init() - Initializes the filesystem on a disk
+void ext2_init() {
+    // Temporary code to find a drive to test on.
+    serialPrintf("ext2_init: Searching for drive...\n");
+    
+    int drives[3];
+    int index = 0;
+
+    for (int i = 0; i < 4; i++) { 
+        if (ideDevices[i].reserved == 1 && ideDevices[i].size > 1) {
+            printf("Found IDE device with %i KB\n", ideDevices[i].size);
+            drives[index] = i;
+            index++;
+        }
+    }
+
+    if (index == 0) {
+        printf("No drives found or capacity too low to read sector.\n");
+        return;
+    }
+
+    for (int i = 0; i < index; i++) {
+        // Read in the superblock for the drive
+        fsNode_t *node = ext2_getIDENode(drives[i]);
+        ext2_superblock_t *superblock = ext2_readSuperblock(node);
+
+        // Check the signature to see if it matches
+        if (superblock->ext2_signature == EXT2_SIGNATURE) {
+            serialPrintf("ext2_init: Found ext2 signature on drive %i\n", node->impl);
+
+            // This drive has an ext2 filesystem on it, setup the ext2 filesystem object.            
+            ext2_t *ext2_filesystem = kmalloc(sizeof(ext2_t));
+            ext2_filesystem->drive = node;
+            ext2_filesystem->superblock = superblock;
+            ext2_filesystem->block_size = (1024 << ext2_filesystem->superblock->unshifted_block_size);
+            ext2_filesystem->blocks_per_group = ext2_filesystem->superblock->blockgroup_blocks;
+            ext2_filesystem->inodes_per_group = ext2_filesystem->superblock->blockgroup_inodes;
+
+            ext2_filesystem->total_groups = ext2_filesystem->superblock->total_blocks / ext2_filesystem->blocks_per_group;
+            if (ext2_filesystem->blocks_per_group * ext2_filesystem->total_groups < ext2_filesystem->total_groups) ext2_filesystem->total_groups++;
+
+
+            // Calculate how many disk blocks the BGD takes
+            ext2_filesystem->bgd_blocks = (ext2_filesystem->total_groups * sizeof(ext2_bgd_t)) / ext2_filesystem->block_size;
+            if (ext2_filesystem->bgd_blocks * ext2_filesystem->block_size < ext2_filesystem->total_groups * sizeof(ext2_bgd_t)) ext2_filesystem->bgd_blocks++;
+
+            // Now, we need to read in the BGD blocks.
+            ext2_filesystem->bgd_list = kcalloc(sizeof(ext2_bgd_t), ext2_filesystem->bgd_blocks * ext2_filesystem->block_size);
+            for (int j = 0; j < ext2_filesystem->bgd_blocks; j++) {
+                ext2_readBlock(ext2_filesystem, 2, (uint8_t*)ext2_filesystem->bgd_list + i * ext2_filesystem->block_size);
+            }
+
+            // Mount it onto the VFS tree.
+            ext2_inode_t *root_inode = kmalloc(sizeof(ext2_inode_t));
+            serialPrintf("Memory for root_inode allocated at 0x%x\n", root_inode);
+            ext2_readInodeMetadata(ext2_filesystem, root_inode, EXT2_ROOT_INODE_NUMBER);
+            serialPrintf("Metadata for inode read successfully.\n");
+            fsNode_t *ext2_root = ext2_getRoot(ext2_filesystem, root_inode);
+
+            serialPrintf("ext2_init: Initialized ext2 filesystem driver on drive %i - inode size is 0x%x.\n", i, ((ext2_t*)(ext2_root->impl_struct))->superblock->extension.inode_struct_size);
+
+            serialPrintf("Alright, let's do this. Hold for failure.\n");
+            serialPrintf("Creating entry extiscool.txt, please wait...\n");
+            ext2_mkfile(ext2_root, "/extiscool.txt", EXT2_PERM_UR);
+        } else {
+            kfree(superblock);
+            kfree(node);
+        }
+    }
+}

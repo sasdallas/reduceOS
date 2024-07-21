@@ -5,8 +5,10 @@
 
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
-#include "include/pmm.h" // Physical Memory Manager
 
+typedef uint32_t pde_t; // See vmm_pte.h 
+
+#include "include/libc/string.h" // Will cause include loop
 
 // Definitions
 #define PAGETABLE_ADDRSPACE 0x400000 // 4 MB address space
@@ -28,8 +30,6 @@ enum PAGING_PDE_FLAGS {
     PDE_FRAME = 0x7FFFF000
 };
 
-// Typedefs
-typedef uint32_t pde_t; // Page Directory Entry
 
 // Functions
 void pde_addattrib(pde_t *entry, uint32_t attribute);
