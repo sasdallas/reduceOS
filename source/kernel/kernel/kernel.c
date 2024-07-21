@@ -536,8 +536,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     enable_liballoc();
 
     
-    fatInit(); // BUG: FAT can only be initialized after VESA, apparently. Don't ask.
-    
+    fatInit();
     ext2_init();
 
 

@@ -103,6 +103,7 @@ fsNode_t fatParseRootDirectory(char *path) {
             directory->fileName[11] = 0; // Null-terminate
                                          // Something's absolutely horrendously wrong in the stack that I can't copy this to an external variable.
 
+           
             // strcmp() will return a 0 if the other string is totally blank, bad!
             // Solve with this if statement
             if (strlen(directory->fileName) <= 0) continue;
@@ -136,7 +137,7 @@ fsNode_t fatParseRootDirectory(char *path) {
                 file.length = ((fat_fileEntry_t*)file.impl_struct)->size;
                 
 
-                
+                kfree(buffer);
                 return file;
             }
 
@@ -148,6 +149,7 @@ fsNode_t fatParseRootDirectory(char *path) {
     }
 
     // Could not find file.
+    kfree(buffer);
     file.flags = -1; // TBD: Make a VFS_INVALID flag
     return file;
 }
@@ -161,15 +163,16 @@ int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
         uint16_t cluster = file->impl;
         uint32_t sector = ((cluster - 2) * drive->bpb->sectorsPerCluster) + drive->firstDataSector;
 
-        uint8_t *sector_buffer;
+        uint8_t sector_buffer[drive->bpb->sectorsPerCluster * 512];
         ideReadSectors(drive->driveNum, drive->bpb->sectorsPerCluster, (uint32_t)sector, sector_buffer);
         
 
 
-
+        
         // Copy the sector buffer to the output buffer
-        memcpy(buffer, sector_buffer, length);
-
+        uint32_t len = (length > (drive->bpb->sectorsPerCluster * 512)) ? drive->bpb->sectorsPerCluster * 512 : length;
+        memcpy(buffer, sector_buffer, len);
+ 
         // Locate the File Allocation Table sector
         uint32_t fatOffset = cluster + (cluster / 2);
         uint32_t fatSector = drive->firstFatSector + (fatOffset / 512);
@@ -367,10 +370,9 @@ uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf)
     int sectors = (total_size % 512 == 0) ? total_size / 512 : ((total_size + 512) - (total_size % 512)) / 512;
     int clusters = (sectors % drive->bpb->sectorsPerCluster == 0) ? (sectors / drive->bpb->sectorsPerCluster) : ((sectors + drive->bpb->sectorsPerCluster) - (sectors % drive->bpb->sectorsPerCluster)) / drive->bpb->sectorsPerCluster;
 
-    serialPrintf("%i bytes will span %i sectors, which span %i clusters.\n", total_size, sectors, clusters);
-
     // Now that we've calculated the amount of clusters, we need to read them into a temporary buffer.
-    uint8_t buffer[sectors * 512];
+    uint8_t *buffer = kmalloc(sectors * 512);
+
 
     // Iterate through each cluster and read it in
     bool earlyTermination = false; // If fatReadInternal() returns EOF, it terminated too early.
@@ -392,6 +394,7 @@ uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf)
     memcpy(buf, buffer + off, size);
 
     // Free the buffer and return OK.
+    kfree(buffer);
     return 0;
 }
 
@@ -430,12 +433,12 @@ void fatInit() {
     for (int i = 0; i < index; i++) {
         serialPrintf("fatInit: Trying drive %i...\n", drives[i]);
         // Read sector (BPB is in the first sector)
-        uint32_t buffer[512];
+        uint32_t *buffer = kmalloc(512);
         ideReadSectors(drives[i], 1, (uint32_t)0, buffer); // LBA = 0, SECTORS = 1
-        char *start_addr = &buffer;
+        
         
         drive = kmalloc(sizeof(fat_drive_t));
-        drive->bpb = start_addr;
+        drive->bpb = (fat_BPB_t*)buffer;
         serialPrintf("fatInit: Starting sequence is %x %x %x\n",drive->bpb->bootjmp[0], drive->bpb->bootjmp[1], drive->bpb->bootjmp[2]);
 
         // bootjmp is the ASM instruction to jump over the BPB

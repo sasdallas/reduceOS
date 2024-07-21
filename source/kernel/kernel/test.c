@@ -365,6 +365,71 @@ int test(int argc, char *args[]) {
             printf("PASS\n");
         }
 
+        uint8_t *buffer;
+
+        printf("\tTesting fatReadInternal (test.txt, 1 cluster)...");
+
+        ret = fatOpenInternal("/test.txt");
+        if (ret.flags != VFS_FILE) {
+            printf("FAIL (fatOpenInternal failed)\n");
+        } else {
+            buffer = kmalloc(ret.length);
+            if (fatReadInternal(&ret, buffer, ret.length) == EOF) {
+                for (int j = 0; j < ret.length; j++) serialPrintf("%c", buffer[j]);
+                printf("PASS\n");
+            } else {
+                printf("FAIL (file spans >1 cluster)\n");
+            }
+            kfree(buffer);
+        }
+
+        printf("\tTesting fatReadInternal (cluster.txt, 4 clusters)...");
+
+        ret = fatOpenInternal("/cluster.txt");
+        if (ret.flags != VFS_FILE) {
+            printf("FAIL (fatOpenInternal failed)\n");
+        } else {
+            buffer = kmalloc(4 * 4 * 512);
+            
+            bool fail = false;
+            int returnValue;
+            for (int i = 0; i < 4; i++) {
+                if (returnValue == EOF) { 
+                    printf("FAIL (file spans <4 clusters)\n" );
+                    fail = true;
+                    break;
+                }
+                returnValue = fatReadInternal(&ret, buffer + (i*4*512), ret.length); // Bugged bc we dont know sectors per cluster so we assume 4
+            }
+
+            if (returnValue != EOF) {
+                printf("FAIL (file spans >4 clusters)\n");
+            } else if (!fail) {
+                printf("PASS\n");
+            }
+
+            kfree(buffer);
+        }
+    
+
+        printf("\tTesting fatRead (test.txt, offset 0, size 100)...");
+        ret = fatOpenInternal("/test.txt");
+
+        if (ret.flags != VFS_FILE) {
+            printf("FAIL (fatOpenInternal failed)\n");
+        } else {
+            buffer = kmalloc(100);
+            if (fatRead(&ret, 0, 100, buffer) != 0) {
+                printf("FAIL (fatRead returned error)\n");
+            } else {
+                for (int j = 0; j < 100; j++) serialPrintf("%c", buffer[j]);
+                printf("PASS\n");
+            }
+
+            kfree(buffer);
+            
+        }
+
         
     } else {
         printf("Usage: test <module>\n");
