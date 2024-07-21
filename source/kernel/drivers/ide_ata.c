@@ -189,6 +189,7 @@ fsNode_t *ideGetVFSNode(int driveNum) {
     ret->write = &ideWrite_vfs;
     ret->readdir = NULL;
     ret->mkdir = NULL;
+    strcpy(ret->name, "IDE/ATA drive");
     return ret;
 }
 

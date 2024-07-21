@@ -370,6 +370,9 @@ void usermodeMain() {
 
 }
 
+
+fsNode_t *fatDriver = NULL;
+
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(unsigned long addr, unsigned long loader_magic) {
     // Update global multiboot info.
@@ -536,8 +539,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     enable_liballoc();
 
     
-    fatInit();
-    ext2_init();
+    fsNode_t *ideNode = ideGetVFSNode(0);
+    serialPrintf("IDE node name: %s\n", ideNode->name);
+    fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
+
+    //ext2_init();
 
 
 

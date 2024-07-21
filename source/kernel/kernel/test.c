@@ -12,6 +12,7 @@
 
 
 extern ideDevice_t ideDevices[4];
+extern fsNode_t *fatDriver;
 
 // This function is hopefully going to serve as a function to test multiple modules of the OS.
 int test(int argc, char *args[]) {
@@ -331,15 +332,19 @@ int test(int argc, char *args[]) {
 
     } else if (!strcmp(args[1], "fat")) {
         printf("=== TESTING FAT DRIVER ===\n"); 
+
+        
+
         if (!isFatRunning()) {
             printf("\tFAT driver is not running\n");    
             printf("=== TESTS FAILED ===\n");
             return -1;
         }
+
         
         printf("\tTesting fatOpenInternal (test.txt)...");
 
-        fsNode_t ret = fatOpenInternal("/test.txt");
+        fsNode_t ret = fatOpenInternal(fatDriver, "/test.txt");
         if (ret.flags != VFS_FILE) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
         } else {
@@ -349,7 +354,7 @@ int test(int argc, char *args[]) {
 
         printf("\tTesting fatOpenInternal (dir/test.txt)...");
 
-        ret = fatOpenInternal("/dir/test.txt");
+        ret = fatOpenInternal(fatDriver, "/dir/test.txt");
         if (ret.flags != VFS_FILE) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
         } else {
@@ -358,7 +363,7 @@ int test(int argc, char *args[]) {
 
         printf("\tTesting fatOpenInternal (nonexistent.txt)...");
 
-        ret = fatOpenInternal("/nonexistent.txt");
+        ret = fatOpenInternal(fatDriver, "/nonexistent.txt");
         if (ret.flags != -1) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
         } else {
@@ -369,7 +374,7 @@ int test(int argc, char *args[]) {
 
         printf("\tTesting fatReadInternal (test.txt, 1 cluster)...");
 
-        ret = fatOpenInternal("/test.txt");
+        ret = fatOpenInternal(fatDriver, "/test.txt");
         if (ret.flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
         } else {
@@ -385,7 +390,7 @@ int test(int argc, char *args[]) {
 
         printf("\tTesting fatReadInternal (cluster.txt, 4 clusters)...");
 
-        ret = fatOpenInternal("/cluster.txt");
+        ret = fatOpenInternal(fatDriver, "/cluster.txt");
         if (ret.flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
         } else {
@@ -412,7 +417,7 @@ int test(int argc, char *args[]) {
         }
     
         printf("\tReading in test.txt for next set of tests...");
-        ret = fatOpenInternal("/test.txt");
+        ret = fatOpenInternal(fatDriver, "/test.txt");
         uint8_t *comparison_buffer = kmalloc(ret.length);
 
         if (ret.flags != VFS_FILE) {
@@ -496,7 +501,7 @@ int test(int argc, char *args[]) {
         }
 
         kfree(comparison_buffer);
-        kfree(ret);
+        // kfree(ret); - Glitches out??
 
         printf("=== TESTS COMPLETED ===\n");
         

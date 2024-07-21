@@ -103,7 +103,8 @@ typedef struct {
 
 // Functions
 
-void fatInit();
+fsNode_t *fatInit(fsNode_t *driveNode);
+void fatInit_old();
 uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf);
-fsNode_t fatOpenInternal(char *filename);
+fsNode_t fatOpenInternal(fsNode_t *driver, char *filename);
 int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length);

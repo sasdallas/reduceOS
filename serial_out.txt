@@ -1,11 +1,11 @@
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 1146-DEBUG, compiled on 07/21/24, 08:56:15
+	Build 1290-DEBUG, compiled on 07/21/24, 10:59:33
 ============================================================================================================================
 
-Kernel location: 0x100000 - 0x81D874
-Text section: 0x100000 - 0x113000; Data section: 0x14D000 - 0x812656; BSS section: 0x813000 - 0x81D874
+Kernel location: 0x100000 - 0x80F874
+Text section: 0x100000 - 0x114000; Data section: 0x13F000 - 0x8045B6; BSS section: 0x805000 - 0x80F874
 Loader magic: 0x43D8C305
 
 Serial logging initialized!
@@ -34,7 +34,7 @@
 kmain: CPU has long mode support: 0
 pmm_initRegion: Region at 0x0 (size 0x9F000) initialized. Blocks used: 0. Free blocks: 159
 pmm_initRegion: Region at 0x100000 (size 0x1EF0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x71D874) deinitialized. Blocks used: 1503. Free blocks: 6258
+pmm_deinitRegion: Region at 0x100000 (size 0x70F874) deinitialized. Blocks used: 1489. Free blocks: 6272
 vmmInit: Successfully initialized paging.
 Initialized memory management successfully.
 bios32 initialized successfully!
@@ -57,71 +57,110 @@
 ACPI table signatures (RSDT):
 acpiInit: Successfully enabled ACPI.
 GRUB did pass an initial ramdisk at 0x100B0.
-initrdInit: Initial ramdisk loaded - location is 0x824000 and end address is 0x82532F
+initrdInit: Initial ramdisk loaded - location is 0x816000 and end address is 0x81732F
 Initialized floppy drive successfully.
 WARNING: Enabling liballoc! Stand away from the flames!
-Searching for drive...
-fatInit: Trying drive 0...
 liballoc: initialization of liballoc 1.1
-liballoc: Resource allocated 40000 of 16 pages (65536 bytes) for 84 size.
+liballoc: Resource allocated 40000 of 16 pages (65536 bytes) for 228 size.
 liballoc: Total memory usage = 64 KB
 liballoc: set up first memory major 40000
-liballoc: 107C61 PREFIX(malloc)( 84 ): CASE 2: returning 40040
-fatInit: Starting sequence is EB 3C 90
-fatInit: bootjmp identified
-fatInit: OEM is mkfs.fat
-fatInit: FAT initialized on drive 0
-Testing FAT, please wait...
-liballoc: 107C61 PREFIX(malloc)( 544 ): CASE 4.1: returning 400B0
-liballoc: 107C61 PREFIX(malloc)( 64 ): CASE 4.1: returning 402F0
-ret.flags = 1
-liballoc: 107C61 PREFIX(malloc)( 1197 ): CASE 4.1: returning 40340
-The current cluster is 0xD, the next cluster is 0xFFF after modification.
-File read successfully. Contents of file:
-Hi! This is a file designed to break the fatReadInternal function, as it's borked and is only reading 512 bytes.
-Therefore, this file will be more than 512 bytes.
-
-1234567890qwertyuiopaSDFGHJKLzxcvbnm!!!!
-mnbvcxzlkjhgfdsapoiuytrewq=-0987654321~~~
-MORETHAN512MORETHAN512MORETHAN512MORETHAN512MORETHAN512
-
-
-UPD:
-WHYHASITNOTCRASHEDYETWHYHASITNOTCRASHEDYET
-HOW IS MY CODE SO BAD AND YET SO GOOD? THIS FILE IS TOTALLY MORE THAN 512!
-I hate my VFS.
-
-In reduceOS, we follow a UNIX like structure with one device being the root device and having a filesystem tree.
-    We structure the root directory like UNIX, where it is /
-    Other devices are mounted in /device/
-    For things like hard drives, they are mounted in hd01, where 0 is the drive number and 1 is the partition.
-    At least, that's the plan ;)
-
-In reduceOS, we follow a UNIX like structure with one device being the root device and having a filesystem tree.
-    We structure the root directory like UNIX, where it is /
-    Other devices are mounted in /device/
-    For things like hard drives, they are mounted in hd01, where 0 is the drive number and 1 is the partition.
-    At least, that's the plan ;)
-
-=== END ===
-liballoc: 107D22 PREFIX(free)( 4032C ): OK
-ext2_init: Searching for drive...
-liballoc: 107C61 PREFIX(malloc)( 228 ): CASE 4.1: returning 40340
-ext2_readSuperblock: Reading superblock on drive 0...
-liballoc: 107C61 PREFIX(malloc)( 1056 ): CASE 4.1: returning 40440
-liballoc: 107D22 PREFIX(free)( 40428 ): OK
-liballoc: 107D22 PREFIX(free)( 4032C ): OK
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/33/2036 9:7:82
+liballoc: 107C62 PREFIX(malloc)( 228 ): CASE 2: returning 40040
+IDE node name: IDE/ATA drive
+fatInit: FAT trying to initialize on driveNode...
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40140
+liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 40380
+liballoc: 107C62 PREFIX(malloc)( 80 ): CASE 4.1: returning 403C0
+liballoc: 107C62 PREFIX(malloc)( 122 ): CASE 4.1: returning 40420
+liballoc: 107D23 PREFIX(free)( 4012C ): OK
+fatInit: bootjmp identified on drive
+liballoc: 107C62 PREFIX(malloc)( 228 ): CASE 4.2: returning 40140
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/33/2036 17:16:39
 All commands registered successfully.
 Warning: User is an unstable environment.
-liballoc: 107C61 PREFIX(malloc)( 40 ): CASE 4.1: returning 40340
-liballoc: 107C61 PREFIX(malloc)( 37 ): CASE 4.1: returning 40380
-liballoc: 107C61 PREFIX(malloc)( 36 ): CASE 4.1: returning 403C0
-liballoc: 107C61 PREFIX(malloc)( 228 ): CASE 4.1: returning 40400
-liballoc: 107C61 PREFIX(malloc)( 544 ): CASE 4.1: returning 40500
-liballoc: 107C61 PREFIX(malloc)( 544 ): CASE 4.1: returning 40730
+liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.2: returning 40240
+liballoc: 107C62 PREFIX(malloc)( 37 ): CASE 4.2: returning 40280
+liballoc: 107C62 PREFIX(malloc)( 36 ): CASE 4.2: returning 402C0
+Checking...
+Subdir
+Reading root directory...
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 404B0
+Node name for driver: IDE/ATA drive
+liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.2: returning 40300
+liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 406F0
+liballoc: 107D23 PREFIX(free)( 4049E ): OK
+Root dir read
+Checking...
+Subdir
+Reading root directory...
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 404B0
+Node name for driver: IDE/ATA drive
+liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.2: returning 40340
+liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 40740
+liballoc: 107D23 PREFIX(free)( 4049E ): OK
+Root dir read
+Subdir
+Reading subdirectory...
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 404B0
+Reading
+Read
+liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 407A0
+liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 407E0
+liballoc: 107D23 PREFIX(free)( 4049E ): OK
+Checking...
+Subdir
+Reading root directory...
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 404B0
+Root dir read
+fatOpen: File /nonexistent.txt not found.
+Checking...
+Subdir
+Reading root directory...
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40830
+Node name for driver: IDE/ATA drive
+liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 40A70
+liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 40AB0
+liballoc: 107D23 PREFIX(free)( 4081E ): OK
+Root dir read
+liballoc: 107C62 PREFIX(malloc)( 171 ): CASE 4.2: returning 40830
+This is a test file for FAT12 reading.
+If you're reading this it worked! If you're not reading this, it probably didn't work (just maybe).
+liballoc: 107D23 PREFIX(free)( 4081E ): OK
+Checking...
+Subdir
+Reading root directory...
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 40830
+Node name for driver: IDE/ATA drive
+liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 40B00
+liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 40B40
+liballoc: 107D23 PREFIX(free)( 4081E ): OK
+Root dir read
+liballoc: 107C62 PREFIX(malloc)( 8224 ): CASE 4.1: returning 40BA0
+liballoc: 107D23 PREFIX(free)( 40B86 ): OK
+Checking...
+Subdir
+Reading root directory...
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 40830
+Node name for driver: IDE/ATA drive
+liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 40BA0
+liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 40BE0
+liballoc: 107D23 PREFIX(free)( 4081E ): OK
+Root dir read
+liballoc: 107C62 PREFIX(malloc)( 171 ): CASE 4.2: returning 40830
+liballoc: 107C62 PREFIX(malloc)( 132 ): CASE 4.2: returning 40900
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40C30
+liballoc: 107D23 PREFIX(free)( 40C1E ): OK
+liballoc: 107D23 PREFIX(free)( 408E1 ): OK
+liballoc: 107C62 PREFIX(malloc)( 134 ): CASE 4.2: returning 40900
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40C30
+liballoc: 107D23 PREFIX(free)( 40C1E ): OK
+liballoc: 107D23 PREFIX(free)( 408E1 ): OK
+liballoc: 107C62 PREFIX(malloc)( 65 ): CASE 4.2: returning 40900
+liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40C30
+liballoc: 107D23 PREFIX(free)( 40C1E ): OK
+liballoc: 107D23 PREFIX(free)( 408E1 ): OK
+liballoc: 107D23 PREFIX(free)( 4081E ): OK
 ===========================================================
 panic() called! FATAL ERROR!
-*** Page fault at address 0x1
+*** Page fault at address 0x74736564
 *** Flags: present 
 
