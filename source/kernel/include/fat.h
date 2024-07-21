@@ -55,7 +55,7 @@ typedef struct {
 // This structure is referenced in the VFS impl_struct flag, and allocated a specific amount of memory.
 // This is probably a very bad idea, but it does help cleanup code slightly.
 typedef struct {
-    int driveNum; // ideDevices[driveNum]
+    fsNode_t *driveobj;
     int fatType; // 0 - exFAT, 1 - FAT12, 2 - FAT16, 3 - FAT32
     int totalSectors; // Calculated in fatInit
     int fatSize; // Calculated in fatInit
@@ -67,7 +67,6 @@ typedef struct {
     fat_BPB_t *bpb; // BPB in the FAT
     fat_extendedBPB16_t *extended16; // Is there a more memory-efficient way to do this?
     fat_extendedBPB32_t *extended32;
-    unsigned char *FAT_Table;
 } __attribute__((packed)) fat_drive_t;
 
 typedef struct {
@@ -85,10 +84,6 @@ typedef struct {
     uint32_t size; // Size of the file in bytes
 } __attribute__((packed)) fat_fileEntry_t;
 
-
-
-
-
 typedef struct {
     uint8_t entryOrder;
     uint8_t firstChars[10];
@@ -100,6 +95,11 @@ typedef struct {
     uint8_t thirdChars[4];
 } __attribute__((packed)) fat_lfnEntry_t;
 
+// This will be what's in impl_struct, it contains information about the filesystem and the drive object
+typedef struct {
+    fat_fileEntry_t *fileEntry; // Used if this is a structure for a file
+    fat_drive_t *drive; 
+} fat_t;
 
 // Functions
 

@@ -176,6 +176,22 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
 }
 
 
+// ideGetVFSNode(int driveNum) - Returns VFS node for an IDE drive
+fsNode_t *ideGetVFSNode(int driveNum) {
+    fsNode_t *ret = kmalloc(sizeof(fsNode_t));
+    ret->gid = ret->uid = ret->inode = ret->length = ret->mask = 0;
+    ret->impl = driveNum;
+    ret->open = NULL;
+    ret->close = NULL;
+    ret->finddir = NULL;
+    ret->create = NULL;
+    ret->read = &ideRead_vfs;
+    ret->write = &ideWrite_vfs;
+    ret->readdir = NULL;
+    ret->mkdir = NULL;
+    return ret;
+}
+
 // ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) - Read function for the VFS
 uint32_t ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) {
     // Create a temporary buffer that rounds up size to the nearest 512 multiple.

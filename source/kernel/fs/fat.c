@@ -19,7 +19,7 @@ SUPPORTED FILESYSTEMS:
 // External variables
 extern ideDevice_t ideDevices[4];
 
-// NOTE: impl_struct is a reference to fat_drive_t
+// NOTE: impl_struct is a reference to fat_t
 
 // Variables
 uint8_t FAT[1024]; // File allocation table
@@ -93,7 +93,8 @@ fsNode_t fatParseRootDirectory(char *path) {
     for (int sector = 0; sector < 14; sector++) {
         // Read in the sector.
         int lba = ((drive->bpb->tableCount * drive->bpb->tableSize16) + 1) + sector;
-        ideReadSectors(drive->driveNum, 1, (uint32_t)lba, buffer);
+        drive->driveobj->read(drive->driveobj, lba * 512, 512, buffer);
+        
         fat_fileEntry_t *directory = (fat_fileEntry_t*)buffer;
 
         for (int i = 0; i < 16; i++) {
@@ -114,11 +115,13 @@ fsNode_t fatParseRootDirectory(char *path) {
                 // Reset the attributes byte
                 directory->fileName[11] = attributes;
 
-                // Now, let's allocate fileEntry for the impl_struct and copy the contents of our directory.
-                file.impl_struct = kmalloc(sizeof(fat_fileEntry_t));
-                memcpy(file.impl_struct, directory, sizeof(fat_fileEntry_t));
+                // Now, let's allocate a fat_t for the impl_struct and copy the contents of our directory.
+                file.impl_struct = kmalloc(sizeof(fat_t));
+                ((fat_t*)(file.impl_struct))->drive = drive;
+                ((fat_t*)(file.impl_struct))->fileEntry = kmalloc(sizeof(fat_fileEntry_t));
+                memcpy(((fat_t*)(file.impl_struct))->fileEntry, directory, sizeof(fat_fileEntry_t));
                 
-                if (((fat_fileEntry_t*)file.impl_struct)->size != directory->size) {
+                if (((fat_t*)file.impl_struct)->fileEntry->size != directory->size) {
                     // There was an error in the memcpy()
                     file.flags = -1;
                     return file;
@@ -131,10 +134,10 @@ fsNode_t fatParseRootDirectory(char *path) {
                 else file.flags = VFS_FILE;
 
                 // Set the current cluster
-                file.impl = ((fat_fileEntry_t*)file.impl_struct)->firstClusterNumberLow;
+                file.impl = ((fat_t*)file.impl_struct)->fileEntry->firstClusterNumberLow;
                 
                 // Setup a few other fields
-                file.length = ((fat_fileEntry_t*)file.impl_struct)->size;
+                file.length = ((fat_t*)file.impl_struct)->fileEntry->size;
                 
 
                 kfree(buffer);
@@ -164,8 +167,7 @@ int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
         uint32_t sector = ((cluster - 2) * drive->bpb->sectorsPerCluster) + drive->firstDataSector;
 
         uint8_t sector_buffer[drive->bpb->sectorsPerCluster * 512];
-        ideReadSectors(drive->driveNum, drive->bpb->sectorsPerCluster, (uint32_t)sector, sector_buffer);
-        
+        drive->driveobj->read(drive->driveobj, (uint32_t)sector * 512, drive->bpb->sectorsPerCluster * 512, sector_buffer);
 
 
         
@@ -181,9 +183,7 @@ int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
         
 
         // Read the FATs
-        ideReadSectors(drive->driveNum, 1, fatSector, (uint8_t*)FAT);
-        ideReadSectors(drive->driveNum, 1, fatSector + 1, (uint8_t*)FAT + 512);
-
+        drive->driveobj->read(drive->driveobj, fatSector * 512, 1024, (uint8_t*)FAT);
          
 
         // Read entry for the next cluster
@@ -192,8 +192,6 @@ int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
         // Convert the cluster
         nextCluster = (cluster & 1) ? nextCluster >> 4 : nextCluster & 0xFFF;
 
-        serialPrintf("The current cluster is 0x%x, the next cluster is 0x%x after modification.\n", cluster, nextCluster);
-        
 
         // Test for EOF
         if (nextCluster >= 0xFF8) {
@@ -248,15 +246,18 @@ fsNode_t fatParseSubdirectory(fsNode_t file, const char *path) {
                 // Reset the attributes byte
                 directory->fileName[11] = attributes;
 
-                // Now, let's allocate fileEntry for the impl_struct and copy the contents of our directory.
-                ret.impl_struct = kmalloc(sizeof(fat_fileEntry_t));
-                memcpy(ret.impl_struct, directory, sizeof(fat_fileEntry_t));
+                // Now, let's allocate a fat_t for the impl_struct and copy the contents of our directory.
+                ret.impl_struct = kmalloc(sizeof(fat_t));
+                ((fat_t*)(ret.impl_struct))->drive = drive;
+                ((fat_t*)(ret.impl_struct))->fileEntry = kmalloc(sizeof(fat_fileEntry_t));
+                memcpy(((fat_t*)(ret.impl_struct))->fileEntry, directory, sizeof(fat_fileEntry_t));
                 
-                if (((fat_fileEntry_t*)ret.impl_struct)->size != directory->size) {
+                if (((fat_t*)ret.impl_struct)->fileEntry->size != directory->size) {
                     // There was an error in the memcpy()
                     ret.flags = -1;
                     return ret;
                 }
+
 
                 strcpy(ret.name, path); // Copy the file name into the result value
                 
@@ -265,12 +266,11 @@ fsNode_t fatParseSubdirectory(fsNode_t file, const char *path) {
                 else ret.flags = VFS_FILE;
 
                 // Set the current cluster
-                ret.impl = ((fat_fileEntry_t*)ret.impl_struct)->firstClusterNumberLow;
+                ret.impl = ((fat_t*)ret.impl_struct)->fileEntry->firstClusterNumberLow;
                 
                 // Setup a few other fields
-                ret.length = ((fat_fileEntry_t*)ret.impl_struct)->size;
+                ret.length = ((fat_t*)ret.impl_struct)->fileEntry->size;
                 
-
                 return ret;
 
             }
@@ -452,9 +452,8 @@ void fatInit() {
             drive->extended32 = drive->bpb->extended;
 
             // Create the fat_drive_t object.
-            drive->driveNum = drives[i];
-            
-
+            drive->driveobj = ideGetVFSNode(drives[i]);
+        
             // Now we need to identify the type of FAT used. We can do this by checking the total clusters.
             // To calculate the total clusters, we need to first calculate the total number of sectors in the volume.
             int totalSectors = (drive->bpb->totalSectors16 == 0) ? drive->bpb->totalSectors32 : drive->bpb->totalSectors16;
@@ -495,13 +494,11 @@ void fatInit() {
                 drive->fatType = 0;
             }
 
-            serialPrintf("fatInit: FAT initialized on drive %i\n", drive->driveNum);
+            serialPrintf("fatInit: FAT initialized on drive %i", drives[i]);
             
             serialPrintf("Testing FAT, please wait...\n");
             fsNode_t ret = fatOpenInternal("/long.txt");
             serialPrintf("ret.flags = %i\n", ret.flags);
-
-            fat_fileEntry_t *entry = (fat_fileEntry_t*)(ret.impl_struct);
 
             uint8_t *buffer = kmalloc(ret.length);
 

@@ -411,9 +411,19 @@ int test(int argc, char *args[]) {
             kfree(buffer);
         }
     
+        printf("\tReading in test.txt for next set of tests...");
+        ret = fatOpenInternal("/test.txt");
+        uint8_t *comparison_buffer = kmalloc(ret.length);
+
+        if (ret.flags != VFS_FILE) {
+            printf("FAIL (fatOpenInternal failed)\n");
+        } else {
+            fatReadInternal(&ret, comparison_buffer, ret.length);
+            printf("DONE\n");
+        }
 
         printf("\tTesting fatRead (test.txt, offset 0, size 100)...");
-        ret = fatOpenInternal("/test.txt");
+        
 
         if (ret.flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
@@ -422,14 +432,73 @@ int test(int argc, char *args[]) {
             if (fatRead(&ret, 0, 100, buffer) != 0) {
                 printf("FAIL (fatRead returned error)\n");
             } else {
-                for (int j = 0; j < 100; j++) serialPrintf("%c", buffer[j]);
-                printf("PASS\n");
-            }
+                bool success = true;
+                for (int i = 0; i < 100; i++) {
+                    if (buffer[i] != comparison_buffer[i]) {
+                        printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, buffer[i], comparison_buffer[i]);
+                        success = false;
+                        break;
+                    }
+                }
 
+                if (success) printf("PASS\n");
+            }
             kfree(buffer);
-            
         }
 
+        printf("\tTesting fatRead (test.txt, offset 26, size 102)...");
+        
+
+        if (ret.flags != VFS_FILE) {
+            printf("FAIL (fatOpenInternal failed)\n");
+        } else {
+            buffer = kmalloc(102);
+            if (fatRead(&ret, 26, 102, buffer) != 0) {
+                printf("FAIL (fatRead returned error)\n");
+            } else {
+                bool success = true;
+                for (int i = 0; i < 102; i++) {
+                    if (buffer[i] != comparison_buffer[i + 26]) {
+                        printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, buffer[i], comparison_buffer[i + 26]);
+                        success = false;
+                        break;
+                    }
+                }
+
+                if (success) printf("PASS\n");
+            }
+            kfree(buffer);
+        }
+
+
+        printf("\tTesting fatRead (test.txt, offset 50, size 33)...");
+        
+
+        if (ret.flags != VFS_FILE) {
+            printf("FAIL (fatOpenInternal failed)\n");
+        } else {
+            buffer = kmalloc(33);
+            if (fatRead(&ret, 50, 33, buffer) != 0) {
+                printf("FAIL (fatRead returned error)\n");
+            } else {
+                bool success = true;
+                for (int i = 0; i < 33; i++) {
+                    if (buffer[i] != comparison_buffer[i + 50]) {
+                        printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, buffer[i], comparison_buffer[i + 50]);
+                        success = false;
+                        break;
+                    }
+                }
+
+                if (success) printf("PASS\n");
+            }
+            kfree(buffer);
+        }
+
+        kfree(comparison_buffer);
+        kfree(ret);
+
+        printf("=== TESTS COMPLETED ===\n");
         
     } else {
         printf("Usage: test <module>\n");
