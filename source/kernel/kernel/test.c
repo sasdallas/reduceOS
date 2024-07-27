@@ -14,6 +14,29 @@
 extern ideDevice_t ideDevices[4];
 extern fsNode_t *fatDriver;
 
+tree_comparator_t test_comparator(void *a, void *b) {
+       return (a == b);
+}
+
+void test_debug_print_tree_node(tree_t *tree, tree_node_t *node, size_t height) {
+    if (!node) return;
+
+    // Indent output according to height
+    char indents[18];
+    memset(indents, 0, 18);
+    for (int i = 0; i < height; i++) indents[i] = ' ';
+
+
+    // Get the current node
+    // Print it out
+    printf("\t%s0x%x\n", indents, node->value);
+
+    foreach(child, node->children) {
+        test_debug_print_tree_node(tree, child->value, height + 1);
+    }
+}
+
+// SHOULD BE SPLIT UP INTO MULTIPLE FUNCTIONS
 // This function is hopefully going to serve as a function to test multiple modules of the OS.
 int test(int argc, char *args[]) {
     if (argc != 2) { printf("Usage: test <module>\n"); return -1; }
@@ -321,7 +344,7 @@ int test(int argc, char *args[]) {
         printf("\tRestoring sector...");
         ideWriteSectors(drive, 4, 0, comparison_buffer);
         printf("DONE\n");
-        
+
         kfree(comparison_buffer);
         kfree(sector);
         kfree(sector_comparison);
@@ -335,7 +358,7 @@ int test(int argc, char *args[]) {
 
         
 
-        if (!isFatRunning()) {
+        if (!fatDriver) {
             printf("\tFAT driver is not running\n");    
             printf("=== TESTS FAILED ===\n");
             return -1;
@@ -500,11 +523,142 @@ int test(int argc, char *args[]) {
             kfree(buffer);
         }
 
+        // It's ugly but we have to do it because of the VFS being incomplete.
+        printf("\tTesting fatOpen (test.txt)...");
+        memset(&ret, 0, sizeof(fsNode_t));
+        ret.flags = -1; // Preventing false-passes
+        strcpy(ret.name, "/test.txt");
+        ret.impl_struct = fatDriver->impl_struct;
+
+        fatOpen(&ret);
+
+        if (ret.flags != VFS_FILE) {
+            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        } else {
+            printf("PASS\n");
+        }
+
+        printf("\tTesting fatOpen (dir/test.txt)...");
+        memset(&ret, 0, sizeof(fsNode_t));
+        ret.flags = -1; // Preventing false-passes
+        strcpy(ret.name, "/dir/test.txt");
+        ret.impl_struct = fatDriver->impl_struct;
+
+        fatOpen(&ret);
+
+        if (ret.flags != VFS_FILE) {
+            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        } else {
+            printf("PASS\n");
+        }
+
+
+        printf("\tTesting fatOpen (nonexistent.txt)...");
+        memset(&ret, 0, sizeof(fsNode_t));
+        ret.flags = -1; // Preventing false-passes
+        strcpy(ret.name, "/nonexistent.txt");
+        ret.impl_struct = fatDriver->impl_struct;
+
+        fatOpen(&ret);
+
+        if (ret.flags != -1) {
+            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        } else {
+            printf("PASS\n");
+        }
+
+
+
         kfree(comparison_buffer);
         // kfree(ret); - Glitches out??
 
         printf("=== TESTS COMPLETED ===\n");
         
+    } else if (!strcmp(args[1], "tree")) {
+        printf("=== TESTING TREE ===\n"); 
+
+        printf("\tTesting tree_create...");
+        tree_t *tree = tree_create();
+        if (tree) printf("PASS\n");
+        else {
+            printf("FAIL\n");
+            printf("=== TESTS FAILED ===\n");
+            return -1;
+        }
+
+        printf("\tTesting tree_set_root...");
+        tree_set_root(tree, 0xB16B00B5);
+        
+        if (tree->root->value == 0xB16B00B5) printf("PASS\n");
+        else printf("FAIL\n");
+
+        printf("\tTesting tree_node_create...");
+        
+        tree_node_t *node = tree_node_create(0x11111111);
+        if (node->value == 0x11111111) printf("PASS\n");
+        else printf("FAIL\n");
+
+        printf("\tTesting tree_insert_child_node (root/node)...");
+        tree_node_insert_child_node(tree, tree->root, node);
+        printf("PASS\n");
+
+        printf("\tTesting tree_find...");
+
+        tree_node_t *returned_node = tree_find(tree, 0x11111111, test_comparator);
+        if (returned_node->value == 0x11111111) printf("PASS\n");
+        else printf("FAIL\n");
+
+        printf("\tTesting tree_node_remove (0 children)...");
+        tree_node_remove(tree, returned_node);
+    
+        if (tree_find(tree, 0x11111111, test_comparator) == NULL) printf("PASS\n");
+        else printf("FAIL\n");
+
+        printf("\tTesting tree_node_insert_child...");
+        tree_node_insert_child(tree, tree->root, 0x1);
+        if (tree_count_children(tree->root) == 1) printf("PASS\n");
+        else printf("FAIL\n");
+
+        // We already tested tree_count_children, technically (even though it might be wrong) ;)
+        printf("\tTesting tree_count_children...PASS\n");
+
+        kfree(node);
+
+
+        printf("\tFilling tree with data...");
+        for (int i = 0; i < 3; i++) {
+            tree_node_t *n = tree_node_insert_child(tree, tree->root, i * 4); // i * 4 is just a random value from my head
+            for (int j = 0; j < 4; j++) {
+                tree_node_insert_child(tree, n, i*4 + j + 1);
+            }
+        }
+        printf("DONE\n");
+
+        
+        printf("\tTesting tree_node_find_parent...");
+        
+        // We'll test this function on a specific tree node
+        tree_node_t *test_node = tree_find(tree, 0xC, test_comparator);
+
+        if (test_node) {
+            tree_node_t *parent = tree_find_parent(tree, test_node);
+            if (parent) {
+                if (parent->value == 0x8) printf("PASS\n");
+                else printf("FAIL (parent->value = 0x%x)\n", parent->value);
+            } else {
+                printf("FAIL (returned NULL)\n");
+            }
+        } else {
+            printf("FAIL (tree_find failed)\n");
+        }
+
+        
+        printf("\tDestroying tree...");
+        tree_free(tree);
+        printf("DONE\n");
+
+        printf("=== TESTS COMPLETED ===\n");
+
     } else {
         printf("Usage: test <module>\n");
         printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat\n");
@@ -512,3 +666,4 @@ int test(int argc, char *args[]) {
 
     return 0;
 }
+

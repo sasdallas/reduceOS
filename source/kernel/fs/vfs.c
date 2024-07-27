@@ -87,16 +87,51 @@ fsNode_t *getRootFilesystem() {
 void vfsInit() {
     fs_tree = tree_create(); // Create the monuntpoint tree
 
-    vfsEntry_t root;
-    root.name = "/";
-    root.file = NULL; // Nothing is mounted
-    root.fs_type = NULL;
-    root.device = NULL;
+    vfsEntry_t *root = kmalloc(sizeof(vfsEntry_t));
+    strcpy(root->name, "/");
+    root->file = 0; // Nothing is mounted
+    root->fs_type = 0;
+    root->device = 0;
 
-    tree_set_root(fs_tree, &root);
+    tree_set_root(fs_tree, root);
+
+    if (fs_tree->root->value != root) panic("VFS", "vfsInit", "tree fail");
 }
 
 
+void debug_print_vfs_tree_node(tree_node_t *node, size_t height) {
+    if (!node) return;
+
+    // Indent output according to height
+    char *indents = kmalloc(100);
+    memset(indents, 0, 100);
+    for (int i = 0; i < height; i++) {
+        indents[i] = ' ';
+    }
+
+    // Get the current VFS node
+    vfsEntry_t *fnode = (vfsEntry_t*)node->value;
+
+    // Print it out
+    if (fnode->file) {
+        serialPrintf("%s%s -> 0x%x (%s)\n", indents, fnode->name, (void*)fnode->file, fnode->file->name);
+    } else {
+        serialPrintf("%s%s -> (empty)\n", indents, fnode->name);
+    }
+
+    kfree(indents);
+
+    foreach(child, node->children) {
+        debug_print_vfs_tree_node(child->value, height + 1);
+    }
+}
+
+
+void debug_print_vfs_tree() {
+    serialPrintf("=== VFS TREE ===\n");
+    debug_print_vfs_tree_node(fs_tree->root, 1);
+    serialPrintf("=== END VFS TREE ===\n");
+}
 
 // vfsMount(char *path, fsNode_t *localRoot) - Mount a filesystem to the specified path (ToaruOS has a really good impl. of this)
 void *vfsMount(char *path, fsNode_t *localRoot) {
@@ -113,7 +148,7 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
 
 
     // Slice up the path
-    char *p;
+    char *p = kmalloc(strlen(path));
     memcpy(p, path, strlen(path)); // Memory safety!
 
     char *i = p;
@@ -133,8 +168,11 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
         // We are setting the root node! Should be easy, I think.
         serialPrintf("vfsMount: Mounting to /\n");
         vfsEntry_t *root = (vfsEntry_t*)rootNode->value;
-        if (root->file) serialPrintf("vfsMount: Path %s is already mounted - please do the correct thing and UNMOUNT.\n", path);
+        if (root->file != 0) serialPrintf("vfsMount: Path %s is already mounted - please do the correct thing and UNMOUNT.\n", path);
         root->file = localRoot;
+        strcpy(root->device, "N/A");
+        strcpy(root->fs_type, "N/A");
+        strcpy(root->name, "/");
         fs_root = localRoot;
         ret_val = rootNode;
     } else {
@@ -158,12 +196,16 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
 
             if (!found) {
                 serialPrintf("vfsMount: Could not find %s - creating it.\n", at);
+                
+                
                 vfsEntry_t *entry = kmalloc(sizeof(vfsEntry_t));
-                memcpy(entry->name, at, strlen(at));
-                entry->file = NULL;
-                entry->device = NULL;
-                entry->fs_type = NULL;
+
+                strcpy(entry->name, at);
+                entry->file = 0;
+                entry->device = 0;
+                entry->fs_type = 0;
                 node = tree_node_insert_child(fs_tree, node, entry);
+
             }
             at = at + strlen(at) + 1;
         }

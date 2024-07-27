@@ -39,6 +39,7 @@ void tree_node_remove(tree_t * tree, tree_node_t * node);
 void tree_remove(tree_t * tree, tree_node_t * node);
 tree_node_t * tree_find(tree_t * tree, void * value, tree_comparator_t comparator);
 void tree_break_off(tree_t * tree, tree_node_t * node);
-
+size_t tree_count_children(tree_node_t *node);
+tree_node_t *tree_find_parent(tree_t *tree, tree_node_t *node);
 
 #endif

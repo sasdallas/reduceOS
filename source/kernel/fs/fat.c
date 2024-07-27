@@ -5,9 +5,8 @@
 
 #include "include/fat.h" // Main header file
 
-// This driver is currently a SKELETON. It is NOT fully complete.
-// Better VFS impl., mountpoints, and much others are required, not to mention being able to initialize the driver on MULTIPLE DEVICES is not available.
-
+// This driver is compatible with VFS standards but is missing writing functionality. That will be added later.
+// DO NOT USE ANY INTERNAL FUNCTIONS. USE THE VFS ONES.
 
 /* 
 SUPPORTED FILESYSTEMS:
@@ -16,16 +15,13 @@ SUPPORTED FILESYSTEMS:
 
 // If you want a lot of the details about FAT, see https://wiki.osdev.org/FAT
 
-// External variables
-extern ideDevice_t ideDevices[4];
 
 // NOTE: impl_struct is a reference to fat_t
 
 // Variables
 uint8_t FAT[1024]; // File allocation table
 fsNode_t driver; // Driver inode
-fat_drive_t *drive = NULL;
-bool fatRunning = false;
+
 
 
 // Functions
@@ -89,8 +85,6 @@ fsNode_t fatParseRootDirectory(fat_t *fs, char *path) {
 
     filename[11] = 0;
 
-
-    serialPrintf("Node name for driver: %s\n", fs->drive->driveobj->name);
 
 
     for (int sector = 0; sector < 14; sector++) {
@@ -238,10 +232,8 @@ fsNode_t fatParseSubdirectory(fsNode_t file, const char *path) {
         // Read in the directory
         uint8_t *buffer = kmalloc(512);
         
-        serialPrintf("Reading\n");
         int status = fatReadInternal(&ret, buffer, 512);
         
-        serialPrintf("Read\n");
 
         // Setup the directory
         fat_fileEntry_t *directory = (fat_fileEntry_t*)buffer;
@@ -314,9 +306,7 @@ fsNode_t fatOpenInternal(fsNode_t *driver, char *filename) {
     char *filepath = filename;
     char *slash = strchr(filepath, '/'); // Should definitely be updated to allow for future inode paths like /device/hda0
 
-    serialPrintf("Checking...\n");
     if (!slash) {
-        serialPrintf("No subdir\n");
         // The file is not in a subdirectory. Scan the root directory.
         directory = fatParseRootDirectory((fat_t*)(driver->impl_struct), filepath);
 
@@ -331,7 +321,6 @@ fsNode_t fatOpenInternal(fsNode_t *driver, char *filename) {
 
     slash++; // Go to next character
     while (slash) {
-        serialPrintf("Subdir\n");
         // Get the path name.
         char path[16];
         int i = 0;
@@ -346,12 +335,9 @@ fsNode_t fatOpenInternal(fsNode_t *driver, char *filename) {
 
         // Open subdirectory or file
         if (isRootDir) {
-            serialPrintf("Reading root directory...\n");
             directory = fatParseRootDirectory((fat_t*)(driver->impl_struct), path);
-            serialPrintf("Root dir read\n");
             isRootDir = false;
         } else {
-            serialPrintf("Reading subdirectory...\n");
             directory = fatParseSubdirectory(directory, path);
         }
 
@@ -426,12 +412,32 @@ uint32_t fatWrite(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf
     return 0;
 }
 
+uint32_t fatOpen(struct fsNode *node) {
+    // All we do is just pass it to fatOpenInternal basically
+    // node->name should contain the filename that we want to open, and node->impl_struct should contain the fat_t object.
+    // However, as I'm writing this we're currently prototyping - so let's check to make sure fat_t is there, panic if it's not.
 
-bool isFatRunning() {
-    return fatRunning;
+    if (((fat_t*)(((fsNode_t*)node)->impl_struct))->drive->bpb->bootjmp[0] != 0xEB) {
+        panic("FAT", "fatOpen", "bootjmp[0] is not 0xEB");
+    }
+
+    fsNode_t ret = fatOpenInternal((fsNode_t*)node, ((fsNode_t*)node)->name);
+    memcpy(node, &ret, sizeof(fsNode_t));
+
+    // Compare the two and make sure we're doing this correctly
+    if (((fsNode_t*)node)->flags != ret.flags) {
+        panic("FAT", "fatOpen", "memcpy() failed");
+    }
+
+    // Done!
+    return 0;
 }
 
+uint32_t fatClose(struct fsNode *node) {
+    return 0; // So much closing happening here
+}
 
+// fatInit(fsNode_t *driveNode) - Creates a FAT filesystem driver on driveNode and returns it
 fsNode_t *fatInit(fsNode_t *driveNode) {
     serialPrintf("fatInit: FAT trying to initialize on driveNode...\n");
 
@@ -505,112 +511,19 @@ fsNode_t *fatInit(fsNode_t *driveNode) {
         // Create the VFS node and return it
         fsNode_t *ret = kmalloc(sizeof(fsNode_t));
         ret->uid = ret->gid = ret->inode = ret->impl = ret->mask = 0;
-        ret->open = NULL;
-        ret->close = NULL;
+        ret->open = &fatOpen;
+        ret->close = &fatClose;
         ret->create = NULL;
         ret->read = &fatRead;
-        ret->write = NULL;
+        ret->write = &fatWrite;
         ret->finddir = NULL;
         ret->readdir = NULL;
         ret->mkdir = NULL;
         ret->impl_struct = driver;
         strcpy(ret->name, "FAT driver");
     
-        fatRunning = true;
         return ret;
     }
 
     return NULL;
-}
-
-void fatInit_old() {
-    // First, find all drives that COULD have a FAT FS on them.
-    serialPrintf("Searching for drive...\n");
-    
-    int drives[3];
-    int index = 0;
-
-    for (int i = 0; i < 4; i++) { 
-        if (ideDevices[i].reserved == 1 && ideDevices[i].size > 1) {
-            printf("Found IDE device with %i KB\n", ideDevices[i].size);
-            drives[index] = i;
-            index++;
-        }
-    }
-
-    if (index == 0) {
-        printf("No drives found or capacity too low to read sector.\n");
-        return;
-    }
-
-
-    // Now, check all drives found (todo: move this to other function?)
-    for (int i = 0; i < index; i++) {
-        serialPrintf("fatInit: Trying drive %i...\n", drives[i]);
-        // Read sector (BPB is in the first sector)
-        uint32_t *buffer = kmalloc(512);
-        ideReadSectors(drives[i], 1, (uint32_t)0, buffer); // LBA = 0, SECTORS = 1
-        
-        
-        drive = kmalloc(sizeof(fat_drive_t));
-        drive->bpb = (fat_BPB_t*)buffer;
-        serialPrintf("fatInit: Starting sequence is %x %x %x\n",drive->bpb->bootjmp[0], drive->bpb->bootjmp[1], drive->bpb->bootjmp[2]);
-
-        // bootjmp is the ASM instruction to jump over the BPB
-        // Normally, the 3 bytes are EB 3C 90, but the 3C can vary.
-        if (drive->bpb->bootjmp[0] == 0xEB && drive->bpb->bootjmp[2] == 0x90) { 
-            serialPrintf("fatInit: bootjmp identified\n");
-            serialPrintf("fatInit: OEM is %s\n", (char*)drive->bpb->oemName);
-            
-            // Typecast both of the extended BPBs.
-            drive->extended16 = drive->bpb->extended;
-            drive->extended32 = drive->bpb->extended;
-
-            // Create the fat_drive_t object.
-            drive->driveobj = ideGetVFSNode(drives[i]);
-        
-            // Now we need to identify the type of FAT used. We can do this by checking the total clusters.
-            // To calculate the total clusters, we need to first calculate the total number of sectors in the volume.
-            int totalSectors = (drive->bpb->totalSectors16 == 0) ? drive->bpb->totalSectors32 : drive->bpb->totalSectors16;
-            drive->totalSectors = totalSectors;
-
-            // Now, we calculate the FAT size in sectors.
-            int fatSize = (drive->bpb->tableSize16 == 0) ? drive->extended32->tableSize32 : drive->bpb->tableSize16;
-            drive->fatSize = fatSize;
-
-            // Calculate the size of the root directory
-            int rootDirSectors = ((drive->bpb->rootEntryCount * 32) + (drive->bpb->bytesPerSector - 1)) / drive->bpb->bytesPerSector; // If 0, this is FAT32.
-            drive->rootDirSectors = rootDirSectors;
-
-            // Calculate the total number of data sectors.
-            int dataSectors = totalSectors - (drive->bpb->reservedSectorCount + (drive->bpb->tableCount * fatSize) + rootDirSectors);
-            drive->dataSectors = dataSectors;
-
-            // Finally, calculate the total number of clusters.
-            int totalClusters = dataSectors / drive->bpb->sectorsPerCluster;
-            drive->totalClusters = totalClusters;
-
-            // For good measure, calculate the first data sector (where dirs and files are stored).
-            int firstDataSector = drive->bpb->reservedSectorCount + (drive->bpb->tableCount * fatSize) + rootDirSectors;
-            drive->firstDataSector = firstDataSector;
-            
-            drive->firstFatSector = drive->bpb->reservedSectorCount;
-
-            int rootOffset = (drive->bpb->tableCount * drive->bpb->tableSize16) + 1;        
-
-            // Identify the FAT type.
-            if (totalSectors < 4085) {
-                drive->fatType = 1;
-            } else if (totalSectors < 65525) {
-                drive->fatType = 2;
-            } else if (rootDirSectors == 0) {
-                drive->fatType = 3;
-            } else {
-                drive->fatType = 0;
-            }
-
-            serialPrintf("fatInit: FAT initialized on drive %i", drives[i]);
-            fatRunning = true;
-        }
-    }  
 }

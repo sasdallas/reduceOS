@@ -482,8 +482,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     initPCI();
     serialPrintf("initPCI: PCI probe completed\n");
 
-    // Initialize the VFS
-    vfsInit();
+    
 
     // Initialize the IDE controller.
     updateBottomText("Initializing IDE controller...");
@@ -538,10 +537,17 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
 
-    
+    // Initialize the VFS
+    vfsInit();
+
     fsNode_t *ideNode = ideGetVFSNode(0);
-    serialPrintf("IDE node name: %s\n", ideNode->name);
     fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
+
+    if (fatDriver) vfsMount("/", fatDriver);
+    vfsMount("/ide0", ideNode);
+    
+    debug_print_vfs_tree();
+
 
     //ext2_init();
 

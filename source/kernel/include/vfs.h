@@ -92,6 +92,7 @@ fsNode_t *findDirectoryFilesystem(fsNode_t *node, char *name); // Finds a direct
 fsNode_t *openFile(const char *name); // Opens a file.
 void mountRootFilesystem(fsNode_t *node); // Mounts a root filesystem.
 fsNode_t *getRootFilesystem(); // Returns root filesystem.
-
+void *vfsMount(char *path, fsNode_t *localRoot); // Mount a filesystem to the specified path
+void vfsInit(); // Initialize the VFS
 
 #endif

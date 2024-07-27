@@ -64,8 +64,6 @@ extern void* liballoc_alloc(size_t);
 extern int liballoc_free(void*,size_t);
 
 
-#define DEBUG
-
        
 
 extern void    *PREFIX(malloc)(size_t);				///< The standard function.
