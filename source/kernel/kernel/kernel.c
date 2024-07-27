@@ -553,7 +553,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     debug_print_vfs_tree();
 
 
-    //ext2_init();
+    ext2_init();
 
 
 

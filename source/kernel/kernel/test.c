@@ -115,6 +115,31 @@ int liballoc_tests() {
 
     printf("PASS\n");
 
+    printf("\tAllocating 120KB...");
+    uint8_t *itsgonnacrash = kmalloc(120000);
+    printf("PASS\n");
+
+    printf("\tAllocating 4KB five times...");
+    uint8_t *one = kmalloc(4096);
+    uint8_t *two = kmalloc(4096);
+    uint8_t *three = kmalloc(4096);
+    uint8_t *four = kmalloc(4096);
+    uint8_t *five = kmalloc(4096);
+    printf("PASS\n");
+
+    printf("\tFreeing 4KB five times...");
+    kfree(one);
+    kfree(two);
+    kfree(three);
+    kfree(four);
+    kfree(five);
+    printf("PASS\n");
+
+    printf("\tFreeing 120KB...");
+    kfree(itsgonnacrash); // It did not in fact.
+    printf("PASS\n");
+
+
     return 0;
 }
 

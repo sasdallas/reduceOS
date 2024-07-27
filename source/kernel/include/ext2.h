@@ -72,8 +72,8 @@ typedef struct ext2_bgd {
     uint16_t unallocated_blocks;        // Number of unallocated blocks in groups
     uint16_t unallocated_inodes;        // Number of unallocated inodes in groups
     uint16_t directories;               // Number of directories in groups
-    uint32_t reserved1;
-    uint32_t reserved2;
+    uint16_t pad;
+    uint8_t reserved[12];
 } __attribute__((packed)) ext2_bgd_t;
 
 // Inode
@@ -216,6 +216,11 @@ typedef struct ext2 {
 #define EXT2_INODE_HASHIDX 0x00010000       // Hash indexed directory
 #define EXT2_INODE_AFS 0x00020000           // AFS directory
 #define EXT2_INODE_JOURNALDATA 0x00040000   // Journal file data
+
+// Macros (for using BGDs)
+#define BLOCKBIT(n)  (bg_buffer[((n) >> 3)] & (1 << (((n) % 8))))
+#define BLOCKBYTE(n) (bg_buffer[((n) >> 3)])
+#define SETBIT(n)    (1 << (((n) % 8)))
 
 
 // Functions
