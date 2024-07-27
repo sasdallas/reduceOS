@@ -72,7 +72,7 @@ struct dirent {
 
 // Entry for the filesystem tree
 typedef struct vfsEntry {
-    char *name;
+    char name[20];
     fsNode_t *file; 
     char *device;
     char *fs_type;

@@ -114,9 +114,9 @@ void debug_print_vfs_tree_node(tree_node_t *node, size_t height) {
 
     // Print it out
     if (fnode->file) {
-        serialPrintf("%s%s -> 0x%x (%s)\n", indents, fnode->name, (void*)fnode->file, fnode->file->name);
+        serialPrintf("%s%s (0x%x) -> 0x%x (%s)\n", indents, fnode->name, node->value, (void*)fnode->file, fnode->file->name);
     } else {
-        serialPrintf("%s%s -> (empty)\n", indents, fnode->name);
+        serialPrintf("%s%s (0x%x) -> (empty)\n", indents, fnode->name, node->value);
     }
 
     kfree(indents);

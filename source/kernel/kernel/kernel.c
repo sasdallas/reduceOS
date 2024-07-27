@@ -544,6 +544,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
 
     if (fatDriver) vfsMount("/", fatDriver);
+
+    debug_print_vfs_tree();
     vfsMount("/ide0", ideNode);
     
     debug_print_vfs_tree();
