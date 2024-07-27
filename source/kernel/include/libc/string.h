@@ -30,4 +30,10 @@ char *strtok(char *str, const char *delim); // strtok() - splits a string into t
 long strtol(const char *nptr, char **endptr, int base); // strtol() - <todo add description>
 int atoi(char *str); // atoi() - string to integer
 char *strchr(char *str, int ch); // Locate the first occurance of a character in a string (credit to BrokenThorn Entertainment)
+char *strchrnul(const char *str, int ch); // Locates a character in a string
+size_t strcspn(const char *str1, const char *reject); // Scans str1 for the first occurence of any of the characters that are NOT part of reject.
+size_t strspn(const char *str1, const char *accept); // Scans str1 for the first occurence of any of the characters that are part of accept.
+char *strpbrk(const char *s, const char *b); // Returns a pointer to the first occurence of b within s.
+char *strtok_r(char *str, const char *delim, char **saveptr); // Thread-safe version of strtok
+
 #endif

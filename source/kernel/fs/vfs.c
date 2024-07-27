@@ -179,6 +179,8 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
         tree_node_t *node = rootNode;
         char *at = i;
         while (true) {
+            // Search for the path
+
             if (at >= p + strlen(path)) break;
             int found = 0;
             serialPrintf("vfsMount: Searching for %s...\n", at);
@@ -221,4 +223,101 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
 
     kfree(p);
     return ret_val;
+}
+
+// vfs_canonicalizePath(const char *cwd, const char *input) - Canonicalizes a path (cwd = current working directory, input = path to append/canonicalize on)
+char *vfs_canonicalizePath(const char *cwd, const char *input) {
+    list_t *out = list_create(); // Stack-based canonicalizer, use list as a stack (ToaruOS)
+
+    // Check if we have a relative path (not starting from root). If so, we need to canonicalize the working directory.
+    if (strlen(input) && input[0] != '/') {
+        // Make a copy of the current working directory
+        char *path = kmalloc((strlen(cwd) + 1) * sizeof(char));
+        memcpy(path, cwd, strlen(cwd) + 1);
+
+        // Setup the tokenizer
+        char *pch;
+        char *save;
+        pch = strtok_r(path, "/", &save);
+
+        while (pch != NULL) {
+            // Make copies of the path elements
+            char *s = kmalloc(sizeof(char) * (strlen(pch) + 1));
+            memcpy(s, pch, strlen(pch) + 1);
+
+            // Put them in the list
+            list_insert(out, s);
+            
+            // Repeat!
+            pch = strtok_r(NULL, "/", &save); // note to self: why did I think I needed strtok_r? isn't this OS supposed to be memory-efficient?
+                                              // having serious reflection moments in code comments - this is why reduceOS is the best OS
+        }
+
+        kfree(path);
+    }
+
+    // Insert elements from new path
+    char *path = kmalloc((strlen(input) + 1) * sizeof(char));
+    memcpy(path, input, strlen(input) + 1);
+
+    // Initialize tokenizer 
+    char *save;
+    char *pch;
+    pch = strtok_r(path, "/", &save);
+
+
+    // Tokenize the path and make sure to take dare of .. and . to represent list pop and current.
+    while (pch != NULL) {
+        if (!strcmp(pch, "..")) {
+            // Pop the list to move up.
+            node_t *node = list_pop(out);
+            if (node) {
+                kfree(node->value);
+                kfree(node);
+            }
+        } else if (!strcmp(pch, ".")) {
+            // Do nothing
+        } else {
+            // Normal path. Push onto list.
+            char *str = kmalloc(sizeof(char) * (strlen(pch) + 1));
+            memcpy(str, pch, strlen(pch) + 1);
+            list_insert(out, str);
+        }
+
+        pch = strtok_r(NULL, "/", &save);
+    }
+
+    kfree(path);
+
+    // Calculate the size of the path string
+    size_t size = 0;
+    foreach(item, out) {
+        size += strlen(item->value) + 1;
+    }
+
+    // Join the list
+    char *output = kmalloc(sizeof(char) * (size + 1));
+    char *offset = output;
+
+    if (size == 0) {
+        // Assume this is the root directory
+        output = krealloc(output, sizeof(char) * 2);
+        output[0] = '/';
+        output[1] = '\0'; // Don't forget the null-termination!
+    } else {
+        // Append each element together
+        foreach (item, out) {
+            offset[0] = '/';
+            offset++;
+            memcpy(offset, item->value, strlen(item->value) + 1);
+            offset += strlen(item->value);
+        }
+    }
+
+    // Cleanup the list and return
+    list_destroy(out);
+    list_free(out);
+    kfree(out);
+
+    return output;
 }

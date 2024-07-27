@@ -4,6 +4,13 @@
 
 #include "include/libc/string.h" // We need to include our header file.
 
+
+// Macros for assistance (ToaruOS)
+#define BITOP(A, B, OP) ((A)[(size_t)(B)/(8*sizeof *(A))] OP (size_t)1<<((size_t)(B)%(8*sizeof *(A))))
+#define ONES ((size_t)-1/UCHAR_MAX)
+#define HIGHS (ONES * (UCHAR_MAX/2+1))
+#define HASZERO(X) (((X)-ONES) & ~(X) & HIGHS)
+
 // memcmp() - Comparing addresses/values in memory
 // Three parameters - objects 1 and 2(const void*) and the amount of bytes to compare(size_t)
 
@@ -298,4 +305,84 @@ char *strchr(char *str, int ch) {
     } while (*str++);
 
     return 0; // Nothing.
+}
+
+// strchrnul(const char *str, int ch) - Locates a character in a string (why do we need this?)
+char *strchrnul(const char *str, int ch) {
+    size_t *w;
+    size_t k;
+
+    ch = (uint8_t)ch;
+    if (!ch) return (char*)str + strlen(str); // Return basically what is a NULL
+
+    for (; (uintptr_t)str % sizeof(size_t); str++) {
+        if (!*str || *(unsigned char *)str == ch) return (char*)str;
+    }
+
+    k = ONES * ch;
+    for (w = (void*)str; !HASZERO(*w) && !HASZERO(*w^k); w++);
+    for (str = (void*)w; *str && *(unsigned char*)str != ch; str++);
+
+    return (char*)str;
+}
+
+
+// strcspn(const char *str1, const char *reject) - Scans str1 for the first occurence of any of the characters that are NOT part of reject.
+size_t strcspn(const char *str1, const char *reject) {
+    const char *a = str1;
+    if (reject[0] && reject[1]) {
+        size_t byteset[32 / sizeof(size_t)] = {0};
+        for (; *reject && BITOP(byteset, *(unsigned char *)reject, |=); reject++);
+        for (; *str1 && !BITOP(byteset, *(unsigned char *)str1, &); str1++);
+        return str1 - a;
+    }
+
+    return strchrnul(str1, *reject) - a;
+}
+
+// strspn(const char *str1, const char *accept) - Scans str1 for the first occurence of any of the characters that are part of accept.
+size_t strspn(const char *str1, const char *accept) {
+    const char *a = str1;
+    size_t byteset[32 / sizeof(size_t)]  = {0};
+
+    if (!accept[0]) return 0;
+
+    if (!accept[1]) {
+        for (; *str1 == *accept; str1++);
+        return str1 - a;
+    }
+
+    for (; *accept && BITOP(byteset, *(unsigned char *)accept, |=); accept++);
+    for (; *str1 && BITOP(byteset, *(unsigned char *)str1, &); str1++);
+    
+    return str1 - a;
+}
+
+// strpbrk(const char *s, const char *b) - Returns a pointer to the first occurence of b within s.
+char *strpbrk(const char *s, const char *b) {
+    s += strcspn(s, b);
+    return *s ? (char*)s : 0;
+}
+
+// strtok_r(char *str, const char *delim, char **saveptr) - Thread-safe version of strtok
+char *strtok_r(char *str, const char *delim, char **saveptr) {
+    char *token;
+    if (str == NULL) str = *saveptr;
+
+    str += strspn(str, delim);
+    if (*str == '\0') {
+        *saveptr = str;
+        return NULL; // No occurence
+    }
+
+    token = str;
+    str = strpbrk(token, delim);
+    if (str == NULL) {
+        *saveptr = (char*)((size_t)strchr(token, '\0'));
+    } else {
+        *str = '\0';
+        *saveptr = str + 1;
+    }
+
+    return token;
 }

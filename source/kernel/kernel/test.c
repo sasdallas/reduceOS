@@ -36,137 +36,137 @@ void test_debug_print_tree_node(tree_t *tree, tree_node_t *node, size_t height) 
     }
 }
 
-// SHOULD BE SPLIT UP INTO MULTIPLE FUNCTIONS
-// This function is hopefully going to serve as a function to test multiple modules of the OS.
-int test(int argc, char *args[]) {
-    if (argc != 2) { printf("Usage: test <module>\n"); return -1; }
-
-    if (!strcmp(args[1], "pmm")) {
-        printf("=== TESTING PHYSICAL MEMORY MANAGEMENT ===\n");
-        void *a = pmm_allocateBlock();
-        printf("\tAllocated 1 block to a to 0x%x\n", a);
-        
-        void *b = pmm_allocateBlocks(2);
-        printf("\tAllocated 2 blocks to b at 0x%x\n", b);
-
-        void *c = pmm_allocateBlock();
-        printf("\tAllocated 1 block to c to 0x%x\n", c);
-
-        pmm_freeBlock(a);
-        pmm_freeBlock(c);
-
-        c = pmm_allocateBlock();
-        a = pmm_allocateBlock();
-
-        printf("\tFreed a and c\n");
-        printf("\tReallocated c to 0x%x\n", c);
-        printf("\tReallocated a to 0x%x\n", a);
-
-        pmm_freeBlocks(b, 2);
-        printf("\tFreed 2 blocks of b\n");
-        
-        void *d = pmm_allocateBlock();
-        printf("\tAllocated d to 0x%x\n", d);
-
-        pmm_freeBlock(a);
-        pmm_freeBlock(c);
-        pmm_freeBlock(d);
-
-        printf("=== TESTS COMPLETED ===\n");
-    } else if (!strcmp(args[1], "liballoc")) {
-        printf("=== TESTING LIBALLOC ===\n");
-        void *a = kmalloc(8);
-        printf("\tAllocated 8 bytes to a to 0x%x\n", a);
-        
-        void *b = kmalloc(16);
-        printf("\tAllocated 16 bytes to b at 0x%x\n", b);
-
-        void *c = kmalloc(8);
-        printf("\tAllocated 8 bytes to c to 0x%x\n", c);
-
-        kfree(a);
-        kfree(c);
-
-        c = kmalloc(8);
-        a = kmalloc(8);
-
-        printf("\tFreed a and c\n");
-        printf("\tReallocated c to 0x%x\n", c);
-        printf("\tReallocated a to 0x%x\n", a);
-
-        kfree(b);
-        printf("\tFreed 16 bytes of b\n");
-        
-        void *d = kmalloc(8);
-        printf("\tAllocated 8 bytes to d to 0x%x\n", d);
-
-        kfree(a);
-        kfree(c);
-        kfree(d);
-        
-        printf("\tAllocating a large amount of memory...");
-
-        uint8_t *memoryArray[500];
-        for (int i = 0; i < 500; i++) {
-            memoryArray[i] = kmalloc(8);
-        }
-
-        printf("PASS\n");
-
-        printf("\tFreeing a large amount of memory...");
-        for (int i = 0; i < 500; i++) {
-            kfree(memoryArray[i]);
-        }
-
-        printf("PASS\n");
-
-        printf("=== TESTS COMPLETED ===\n");
-    } else if (!strcmp(args[1], "bios32")) {
-        printf("=== TESTING BIOS32 ===\n");
-
-        printf("\tServing INT 0x15...\n");
-        REGISTERS_16 in, out = {0};
-
-        in.ax = 0xE820;
-        bios32_call(0x15, &in, &out);
-
-        printf("\tInterrupt serviced. Results:\n");
-        printf("\tAX = 0x%x BX = 0x%x CX = 0x%x DX = 0x%x\n", out.ax, out.bx, out.cx, out.dx);
-
-        printf("=== TESTS COMPLETED ===\n");
-    } else if (!strcmp(args[1], "floppy")) {
-        printf("=== TESTING FLOPPY ===\n");
-
-        
-        uint32_t sector = 0;
-        uint8_t *buffer = 0;
-
-        printf("\tReading sector %i...\n", sector);
-
-        int ret = floppy_readSector(sector, &buffer);
+int pmm_tests() {
+    void *a = pmm_allocateBlock();
+    printf("\tAllocated 1 block to a to 0x%x\n", a);
     
-        if (ret != FLOPPY_OK) {
-            printf("Could not read sector. Error code %i\n", ret);
-            printf("=== TESTS FAILED ===\n");
-            return -1;
+    void *b = pmm_allocateBlocks(2);
+    printf("\tAllocated 2 blocks to b at 0x%x\n", b);
+
+    void *c = pmm_allocateBlock();
+    printf("\tAllocated 1 block to c to 0x%x\n", c);
+
+    pmm_freeBlock(a);
+    pmm_freeBlock(c);
+
+    c = pmm_allocateBlock();
+    a = pmm_allocateBlock();
+
+    printf("\tFreed a and c\n");
+    printf("\tReallocated c to 0x%x\n", c);
+    printf("\tReallocated a to 0x%x\n", a);
+
+    pmm_freeBlocks(b, 2);
+    printf("\tFreed 2 blocks of b\n");
+        
+    void *d = pmm_allocateBlock();
+    printf("\tAllocated d to 0x%x\n", d);
+
+    pmm_freeBlock(a);
+    pmm_freeBlock(c);
+    pmm_freeBlock(d);
+
+    return 0;
+}
+
+int liballoc_tests() {
+    void *a = kmalloc(8);
+    printf("\tAllocated 8 bytes to a to 0x%x\n", a);
+        
+    void *b = kmalloc(16);
+    printf("\tAllocated 16 bytes to b at 0x%x\n", b);
+    
+    void *c = kmalloc(8);
+    printf("\tAllocated 8 bytes to c to 0x%x\n", c);
+
+    kfree(a);
+    kfree(c);
+
+    c = kmalloc(8);
+    a = kmalloc(8);
+
+    printf("\tFreed a and c\n");
+    printf("\tReallocated c to 0x%x\n", c);
+    printf("\tReallocated a to 0x%x\n", a);
+
+    kfree(b);
+    printf("\tFreed 16 bytes of b\n");
+        
+    void *d = kmalloc(8);
+    printf("\tAllocated 8 bytes to d to 0x%x\n", d);
+
+    kfree(a);
+    kfree(c);
+    kfree(d);
+        
+    printf("\tAllocating a large amount of memory...");
+
+    uint8_t *memoryArray[2000];
+    for (int i = 0; i < 2000; i++) {
+        memoryArray[i] = kmalloc(8);
+    }
+
+    printf("PASS\n");
+
+    printf("\tFreeing a large amount of memory...");
+    for (int i = 0; i < 2000; i++) {
+        kfree(memoryArray[i]);
+    }
+
+    printf("PASS\n");
+
+    return 0;
+}
+
+int bios32_tests() {
+    printf("\tServing INT 0x15...\n");
+    REGISTERS_16 in, out = {0};
+
+    in.ax = 0xE820;
+    bios32_call(0x15, &in, &out);
+
+    printf("\tInterrupt serviced. Results:\n");
+    printf("\tAX = 0x%x BX = 0x%x CX = 0x%x DX = 0x%x\n", out.ax, out.bx, out.cx, out.dx);
+
+    return 0;
+}
+
+int floppy_tests() {
+    uint32_t sector = 0;
+    uint8_t *buffer = 0;
+
+    printf("\tReading sector %i...\n", sector);
+
+    int ret = floppy_readSector(sector, &buffer);
+    
+    if (ret != FLOPPY_OK) {
+        printf("Could not read sector. Error code %i\n", ret);
+        return -1;
+    }
+
+    printf("\tContents of sector %i:\n", sector);
+
+    if (buffer != 0) {
+        int i = 0;
+        for (int c = 0; c < 4; c++) {
+            for (int j = 0; j < 128; j++) printf("0x%x ", buffer[i + j]);
+            i += 128;
+
+            printf("Press any key to continue.\n");
+            keyboardGetChar();
         }
+    }
 
-        printf("\tContents of sector %i:\n", sector);
+    return 0;
+}
 
-        if (buffer != 0) {
-            int i = 0;
-            for (int c = 0; c < 4; c++) {
-                for (int j = 0; j < 128; j++) printf("0x%x ", buffer[i + j]);
-                i += 128;
+int ide_tests() {
+    if (1) {
+        // Because of the original way test() was constructed, there's an extra tab before the actual code on every line.
+        // I am lazy and I don't want to remove it. So we do this.
 
-                printf("Press any key to continue.\n");
-                keyboardGetChar();
-            }
-        }
+        int fail = 0;
 
-        printf("=== TESTS COMPLETED ===\n");
-    } else if (!strcmp(args[1], "ide")) {
-        printf("=== TESTING IDE ===\n");
         int drive = -1;
         for (int i = 0; i < 4; i++) { 
             if (ideDevices[i].reserved == 1 && ideDevices[i].size > 1) {
@@ -178,7 +178,6 @@ int test(int argc, char *args[]) {
 
         if (drive == -1) {
             printf("\tNo drives found or capacity too low to read sector.\n");
-            printf("=== TESTS FAILED ===\n");
             return -1;
         }
 
@@ -200,6 +199,7 @@ int test(int argc, char *args[]) {
 
         if (write_buffer[0] != 0xFF) {
             printf("FAIL (read 0x%x after writing instead of 0xFF)\n", write_buffer[0]);
+            fail = 1;
         } else {
             printf("PASS (read 0x%x after writing)\n", write_buffer[0]);
         }
@@ -236,11 +236,12 @@ int test(int argc, char *args[]) {
 
         if (error != IDE_OK) {
             printf("FAIL (function returned %i)\n", error);
+            fail = 1;
         } else {
             // Check if the sector matches the comparison buffer
             bool match = true;
             for (int i = 0; i < 1120; i++) {
-                if (sector[i] != comparison_buffer[i]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], comparison_buffer[i]); } 
+                if (sector[i] != comparison_buffer[i]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], comparison_buffer[i]); fail = 1; break; } 
             }
 
             if (match) printf("PASS\n");
@@ -252,11 +253,12 @@ int test(int argc, char *args[]) {
 
         if (error != IDE_OK) {
             printf("FAIL (function returned %i)\n", error);
+            fail = 1;
         } else {
             // Check if the sector matches the comparison buffer
             bool match = true;
             for (int i = 0; i < 1120; i++) {
-                if (sector[i] != comparison_buffer[i + 512]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], comparison_buffer[i + 512]); break; } 
+                if (sector[i] != comparison_buffer[i + 512]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], comparison_buffer[i + 512]); fail = 1; break; } 
             }
 
             if (match) printf("PASS\n");
@@ -270,11 +272,12 @@ int test(int argc, char *args[]) {
 
         if (error != IDE_OK) {
             printf("FAIL (function returned %i)\n", error);
+            fail = 1;
         } else {
             // Check if the sector matches the comparison buffer
             bool match = true;
             for (int i = 0; i < 1120; i++) {
-                if (sector[i] != comparison_buffer[i + 723]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], comparison_buffer[i + 723]); break;} 
+                if (sector[i] != comparison_buffer[i + 723]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], comparison_buffer[i + 723]); fail = 1; break;} 
             }
 
             if (match) printf("PASS\n");
@@ -293,16 +296,18 @@ int test(int argc, char *args[]) {
         error = ret->write(ret, 0, 600, sector);
         if (error != IDE_OK) {
             printf("FAIL (function returned %i)\n", error);
+            fail = 1;
         } else {
             // Read in and check the sector
             error = ret->read(ret, 0, 600, sector_comparison);
             if (error != IDE_OK) {
                 printf("FAIL (could not read for checking, returned %i)\n", error);
+                fail = 1;
             } else {
                 // Check if the sector matches the comparison buffer
                 bool match = true;
                 for (int i = 0; i < 600; i++) {
-                    if (sector[i] != sector_comparison[i]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], sector_comparison[i]); break;}
+                    if (sector[i] != sector_comparison[i]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], sector_comparison[i]); fail = 1; break;}
                 }
 
                 if (match) printf("PASS\n");
@@ -316,16 +321,18 @@ int test(int argc, char *args[]) {
         error = ret->write(ret, 80, 600, sector);
         if (error != IDE_OK) {
             printf("FAIL (function returned %i)\n", error);
+            fail = 1;
         } else {
             // Read in and check the sector
             error = ret->read(ret, 80, 600, sector_comparison);
             if (error != IDE_OK) {
                 printf("FAIL (could not read for checking, returned %i)\n", error);
+                fail = 1;
             } else {
                 // Check if the sector matches the comparison buffer
                 bool match = true;
                 for (int i = 0; i < 600; i++) {
-                    if (sector[i] != sector_comparison[i]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], sector_comparison[i]); break;}
+                    if (sector[i] != sector_comparison[i]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], sector_comparison[i]); fail = 1; break;}
                 }
 
                 if (match) printf("PASS\n");
@@ -339,16 +346,18 @@ int test(int argc, char *args[]) {
         error = ret->write(ret, 763, 600, sector);
         if (error != IDE_OK) {
             printf("FAIL (function returned %i)\n", error);
+            fail = 1;
         } else {
             // Read in and check the sector
             error = ret->read(ret, 763, 600, sector_comparison);
             if (error != IDE_OK) {
                 printf("FAIL (could not read for checking, returned %i)\n", error);
+                fail = 1;
             } else {
                 // Check if the sector matches the comparison buffer
                 bool match = true;
                 for (int i = 0; i < 600; i++) {
-                    if (sector[i] != sector_comparison[i]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], sector_comparison[i]); break;}
+                    if (sector[i] != sector_comparison[i]) { match = false; printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, sector[i], sector_comparison[i]); fail = 1; break;}
                 }
 
                 if (match) printf("PASS\n");
@@ -366,18 +375,19 @@ int test(int argc, char *args[]) {
         kfree(sector);
         kfree(sector_comparison);
 
+        return fail;
+    }
+}
 
 
-        printf("=== TESTS COMPLETED ===\n");
+int fat_tests() {
+    if (1) {
 
-    } else if (!strcmp(args[1], "fat")) {
-        printf("=== TESTING FAT DRIVER ===\n"); 
+        int fail = 0;
 
-        
-
+        // See ide_tests()
         if (!fatDriver) {
             printf("\tFAT driver is not running\n");    
-            printf("=== TESTS FAILED ===\n");
             return -1;
         }
 
@@ -387,6 +397,7 @@ int test(int argc, char *args[]) {
         fsNode_t ret = fatOpenInternal(fatDriver, "/test.txt");
         if (ret.flags != VFS_FILE) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
+            fail = 1;
         } else {
             printf("PASS\n");
         }
@@ -397,6 +408,7 @@ int test(int argc, char *args[]) {
         ret = fatOpenInternal(fatDriver, "/dir/test.txt");
         if (ret.flags != VFS_FILE) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
+            fail = 1;
         } else {
             printf("PASS\n");
         }
@@ -406,6 +418,7 @@ int test(int argc, char *args[]) {
         ret = fatOpenInternal(fatDriver, "/nonexistent.txt");
         if (ret.flags != -1) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
+            fail = 1;
         } else {
             printf("PASS\n");
         }
@@ -424,6 +437,7 @@ int test(int argc, char *args[]) {
                 printf("PASS\n");
             } else {
                 printf("FAIL (file spans >1 cluster)\n");
+                fail = 1;
             }
             kfree(buffer);
         }
@@ -433,15 +447,17 @@ int test(int argc, char *args[]) {
         ret = fatOpenInternal(fatDriver, "/cluster.txt");
         if (ret.flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
+            fail = 1;
         } else {
             buffer = kmalloc(4 * 4 * 512);
             
-            bool fail = false;
+            bool func_fail = false;
             int returnValue;
             for (int i = 0; i < 4; i++) {
                 if (returnValue == EOF) { 
                     printf("FAIL (file spans <4 clusters)\n" );
-                    fail = true;
+                    func_fail = true;
+                    fail = 1;
                     break;
                 }
                 returnValue = fatReadInternal(&ret, buffer + (i*4*512), ret.length); // Bugged bc we dont know sectors per cluster so we assume 4
@@ -449,7 +465,7 @@ int test(int argc, char *args[]) {
 
             if (returnValue != EOF) {
                 printf("FAIL (file spans >4 clusters)\n");
-            } else if (!fail) {
+            } else if (!func_fail) {
                 printf("PASS\n");
             }
 
@@ -462,6 +478,7 @@ int test(int argc, char *args[]) {
 
         if (ret.flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
+            fail = 1;
         } else {
             fatReadInternal(&ret, comparison_buffer, ret.length);
             printf("DONE\n");
@@ -472,6 +489,7 @@ int test(int argc, char *args[]) {
 
         if (ret.flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
+            fail = 1;
         } else {
             buffer = kmalloc(100);
             if (fatRead(&ret, 0, 100, buffer) != 0) {
@@ -482,6 +500,7 @@ int test(int argc, char *args[]) {
                     if (buffer[i] != comparison_buffer[i]) {
                         printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, buffer[i], comparison_buffer[i]);
                         success = false;
+                        fail = 1;
                         break;
                     }
                 }
@@ -496,6 +515,7 @@ int test(int argc, char *args[]) {
 
         if (ret.flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
+            fail = 1;
         } else {
             buffer = kmalloc(102);
             if (fatRead(&ret, 26, 102, buffer) != 0) {
@@ -506,6 +526,7 @@ int test(int argc, char *args[]) {
                     if (buffer[i] != comparison_buffer[i + 26]) {
                         printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, buffer[i], comparison_buffer[i + 26]);
                         success = false;
+                        fail = 1;
                         break;
                     }
                 }
@@ -521,6 +542,7 @@ int test(int argc, char *args[]) {
 
         if (ret.flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
+            fail = 1;
         } else {
             buffer = kmalloc(33);
             if (fatRead(&ret, 50, 33, buffer) != 0) {
@@ -531,6 +553,7 @@ int test(int argc, char *args[]) {
                     if (buffer[i] != comparison_buffer[i + 50]) {
                         printf("FAIL (mismatch at index %i - 0x%x vs 0x%x)\n", i, buffer[i], comparison_buffer[i + 50]);
                         success = false;
+                        fail = 1;
                         break;
                     }
                 }
@@ -551,6 +574,7 @@ int test(int argc, char *args[]) {
 
         if (ret.flags != VFS_FILE) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
+            fail = 1;
         } else {
             printf("PASS\n");
         }
@@ -565,6 +589,7 @@ int test(int argc, char *args[]) {
 
         if (ret.flags != VFS_FILE) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
+            fail = 1;
         } else {
             printf("PASS\n");
         }
@@ -580,6 +605,7 @@ int test(int argc, char *args[]) {
 
         if (ret.flags != -1) {
             printf("FAIL (flags = 0x%x)\n", ret.flags);
+            fail = 1;
         } else {
             printf("PASS\n");
         }
@@ -589,9 +615,101 @@ int test(int argc, char *args[]) {
         kfree(comparison_buffer);
         // kfree(ret); - Glitches out??
 
-        printf("=== TESTS COMPLETED ===\n");
+        return fail;
+    }
+}
+
+int vfs_tests() {
+    // Test the virtual filesystem
+    int fail = 0;
+
+   
+    /* Canonicalizing path testing */
+    int canonicalize_fail = 0;
+    printf("\tTesting VFS path canonicalization...");
+
+    char *path = "some_random_directory/path/file.txt";
+    char *cwd = "/device/ide0";
+    char *output_path = vfs_canonicalizePath(cwd, path);
+    if (strcmp(output_path, "/device/ide0/some_random_directory/path/file.txt")) {
+        // Did not pass
+        canonicalize_fail = 1;
+        fail = 1;
+    }
+
+
+    kfree(output_path);
+
+    path = "some_random_directory/path/../anotherfile.txt";
+    cwd = "/device/ide0";
+    output_path = vfs_canonicalizePath(cwd, path);
+    if (strcmp(output_path, "/device/ide0/some_random_directory/anotherfile.txt")) {
+        // Did not pass
+        canonicalize_fail = 2;
+        fail = 1;
+    }
+
+    kfree(output_path);
+
+
+    path = "some_random_directory/../another_directory/./again/again.txt";
+    cwd = "/device/ide0";
+    output_path = vfs_canonicalizePath(cwd, path);
+    if (strcmp(output_path, "/device/ide0/another_directory/again/again.txt")) {
+        // Did not pass
+        canonicalize_fail = 3;
+        fail = 1;
+    }
+    
+    kfree(output_path);
+
+    if (canonicalize_fail) printf("FAIL (pass %i)\n", canonicalize_fail);
+    else printf("PASS\n");
+    
+    return 0;
+}
+
+// This function serves as a function to test multiple modules of the OS.
+int test(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: test <module>\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat\n");
+        return 0;
+    } 
+
+    if (!strcmp(args[1], "pmm")) {
+        printf("=== TESTING PHYSICAL MEMORY MANAGEMENT ===\n");
         
+        if (pmm_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
+    } else if (!strcmp(args[1], "liballoc")) {
+        printf("=== TESTING LIBALLOC ===\n");
+
+        if (liballoc_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
+    } else if (!strcmp(args[1], "bios32")) {
+        printf("=== TESTING BIOS32 ===\n");
+
+        if (bios32_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
+    } else if (!strcmp(args[1], "floppy")) {
+        printf("=== TESTING FLOPPY ===\n");
+        
+        if (floppy_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
+    } else if (!strcmp(args[1], "ide")) {
+        printf("=== TESTING IDE ===\n");
+
+        if (ide_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
+    } else if (!strcmp(args[1], "fat")) {
+        printf("=== TESTING FAT DRIVER ===\n"); 
+
+        if (fat_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
+
     } else if (!strcmp(args[1], "tree")) {
+        // to be moved
         printf("=== TESTING TREE ===\n"); 
 
         printf("\tTesting tree_create...");
@@ -676,9 +794,14 @@ int test(int argc, char *args[]) {
 
         printf("=== TESTS COMPLETED ===\n");
 
+    } else if (!strcmp(args[1], "vfs")) {
+        printf("=== TESTING VFS ===\n");
+
+        if (vfs_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
     } else {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs\n");
     }
 
     return 0;
