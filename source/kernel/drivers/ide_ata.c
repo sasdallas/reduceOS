@@ -179,6 +179,12 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
 // ideGetVFSNode(int driveNum) - Returns VFS node for an IDE drive
 fsNode_t *ideGetVFSNode(int driveNum) {
     fsNode_t *ret = kmalloc(sizeof(fsNode_t));
+    
+    // First, make sure the drive actually exists.
+    if (ideDevices[driveNum].reserved != 1) { ret->impl = -1; return ret; }
+    
+    
+
     ret->gid = ret->uid = ret->inode = ret->length = ret->mask = 0;
     ret->impl = driveNum;
     ret->open = NULL;

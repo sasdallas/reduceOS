@@ -541,12 +541,14 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     vfsInit();
 
     fsNode_t *ideNode = ideGetVFSNode(0);
-    fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
+
+
+    if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
+    else kfree(ideNode);
 
     if (fatDriver) vfsMount("/", fatDriver);
 
-    debug_print_vfs_tree();
-    vfsMount("/ide0", ideNode);
+    if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
     
     debug_print_vfs_tree();
 

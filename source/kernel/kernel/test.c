@@ -103,6 +103,23 @@ int test(int argc, char *args[]) {
         kfree(a);
         kfree(c);
         kfree(d);
+        
+        printf("\tAllocating a large amount of memory...");
+
+        uint8_t *memoryArray[500];
+        for (int i = 0; i < 500; i++) {
+            memoryArray[i] = kmalloc(8);
+        }
+
+        printf("PASS\n");
+
+        printf("\tFreeing a large amount of memory...");
+        for (int i = 0; i < 500; i++) {
+            kfree(memoryArray[i]);
+        }
+
+        printf("PASS\n");
+
         printf("=== TESTS COMPLETED ===\n");
     } else if (!strcmp(args[1], "bios32")) {
         printf("=== TESTING BIOS32 ===\n");

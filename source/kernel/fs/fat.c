@@ -443,7 +443,12 @@ fsNode_t *fatInit(fsNode_t *driveNode) {
 
     // Allocate a buffer to read in the BPB
     uint32_t *buffer = kmalloc(512);
-    driveNode->read(driveNode, 0, 512, buffer); // Read in the 1st sector
+    int ret = driveNode->read(driveNode, 0, 512, buffer); // Read in the 1st sector
+
+    if (ret != IDE_OK) {
+        kfree(buffer);
+        return NULL;
+    }
 
     // Allocate memory for our structures
     fat_t *driver = kmalloc(sizeof(fat_t));
