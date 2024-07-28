@@ -198,7 +198,7 @@ void vmmInit() {
     memset(table4, 0, sizeof(pagetable_t));
 
     // Identity map the first 4MB, since when paging is enabled, all addresses are made virtual.
-    for (int i = 0, frame=0x0, virt=0x00000000; i < 1024; i++, frame += 4096, virt += 4096) {
+    for (int i = 0, frame=0x1000, virt=0x00001000; i < 1024; i++, frame += 4096, virt += 4096) {
         // Create a new page and change its frame.
         pte_t page = 0;
         pte_addattrib(&page, PTE_PRESENT);
@@ -210,10 +210,12 @@ void vmmInit() {
     }
     
     // Remove the present flag for the first 4KB, for debugging, as if a pointer goes to 0x0, we'll know
-    pte_t page = table->entries[PAGETBL_INDEX(0x00000000)];
-    pte_delattrib(&page, PTE_WRITABLE);
-    pte_delattrib(&page, PTE_PRESENT);
+    pte_t page = 0;
+    pte_setframe(&page, 0x0);
+    if (pte_ispresent(page)) pte_delattrib(page, PTE_PRESENT);
+    if (pte_iswritable(page)) pte_delattrib(page, PTE_WRITABLE);
 
+    table->entries[PAGETBL_INDEX(0x00000000)] = page;
 
 
     for (int i = 0, frame=0x400000, virt=0x00400000; i < 1024; i++, frame += 4096, virt += 4096) {

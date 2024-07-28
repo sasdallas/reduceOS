@@ -20,6 +20,7 @@ int selectedMode = -1; // The current mode selected.
 uint32_t modeWidth, modeHeight, modeBpp = 0; // The height and width of the mode
 
 uint32_t *framebuffer; // A seperate framebuffer.
+bool framebuffer_initialized = false;
 
 // Double buffering is utilized in this VBE driver. Basically, that means that instead of drawing directly to video memory, you draw to a framebuffer (the one above).
 // For now we use manual swapping, but potentially later PIT will swap each tick.
@@ -212,6 +213,10 @@ void vesaInit() {
     // Get a bit more information on the mode.
     vbeModeInfo_t modeInfo = vbeGetModeInfo(mode);
 
+    // Identity map framebuffer!
+    vmm_allocateRegion(modeInfo.framebuffer, modeInfo.framebuffer, 1024*768*4);
+
+
     // Change variables to reflect on modeInfo.
     selectedMode = mode;
     modeWidth = modeInfo.width;
@@ -219,18 +224,21 @@ void vesaInit() {
     modeBpp = modeInfo.bpp;
     vbeBuffer = (uint32_t*)modeInfo.framebuffer;
 
-    // Identity map it!
-    vmm_allocateRegion(vbeBuffer, vbeBuffer, 1024*768*4);
-
+    
     // Now, switch the mode.
     vbeSetMode(mode);
+
     framebuffer = kmalloc(1024*768*4);
+    serialPrintf("vesaInit: Allocated framebuffer to 0x%x\n", framebuffer);
+    
 }
+
+
 
 // vbeSwitchBuffers() - Switches the framebuffers
 int vbeSwitchBuffers() {
     if (!isVBESupported) return -1; // Either VBE is not enabled or not supported.
-
+    if (!framebuffer_initialized) return -1; // Framebuffer not initialized.
     
     // Switch the framebuffers
     for (int i = 0; i < 1024*768; i++) {
@@ -247,10 +255,12 @@ int vbeSwitchBuffers() {
 void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
     uint32_t p = y * modeWidth + x;
-    *(framebuffer + p) = color;
+    if (framebuffer_initialized) *(framebuffer + p) = color;
+    else *(vbeBuffer + p) = color;
 }
 
 uint32_t vbeGetPixel(int x, int y) {
-    return *(framebuffer + (y * modeWidth + x));
+    if (framebuffer_initialized) return *(framebuffer + (y * modeWidth + x));
+    else return *(vbeBuffer + (y * modeWidth + x));
 }
 

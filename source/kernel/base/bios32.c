@@ -27,6 +27,7 @@ void bios32_init() {
 
 // bios32_call(uint8_t interrupt, REGISTERS_16 *in, REGISTERS_16 *out) - Calls bios32.
 void bios32_call(uint8_t interrupt, REGISTERS_16 *in, REGISTERS_16 *out) {
+    serialPrintf("Preparing to call BIOS32 for int 0x%x...\n\tAX = 0x%x BX = 0x%x CX = 0x%x DX = 0x%x\n", interrupt, in->ax, in->bx, in->cx, in->dx);
     void *newCodeBase = (void *)0x7c00;
 
     // Copy the GDT entries to the BIOS32 GDT entries.

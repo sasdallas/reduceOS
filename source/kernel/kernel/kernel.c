@@ -453,6 +453,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     uint32_t kernelEnd = (uint32_t)&bss_end;
     pmm_deinitRegion(0x100000, (kernelEnd - kernelStart));
 
+
     // Initialize VMM
     vmmInit();
     serialPrintf("Initialized memory management successfully.\n");
@@ -515,16 +516,23 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Finally, all setup has been completed. We can ask the user if they want to enter the backup command line.
     // By ask, I mean check if they're holding c.
 
+    
+    // DEFINITELY sketchy! What's going on with this system? 
+    serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
+    enable_liballoc();
+
+
     bool didInitVesa = true;
     char c = isKeyPressed();
     if (c == 'c') { 
         didInitVesa = false;
     } else {
         vesaInit(); // Initialize VBE
-        bitmapFontInit();
+        //bitmapFontInit();
     }
 
     
+
     if (didInitVesa) {
         // Initialize PSF
         psfInit();
@@ -532,10 +540,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         vbeSwitchBuffers();
     }
 
-
-    // DEFINITELY sketchy! What's going on with this system? Why can't
-    serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
-    enable_liballoc();
+    
 
     // Initialize the VFS
     vfsInit();
@@ -571,12 +576,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
 
 void useCommands() {
+    serialPrintf("kmain: Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
+
+
     clearScreen(COLOR_WHITE, COLOR_CYAN);
     clearBuffer();
-
-    printf("Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
-
-
     // The user entered the command handler. We will not return.
 
     initCommandHandler();

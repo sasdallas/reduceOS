@@ -250,6 +250,11 @@ void keyboardGetLine(char *buffer) {
     return;
 }
 
+// reinitializeKeyboardBuffer() - Reinitializes the keyboard buffer's pointer
+void reinitializeKeyboardBuffer() {
+    bufferPointer = kmalloc(8);
+}
+
 
 // keyboardInitialize() - Main function that loads the keyboard
 void keyboardInitialize() {
