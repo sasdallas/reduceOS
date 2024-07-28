@@ -442,7 +442,7 @@ uint32_t ext2_allocateInode(ext2_t *fs) {
     fs->bgd_list[group].unallocated_inodes--;
     ext2_rewriteBGDs(fs);
 
-    fs->superblock->total_unalloacted_inodes--;
+    fs->superblock->total_unallocated_inodes--;
     ext2_writeSuperBlock(fs);
 
     return nodeNumber;
@@ -542,7 +542,7 @@ static fsNode_t ext2_getIDENode(int driveNum) {
 }
 
 
-int mkdir_ext2(fsNode_t *parent, char *name, uint32_t permission) {
+int ext2_mkdir(fsNode_t *parent, char *name, uint32_t permission) {
     if (!name) return -1;
 
     ext2_t *fs = parent->impl_struct;
@@ -553,6 +553,125 @@ int mkdir_ext2(fsNode_t *parent, char *name, uint32_t permission) {
     // Allocate an inode for it
     uint32_t inode_number = ext2_allocateInode(fs);
 
+}
+
+// (static) ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNode_t *ret) - Convert a dirent to a fsNode
+static int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNode_t *ret) {
+    if (!ret)  return -1;
+
+    // Copy dirent information
+    ret->impl_struct = (void*)fs;
+    ret->inode = dirent->inode;
+    memcpy(&ret->name, &dirent->name, dirent->name_length);
+    ret->name[dirent->name_length] = '\0';
+
+    // Copy inode information
+    ret->uid = inode->uid;
+    ret->gid = inode->gid;
+    ret->length = inode->size;
+    ret->mask = inode->permissions & 0xFFF;
+    
+    // File flags
+    ret->flags = 0;
+    if ((inode->permissions & EXT2_INODE_FILE) == EXT2_INODE_FILE) {
+        ret->flags = VFS_FILE;
+        ret->open = NULL;
+        ret->close = NULL;
+        ret->create = NULL;
+        ret->read = NULL;
+        ret->write = NULL;
+        ret->finddir = NULL;
+        ret->readdir = NULL;
+        ret->mkdir = NULL;
+    } else if ((inode->permissions & EXT2_INODE_DIRECTORY) == EXT2_INODE_DIRECTORY) {
+        ret->flags = VFS_DIRECTORY;
+        ret->open = NULL;
+        ret->close = NULL;
+        ret->create = NULL;
+        ret->read = NULL;
+        ret->write = NULL;
+        ret->finddir = NULL;
+        ret->readdir = NULL;
+        ret->mkdir = NULL;
+    } else {
+        serialPrintf("ext2_fileToNode: Attempt to use unimplemented type 0x%x\n", inode->permissions);
+        return -1;
+    }
+
+    return 0;
+}
+
+
+fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
+    ext2_t *fs = (ext2_t*)node->impl_struct;
+
+    ext2_inode_t *inode = kmalloc(sizeof(ext2_inode_t));
+    ext2_readInodeMetadata(fs, inode, node->inode);
+
+    ext2_dirent_t *dirent = NULL;
+    uint8_t blockNumber = 0;
+
+    uint8_t *block = ext2_readInodeBlock(fs, inode, blockNumber);
+
+    uint32_t dirOffset = 0;
+    uint32_t totalOffset = 0;
+
+
+    while (totalOffset < inode->size) {
+        if (dirOffset >= fs->block_size) {
+            blockNumber++;
+            dirOffset -= fs->block_size;
+            kfree(block);
+
+            block = ext2_readInodeBlock(fs, inode, blockNumber);
+        }
+
+        ext2_dirent_t *dent = (ext2_dirent_t*)((uintptr_t)block + dirOffset);
+        
+        if (dent->inode == 0 || strlen(name) != dent->name_length) {
+            dirOffset += dent->entry_size;
+            totalOffset += dent->entry_size;
+
+            continue;
+        }
+
+        char *dname = kmalloc(sizeof(char) * (dent->name_length + 1));
+        memcpy(dname, &(dent->name), dent->name_length);
+        dname[dent->name_length] = '\0';
+
+
+        if (!strcmp(dname, name)) {
+            kfree(dname);
+            dirent = kmalloc(dent->entry_size);
+            memcpy(dirent, dent, dent->entry_size);
+            break;
+        }
+
+        kfree(dname);
+
+        dirOffset += dent->entry_size;
+        totalOffset += dent->entry_size;
+    }
+
+    kfree(block);
+    kfree(inode);
+
+    if (!dirent) {
+        kfree(block);
+        return NULL;
+    }
+
+
+    memset(inode, 0, sizeof(ext2_inode_t));
+    ext2_readInodeMetadata(fs, inode, dirent->inode);
+
+    // Get the file's node
+    fsNode_t *ret = kmalloc(sizeof(fsNode_t));
+    ext2_fileToNode(fs, dirent, inode, ret);    
+
+    kfree(dirent);
+    kfree(inode);
+    return ret;
 }
 
 
@@ -606,115 +725,93 @@ fsNode_t *ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) {
 
 
 // ext2_init() - Initializes the filesystem on a disk
-void ext2_init() {
-    // Temporary code to find a drive to test on.
-    serialPrintf("ext2_init: Searching for drive...\n");
+fsNode_t *ext2_init(fsNode_t *node) {
+    // Read in the superblock for the drive
     
-    int drives[3];
-    int index = 0;
+    ext2_superblock_t *superblock = ext2_readSuperblock(node);
 
-    for (int i = 0; i < 4; i++) { 
-        if (ideDevices[i].reserved == 1 && ideDevices[i].size > 1) {
-            printf("Found IDE device with %i KB\n", ideDevices[i].size);
-            drives[index] = i;
-            index++;
+    // Check the signature to see if it matches
+    if (superblock->ext2_signature == EXT2_SIGNATURE) {
+        serialPrintf("ext2_init: Found ext2 signature on drive %i\n", node->impl);
+
+        // This drive has an ext2 filesystem on it, setup the ext2 filesystem object.            
+        ext2_t *ext2_filesystem = kmalloc(sizeof(ext2_t));
+        ext2_filesystem->drive = node;
+        ext2_filesystem->superblock = superblock;
+        ext2_filesystem->block_size = (1024 << ext2_filesystem->superblock->unshifted_block_size);
+        ext2_filesystem->blocks_per_group = ext2_filesystem->superblock->blockgroup_blocks;
+        
+
+        ext2_filesystem->total_groups = ext2_filesystem->superblock->total_blocks / ext2_filesystem->blocks_per_group;
+        if (ext2_filesystem->blocks_per_group * ext2_filesystem->total_groups < ext2_filesystem->superblock->total_blocks) ext2_filesystem->total_groups++;
+
+        ext2_filesystem->inodes_per_group = ext2_filesystem->superblock->total_inodes / ext2_filesystem->total_groups;
+
+
+        // Calculate how many disk blocks the BGD takes
+        ext2_filesystem->bgd_blocks = ext2_filesystem->total_groups * sizeof(ext2_bgd_t) / ext2_filesystem->block_size + 1;
+
+
+        // Calculate BGD offset
+        uint8_t bgd_offset = 2;
+        if (ext2_filesystem->block_size > 1024) bgd_offset = 1;
+
+
+        // Now, we need to read in the BGD blocks.
+        ext2_filesystem->bgd_list = kmalloc(ext2_filesystem->block_size * ext2_filesystem->bgd_blocks);
+        for (int j = 0; j < ext2_filesystem->bgd_blocks; j++) {
+            ext2_readBlock(ext2_filesystem, bgd_offset + j, (uint8_t*)((uintptr_t)(ext2_filesystem->bgd_list) + ext2_filesystem->block_size * j));
         }
-    }
 
-    if (index == 0) {
-        printf("No drives found or capacity too low to read sector.\n");
-        return;
-    }
+        serialPrintf("ext2: %i BGDs, %i inodes, %i inodes per group\n", ext2_filesystem->total_groups, ext2_filesystem->superblock->total_inodes, ext2_filesystem->inodes_per_group);
+        serialPrintf("\t%i block size, %i BGD disk blocks, %i fragment size\n", ext2_filesystem->block_size, ext2_filesystem->bgd_blocks, (1024 << ext2_filesystem->superblock->unshifted_fragment_size));
+        serialPrintf("\tlast mount path: %s\n", ext2_filesystem->superblock->extension.lastPath);
 
-    for (int i = 0; i < index; i++) {
-        // Read in the superblock for the drive
-        fsNode_t node = ext2_getIDENode(drives[i]);
-        ext2_superblock_t *superblock = ext2_readSuperblock(&node);
+        // Debug the BGDS
+        char *bg_buffer = kmalloc(ext2_filesystem->block_size * sizeof(char));
+        for (uint32_t j = 0; j < ext2_filesystem->total_groups; j++) {
+            serialPrintf("Block Group Descriptor #%i at %i\n", j, bgd_offset + j * ext2_filesystem->superblock->blockgroup_blocks);
+            serialPrintf("\tBlock Usage Bitmap at %i\n", ext2_filesystem->bgd_list[j].block_usage_bitmap);
 
-        // Check the signature to see if it matches
-        if (superblock->ext2_signature == EXT2_SIGNATURE) {
-            serialPrintf("ext2_init: Found ext2 signature on drive %i\n", node.impl);
+            // Examine the block usage bitmap
+            serialPrintf("\t\tExamining block bitmap at %i\n",  ext2_filesystem->bgd_list[j].block_usage_bitmap);
+            ext2_readBlock(ext2_filesystem, ext2_filesystem->bgd_list[j].block_usage_bitmap, (uint8_t*)bg_buffer);
+            uint32_t k = 0;
+            while (BLOCKBIT(k)) ++k;
 
-            // This drive has an ext2 filesystem on it, setup the ext2 filesystem object.            
-            ext2_t *ext2_filesystem = kmalloc(sizeof(ext2_t));
-            ext2_filesystem->drive = &node;
-            ext2_filesystem->superblock = superblock;
-            ext2_filesystem->block_size = (1024 << ext2_filesystem->superblock->unshifted_block_size);
-            ext2_filesystem->blocks_per_group = ext2_filesystem->superblock->blockgroup_blocks;
+            serialPrintf("\t\tFirst free block in group is %i\n", k + ext2_filesystem->bgd_list[j].block_usage_bitmap - 2);
+
+
+            serialPrintf("\tInode Bitmap at %i\n", ext2_filesystem->bgd_list[j].inode_usage_bitmap);
             
+            // Examine the inode bitmap
+            serialPrintf("\t\tExaming inode bitmap at %i\n", ext2_filesystem->bgd_list[j].inode_usage_bitmap);
+            ext2_readBlock(ext2_filesystem, ext2_filesystem->bgd_list[j].inode_usage_bitmap, (uint8_t*)bg_buffer);
+            k = 0;
+            while (BLOCKBIT(k)) ++k;
 
-            ext2_filesystem->total_groups = ext2_filesystem->superblock->total_blocks / ext2_filesystem->blocks_per_group;
-            if (ext2_filesystem->blocks_per_group * ext2_filesystem->total_groups < ext2_filesystem->superblock->total_blocks) ext2_filesystem->total_groups++;
-
-            ext2_filesystem->inodes_per_group = ext2_filesystem->superblock->total_inodes / ext2_filesystem->total_groups;
-
-
-            // Calculate how many disk blocks the BGD takes
-            ext2_filesystem->bgd_blocks = ext2_filesystem->total_groups * sizeof(ext2_bgd_t) / ext2_filesystem->block_size + 1;
-
-
-            // Calculate BGD offset
-            uint8_t bgd_offset = 2;
-            if (ext2_filesystem->block_size > 1024) bgd_offset = 1;
-
-
-            // Now, we need to read in the BGD blocks.
-            ext2_filesystem->bgd_list = kmalloc(ext2_filesystem->block_size * ext2_filesystem->bgd_blocks);
-            for (int j = 0; j < ext2_filesystem->bgd_blocks; j++) {
-                ext2_readBlock(ext2_filesystem, bgd_offset + j, (uint8_t*)((uintptr_t)(ext2_filesystem->bgd_list) + ext2_filesystem->block_size * j));
-            }
-
-            serialPrintf("ext2: %i BGDs, %i inodes, %i inodes per group\n", ext2_filesystem->total_groups, ext2_filesystem->superblock->total_inodes, ext2_filesystem->inodes_per_group);
-            serialPrintf("\t%i block size, %i BGD disk blocks, %i fragment size\n", ext2_filesystem->block_size, ext2_filesystem->bgd_blocks, (1024 << ext2_filesystem->superblock->unshifted_fragment_size));
-            serialPrintf("\tlast mount path: %s\n", ext2_filesystem->superblock->extension.lastPath);
-
-            // Debug the BGDS
-            char *bg_buffer = kmalloc(ext2_filesystem->block_size * sizeof(char));
-            for (uint32_t j = 0; j < ext2_filesystem->total_groups; j++) {
-                serialPrintf("Block Group Descriptor #%i at %i\n", j, bgd_offset + j * ext2_filesystem->superblock->blockgroup_blocks);
-                serialPrintf("\tBlock Usage Bitmap at %i\n", ext2_filesystem->bgd_list[j].block_usage_bitmap);
-
-                // Examine the block usage bitmap
-                serialPrintf("\t\tExamining block bitmap at %i\n",  ext2_filesystem->bgd_list[j].block_usage_bitmap);
-                ext2_readBlock(ext2_filesystem, ext2_filesystem->bgd_list[j].block_usage_bitmap, (uint8_t*)bg_buffer);
-                uint32_t k = 0;
-                while (BLOCKBIT(k)) ++k;
-
-                serialPrintf("\t\tFirst free block in group is %i\n", k + ext2_filesystem->bgd_list[j].block_usage_bitmap - 2);
-
-
-                serialPrintf("\tInode Bitmap at %i\n", ext2_filesystem->bgd_list[j].inode_usage_bitmap);
-                
-                // Examine the inode bitmap
-                serialPrintf("\t\tExaming inode bitmap at %i\n", ext2_filesystem->bgd_list[j].inode_usage_bitmap);
-                ext2_readBlock(ext2_filesystem, ext2_filesystem->bgd_list[j].inode_usage_bitmap, (uint8_t*)bg_buffer);
-                k = 0;
-                while (BLOCKBIT(k)) ++k;
-
-                serialPrintf("\t\tFirst free inode in group is %i\n", k + ext2_filesystem->inodes_per_group * k + 1);
-            }
-            kfree(bg_buffer);
-
-
-            // Now, we need to read in the root inode
-            ext2_inode_t *rootInode = kmalloc(sizeof(ext2_inode_t));
-            memset(rootInode, 0, sizeof(ext2_inode_t));
-            ext2_readInodeMetadata(ext2_filesystem, rootInode, EXT2_ROOT_INODE_NUMBER);
-
-            // Finally, get the VFS node
-            fsNode_t *ext2 = ext2_getRoot(ext2_filesystem, rootInode);
-            
-
-            kfree(rootInode);
-
-            serialPrintf("ext2_init: ext2 disk mounted\n");
-            //ext2_mkfile(ext2, "/hello.txt", EXT2_PERM_UR);
-
-            
-            mkdir_ext2(ext2, "dir", EXT2_PERM_UR);
-        } else {
-            kfree(superblock);
-            kfree(node);
+            serialPrintf("\t\tFirst free inode in group is %i\n", k + ext2_filesystem->inodes_per_group * k + 1);
         }
+        kfree(bg_buffer);
+
+
+        // Now, we need to read in the root inode
+        ext2_inode_t *rootInode = kmalloc(sizeof(ext2_inode_t));
+        memset(rootInode, 0, sizeof(ext2_inode_t));
+        ext2_readInodeMetadata(ext2_filesystem, rootInode, EXT2_ROOT_INODE_NUMBER);
+
+        // Finally, get the VFS node
+        fsNode_t *ext2 = ext2_getRoot(ext2_filesystem, rootInode);
+        
+
+        kfree(rootInode);
+
+        serialPrintf("ext2_init: ext2 disk mounted\n");
+        return ext2;   
+    } else {
+        kfree(superblock);
+        kfree(node);
     }
+
+    return NULL;
 }

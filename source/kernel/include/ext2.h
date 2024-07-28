@@ -39,7 +39,7 @@ typedef struct ext2_superblock {
     uint32_t total_blocks;              // Total amount of blocks
     uint32_t superuser_reserved;        // Total amount of blocks reserved for the superuser
     uint32_t total_unallocated_blocks;  // Total number of unallocated blocks.
-    uint32_t total_unalloacted_inodes;  // Total number of unallocated inodes
+    uint32_t total_unallocated_inodes;  // Total number of unallocated inodes
     uint32_t superblock_number;         // Block number of the block containing the superblock
     uint32_t unshifted_block_size;      // Unshifted block size - shift 1024 to the left (or log2(block size) - 10)
     uint32_t unshifted_fragment_size;   // Unshifted fragment size - shift 1024 to the left (or log2(fragment size) - 10)
@@ -242,6 +242,8 @@ void ext2_allocateInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, ui
 void ext2_freeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block); // Free an inode block
 uint32_t ext2_allocateInode(ext2_t *fs); // Allocate an inode from the inode bitmap
 void ext2_freeInode(ext2_t *fs, uint32_t inode); // Frees an inode from the inode bitmap
+fsNode_t *ext2_finddir(fsNode_t *node, char *name); // Returns NULL if file exists, and the node for the file if it does
+
 
 
 #endif
