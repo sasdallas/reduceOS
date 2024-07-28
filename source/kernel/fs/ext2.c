@@ -4,6 +4,8 @@
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include "include/ext2.h" // Main header file
+#include "include/ide_ata.h" // IDE/ATA driver
+#include "include/vfs.h"
 
 // External variables
 extern ideDevice_t ideDevices[4];
@@ -654,13 +656,10 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
     }
 
     kfree(block);
-    kfree(inode);
 
     if (!dirent) {
-        kfree(block);
         return NULL;
     }
-
 
     memset(inode, 0, sizeof(ext2_inode_t));
     ext2_readInodeMetadata(fs, inode, dirent->inode);

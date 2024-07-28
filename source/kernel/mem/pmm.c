@@ -179,7 +179,7 @@ void pmm_deinitRegion(uint32_t base, size_t size) {
     int blocks = size / 4096;
 
     for (; blocks > 0; blocks--) {
-        setFrame(align++);
+        pmm_setFrame(align++);
         pmm_usedBlocks++;
     }
 

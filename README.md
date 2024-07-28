@@ -36,12 +36,11 @@ You can build reduceOS with a custom version of gcc or ld by passing these as pa
 
 
 # Known Bugs
-- **Severe:** `liballoc` is super buggy, but so is the current memory implementation. In other words: memory bad.
-- FAT can only be initialized after VESA
+- **Severe:** `liballoc` is super buggy, but so is the current memory implementation. In other words: memory bad (upd: unsure if bug with liballoc/my wrappers, or with ext2?)
 - **Severe:** System calls not working.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code (temporary fix: auto uses 1024*768)
 - Bitmaps can only be displayed at a max of 764 (you can load a 1024x768 image and it will work, but it will only display up to 764 lines).
-- FAT driver is probably very unstable
+
 
 # Credits
 Michael Petch - Patched my terrible interrupts and helped me fix my VMM, even though he didn't have to. Link to this awesome person [here](https://stackoverflow.com/users/3857942/michael-petch)

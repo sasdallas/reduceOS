@@ -252,13 +252,13 @@ void keyboardGetLine(char *buffer) {
 
 // reinitializeKeyboardBuffer() - Reinitializes the keyboard buffer's pointer
 void reinitializeKeyboardBuffer() {
-    bufferPointer = kmalloc(8);
+    bufferPointer = kmalloc(256);
 }
 
 
 // keyboardInitialize() - Main function that loads the keyboard
 void keyboardInitialize() {
-    bufferPointer = kmalloc(8);
+    bufferPointer = kmalloc(256);
     isrRegisterInterruptHandler(33, keyboardHandler); // Register IRQ 33 as an ISR interrupt handler value.
     printf("Keyboard driver initialized.\n");
 }

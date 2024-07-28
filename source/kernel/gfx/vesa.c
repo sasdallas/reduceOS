@@ -216,6 +216,8 @@ void vesaInit() {
     // Identity map framebuffer!
     vmm_allocateRegion(modeInfo.framebuffer, modeInfo.framebuffer, 1024*768*4);
 
+    // Make sure PMM knows not to allocate here
+    pmm_deinitRegion(modeInfo.framebuffer, 1024*768);
 
     // Change variables to reflect on modeInfo.
     selectedMode = mode;
@@ -228,9 +230,18 @@ void vesaInit() {
     // Now, switch the mode.
     vbeSetMode(mode);
 
-    framebuffer = kmalloc(1024*768*4);
-    serialPrintf("vesaInit: Allocated framebuffer to 0x%x\n", framebuffer);
+    extern uint32_t bss_end;
+    extern uint32_t text_start;
     
+    framebuffer = kmalloc(1024*768);
+    serialPrintf("vesaInit: Allocated framebuffer to 0x%x - 0x%x\n", framebuffer, framebuffer + (1024*768*4));
+    
+    /* This code is to stop liballoc from screwing absolutely everything up. It is not required! */
+    ASSERT(!(framebuffer < &bss_end), "vesaInit", "Invalid framebuffer (in kernelspace)");
+    ASSERT(!(framebuffer <= &text_start), "vesaInit", "Invalid framebuffer (before kernelspace)");
+    
+    /* This is also not required. */
+    framebuffer_initialized = true;
 }
 
 

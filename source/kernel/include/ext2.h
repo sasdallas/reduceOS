@@ -5,7 +5,7 @@
 
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
-#include "include/ide_ata.h" // IDE/ATA driver
+#include "include/vfs.h"
 
 // Typedefs
 

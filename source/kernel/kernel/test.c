@@ -9,6 +9,7 @@
 #include "include/serial.h"
 #include "include/terminal.h"
 #include "include/floppy.h"
+#include "include/ext2.h"
 
 
 extern ideDevice_t ideDevices[4];
@@ -733,6 +734,101 @@ int test(int argc, char *args[]) {
         if (fat_tests() == 0) printf("=== TESTS COMPLETED ===\n");
         else printf("=== TESTS FAILED ===\n");
 
+    } else if (!strcmp(args[1], "ext2_alloc")) {
+        /*
+        serialPrintf("WARNING: Running emergency liballoc-is-screwed-but-it-also-might-be-ext2-idk-lol test.\n");
+        printf("=== RUNNING CRASH TEST ===\n");
+        
+        printf("\tCreating IDE node...");
+        fsNode_t *node = ideGetVFSNode(0);
+        printf("DONE (0x%x)\n", node);
+
+        printf("\tAllocating ext2 superblock...");
+        ext2_superblock_t *superblock = kmalloc(sizeof(ext2_superblock_t));
+        printf("DONE (0x%x)\n", superblock);
+
+        printf("\tAllocating ext2_t type...");
+        ext2_t *ext2_filesystem = kmalloc(sizeof(ext2_t));
+        printf("DONE (0x%x)\n", ext2_filesystem);
+
+        printf("\tAllocating BGD list...");
+        ext2_filesystem->bgd_list = kmalloc(4096 * (15 * sizeof(ext2_bgd_t) / 4096 + 1)); // Average block size is 4096
+        printf("DONE (0x%x)\n", ext2_filesystem->bgd_list);
+
+        printf("\tAllocating bg_buffer...");
+        char *bg_buffer = kmalloc(4096 * sizeof(char));
+        printf("DONE (0x%x)\n", bg_buffer);
+
+        printf("\tFreeing bg_buffer...");
+        kfree(bg_buffer);
+        printf("DONE\n");
+
+        printf("\tAllocating root inode...");
+        ext2_inode_t *rootInode = kmalloc(sizeof(ext2_inode_t));
+        memset(rootInode, 0, sizeof(ext2_inode_t));
+        printf("DONE (0x%x)\n", rootInode);
+
+        printf("\tAllocating VFS node...");
+        fsNode_t *ext2 = kmalloc(sizeof(fsNode_t));
+        printf("DONE (0x%x)\n", ext2);
+
+        printf("\tFreeing root inode...");
+        kfree(rootInode);
+        printf("DONE\n");
+        *//*
+        printf("\tInitializing EXT2 driver...");
+        fsNode_t *node = ext2_init(ideGetVFSNode(0));
+        printf("DONE (fsNode = 0x%x)\n", node);
+
+        printf("\t^ STAGE 1 COMPLETED - ENTERING CRASH ZONE ^\n");
+
+        printf("\tAllocating inode...");
+        ext2_inode_t *inode = kmalloc(sizeof(ext2_inode_t));
+        printf("DONE (0x%x)\n", inode);
+
+        printf("\tAllocating block...");
+        uint8_t *block = kmalloc(4096);
+        printf("DONE (0x%x)\n", block);
+
+        printf("\tAllocating dname (12 length)...");
+        char *dname = kmalloc(sizeof(char) * 12);
+        printf("DONE (0x%x)\n", dname);
+
+        printf("\tFreeing dname...");
+        kfree(dname);
+        printf("DONE\n");
+
+        printf("\tAllocating dirent...");
+        ext2_dirent_t *dirent = kmalloc(sizeof(ext2_dirent_t)); // GUESSING SIZE BECAUSE LAZY
+        printf("DONE (0x%x)\n", dirent);
+
+        printf("\tFreeing block...");
+        kfree(block);
+        printf("DONE\n");
+
+        printf("\tAllocating file node (THIS WILL CRASH)...");
+        fsNode_t *node2 = kmalloc(sizeof(fsNode_t));
+        printf("...?\n");
+
+        printf("\tFreeing stuff...");
+        kfree(inode);
+        kfree(node2);
+        kfree(dirent);
+        printf("DONE\n");
+
+        printf("\tSneaking suspicion we passed the crash test. Let's up the difficulty!\n");
+        printf("\t^ STAGE 2 COMPLETED - ENTERING CRASH ZONE 2 ^\n"); */
+
+        printf("\tSit back and relax, your computer is preparing to crash...");
+        int memoryAllocated = 0;
+        while (true) {
+            // average C program:
+            fsNode_t *node = kmalloc(sizeof(fsNode_t));
+            memoryAllocated += sizeof(fsNode_t);
+
+            printf("\r\tSit back and relax, your computer is preparing to crash... %i KB", memoryAllocated / 1024);
+            
+        }
     } else if (!strcmp(args[1], "tree")) {
         // to be moved
         printf("=== TESTING TREE ===\n"); 

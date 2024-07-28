@@ -517,9 +517,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // By ask, I mean check if they're holding c.
 
     
-    // DEFINITELY sketchy! What's going on with this system? 
-    serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
-    enable_liballoc();
     
     /* VESA initialization */
     bool didInitVesa = true;
@@ -535,10 +532,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         vbeSwitchBuffers();
     }
 
-    
-    // Reinitialize the keyboard handler
-    reinitializeKeyboardBuffer();
 
+    // DEFINITELY sketchy! What's going on with this system? 
+    serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
+    enable_liballoc();
+    
     // Initialize the VFS
     vfsInit();
 
@@ -553,9 +551,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
     
 
-    fsNode_t *ext2_root = ext2_init(ideNode);
-    if (ext2_root) serialPrintf("Finddir returned: %i\n", ext2_finddir(ext2_root, "test.txt"));
-
+    //fsNode_t *ext2_root = ext2_init(ideNode);
+    //if (ext2_root) serialPrintf("Finddir returned: %i\n", ext2_finddir(ext2_root, "test.txt"));
+ 
     uint8_t seconds, minutes, hours, days, months;
     int years;
 
