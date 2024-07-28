@@ -233,9 +233,13 @@ void vesaInit() {
     extern uint32_t bss_end;
     extern uint32_t text_start;
     
-    framebuffer = kmalloc(1024*768);
-    serialPrintf("vesaInit: Allocated framebuffer to 0x%x - 0x%x\n", framebuffer, framebuffer + (1024*768*4));
+    framebuffer = kmalloc(1024*768*4);
+    serialPrintf("vesaInit: Allocated framebuffer to 0x%x - 0x%x\n", framebuffer, (int)framebuffer + (1024*768*4));
     
+    // Because framebuffer is big and stupid pmm will get confused and try to still allocate memory INSIDE of it
+    // So we need to fix that by telling PMM to go pound sand and deinitialize the region
+    pmm_deinitRegion(framebuffer, 1024*768*4);
+
     /* This code is to stop liballoc from screwing absolutely everything up. It is not required! */
     ASSERT(!(framebuffer < &bss_end), "vesaInit", "Invalid framebuffer (in kernelspace)");
     ASSERT(!(framebuffer <= &text_start), "vesaInit", "Invalid framebuffer (before kernelspace)");

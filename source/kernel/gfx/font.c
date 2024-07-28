@@ -121,7 +121,6 @@ void psfInit() {
         font = h2;
     }
     
-    changeTerminalMode(1); // Update terminal mode
     printf("PSF initialized\n");
 }
 

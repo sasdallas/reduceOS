@@ -518,6 +518,12 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     
     
+        
+
+    // DEFINITELY sketchy! What's going on with this system? 
+    serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
+    enable_liballoc();
+    
     /* VESA initialization */
     bool didInitVesa = true;
     char c = isKeyPressed();
@@ -525,18 +531,25 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         didInitVesa = false;
     } else {
         vesaInit(); // Initialize VBE
+    }
 
+    // Stop pointers from ending up inside framebuffer with this one simple trick!
+    reinitializeKeyboardBuffer();
+    
+
+
+    if (didInitVesa) {
         // Initialize PSF
         psfInit();
-        
+
         vbeSwitchBuffers();
+    
+        changeTerminalMode(1); // Update terminal mode
     }
 
 
-    // DEFINITELY sketchy! What's going on with this system? 
-    serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
-    enable_liballoc();
-    
+   
+
     // Initialize the VFS
     vfsInit();
 
@@ -546,7 +559,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
     else kfree(ideNode);
 
-    if (fatDriver) vfsMount("/", fatDriver);
+    //if (fatDriver) vfsMount("/", fatDriver);
 
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
     
@@ -554,12 +567,14 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     //fsNode_t *ext2_root = ext2_init(ideNode);
     //if (ext2_root) serialPrintf("Finddir returned: %i\n", ext2_finddir(ext2_root, "test.txt"));
  
-    uint8_t seconds, minutes, hours, days, months;
-    int years;
+    //uint8_t seconds, minutes, hours, days, months;
+    //int years;
 
-    rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
-    serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
+    //rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
+    //serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
+
+    
 
     // Start paging if VBE was not initialized.
     useCommands();
@@ -572,8 +587,11 @@ void useCommands() {
 
 
     clearScreen(COLOR_WHITE, COLOR_CYAN);
+    
+    //while (true);
     clearBuffer();
     // The user entered the command handler. We will not return.
+
 
     initCommandHandler();
     registerCommand("isr", (command*)testISRException);

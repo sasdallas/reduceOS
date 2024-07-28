@@ -240,6 +240,9 @@ void keyboardGetKey(char key, bool doPrintChars) {
     
 }
 
+char *getKeyboardBuffer() {
+    return bufferPointer;
+}
 
 // keyboardGetLine() - A better version of keyboardGetInput that waits until ENTER key is pressed, and then sends it back (it never actually sends it back, only edits a buffer provided).
 void keyboardGetLine(char *buffer) {
@@ -258,7 +261,7 @@ void reinitializeKeyboardBuffer() {
 
 // keyboardInitialize() - Main function that loads the keyboard
 void keyboardInitialize() {
-    bufferPointer = kmalloc(256);
+    bufferPointer = kmalloc(256); // BUG: DOES NOT MEMORY. FIX.
     isrRegisterInterruptHandler(33, keyboardHandler); // Register IRQ 33 as an ISR interrupt handler value.
     printf("Keyboard driver initialized.\n");
 }

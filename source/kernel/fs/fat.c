@@ -11,6 +11,7 @@
 /* 
 SUPPORTED FILESYSTEMS:
     - FAT12
+    - FAT16
 */
 
 // If you want a lot of the details about FAT, see https://wiki.osdev.org/FAT
@@ -179,7 +180,11 @@ int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
         memcpy(buffer, sector_buffer, len);
  
         // Locate the File Allocation Table sector
-        uint32_t fatOffset = cluster + (cluster / 2);
+        uint32_t fatOffset;
+        if (fs->drive->fatType == 1) fatOffset = cluster + (cluster / 2);
+        else if (fs->drive->fatType == 2) fatOffset = cluster * 2;
+        else { serialPrintf("fatReadInternal: Unknown fatType!\n"); return -1; }
+
         uint32_t fatSector = fs->drive->firstFatSector + (fatOffset / 512);
         uint32_t entryOffset = fatOffset % 512;
 
@@ -192,9 +197,11 @@ int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length) {
         // Read entry for the next cluster
         uint16_t nextCluster = *(uint16_t*)&FAT[entryOffset];
 
-        // Convert the cluster
-        nextCluster = (cluster & 1) ? nextCluster >> 4 : nextCluster & 0xFFF;
-
+        
+        if (fs->drive->fatType == 1) {
+            // Convert the cluster (FAT12 only)
+            nextCluster = (cluster & 1) ? nextCluster >> 4 : nextCluster & 0xFFF;
+        }
 
         // Test for EOF
         if (nextCluster >= 0xFF8) {
@@ -504,13 +511,18 @@ fsNode_t *fatInit(fsNode_t *driveNode) {
 
         // Identify the FAT type.
         if (totalSectors < 4085) {
-            driver->drive->fatType = 1;
+            driver->drive->fatType = 1; // FAT12
         } else if (totalSectors < 65525) {
-            driver->drive->fatType = 2;
+            driver->drive->fatType = 2; // FAT16
         } else if (rootDirSectors == 0) {
-            driver->drive->fatType = 3;
+            driver->drive->fatType = 3; // FAT32
         } else {
-            driver->drive->fatType = 0;
+            driver->drive->fatType = 0; // Unknown/unsupported. Return NULL.
+            kfree(driver->drive->bpb);
+            kfree(driver->drive);
+            kfree(driver);
+            serialPrintf("fatInit: Attempt to initialize on unknown FAT type!\n");
+            return NULL;
         }
 
         // Create the VFS node and return it
