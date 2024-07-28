@@ -559,10 +559,12 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
     else kfree(ideNode);
 
-    //if (fatDriver) vfsMount("/", fatDriver);
+    if (fatDriver) vfsMount("/", fatDriver);
 
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
     
+
+    debug_print_vfs_tree();
 
     //fsNode_t *ext2_root = ext2_init(ideNode);
     //if (ext2_root) serialPrintf("Finddir returned: %i\n", ext2_finddir(ext2_root, "test.txt"));
@@ -588,7 +590,6 @@ void useCommands() {
 
     clearScreen(COLOR_WHITE, COLOR_CYAN);
     
-    //while (true);
     clearBuffer();
     // The user entered the command handler. We will not return.
 

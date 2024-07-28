@@ -88,11 +88,15 @@ void vfsInit() {
     fs_tree = tree_create(); // Create the monuntpoint tree
 
     vfsEntry_t *root = kmalloc(sizeof(vfsEntry_t));
+
+    // Allocate memory for string pointers
+    root->fs_type = kmalloc(20);
+    root->device = kmalloc(20);
+
     strcpy(root->name, "/");
     root->file = 0; // Nothing is mounted
-    root->fs_type = 0;
-    root->device = 0;
 
+    
     tree_set_root(fs_tree, root);
 
     if (fs_tree->root->value != root) panic("VFS", "vfsInit", "tree fail");
@@ -169,10 +173,12 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
         serialPrintf("vfsMount: Mounting to /\n");
         vfsEntry_t *root = (vfsEntry_t*)rootNode->value;
         if (root->file != 0) serialPrintf("vfsMount: Path %s is already mounted - please do the correct thing and UNMOUNT.\n", path);
+        serialPrintf("vfsMount: Setting up values (localRoot = 0x%x)\n", localRoot);
         root->file = localRoot;
         strcpy(root->device, "N/A");
         strcpy(root->fs_type, "N/A");
         strcpy(root->name, "/");
+        
         fs_root = localRoot;
         ret_val = rootNode;
     } else {
