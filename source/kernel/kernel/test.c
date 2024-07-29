@@ -15,21 +15,6 @@
 extern ideDevice_t ideDevices[4];
 extern fsNode_t *fatDriver;
 
-int random_test_thingy() {
-    // ???
-
-    uint32_t p1_1 = 0x4d414747;
-    uint32_t p1_2 = 0x49452121;
-
-    uint32_t p2_1 = 0x53414d55;
-    uint32_t p2_2 = 0x454c2121;
-
-    uint32_t p1 = p1_1 + p1_2;
-    uint32_t p2 = p2_1 + p2_2;
-
-    uint32_t base = p1 + p2; // ;)
-
-}
 
 tree_comparator_t test_comparator(void *a, void *b) {
        return (a == b);
