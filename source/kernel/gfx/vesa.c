@@ -192,6 +192,7 @@ uint32_t VGA_TO_VBE(uint8_t vgaColor) {
 
 // vesaInit() - Initializes VESA VBE.
 void vesaInit() {
+
     // First, get VBE info and check if supported.
     vbeGetInfo();
 

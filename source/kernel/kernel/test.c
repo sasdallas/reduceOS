@@ -696,6 +696,8 @@ int vfs_tests() {
     return 0;
 }
 
+int ext2_tests_runcount = 0;
+
 // This function serves as a function to test multiple modules of the OS.
 int test(int argc, char *args[]) {
     if (argc != 2) {
@@ -776,23 +778,27 @@ int test(int argc, char *args[]) {
         printf("\tFreeing root inode...");
         kfree(rootInode);
         printf("DONE\n");
-        *//*
+        */
         printf("\tInitializing EXT2 driver...");
-        fsNode_t *node = ext2_init(ideGetVFSNode(0));
+        fsNode_t *node = kmalloc(1);
+        if (ext2_tests_runcount == 0) node = ext2_init(ideGetVFSNode(0));
         printf("DONE (fsNode = 0x%x)\n", node);
 
         printf("\t^ STAGE 1 COMPLETED - ENTERING CRASH ZONE ^\n");
 
-        printf("\tAllocating inode...");
+        serialPrintf("\tAllocating inode...");
         ext2_inode_t *inode = kmalloc(sizeof(ext2_inode_t));
-        printf("DONE (0x%x)\n", inode);
+        memset(inode, 0xF, sizeof(ext2_inode_t));
+        serialPrintf("DONE (0x%x)\n", inode);
 
         printf("\tAllocating block...");
         uint8_t *block = kmalloc(4096);
+        memset(block, 0xB, 4096);
         printf("DONE (0x%x)\n", block);
 
         printf("\tAllocating dname (12 length)...");
         char *dname = kmalloc(sizeof(char) * 12);
+        strcpy(dname, "Hello world");
         printf("DONE (0x%x)\n", dname);
 
         printf("\tFreeing dname...");
@@ -801,15 +807,48 @@ int test(int argc, char *args[]) {
 
         printf("\tAllocating dirent...");
         ext2_dirent_t *dirent = kmalloc(sizeof(ext2_dirent_t)); // GUESSING SIZE BECAUSE LAZY
+        memset(dirent, 0xC, sizeof(ext2_dirent_t));
         printf("DONE (0x%x)\n", dirent);
 
-        printf("\tFreeing block...");
-        kfree(block);
-        printf("DONE\n");
+        
 
         printf("\tAllocating file node (THIS WILL CRASH)...");
         fsNode_t *node2 = kmalloc(sizeof(fsNode_t));
+        memset(node2, 0xA, sizeof(node2));
         printf("...?\n");
+
+
+        printf("\tValidating contents:\n");
+        printf("\t\tINODE: ");
+
+        bool fail;
+
+        fail = false;
+        uint8_t *val = inode;
+        for (int i = 0; i < sizeof(ext2_inode_t); i++) {
+            if (*val != 0xF) {
+                printf("FAIL (index %i - 0x%x vs 0xF)\n", i, *val);
+                fail = true;
+                break;
+            }
+            val++;
+        } 
+
+        if (!fail) printf("PASS\n");
+
+        printf("\t\tBLOCK: ");
+        fail = false;
+        val = block;
+        for (int i = 0; i < 4096; i++) {
+            if (*val != 0xB) {
+                printf("FAIL (index %i - 0x%x vs 0xB)\n", i, *val);
+                fail = true;
+                break;
+            }
+            val++;
+        } 
+
+        if (!fail) printf("PASS\n");
 
         printf("\tFreeing stuff...");
         kfree(inode);
@@ -818,18 +857,11 @@ int test(int argc, char *args[]) {
         printf("DONE\n");
 
         printf("\tSneaking suspicion we passed the crash test. Let's up the difficulty!\n");
-        printf("\t^ STAGE 2 COMPLETED - ENTERING CRASH ZONE 2 ^\n"); */
+        printf("\t^ STAGE 2 COMPLETED - ENTERING CRASH ZONE 2 ^\n"); 
 
-        printf("\tSit back and relax, your computer is preparing to crash...");
-        int memoryAllocated = 0;
-        while (true) {
-            // average C program:
-            fsNode_t *node = kmalloc(sizeof(fsNode_t));
-            memoryAllocated += sizeof(fsNode_t);
+        if (ext2_tests_runcount == 0) ext2_finddir(node, "test.txt");
 
-            printf("\r\tSit back and relax, your computer is preparing to crash... %i KB", memoryAllocated / 1024);
-            
-        }
+        ext2_tests_runcount++;
     } else if (!strcmp(args[1], "tree")) {
         // to be moved
         printf("=== TESTING TREE ===\n"); 

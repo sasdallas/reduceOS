@@ -516,14 +516,15 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Finally, all setup has been completed. We can ask the user if they want to enter the backup command line.
     // By ask, I mean check if they're holding c.
 
-    
-    
-        
 
+    // Here's a nasty little hack to get around liballoc messing everything up.
+    // We force our secondary framebuffer to 0x85A000 - 0xB5A000
+    
     // DEFINITELY sketchy! What's going on with this system? 
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
     
+
     /* VESA initialization */
     bool didInitVesa = true;
     char c = isKeyPressed();
@@ -532,6 +533,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     } else {
         vesaInit(); // Initialize VBE
     }
+
+
+    
 
 
 
