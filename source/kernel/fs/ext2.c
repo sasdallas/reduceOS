@@ -48,7 +48,6 @@ uint32_t ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNum
         serialPrintf("ext2_writeInodeBlock: inode %i, block %i\n", inodeNumber, block);
     }
 
-    serialPrintf("ext2_writeInodeBlock: Clearing and allocating up to required blocks (block=%i, %i)\n", block, inode->disk_sectors);
     
     char *empty = NULL;
 
@@ -462,7 +461,6 @@ int ext2_allocateInodeMetadataBlock(ext2_t *fs, uint32_t *blockPtr, ext2_inode_t
 
 // ext2_allocateInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block) - Allocate an inode block
 void ext2_allocateInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block) {
-    serialPrintf("Allocating block #%i for inode #%i\n", block, index);
     uint32_t ret = ext2_allocateBlock(fs);
     ext2_setDiskBlockNumber(fs, inode, index, block, ret);
     uint32_t t = (block + 1) * (fs->block_size / 512);
@@ -1256,6 +1254,7 @@ fsNode_t *ext2_init(fsNode_t *node) {
         serialPrintf("\tlast mount path: %s\n", ext2_filesystem->superblock->extension.lastPath);
 
         // Debug the BGDS
+        #if 0
         char *bg_buffer = kmalloc(ext2_filesystem->block_size * sizeof(char));
         for (uint32_t j = 0; j < ext2_filesystem->total_groups; j++) {
             serialPrintf("Block Group Descriptor #%i at %i\n", j, bgd_offset + j * ext2_filesystem->superblock->blockgroup_blocks);
@@ -1281,7 +1280,7 @@ fsNode_t *ext2_init(fsNode_t *node) {
             serialPrintf("\t\tFirst free inode in group is %i\n", k + ext2_filesystem->inodes_per_group * k + 1);
         }
         kfree(bg_buffer);
-
+        #endif
 
         // Now, we need to read in the root inode
         ext2_inode_t *rootInode = ext2_readInodeMetadata(ext2_filesystem, EXT2_ROOT_INODE_NUMBER);

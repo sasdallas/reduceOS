@@ -703,8 +703,223 @@ int ext2_tests() {
         return -1;
     }
 
-    
+    printf("\tTesting ext2_finddir...");
 
+    int fail = -1;
+
+    fsNode_t *test_file = ext2_root->finddir(ext2_root, "test.txt");
+    if (!test_file) {
+        fail = 1;
+    }
+
+    fsNode_t *directory = ext2_root->finddir(ext2_root, "subdir");
+    if (!directory) {
+        fail = 2;
+    } 
+
+    if (directory) {
+        fsNode_t *nested = ext2_root->finddir(directory, "subdir.txt");
+        if (!nested) {
+            fail = 3;
+        } else {
+            kfree(nested);
+        }
+    }
+
+    fsNode_t *non_existant = ext2_root->finddir(directory, "nonexistant.txt");
+    if (non_existant) {
+        fail = 4;
+    }
+
+    switch (fail) {
+        case -1:
+            printf("PASS\n");
+            break;
+        case 1:
+            printf("FAIL (test.txt)\n");
+            break;
+        case 2:
+            printf("FAIL (subdir)\n");
+            break;
+        case 3:
+            printf("FAIL (subdir/subdir.txt)\n");
+            break;
+        case 4:
+            printf("FAIL (nonexistant.txt)\n");
+            break;
+        default:
+            printf("FAIL (?)\n");
+    }
+
+    if (fail == -1) {
+        kfree(directory); // Free directory
+    }
+
+    // Reset fail, we'll use it later.
+    fail = -1;
+
+    printf("\tTesting ext2_read (test.txt, full file size)...");
+    uint8_t *comparisonBuffer = kmalloc(test_file->length);
+    int ret = test_file->read(test_file, 0, test_file->length, comparisonBuffer);
+    if (ret == test_file->length) printf("PASS\n");
+    else { printf("FAIL (ret = %i)\n", ret); fail = 1; }
+
+    if (fail == -1) {
+        uint8_t *buffer = kmalloc(test_file->length);
+        
+        printf("\tTesting ext2_read (test.txt, offset 0, size 100)...");
+        int ret = test_file->read(test_file, 0, 100, buffer);
+
+        if (ret == 100) {
+            bool checkFail = false;
+            for (int i = 0; i < 100; i++) {
+                if (buffer[i] != comparisonBuffer[i]) { printf("FAIL (mismatch at index %i - %c vs %c)\n", i, buffer[i], comparisonBuffer[i]); checkFail = true; }
+            }
+
+            if (!checkFail) printf("PASS\n");
+        } else {
+            printf("FAIL (ret = %i)\n", ret);
+        }
+
+        memset(buffer, 0, test_file->length);
+
+
+        printf("\tTesting ext2_read (test.txt, offset 25, size 100)...");
+        ret = test_file->read(test_file, 25, 100, buffer);
+
+        if (ret == 100) {
+            bool checkFail = false;
+            for (int i = 0; i < 100; i++) {
+                if (buffer[i] != comparisonBuffer[i + 25]) { printf("FAIL (mismatch at index %i - %c vs %c)\n", i, buffer[i], comparisonBuffer[i + 25]); checkFail = true; }
+            }
+
+            if (!checkFail) printf("PASS\n");
+        } else {
+            printf("FAIL (ret = %i)\n", ret);
+        }
+
+        kfree(buffer);
+    }
+
+
+    printf("\tReading file contents for restoration...");
+    uint8_t *restoreBuffer = kmalloc(test_file->length);
+    
+    ret = test_file->read(test_file, 0, test_file->length, restoreBuffer);
+    if (ret == test_file->length) {
+        printf("DONE\n");
+
+        // Clear the comparison buffer
+        memset(comparisonBuffer, 0, sizeof(comparisonBuffer));
+        
+        uint8_t *buffer = kmalloc(test_file->length);
+
+
+        // Copy in the exclamation points, then copy the string reduceOS is cool
+        memset(buffer, 0, test_file->length);
+        memset(buffer, '!', test_file->length);
+        strcpy(buffer, "reduceOS is cool");
+
+        printf("\tTesting ext2_write (test.txt, offset 0, full file size)...");
+        test_file->write(test_file, 0, test_file->length, buffer);
+    
+        // Read in the file to check it
+        test_file->read(test_file, 0, test_file->length, comparisonBuffer);
+
+        bool checkFail = false;
+        for (int i = 0; i < test_file->length; i++) {
+            if (comparisonBuffer[i] != buffer[i]) {
+                printf("FAIL (mismatch at index %i - %c vs %c)\n", i, buffer[i], comparisonBuffer[i]);
+                checkFail = true;
+                break;
+            }
+        }
+
+        if (!checkFail) printf("PASS\n");
+
+        memset(buffer, 0, test_file->length);
+        memset(buffer, 'A', 25);
+
+        printf("\tTesting ext2_write (test.txt, offset 0, size 25)...");
+        test_file->write(test_file, 0, 25, buffer);
+    
+        // Read in the file to check it
+        test_file->read(test_file, 0, 25, comparisonBuffer);
+
+        checkFail = false;
+        for (int i = 0; i < 25; i++) {
+            if (comparisonBuffer[i] != buffer[i]) {
+                printf("FAIL (mismatch at index %i - %c vs %c)\n", i, buffer[i], comparisonBuffer[i]);
+                checkFail = true;
+                break;
+            }
+        }
+
+        if (!checkFail) printf("PASS\n");
+
+        memset(buffer, 0, test_file->length);
+        memset(buffer, 'D', 25);
+
+        printf("\tTesting ext2_write (test.txt, offset 10, size 25)...");
+        test_file->write(test_file, 10, 25, buffer);
+    
+        // Read in the file to check it
+        test_file->read(test_file, 10, 25, comparisonBuffer);
+
+        checkFail = false;
+        for (int i = 0; i < 25; i++) {
+            if (comparisonBuffer[i] != buffer[i]) {
+                printf("FAIL (mismatch at index %i - %c vs %c)\n", i, buffer[i], comparisonBuffer[i]);
+                checkFail = true;
+                break;
+            }
+        }
+
+        if (!checkFail) printf("PASS\n");
+
+        printf("\tRestoring file contents...");
+
+        test_file->write(test_file, 0, test_file->length, restoreBuffer);
+
+        printf("DONE\n");
+
+        kfree(buffer);
+
+    } else {
+        printf("ERROR (ret = %i)\n", ret);
+    }
+
+    kfree(restoreBuffer);
+
+    printf("\tTesting ext2_mkdir...");
+    ext2_root->mkdir(ext2_root, "test_dir", EXT2_PERM_OR);
+
+    fsNode_t *dir = ext2_root->finddir(ext2_root, "test_dir");
+    if (dir != -1) {
+        printf("PASS\n");
+        kfree(dir);
+    } else {
+        printf("FAIL\n");
+    }
+
+    printf("\tTesting ext2_readdir...");
+    struct dirent *direntry = ext2_root->readdir(ext2_root, 0); // I don't honestly know what readdir does
+    printf("PASS (ino: %i)\n", direntry->ino);
+    
+    printf("\tTesting ext2_create...");
+    ext2_root->create(ext2_root, "reduceOS.txt", EXT2_PERM_OR);
+
+    fsNode_t *f = ext2_root->finddir(ext2_root, "reduceOS.txt");
+    if (f != -1) {
+        printf("PASS\n");
+        kfree(f);
+    } else {
+        printf("FAIL (already exists?)\n");
+    }
+
+    kfree(test_file);
+    kfree(direntry);
+    kfree(comparisonBuffer);
     return 0;
 }
 
@@ -712,7 +927,7 @@ int ext2_tests() {
 int test(int argc, char *args[]) {
     if (argc != 2) {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, ext2\n");
         return 0;
     } 
 
@@ -845,7 +1060,7 @@ int test(int argc, char *args[]) {
         else printf("=== TESTS FAILED ===\n");
     } else {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2\n");
     }
 
     return 0;
