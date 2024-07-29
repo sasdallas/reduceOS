@@ -78,6 +78,9 @@ void scrollTerminal_vesa() {
         for (int y = psfGetFontHeight(); y < modeHeight; y++) {
             for (int x = 0; x < modeWidth; x++) {
                 vbePutPixel(x, y - psfGetFontHeight(), *(framebuffer + (y*modeWidth + x))); // Copy the pixels one line below to the current line.
+
+                
+                ASSERT(((framebuffer + (y*modeWidth + x)) <= (framebuffer + 1024*768*4)), "scrollTerminal_vesa", "we have issue");
             }    
         }
 

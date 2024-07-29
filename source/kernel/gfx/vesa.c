@@ -270,8 +270,9 @@ int vbeSwitchBuffers() {
 void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
     uint32_t p = y * modeWidth + x;
-    if (framebuffer_initialized) *(framebuffer + p) = color;
-    else *(vbeBuffer + p) = color;
+    *(framebuffer + p) = color;
+
+    
 }
 
 uint32_t vbeGetPixel(int x, int y) {

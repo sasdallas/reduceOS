@@ -12,7 +12,7 @@ static bool ctrlPressed = false;
 static bool printChars = true;
 
 
-char *bufferPointer = NULL;
+char bufferPointer[256];
 int bindex = 0;
 bool newline = false;
 
@@ -253,15 +253,10 @@ void keyboardGetLine(char *buffer) {
     return;
 }
 
-// reinitializeKeyboardBuffer() - Reinitializes the keyboard buffer's pointer
-void reinitializeKeyboardBuffer() {
-    bufferPointer = kmalloc(256);
-}
 
 
 // keyboardInitialize() - Main function that loads the keyboard
 void keyboardInitialize() {
-    bufferPointer = kmalloc(256); // BUG: DOES NOT MEMORY. FIX.
     isrRegisterInterruptHandler(33, keyboardHandler); // Register IRQ 33 as an ISR interrupt handler value.
     printf("Keyboard driver initialized.\n");
 }

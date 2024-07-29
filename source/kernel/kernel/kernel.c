@@ -533,9 +533,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         vesaInit(); // Initialize VBE
     }
 
-    // Stop pointers from ending up inside framebuffer with this one simple trick!
-    reinitializeKeyboardBuffer();
-    
 
 
     if (didInitVesa) {
@@ -615,8 +612,8 @@ void useCommands() {
     registerCommand("test", (command*)test);
 
 
-    serialPrintf("All commands registered successfully.\n");
-    serialPrintf("Warning: User is an unstable environment.\n");
+    serialPrintf("kmain: All commands registered successfully.\n");
+    serialPrintf("kmain: Warning: User is an unstable environment.\n");
 
     
     char buffer[256]; // We will store keyboard input here.
