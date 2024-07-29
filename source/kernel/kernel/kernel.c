@@ -372,7 +372,7 @@ void usermodeMain() {
 
 
 fsNode_t *fatDriver = NULL;
-
+fsNode_t *ext2_root = NULL;
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(unsigned long addr, unsigned long loader_magic) {
     // Update global multiboot info.
@@ -567,9 +567,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     debug_print_vfs_tree();
 
-    //fsNode_t *ext2_root = ext2_init(ideNode);
-    //if (ext2_root) serialPrintf("Finddir returned: %i\n", ext2_finddir(ext2_root, "test.txt"));
- 
+    ext2_root = ext2_init(ideNode);
+    
     //uint8_t seconds, minutes, hours, days, months;
     //int years;
 

@@ -226,23 +226,23 @@ typedef struct ext2 {
 // Functions
 int ext2_readBlock(ext2_t *fs, uint32_t block, uint8_t *buf); // Read a block from the device
 int ext2_writeBlock(ext2_t *fs, uint32_t block, uint8_t *buf); // Write a block to the device
-uint8_t *ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock); // Reads a block in the specified inode
-void ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, uint8_t *buffer); // Writes a block in the specified inode
+int ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, uint8_t *buffer); // Reads a block in the specified inode
+uint32_t ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, uint32_t block, uint8_t *buffer); // Writes a block in the specified inode
 uint32_t ext2_allocateBlock(ext2_t *fs); // Allocate a block from the ext2 block bitmaps
 void ext2_freeBlock(ext2_t *fs, uint32_t block); // Frees a block from the ext2 block bitmaps
 void ext2_rewriteBGDs(ext2_t *fs); // Rewrite the block group descriptors
 ext2_superblock_t *ext2_readSuperblock(fsNode_t *device); // Reads and returns the superblock for a drive
 int ext2_writeSuperBlock(ext2_t *fs); // Rewrites the superblock according to the superblock currently on the strutcure
-int ext2_readInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index); // Given an inode number, find the inode on the disk and read it
-void ext2_writeInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index); // Write an inode metadata at an index
+ext2_inode_t *ext2_readInodeMetadata(ext2_t *fs, uint32_t inode); // Given an inode number, find the inode on the disk and read it
+int ext2_writeInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index); // Write an inode metadata at an index
 uint32_t ext2_getDiskBlockNumber(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock); // Gets the actual index of inodeBlock on the disk
 uint32_t ext2_readInodeFiledata(ext2_t *fs, ext2_inode_t *inode, uint32_t offset, uint32_t size, uint8_t *buffer); // Read the actual file data referenced from the inode
-int ext2_readInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index); // Given an inode number, find the inode on the disk and read it.
 void ext2_allocateInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block); // Allocate an inode block
 void ext2_freeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t block); // Free an inode block
 uint32_t ext2_allocateInode(ext2_t *fs); // Allocate an inode from the inode bitmap
 void ext2_freeInode(ext2_t *fs, uint32_t inode); // Frees an inode from the inode bitmap
 fsNode_t *ext2_finddir(fsNode_t *node, char *name); // Returns NULL if file exists, and the node for the file if it does
+int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNode_t *ret);
 
 
 
