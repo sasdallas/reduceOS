@@ -6,11 +6,9 @@ If you would like to learn more about the development of the kernel, scroll down
 
 ![reduceOS image](reduceOSDemo.png)
 
-#### Please read the credits!
 
 # What's different from reduceOS alpha?
-reduceOS has switched to a brand new kernel, with cleaner, commented code and more features. This kernel is also written entirely by me, without a base.\
-We do still have to stick with multiboot for now, however. Still, the OS is coming along great.
+reduceOS has switched to a brand new kernel, with cleaner, commented code and more features. This kernel is also written entirely by me, without a base.
 
 # Compiling
 ### Windows builds are NOT supported!
@@ -31,12 +29,12 @@ Run `make qemu` to launch QEMU and start the OS.
 
 **macOS users:** The default version of gcc and ld included WILL NOT work! You need to use a package manager such as [homebrew](https://brew.sh) to install a custom version of gcc and ld. See below.
 
-You can build reduceOS with a custom version of gcc or ld by passing these as parameters to make, like so: `make CC=<gcc version path> LD=<ld version path>`. See the makefile for all program variables.
+You can build reduceOS with a custom version of gcc or ld by passing them as parameters to make, like so: `make CC=<gcc version path> LD=<ld version path>`. See the makefile for all program variables.
 
 
 
 # Known Bugs
-- ext2 driver does not work, crashes liballoc (verified this is ext2's fault)
+- ext2 driver needs deletion functions
 - Running `test liballoc` 3 times causes system freeze, however I believe this is a bug with my terminal graphics and not liballoc 
 - **Severe:** System calls not working.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code (temporary fix: auto uses 1024*768)
@@ -46,14 +44,11 @@ You can build reduceOS with a custom version of gcc or ld by passing these as pa
 # Credits
 Michael Petch - Patched my terrible interrupts and helped me fix my VMM, even though he didn't have to. Link to this awesome person [here](https://stackoverflow.com/users/3857942/michael-petch)
 
-OSDev Wiki - Great resource for anyone looking into OS development. Helped with a ton of the basic principles and code. Link [here](https://wiki.osdev.org/)
+OSDev Wiki - Great resource for anyone looking into OS development. Helped with a ton of the principles and code. Link [here](https://wiki.osdev.org/)
 
 BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. Link [here](http://www.brokenthorn.com/Resources/OSDevIndex.html)
 
-JamesM's kernel development tutorials - (no need for Internet Archive anymore) Really helped out with some of the basic concepts, especially paging and the initial ramdisk. Link [here](http://jamesmolloy.co.uk/tutorial_html/)
-
-GCC - Basically the entire OS, but some code was copied for the internal libc. Link [here](https://github.com/gcc-mirror/gcc)
+ToaruOS - The Misaka kernel and it's modules provide a great example of easy-to-understand, yet robust code. Link [here](https://github.com/klange/ToaruOS)
 
 # To Developers
-If you see your code in my repository and do not wish it to be there, please notify me to have it removed or to add credit! I am so sorry if you aren't in the credits list, I forget sometimes.
-Thank you for all you do, I appreciate it greatly!
+If I used your code in your repo without properly crediting it, please create a GitHub issue and I will resolve it right away!
