@@ -10,6 +10,7 @@
 #include "include/terminal.h"
 #include "include/floppy.h"
 #include "include/ext2.h"
+#include "include/bitmap.h"
 
 
 extern ideDevice_t ideDevices[4];
@@ -422,46 +423,57 @@ int fat_tests() {
         
         printf("\tTesting fatOpenInternal (test.txt)...");
 
-        fsNode_t ret = fatOpenInternal(fatDriver, "/test.txt");
-        if (ret.flags != VFS_FILE) {
-            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        fsNode_t *ret; 
+
+        ret = fatOpenInternal(fatDriver, "/test.txt");
+        if (ret->flags != VFS_FILE) {
+            printf("FAIL (flags = 0x%x)\n", ret->flags);
             fail = 1;
         } else {
             printf("PASS\n");
         }
+        
+        kfree(ret);
+
 
 
         printf("\tTesting fatOpenInternal (dir/test.txt)...");
 
-        ret = fatOpenInternal(fatDriver, "/dir/test.txt");
-        if (ret.flags != VFS_FILE) {
-            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        fsNode_t *ret2 = fatOpenInternal(fatDriver, "/dir/test.txt");
+        if (ret2->flags != VFS_FILE) {
+            printf("FAIL (flags = 0x%x)\n", ret2->flags);
             fail = 1;
         } else {
             printf("PASS\n");
         }
+        
+        serialPrintf("The file has been returned\n");
+        kfree(ret2);
+
 
         printf("\tTesting fatOpenInternal (nonexistent.txt)...");
 
         ret = fatOpenInternal(fatDriver, "/nonexistent.txt");
-        if (ret.flags != -1) {
-            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        if (ret->flags != -1) {
+            printf("FAIL (flags = 0x%x)\n", ret->flags);
             fail = 1;
         } else {
             printf("PASS\n");
         }
+
+        kfree(ret);
 
         uint8_t *buffer;
 
         printf("\tTesting fatReadInternal (test.txt, 1 cluster)...");
 
         ret = fatOpenInternal(fatDriver, "/test.txt");
-        if (ret.flags != VFS_FILE) {
+        if (ret->flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
         } else {
-            buffer = kmalloc(ret.length);
-            if (fatReadInternal(&ret, buffer, ret.length) == EOF) {
-                for (int j = 0; j < ret.length; j++) serialPrintf("%c", buffer[j]);
+            buffer = kmalloc(ret->length);
+            if (fatReadInternal(ret, buffer, ret->length) == EOF) {
+                for (int j = 0; j < ret->length; j++) serialPrintf("%c", buffer[j]);
                 printf("PASS\n");
             } else {
                 printf("FAIL (file spans >1 cluster)\n");
@@ -473,7 +485,7 @@ int fat_tests() {
         printf("\tTesting fatReadInternal (cluster.txt, 4 clusters)...");
 
         ret = fatOpenInternal(fatDriver, "/cluster.txt");
-        if (ret.flags != VFS_FILE) {
+        if (ret->flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
             fail = 1;
         } else {
@@ -488,7 +500,7 @@ int fat_tests() {
                     fail = 1;
                     break;
                 }
-                returnValue = fatReadInternal(&ret, buffer + (i*4*512), ret.length); // Bugged bc we dont know sectors per cluster so we assume 4
+                returnValue = fatReadInternal(ret, buffer + (i*4*512), ret->length); // Bugged bc we dont know sectors per cluster so we assume 4
             }
 
             if (returnValue != EOF) {
@@ -502,25 +514,25 @@ int fat_tests() {
     
         printf("\tReading in test.txt for next set of tests...");
         ret = fatOpenInternal(fatDriver, "/test.txt");
-        uint8_t *comparison_buffer = kmalloc(ret.length);
+        uint8_t *comparison_buffer = kmalloc(ret->length);
 
-        if (ret.flags != VFS_FILE) {
+        if (ret->flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
             fail = 1;
         } else {
-            fatReadInternal(&ret, comparison_buffer, ret.length);
+            fatReadInternal(ret, comparison_buffer, ret->length);
             printf("DONE\n");
         }
 
         printf("\tTesting fatRead (test.txt, offset 0, size 100)...");
         
 
-        if (ret.flags != VFS_FILE) {
+        if (ret->flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
             fail = 1;
         } else {
             buffer = kmalloc(100);
-            if (fatRead(&ret, 0, 100, buffer) != 0) {
+            if (fatRead(ret, 0, 100, buffer) != 0) {
                 printf("FAIL (fatRead returned error)\n");
             } else {
                 bool success = true;
@@ -541,12 +553,12 @@ int fat_tests() {
         printf("\tTesting fatRead (test.txt, offset 26, size 102)...");
         
 
-        if (ret.flags != VFS_FILE) {
+        if (ret->flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
             fail = 1;
         } else {
             buffer = kmalloc(102);
-            if (fatRead(&ret, 26, 102, buffer) != 0) {
+            if (fatRead(ret, 26, 102, buffer) != 0) {
                 printf("FAIL (fatRead returned error)\n");
             } else {
                 bool success = true;
@@ -568,12 +580,12 @@ int fat_tests() {
         printf("\tTesting fatRead (test.txt, offset 50, size 33)...");
         
 
-        if (ret.flags != VFS_FILE) {
+        if (ret->flags != VFS_FILE) {
             printf("FAIL (fatOpenInternal failed)\n");
             fail = 1;
         } else {
             buffer = kmalloc(33);
-            if (fatRead(&ret, 50, 33, buffer) != 0) {
+            if (fatRead(ret, 50, 33, buffer) != 0) {
                 printf("FAIL (fatRead returned error)\n");
             } else {
                 bool success = true;
@@ -593,30 +605,30 @@ int fat_tests() {
 
         // It's ugly but we have to do it because of the VFS being incomplete.
         printf("\tTesting fatOpen (test.txt)...");
-        memset(&ret, 0, sizeof(fsNode_t));
-        ret.flags = -1; // Preventing false-passes
-        strcpy(ret.name, "/test.txt");
-        ret.impl_struct = fatDriver->impl_struct;
+        memset(ret, 0, sizeof(fsNode_t));
+        ret->flags = -1; // Preventing false-passes
+        strcpy(ret->name, "/test.txt");
+        ret->impl_struct = fatDriver->impl_struct;
 
-        fatOpen(&ret);
+        fatOpen(ret);
 
-        if (ret.flags != VFS_FILE) {
-            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        if (ret->flags != VFS_FILE) {
+            printf("FAIL (flags = 0x%x)\n", ret->flags);
             fail = 1;
         } else {
             printf("PASS\n");
         }
 
         printf("\tTesting fatOpen (dir/test.txt)...");
-        memset(&ret, 0, sizeof(fsNode_t));
-        ret.flags = -1; // Preventing false-passes
-        strcpy(ret.name, "/dir/test.txt");
-        ret.impl_struct = fatDriver->impl_struct;
+        memset(ret, 0, sizeof(fsNode_t));
+        ret->flags = -1; // Preventing false-passes
+        strcpy(ret->name, "/dir/test.txt");
+        ret->impl_struct = fatDriver->impl_struct;
 
-        fatOpen(&ret);
+        fatOpen(ret);
 
-        if (ret.flags != VFS_FILE) {
-            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        if (ret->flags != VFS_FILE) {
+            printf("FAIL (flags = 0x%x)\n", ret->flags);
             fail = 1;
         } else {
             printf("PASS\n");
@@ -624,15 +636,15 @@ int fat_tests() {
 
 
         printf("\tTesting fatOpen (nonexistent.txt)...");
-        memset(&ret, 0, sizeof(fsNode_t));
-        ret.flags = -1; // Preventing false-passes
-        strcpy(ret.name, "/nonexistent.txt");
-        ret.impl_struct = fatDriver->impl_struct;
+        memset(ret, 0, sizeof(fsNode_t));
+        ret->flags = -1; // Preventing false-passes
+        strcpy(ret->name, "/nonexistent.txt");
+        ret->impl_struct = fatDriver->impl_struct;
 
-        fatOpen(&ret);
+        fatOpen(ret);
 
-        if (ret.flags != -1) {
-            printf("FAIL (flags = 0x%x)\n", ret.flags);
+        if (ret->flags != -1) {
+            printf("FAIL (flags = 0x%x)\n", ret->flags);
             fail = 1;
         } else {
             printf("PASS\n");
@@ -923,11 +935,39 @@ int ext2_tests() {
     return 0;
 }
 
+int bitmap_test() {
+    if (!ext2_root) {
+        printf("\tEXT2 driver is not running\n");
+        return -1;
+    }
+
+    printf("\tLocating \"vaporwave.bmp\"...");
+    fsNode_t *image = ext2_root->finddir(ext2_root, "vaporwave.bmp");
+    printf("OK\n");
+
+    printf("\tLoading bitmap...");
+    bitmap_t *bmp = bitmap_loadBitmap(image);
+    if (bmp == NULL) {
+        printf("FAIL (bmp is NULL)\n");
+        return -1;
+    } 
+
+    printf("OK\n");
+
+
+    printf("\tDisplaying bitmap...");
+    displayBitmap(bmp, 0, 0);
+    sleep(2000);
+
+    return 0;
+}
+
+
 // This function serves as a function to test multiple modules of the OS.
 int test(int argc, char *args[]) {
     if (argc != 2) {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, ext2\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, ext2, bitmap\n");
         return 0;
     } 
 
@@ -967,6 +1007,11 @@ int test(int argc, char *args[]) {
 
         if (ext2_tests() == 0) printf("=== TESTS COMPLETED ===\n");
         else printf("=== TESTS FAILED ===\n");
+    } else if (!strcmp(args[1], "bitmap")) {
+        printf("=== TESTING BITMAPS ===\n");
+
+        if (bitmap_test() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n"); 
     } else if (!strcmp(args[1], "tree")) {
         // to be moved
         printf("=== TESTING TREE ===\n"); 
@@ -1060,7 +1105,7 @@ int test(int argc, char *args[]) {
         else printf("=== TESTS FAILED ===\n");
     } else {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, bitmap\n");
     }
 
     return 0;

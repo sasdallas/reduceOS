@@ -1055,8 +1055,9 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
 
     // We have to calculate when to stop reading, simple.    
     uint32_t end;
-    if (offset + size > inode->size) end = inode->size; // Offset + size is too big
-    else end = offset + size;
+    if (offset + size > inode->size) {
+        end = inode->size; // Offset + size is too big
+    } else end = offset + size;
 
     // Calculate the blocks we need to read, relative to end and offset.
     uint32_t startBlock = offset / fs->block_size;
@@ -1065,8 +1066,6 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
     // Calculate the ending size and the size to read
     uint32_t endSize = end - endBlock * fs->block_size;
     uint32_t sizeToRead = end - offset;
-
-    kfree(inode);
 
     // Now we can actually start reading
     uint8_t *buf = kmalloc(fs->block_size);
@@ -1087,6 +1086,13 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
                 memcpy(buffer + fs->block_size * blocksRead - (offset % fs->block_size), buf, endSize);
             }
         }
+
+        if (endSize) {
+            ext2_readInodeBlock(fs, inode, endBlock, buf);
+            memcpy(buffer + fs->block_size * blocksRead - (offset % fs->block_size), buf, fs->block_size);
+        }
+
+        serialPrintf("ext2: read %i blocks / %i bytes (did endSize = %i)\n", blocksRead, blocksRead * fs->block_size, endSize);
     }
 
     kfree(inode);

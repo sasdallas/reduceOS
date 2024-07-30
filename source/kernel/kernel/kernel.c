@@ -373,6 +373,7 @@ void usermodeMain() {
 
 fsNode_t *fatDriver = NULL;
 fsNode_t *ext2_root = NULL;
+
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(unsigned long addr, unsigned long loader_magic) {
     // Update global multiboot info.
@@ -560,7 +561,13 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
     else kfree(ideNode);
 
-    if (fatDriver) vfsMount("/", fatDriver);
+    //if (fatDriver) vfsMount("/", fatDriver);
+
+    if (fatDriver) {
+        serialPrintf("Driver is located in memory at 0x%x\n", fatDriver->impl_struct);
+        fsNode_t *ret = fatOpenInternal(fatDriver, "/test.txt");
+        fsNode_t *ret2 = fatOpenInternal(fatDriver, "/dir/test.txt");
+    }
 
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
     
@@ -568,7 +575,38 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     debug_print_vfs_tree();
 
     ext2_root = ext2_init(ideNode);
-    
+    if (ext2_root) {
+        fsNode_t *longFile = ext2_root->finddir(ext2_root, "vaporwave.bmp");
+        if (longFile) {
+            serialPrintf("kmain: allocating %i bytes\n", longFile->length);
+            uint8_t *buffer = kmalloc(longFile->length + (longFile->length % 10000));
+            for (int i = 0; i < longFile->length + 500; i += 10000) {
+                serialPrintf("Reading chunk %i - %i\n", i, i + 10000);
+                longFile->read(longFile, i, 10000, buffer + i);
+            }
+            int zeroesSkipped = 0;
+            int lastZero = 0;
+            int actualCharacters = 0;
+            for (int i = 0; i < 1000000; i++) {
+                if (buffer[i] == 0) {
+                    zeroesSkipped++;
+                    lastZero = i;
+                } else {
+                    actualCharacters++;
+                }
+
+                if (zeroesSkipped > 200) {
+                    continue;
+                }
+
+                if (lastZero + 1 == i) serialPrintf("__");
+                serialPrintf("%x ", buffer[i]);
+                
+            }
+
+            serialPrintf("\nPrinting completed. Amount of characters printed: %i / %i\n", actualCharacters, longFile->length);
+        }
+    }    
     //uint8_t seconds, minutes, hours, days, months;
     //int years;
 

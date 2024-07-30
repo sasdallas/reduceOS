@@ -46,4 +46,7 @@ typedef struct {
     uint8_t a;
 } palette_t;
 
+
+// Functions
+bitmap_t *bitmap_loadBitmap(fsNode_t *node); // Loads the bitmap into memory and returns the bitmap_t object.
 #endif

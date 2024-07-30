@@ -1,11 +1,11 @@
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 1290-DEBUG, compiled on 07/21/24, 10:59:33
+	Build 2180-RELEASE, compiled on 07/30/24, 09:34:34
 ============================================================================================================================
 
-Kernel location: 0x100000 - 0x80F874
-Text section: 0x100000 - 0x114000; Data section: 0x13F000 - 0x8045B6; BSS section: 0x805000 - 0x80F874
+Kernel location: 0x100000 - 0x5D5994
+Text section: 0x100000 - 0x118000; Data section: 0x145000 - 0x5CA580; BSS section: 0x5CB000 - 0x5D5994
 Loader magic: 0x43D8C305
 
 Serial logging initialized!
@@ -34,7 +34,7 @@
 kmain: CPU has long mode support: 0
 pmm_initRegion: Region at 0x0 (size 0x9F000) initialized. Blocks used: 0. Free blocks: 159
 pmm_initRegion: Region at 0x100000 (size 0x1EF0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x70F874) deinitialized. Blocks used: 1489. Free blocks: 6272
+pmm_deinitRegion: Region at 0x100000 (size 0x4D5994) deinitialized. Blocks used: 919. Free blocks: 6842
 vmmInit: Successfully initialized paging.
 Initialized memory management successfully.
 bios32 initialized successfully!
@@ -48,7 +48,7 @@
 initPCI: PCI probe completed
 IDE driver completed initialization.
 Found ATA drive - Generic 1234                            
-	Capacity: 0 GB 2 MB 0 KB
+	Capacity: 0 GB 32 MB 0 KB
 Found ATAPI drive - Generic 1234                            
 	Capacity: 0 GB 0 MB 0 KB
 acpiInit: Found RSDP signature at 0xFA330
@@ -57,110 +57,151 @@
 ACPI table signatures (RSDT):
 acpiInit: Successfully enabled ACPI.
 GRUB did pass an initial ramdisk at 0x100B0.
-initrdInit: Initial ramdisk loaded - location is 0x816000 and end address is 0x81732F
+initrdInit: Initial ramdisk loaded - location is 0x5DC000 and end address is 0x5DD32F
 Initialized floppy drive successfully.
 WARNING: Enabling liballoc! Stand away from the flames!
-liballoc: initialization of liballoc 1.1
-liballoc: Resource allocated 40000 of 16 pages (65536 bytes) for 228 size.
-liballoc: Total memory usage = 64 KB
-liballoc: set up first memory major 40000
-liballoc: 107C62 PREFIX(malloc)( 228 ): CASE 2: returning 40040
-IDE node name: IDE/ATA drive
+Preparing to call BIOS32 for int 0x10...
+	AX = 0x4F00 BX = 0xEE20 CX = 0x20 DX = 0x5C
+Preparing to call BIOS32 for int 0x10...
+	AX = 0x4F01 BX = 0x0 CX = 0x4144 DX = 0x0
+pmm_deinitRegion: Region at 0x40000000 (size 0xC0000) deinitialized. Blocks used: 1187. Free blocks: 6574
+Preparing to call BIOS32 for int 0x10...
+	AX = 0x4F02 BX = 0x4144 CX = 0x0 DX = 0x0
+vesaInit: Allocated framebuffer to 0x5E0040 - 0x8E0040
+pmm_deinitRegion: Region at 0x5E0040 (size 0x300000) deinitialized. Blocks used: 2725. Free blocks: 5036
 fatInit: FAT trying to initialize on driveNode...
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40140
-liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 40380
-liballoc: 107C62 PREFIX(malloc)( 80 ): CASE 4.1: returning 403C0
-liballoc: 107C62 PREFIX(malloc)( 122 ): CASE 4.1: returning 40420
-liballoc: 107D23 PREFIX(free)( 4012C ): OK
+ideReadSectors returned 0
 fatInit: bootjmp identified on drive
-liballoc: 107C62 PREFIX(malloc)( 228 ): CASE 4.2: returning 40140
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 7/33/2036 17:16:39
-All commands registered successfully.
-Warning: User is an unstable environment.
-liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.2: returning 40240
-liballoc: 107C62 PREFIX(malloc)( 37 ): CASE 4.2: returning 40280
-liballoc: 107C62 PREFIX(malloc)( 36 ): CASE 4.2: returning 402C0
-Checking...
-Subdir
-Reading root directory...
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 404B0
-Node name for driver: IDE/ATA drive
-liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.2: returning 40300
-liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 406F0
-liballoc: 107D23 PREFIX(free)( 4049E ): OK
-Root dir read
-Checking...
-Subdir
-Reading root directory...
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 404B0
-Node name for driver: IDE/ATA drive
-liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.2: returning 40340
-liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 40740
-liballoc: 107D23 PREFIX(free)( 4049E ): OK
-Root dir read
-Subdir
-Reading subdirectory...
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 404B0
-Reading
-Read
-liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 407A0
-liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 407E0
-liballoc: 107D23 PREFIX(free)( 4049E ): OK
-Checking...
-Subdir
-Reading root directory...
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 404B0
-Root dir read
-fatOpen: File /nonexistent.txt not found.
-Checking...
-Subdir
-Reading root directory...
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40830
-Node name for driver: IDE/ATA drive
-liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 40A70
-liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 40AB0
-liballoc: 107D23 PREFIX(free)( 4081E ): OK
-Root dir read
-liballoc: 107C62 PREFIX(malloc)( 171 ): CASE 4.2: returning 40830
-This is a test file for FAT12 reading.
-If you're reading this it worked! If you're not reading this, it probably didn't work (just maybe).
-liballoc: 107D23 PREFIX(free)( 4081E ): OK
-Checking...
-Subdir
-Reading root directory...
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 40830
-Node name for driver: IDE/ATA drive
-liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 40B00
-liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 40B40
-liballoc: 107D23 PREFIX(free)( 4081E ): OK
-Root dir read
-liballoc: 107C62 PREFIX(malloc)( 8224 ): CASE 4.1: returning 40BA0
-liballoc: 107D23 PREFIX(free)( 40B86 ): OK
-Checking...
-Subdir
-Reading root directory...
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.2: returning 40830
-Node name for driver: IDE/ATA drive
-liballoc: 107C62 PREFIX(malloc)( 40 ): CASE 4.1: returning 40BA0
-liballoc: 107C62 PREFIX(malloc)( 64 ): CASE 4.1: returning 40BE0
-liballoc: 107D23 PREFIX(free)( 4081E ): OK
-Root dir read
-liballoc: 107C62 PREFIX(malloc)( 171 ): CASE 4.2: returning 40830
-liballoc: 107C62 PREFIX(malloc)( 132 ): CASE 4.2: returning 40900
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40C30
-liballoc: 107D23 PREFIX(free)( 40C1E ): OK
-liballoc: 107D23 PREFIX(free)( 408E1 ): OK
-liballoc: 107C62 PREFIX(malloc)( 134 ): CASE 4.2: returning 40900
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40C30
-liballoc: 107D23 PREFIX(free)( 40C1E ): OK
-liballoc: 107D23 PREFIX(free)( 408E1 ): OK
-liballoc: 107C62 PREFIX(malloc)( 65 ): CASE 4.2: returning 40900
-liballoc: 107C62 PREFIX(malloc)( 544 ): CASE 4.1: returning 40C30
-liballoc: 107D23 PREFIX(free)( 40C1E ): OK
-liballoc: 107D23 PREFIX(free)( 408E1 ): OK
-liballoc: 107D23 PREFIX(free)( 4081E ): OK
+Calculated tableCount as 0x2 and tableSize16 as 0x20
+rootOffset calculated as 0x41
+The driver is located in memory at 0x8E0570
+Driver is located in memory at 0x8E0570
+Corruption check: EB 3C 90 (roff=0x41)
+Preparing to parse
+Getting ready...
+Starting parse
+Parsing
+LBA calculated as 0x41
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x42
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x43
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x44
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+directory->fileName: Ac
+directory->fileName: CLUSTER TXT
+directory->fileName: Ad
+directory->fileName: DIR        
+directory->fileName: Ad
+directory->fileName: DIR2       
+directory->fileName: Al
+directory->fileName: LONG    TXT
+directory->fileName: At
+directory->fileName: TEST    TXT
+Found the file
+Returning the file
+Corruption check: EB 3C 90 (roff=0x41)
+Preparing to parse
+Getting ready...
+Starting parse
+Parsing
+LBA calculated as 0x41
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x42
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x43
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x44
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+directory->fileName: Ac
+directory->fileName: CLUSTER TXT
+directory->fileName: Ad
+directory->fileName: DIR        
+Found the file
+Returning the file
+ideReadSectors returned 0
+ideReadSectors returned 0
+vfsMount: Searching for ide0...
+vfsMount: Could not find ide0 - creating it.
+=== VFS TREE ===
+ / (0x8E00C0) -> (empty)
+  ide0 (0x8E0A70) -> 0x8E0230 (IDE/ATA drive)
+=== END VFS TREE ===
+ext2_readSuperblock: Reading superblock on drive 0...
+ideReadSectors returned 0
+kmain: Memory management online with 31044 KB of physical memory
+kmain: All commands registered successfully.
+kmain: Warning: User is an unstable environment.
+The FAT driver is located in memory at 0x8E0570
+Corruption check: EB 3C 90 (roff=0x41)
+Preparing to parse
+Getting ready...
+Starting parse
+Parsing
+LBA calculated as 0x41
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x42
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x43
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+Parsing
+LBA calculated as 0x44
+Sending read request
+ideReadSectors returned 0
+Read in successfully
+directory->fileName: Ac
+directory->fileName: CLUSTER TXT
+directory->fileName: Ad
+directory->fileName: DIR        
+directory->fileName: Ad
+directory->fileName: DIR2       
+directory->fileName: Al
+directory->fileName: LONG    TXT
+directory->fileName: At
+directory->fileName: TEST    TXT
+Found the file
+Returning the file
+The file has been returned
+Corruption check: EB 3C 90 (roff=0x41)
+Preparing to parse
+Getting ready...
+Starting parse
+Parsing
+LBA calculated as 0x41
+Sending read request
 ===========================================================
 panic() called! FATAL ERROR!
-*** Page fault at address 0x74736564
-*** Flags: present 
+*** Page fault at address 0x91
+*** Flags: present read-only 
 

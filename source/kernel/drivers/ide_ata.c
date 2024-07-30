@@ -159,8 +159,8 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
     ataRoot.flags = VFS_DIRECTORY;
     ataRoot.open = 0; // No lol
     ataRoot.close = 0;
-    ataRoot.read = &ideRead_vfs;
-    ataRoot.write = &ideWrite_vfs;
+    ataRoot.read = ideRead_vfs;
+    ataRoot.write = ideWrite_vfs;
     ataRoot.readdir = 0;
     ataRoot.finddir = 0;
     ataRoot.impl = 0; // THIS WILL BE DRIVENUM
@@ -191,8 +191,8 @@ fsNode_t *ideGetVFSNode(int driveNum) {
     ret->close = NULL;
     ret->finddir = NULL;
     ret->create = NULL;
-    ret->read = &ideRead_vfs;
-    ret->write = &ideWrite_vfs;
+    ret->read = ideRead_vfs;
+    ret->write = ideWrite_vfs;
     ret->readdir = NULL;
     ret->mkdir = NULL;
     strcpy(ret->name, "IDE/ATA drive");
@@ -202,10 +202,12 @@ fsNode_t *ideGetVFSNode(int driveNum) {
 // ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) - Read function for the VFS
 uint32_t ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) {
     // Create a temporary buffer that rounds up size to the nearest 512 multiple.
-    uint8_t temporary_buffer[((size + 512) - ((size + 512) % 512))]; 
+    uint8_t *temporary_buffer = kmalloc((size + 512) - ((size + 512) % 512)); 
+
 
     // Calculate the LBA, based off of offset rounded down
     int lba = (off - (off % 512)) / 512;
+    
 
     // Read in the sectors
     int ret = ideReadSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, temporary_buffer);
@@ -217,6 +219,7 @@ uint32_t ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *
 
     memcpy(buffer, temporary_buffer + offset, size);
 
+    kfree(temporary_buffer);
     return IDE_OK;
 }
 

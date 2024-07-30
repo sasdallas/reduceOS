@@ -8,16 +8,79 @@
 extern char _binary_source_images_vaporwave_bmp_start;
 extern char _binary_source_images_vaporwave_bmp_end;
 
+char *addr = NULL;
+
+// bitmap_loadBitmap(fsNode_t *node) - Loads the bitmap into memory and returns the bitmap_t object.
+bitmap_t *bitmap_loadBitmap(fsNode_t *node) {
+    if (!node) return NULL;
+
+    // Allocate memory for where the bitmap data will go
+    
+    uint8_t *image_data = kmalloc(node->length);
+    memset(image_data, 0xF, sizeof(image_data));
+
+    // Read in the image data
+    int ret = node->read(node, 0, node->length, image_data); 
+    if (ret != node->length) {
+        serialPrintf("bitmap_loadBitmap: Failed to read in bitmap data, returned %i\n", ret);
+        return NULL;
+    }
+
+    // Basically do what createBitmap does but with a different start address
+    bitmap_fileHeader_t *h = image_data;
+
+    if (h->type != 0x4D42) {
+        serialPrintf("bitmap_loadBitmap: Cannot load bitmap - signature is not 0x4D42 (BM). Signature given: 0x%x\n", h->type);
+        kfree(image_data);
+        return NULL;
+    } else {
+        serialPrintf("bitmap_loadBitmap: Validated signature\n");
+    }
+
+    uint32_t offset = h->offbits;
+
+    // Setup the infoheader
+    bitmap_infoHeader_t *info = image_data + sizeof(bitmap_fileHeader_t);
+
+    serialPrintf("bitmap_loadBitmap: Bitmap offset = %u\n", offset);
+
+    // Setup the bitmap_t we are returning
+    bitmap_t *bmp = kmalloc(sizeof(bitmap_t));
+    
+    bmp->width = info->width;
+    bmp->height = info->height;
+    bmp->imageBytes = (void*)((unsigned int)image_data + offset);
+    bmp->buffer = image_data;
+    bmp->totalSize = h->size;
+    bmp->bpp = info->bitcount;
+
+    serialPrintf("bitmap_loadBitmap: Bitmap dimensions are %u x %u\n", bmp->width, bmp->height);
+    serialPrintf("bitmap_loadBitmap: Image is located at 0x%x\n", bmp->imageBytes);
+    serialPrintf("bitmap_loadBitmap: Bitmap size = %u\n", h->size);
+    serialPrintf("bitmap_loadBitmap: Successfully loaded bitmap '%s'.\n", node->name);
+
+    for (int i = offset; i < offset + 10000; i++) {
+        serialPrintf("%x ", image_data[i]);
+    }
+
+    addr = image_data;
+    return bmp;
+}
 
 bitmap_t *createBitmap() {
     // The image we attempt to display is burned into the code by the linker (thankfully, initrd's interface sucks and that's totally not my fault)
-    bitmap_t *ret = pmm_allocateBlocks(sizeof(bitmap_t));
-    char *start_addr = &_binary_source_images_vaporwave_bmp_start;
+    bitmap_t *ret = kmalloc(sizeof(bitmap_t));
+    char *start_addr;
+    if (addr != NULL) start_addr = addr;
+    else start_addr = &_binary_source_images_vaporwave_bmp_start;
+
     bitmap_fileHeader_t *h = start_addr;
 
     // Validate signature
     if (h->type != 0x4D42) {
-        serialPrintf("createBitmap: WARNING! Signature is not 0x4D42 (BM)! Signature is: 0x%x\n", h->type);
+        serialPrintf("createBitmap: Signature is not 0x4D42 (BM)! Signature is: 0x%x\n", h->type);
+        kfree(ret);
+        return NULL;
     } else {
         serialPrintf("createBitmap: Signature OK on bitmap\n");
     }
@@ -46,6 +109,8 @@ bitmap_t *createBitmap() {
 // displayBitmap(bitmap_t *bmp, int x, int y) - Displays a bitmap image on 2nd framebuffer
 void displayBitmap(bitmap_t *bmp, int x, int y) {
     // NOTE: x and y refer to the top left starting point of the bitmap, since I could honestly care less about my future self. 
+    // NOTE FROM THE FUTURE: I hate you.
+
     if (!bmp) return; // Stupid users.
 
     uint8_t *image = bmp->imageBytes;
