@@ -11,6 +11,13 @@
 // More sources: https://wiki.osdev.org/PCI_IDE_Controller
 
 
+/*
+    WARNING:
+    This code, in its current state, IS BUGGED.
+    IT DOES NOT LOAD ANYTHING GREATER THAN A GIGABYTE, FROM SOME TESTING (ATA).
+    Unfortunately, this code is old, and I don't remember all of its workings.
+*/
+
 // Variables
 ideChannelRegisters_t channels[2]; // Primary and secondary channels
 uint8_t ideBuffer[2048] = {0}; // Buffer to read the identification space into (see ide_ata.h).
@@ -23,7 +30,7 @@ ideDevice_t ideDevices[4]; // Maximum devices supported is 4.
 // Function prototypes
 uint8_t ideRead(uint8_t channel, uint8_t reg); // Reads in a register
 void ideWrite(uint8_t channel, uint8_t reg, uint8_t data); // Writes to a register
-void ideReadBuffer(uint8_t channel, uint8_t reg, uint32_t buffer, uint32_t quads); // Reads the identification space and copies it to a buffer.
+void ideReadBuffer(uint8_t channel, uint8_t reg, uint32_t *buffer, uint32_t quads); // Reads the identification space and copies it to a buffer.
 void insl(uint16_t reg, uint32_t *buffer, int quads); // Reads a long word from a register port for quads times.
 void outsl(uint16_t reg, uint32_t *buffer, int quads); // Writes a long word to a register port for quads times
 uint8_t idePolling(uint8_t channel, uint32_t advancedCheck); // Returns whether there was an error.
@@ -104,7 +111,7 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
             }
 
             // Read the identification space of the device.
-            ideReadBuffer(i, ATA_REG_DATA, (uint32_t)ideBuffer, 128);
+            ideReadBuffer(i, ATA_REG_DATA, (uint32_t*)ideBuffer, 128);
 
             // Next, read the device parameters.
             ideDevices[count].reserved = 1;
@@ -296,7 +303,7 @@ void ideWrite(uint8_t channel, uint8_t reg, uint8_t data) {
     } else if (reg < 0x0C) {
         outportb(channels[channel].ioBase + reg - 0x06, data);
     } else if (reg < 0x0E) {
-        outportb(channels[channel].controlBase + reg - 0x0A, data);
+        outportb(channels[channel].controlBase + reg - 0x0C, data);
     } else if (reg < 0x16) {
         outportb(channels[channel].busMasterIDE + reg - 0x0E, data);
     }
@@ -308,14 +315,16 @@ void ideWrite(uint8_t channel, uint8_t reg, uint8_t data) {
 
 
 
-// ideReadBuffer(uint8_t channel, uint8_t reg, uint32_t buffer, uint32_t quads) - Reads the identification space and copies it to a buffer.
-void ideReadBuffer(uint8_t channel, uint8_t reg, uint32_t buffer, uint32_t quads) {
+// ideReadBuffer(uint8_t channel, uint8_t reg, uint32_t *buffer, uint32_t quads) - Reads the identification space and copies it to a buffer.
+void ideReadBuffer(uint8_t channel, uint8_t reg, uint32_t *buffer, uint32_t quads) {
     // Like most of the previous functions, if reg is greater than 0x07 but less than 0x0C, call ideWrite()
     if (reg > 0x07 && reg < 0x0C) {
         ideWrite(channel, ATA_REG_CONTROL, 0x80 | channels[channel].nIEN);
     }
 
-    asm ("pushw %es; movw %ds, %ax; movw %ax, %es");
+    //asm ("pushw %es; movw %ds, %ax; movw %ax, %es");
+
+    asm("pushw %es; pushw %ax; movw %ds, %ax; movw %ax, %es; popw %ax;");
 
     if (reg < 0x08) {
         insl(channels[channel].ioBase + reg - 0x00, buffer, quads);
@@ -433,6 +442,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     if (lba >= 0x10000000) {
         // Drive supports LBA48. Use that.
         
+
         lbaMode = 2;
         lbaIO[0] = (lba & 0x000000FF) >> 0;
         lbaIO[1] = (lba & 0x0000FF00) >> 8;
@@ -443,6 +453,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
         head = 0; // (lower 4 bits of ATA_REG_HDDEVSEL)
     } else if (ideDevices[drive].features & 0x200) {
         // Drive supports LBA28.
+
         lbaMode = 1;
         lbaIO[0] = (lba & 0x00000FF) >> 0;
         lbaIO[1] = (lba & 0x000FF00) >> 8;
@@ -474,8 +485,8 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     }  
 
     // Select the drive from the controller.
-    if (lbaMode == 0) ideWrite(channel, ATA_REG_HDDEVSEL, 0xA0 | (slaveBit >> 4) | head); // Drive & CHS.
-    else ideWrite(channel, ATA_REG_HDDEVSEL, 0xE0 | (slaveBit >> 4) | head);
+    if (lbaMode == 0) ideWrite(channel, ATA_REG_HDDEVSEL, 0xA0 | (slaveBit << 4) | head); // Drive & CHS.
+    else ideWrite(channel, ATA_REG_HDDEVSEL, 0xE0 | (slaveBit << 4) | head);
 
     // Next, write the parameters to the registers.
     if (lbaMode == 2) {
@@ -520,13 +531,13 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     // Now that we have sent the command, we should poll and read/write a sector until all sectors are read/written.
     if (dma) {
         // TODO: Implement DMA reading + writing.
-        if (direction == 0);
-        else;
+        
     } else {
         if (direction == 0) {
             // PIO read.
             for (int i = 0; i < sectorNum; i++) {
-                if (err = idePolling(channel, 1)) {
+                err = idePolling(channel, 1);
+                if (err) {
                     serialPrintf("ideAccessATA (direction read): IDE polling returned non-zero value %i\n", err);
                     return err; // Return if an error occurred. 
                 }

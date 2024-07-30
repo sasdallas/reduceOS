@@ -1,7 +1,7 @@
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 2180-RELEASE, compiled on 07/30/24, 09:34:34
+	Build 2391-DEBUG, compiled on 07/30/24, 13:29:07
 ============================================================================================================================
 
 Kernel location: 0x100000 - 0x5D5994
@@ -47,9 +47,9 @@
 pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x1234, device ID = 0x1111)
 initPCI: PCI probe completed
 IDE driver completed initialization.
-Found ATA drive - Generic 1234                            
-	Capacity: 0 GB 32 MB 0 KB
-Found ATAPI drive - Generic 1234                            
+Found ATA drive - EXT2 Disk                               
+	Capacity: 40 GB 0 MB 41943040 KB
+Found ATAPI drive - ISO bootdrive                           
 	Capacity: 0 GB 0 MB 0 KB
 acpiInit: Found RSDP signature at 0xFA330
 acpiParseRSDP: (dbg) OEM is BOCHS 
@@ -70,138 +70,62 @@
 vesaInit: Allocated framebuffer to 0x5E0040 - 0x8E0040
 pmm_deinitRegion: Region at 0x5E0040 (size 0x300000) deinitialized. Blocks used: 2725. Free blocks: 5036
 fatInit: FAT trying to initialize on driveNode...
-ideReadSectors returned 0
-fatInit: bootjmp identified on drive
-Calculated tableCount as 0x2 and tableSize16 as 0x20
-rootOffset calculated as 0x41
-The driver is located in memory at 0x8E0570
-Driver is located in memory at 0x8E0570
-Corruption check: EB 3C 90 (roff=0x41)
-Preparing to parse
-Getting ready...
-Starting parse
-Parsing
-LBA calculated as 0x41
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x42
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x43
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x44
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-directory->fileName: Ac
-directory->fileName: CLUSTER TXT
-directory->fileName: Ad
-directory->fileName: DIR        
-directory->fileName: Ad
-directory->fileName: DIR2       
-directory->fileName: Al
-directory->fileName: LONG    TXT
-directory->fileName: At
-directory->fileName: TEST    TXT
-Found the file
-Returning the file
-Corruption check: EB 3C 90 (roff=0x41)
-Preparing to parse
-Getting ready...
-Starting parse
-Parsing
-LBA calculated as 0x41
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x42
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x43
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x44
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-directory->fileName: Ac
-directory->fileName: CLUSTER TXT
-directory->fileName: Ad
-directory->fileName: DIR        
-Found the file
-Returning the file
-ideReadSectors returned 0
-ideReadSectors returned 0
+Sending read request for 2 sectors at LBA offset 0
+ideReadSectors: ATA read running
 vfsMount: Searching for ide0...
 vfsMount: Could not find ide0 - creating it.
 === VFS TREE ===
  / (0x8E00C0) -> (empty)
-  ide0 (0x8E0A70) -> 0x8E0230 (IDE/ATA drive)
+  ide0 (0x8E0370) -> 0x8E0230 (IDE/ATA drive)
 === END VFS TREE ===
 ext2_readSuperblock: Reading superblock on drive 0...
-ideReadSectors returned 0
+Sending read request for 3 sectors at LBA offset 2
+ideReadSectors: ATA read running
+ext2_init: Found ext2 signature on drive 0
+Sending read request for 9 sectors at LBA offset 8
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 1354 / 4096
+Sending read request for 9 sectors at LBA offset 16
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 337 / 4096
+ext2: 160 BGDs, 1310720 inodes, 8192 inodes per group
+	4096 block size, 2 BGD disk blocks, 4096 fragment size
+	last mount path: /mnt/test
+Reading in data about inode 1 - inode structure size is 0x100
+group: 0x0 inodeTableBlock: 0x403 blockOffset: 0x0
+Sending read request for 9 sectors at LBA offset 8216
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 107 / 4096
+ext2_init: ext2 disk mounted
+Reading in data about inode 1 - inode structure size is 0x100
+group: 0x0 inodeTableBlock: 0x403 blockOffset: 0x0
+Sending read request for 9 sectors at LBA offset 8216
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 107 / 4096
+Sending read request for 9 sectors at LBA offset 12312
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 40 / 4096
 kmain: Memory management online with 31044 KB of physical memory
 kmain: All commands registered successfully.
 kmain: Warning: User is an unstable environment.
-The FAT driver is located in memory at 0x8E0570
-Corruption check: EB 3C 90 (roff=0x41)
-Preparing to parse
-Getting ready...
-Starting parse
-Parsing
-LBA calculated as 0x41
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x42
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x43
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-Parsing
-LBA calculated as 0x44
-Sending read request
-ideReadSectors returned 0
-Read in successfully
-directory->fileName: Ac
-directory->fileName: CLUSTER TXT
-directory->fileName: Ad
-directory->fileName: DIR        
-directory->fileName: Ad
-directory->fileName: DIR2       
-directory->fileName: Al
-directory->fileName: LONG    TXT
-directory->fileName: At
-directory->fileName: TEST    TXT
-Found the file
-Returning the file
-The file has been returned
-Corruption check: EB 3C 90 (roff=0x41)
-Preparing to parse
-Getting ready...
-Starting parse
-Parsing
-LBA calculated as 0x41
-Sending read request
+Reading in data about inode 1 - inode structure size is 0x100
+group: 0x0 inodeTableBlock: 0x403 blockOffset: 0x0
+Sending read request for 9 sectors at LBA offset 8216
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 107 / 4096
+Sending read request for 9 sectors at LBA offset 12312
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 40 / 4096
+Reading in data about inode 1 - inode structure size is 0x100
+group: 0x0 inodeTableBlock: 0x403 blockOffset: 0x0
+Sending read request for 9 sectors at LBA offset 8216
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 107 / 4096
+Sending read request for 9 sectors at LBA offset 12312
+ideReadSectors: ATA read running
+ext2_readBlock: Reading completed. Ratio: 40 / 4096
 ===========================================================
 panic() called! FATAL ERROR!
-*** Page fault at address 0x91
-*** Flags: present read-only 
+*** Page fault at address 0x9C
+*** Flags: present 
 

@@ -132,7 +132,7 @@ typedef struct {
 // Functions
 uint8_t ideRead(uint8_t channel, uint8_t reg); // Reads in a register
 void ideWrite(uint8_t channel, uint8_t reg, uint8_t data); // Writes to a register
-void ideReadBuffer(uint8_t channel, uint8_t reg, uint32_t buffer, uint32_t quads); // Reads the identification space and copies it to a buffer.
+void ideReadBuffer(uint8_t channel, uint8_t reg, uint32_t *buffer, uint32_t quads); // Reads the identification space and copies it to a buffer.
 void insl(uint16_t reg, uint32_t *buffer, int quads); // Reads a long word from a register port for quads times.
 void outsl(uint16_t reg, uint32_t *buffer, int quads); // Writes a long word to a register port for quads times
 uint8_t idePolling(uint8_t channel, uint32_t advancedCheck); // Returns whether there was an error.

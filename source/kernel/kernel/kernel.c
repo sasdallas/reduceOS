@@ -563,48 +563,19 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     //if (fatDriver) vfsMount("/", fatDriver);
 
-    if (fatDriver) {
-        serialPrintf("Driver is located in memory at 0x%x\n", fatDriver->impl_struct);
-        fsNode_t *ret = fatOpenInternal(fatDriver, "/test.txt");
-        fsNode_t *ret2 = fatOpenInternal(fatDriver, "/dir/test.txt");
-    }
-
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
     
 
     debug_print_vfs_tree();
 
-    ext2_root = ext2_init(ideNode);
+
+
+    if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) ext2_root = ext2_init(ideNode);
     if (ext2_root) {
         fsNode_t *longFile = ext2_root->finddir(ext2_root, "vaporwave.bmp");
         if (longFile) {
-            serialPrintf("kmain: allocating %i bytes\n", longFile->length);
-            uint8_t *buffer = kmalloc(longFile->length + (longFile->length % 10000));
-            for (int i = 0; i < longFile->length + 500; i += 10000) {
-                serialPrintf("Reading chunk %i - %i\n", i, i + 10000);
-                longFile->read(longFile, i, 10000, buffer + i);
-            }
-            int zeroesSkipped = 0;
-            int lastZero = 0;
-            int actualCharacters = 0;
-            for (int i = 0; i < 1000000; i++) {
-                if (buffer[i] == 0) {
-                    zeroesSkipped++;
-                    lastZero = i;
-                } else {
-                    actualCharacters++;
-                }
+            serialPrintf("Running the 'is it ext2 or my ide driver' test...\n");
 
-                if (zeroesSkipped > 200) {
-                    continue;
-                }
-
-                if (lastZero + 1 == i) serialPrintf("__");
-                serialPrintf("%x ", buffer[i]);
-                
-            }
-
-            serialPrintf("\nPrinting completed. Amount of characters printed: %i / %i\n", actualCharacters, longFile->length);
         }
     }    
     //uint8_t seconds, minutes, hours, days, months;

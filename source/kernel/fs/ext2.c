@@ -307,8 +307,13 @@ ext2_superblock_t *ext2_readSuperblock(fsNode_t *device) {
     ext2_superblock_t *superblock = (ext2_superblock_t*)kmalloc(sizeof(ext2_superblock_t));
     
     // Read in the superblock
-    uint8_t buffer[1024];
+    uint8_t *buffer = kmalloc(1024);
     int ret = device->read(device, 1024, 1024, buffer); // Superblock always starts at LBA 2 and occupies 1024 bytes.
+
+    if (ret != IDE_OK) {
+        kfree(buffer);
+        return NULL;
+    }
 
     // Copy the buffer contents to the superblock and return.
     memcpy(superblock, buffer, sizeof(ext2_superblock_t));
@@ -346,7 +351,11 @@ void ext2_refreshInode(ext2_t *fs, ext2_inode_t *inodet, uint32_t inode) {
     inode--;
 
     uint32_t group = inode / fs->inodes_per_group;
-    if (group > fs->total_groups) return NULL;
+    if (group > fs->total_groups) {
+        serialPrintf("ext2_refreshInode: Attempted to read an inode that does not exist\n");
+        return NULL;
+    }
+
 
     uint32_t inodeTableBlock = fs->bgd_list[group].inode_table;
     inode -= group * fs->inodes_per_group;
@@ -355,9 +364,12 @@ void ext2_refreshInode(ext2_t *fs, ext2_inode_t *inodet, uint32_t inode) {
 
     uint8_t *buffer = kmalloc(fs->block_size);
 
+
+
     ext2_readBlock(fs, inodeTableBlock + blockOffset, buffer);
 
     ext2_inode_t *inoder = (ext2_inode_t*)buffer;
+
 
     memcpy(inodet, (uint8_t*)((uintptr_t)inoder + offsetInBlock * fs->superblock->extension.inode_struct_size), fs->superblock->extension.inode_struct_size);
 
@@ -981,6 +993,8 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
 
     uint8_t *block = kmalloc(fs->block_size);
     ext2_readInodeBlock(fs, inode, blockNumber, block);
+    
+
 
     uint32_t dirOffset = 0;
     uint32_t totalOffset = 0;
@@ -999,16 +1013,19 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
 
         ext2_dirent_t *dent = (ext2_dirent_t*)((uintptr_t)block + dirOffset);
 
+
         if (dent->inode == 0 || strlen(name) != dent->name_length) {
             dirOffset += dent->entry_size;
             totalOffset += dent->entry_size;
 
             continue;
         }
-
+        
         char *dname = kmalloc(sizeof(char) * (dent->name_length + 1));
         memcpy(dname, &(dent->name), dent->name_length);
         dname[dent->name_length] = '\0';
+
+        serialPrintf("%s\n", dent->name);
 
 
         if (!strcmp(dname, name)) {
@@ -1031,6 +1048,7 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
         return NULL;
     }
 
+
     inode = ext2_readInodeMetadata(fs, dirent->inode);
 
     // Get the file's node
@@ -1049,13 +1067,13 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
     ext2_t *fs = (ext2_t*)node->impl_struct;
 
     // Read in the inode's metadata
-
     ext2_inode_t *inode = ext2_readInodeMetadata(fs, node->inode);
     if (inode->size == 0) return 0;
 
     // We have to calculate when to stop reading, simple.    
     uint32_t end;
     if (offset + size > inode->size) {
+        serialPrintf("WARNING: Truncating size from %i to %i\n", size, inode->size);
         end = inode->size; // Offset + size is too big
     } else end = offset + size;
 
@@ -1069,6 +1087,7 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
 
     // Now we can actually start reading
     uint8_t *buf = kmalloc(fs->block_size);
+    int actualCharacters = 0;
     if (startBlock == endBlock) {
         // Read in the inode's block
         ext2_readInodeBlock(fs, inode, startBlock, buf);
@@ -1083,16 +1102,14 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
                 memcpy(buffer, (uint8_t*)(((uintptr_t)buf) + ((uintptr_t)offset % fs->block_size)), fs->block_size - (offset % fs->block_size)); // More complicated math
             } else {
                 ext2_readInodeBlock(fs, inode, blockOffset, buf);
-                memcpy(buffer + fs->block_size * blocksRead - (offset % fs->block_size), buf, endSize);
+                memcpy(buffer + fs->block_size * blocksRead - (offset % fs->block_size), buf, fs->block_size);
             }
         }
 
         if (endSize) {
             ext2_readInodeBlock(fs, inode, endBlock, buf);
-            memcpy(buffer + fs->block_size * blocksRead - (offset % fs->block_size), buf, fs->block_size);
+            memcpy(buffer + fs->block_size * blocksRead - (offset % fs->block_size), buf, endSize);
         }
-
-        serialPrintf("ext2: read %i blocks / %i bytes (did endSize = %i)\n", blocksRead, blocksRead * fs->block_size, endSize);
     }
 
     kfree(inode);
@@ -1221,6 +1238,7 @@ fsNode_t *ext2_init(fsNode_t *node) {
     // Read in the superblock for the drive
     
     ext2_superblock_t *superblock = ext2_readSuperblock(node);
+    if (superblock == NULL) return NULL;
 
     // Check the signature to see if it matches
     if (superblock->ext2_signature == EXT2_SIGNATURE) {
@@ -1286,7 +1304,7 @@ fsNode_t *ext2_init(fsNode_t *node) {
             serialPrintf("\t\tFirst free inode in group is %i\n", k + ext2_filesystem->inodes_per_group * k + 1);
         }
         kfree(bg_buffer);
-        #endif
+        #endif    
 
         // Now, we need to read in the root inode
         ext2_inode_t *rootInode = ext2_readInodeMetadata(ext2_filesystem, EXT2_ROOT_INODE_NUMBER);

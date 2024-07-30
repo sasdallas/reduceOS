@@ -4,6 +4,7 @@
 // Written originally by szhou42, adapted into reduceOS. Credit to him.
 
 #include "include/bitmap.h" // Main header file
+#include "include/ext2.h"
 
 extern char _binary_source_images_vaporwave_bmp_start;
 extern char _binary_source_images_vaporwave_bmp_end;
@@ -16,15 +17,15 @@ bitmap_t *bitmap_loadBitmap(fsNode_t *node) {
 
     // Allocate memory for where the bitmap data will go
     
-    uint8_t *image_data = kmalloc(node->length);
-    memset(image_data, 0xF, sizeof(image_data));
+    uint8_t *image_data = kmalloc(node->length + 1024 * 3); // extra 3 KB to be safe
+    memset(image_data, 0, sizeof(image_data));
 
     // Read in the image data
     int ret = node->read(node, 0, node->length, image_data); 
     if (ret != node->length) {
         serialPrintf("bitmap_loadBitmap: Failed to read in bitmap data, returned %i\n", ret);
         return NULL;
-    }
+    } 
 
     // Basically do what createBitmap does but with a different start address
     bitmap_fileHeader_t *h = image_data;
@@ -59,9 +60,7 @@ bitmap_t *bitmap_loadBitmap(fsNode_t *node) {
     serialPrintf("bitmap_loadBitmap: Bitmap size = %u\n", h->size);
     serialPrintf("bitmap_loadBitmap: Successfully loaded bitmap '%s'.\n", node->name);
 
-    for (int i = offset; i < offset + 10000; i++) {
-        serialPrintf("%x ", image_data[i]);
-    }
+    
 
     addr = image_data;
     return bmp;
@@ -106,6 +105,7 @@ bitmap_t *createBitmap() {
     return ret;
 }
 
+
 // displayBitmap(bitmap_t *bmp, int x, int y) - Displays a bitmap image on 2nd framebuffer
 void displayBitmap(bitmap_t *bmp, int x, int y) {
     // NOTE: x and y refer to the top left starting point of the bitmap, since I could honestly care less about my future self. 
@@ -119,6 +119,7 @@ void displayBitmap(bitmap_t *bmp, int x, int y) {
     uint32_t height = 0;
     if (bmp->height > 764) height = 764; // BUG BUG BUG BUG BUG
     else height = bmp->height;
+
 
     for(int i = 0; i < bmp->height-4-y; i++) {
         // Copy the image to the framebuffer.
