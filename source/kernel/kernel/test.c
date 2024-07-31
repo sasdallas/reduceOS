@@ -400,6 +400,22 @@ int ide_tests() {
         ideWriteSectors(drive, 4, 0, comparison_buffer);
         printf("DONE\n");
 
+
+        // Calculate an LBA that's about 75% of the drive's capacity
+        uint64_t capacity = ideGetDriveCapacity(drive);
+        serialPrintf("Drive sectors: 0x%x\n", capacity);
+        if (capacity <= 100) { printf("\tCannot perform the far read test.\n"); return -1; }
+        int lba = capacity - 100;
+
+        printf("\tPerforming far read test (LBA = 0x%x)...", lba);
+
+        uint8_t *buffer = kmalloc(512);
+        memset(buffer, 0xAA, 512);
+        ideReadSectors(drive, 1, lba, buffer);
+        for (int i = 0; i < 512; i++) serialPrintf("%x", buffer[i]);
+
+
+
         kfree(comparison_buffer);
         kfree(sector);
         kfree(sector_comparison);

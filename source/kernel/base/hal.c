@@ -47,6 +47,18 @@ void outportb(uint16_t port, uint8_t value) {
     asm volatile("outb %1, %0" :: "dN"(port), "a"(value));
 }
 
+// inportw(unsigned short port) - Reads word from device
+uint16_t inportw(uint16_t port) {
+    uint16_t ret;
+    asm volatile ("inw %1, %0" : "=a"(ret) : "Nd"(port));
+    return ret;
+}
+
+// outportw(unsigned short port, unsigned short data) - Writes word to device
+void outportw(uint16_t port, uint16_t data) {
+    asm volatile ("outl %%eax, %%dx" :: "Nd"(port), "a"(data));
+}
+
 // void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) - Returns an assembly cpuid instruction's results.
 void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
 	asm volatile("cpuid"

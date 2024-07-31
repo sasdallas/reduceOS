@@ -19,9 +19,9 @@ uint32_t drv_idx = 0;
 
 // pciConfigRead(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset) - Handles reading a PCI configuration.
 uint32_t pciConfigRead(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset) {
-    // pci.h gives some vague descriptions of CONFIG_ADDR and CONFIG_DATA - here's a little more detail.
-    // To get PCI config data, we need to first send CONFIG_ADDR (0xCF8) a proper address of the PCI component we want to access (composed of a bus, slot, offset, and 0x80000000)
-    // This tells CONFIG_DATA where to read the data from. We send a read request to CONFIG_DATA, and it returns the data we want.
+    // pci.h gives some vague descriptions of PCI_CONFIG_ADDR and PCI_CONFIG_DATA - here's a little more detail.
+    // To get PCI config data, we need to first send PCI_CONFIG_ADDR (0xCF8) a proper address of the PCI component we want to access (composed of a bus, slot, offset, and 0x80000000)
+    // This tells PCI_CONFIG_DATA where to read the data from. We send a read request to PCI_CONFIG_DATA, and it returns the data we want.
 
     // First, convert bus, slot, and func to uint64_t type
     uint64_t addr;
@@ -31,43 +31,137 @@ uint32_t pciConfigRead(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offs
     
     // Now, calculate and send our PCI device addr.
     addr = (uint64_t)((long_bus << 16) | (long_slot << 11) | (long_func << 8) | (offset & 0xFC) | ((uint32_t)0x80000000));
-    outportl(CONFIG_ADDR, addr);
+    outportl(PCI_CONFIG_ADDR, addr);
 
-    uint32_t output = (uint32_t)((inportl(CONFIG_DATA) >> ((offset & 2) * 8)) & 0xFFFF);
+    uint32_t output = (uint32_t)((inportl(PCI_CONFIG_DATA) >> ((offset & 2) * 8)) & 0xFFFF);
     return output;
 }
 
 // pciConfigWrite(uint32_t bus, uint32_t slot, uint32_t offset, uint32_t value) - Write to a PCI configuration.
 void pciConfigWrite(uint32_t bus, uint32_t slot, uint32_t offset, uint32_t value) {
     if (isPCIInitialized) {
-        outportl(CONFIG_ADDR, bus);
-        outportl(CONFIG_ADDR, 0xF0);
+        outportl(PCI_CONFIG_ADDR, bus);
+        outportl(PCI_CONFIG_ADDR, 0xF0);
         outportl(0xC000 | (slot << 8) | offset, value); // 0xC000 is the start of a PCI IO configuration
     } else {
         // initPCI has not been called yet.
-        outportl(CONFIG_ADDR, (0x80000000 | (bus << 16) | (slot << 11) | offset));
-        outportl(CONFIG_DATA, value);
+        outportl(PCI_CONFIG_ADDR, (0x80000000 | (bus << 16) | (slot << 11) | offset));
+        outportl(PCI_CONFIG_DATA, value);
     }
 }
 
 
+// pciConfigReadField(uint32_t device, int field, int size) - A simplified version of pciConfigRead() that will take 3 parameters and read from a PCI device config space field.
+uint32_t pciConfigReadField(uint32_t device, int field, int size)  {
+    outportl(PCI_CONFIG_ADDR, PCI_ADDR(device, field));
+
+    if (size == 4) {
+        return inportl(PCI_CONFIG_DATA);
+    } else if (size == 2) {
+        uint16_t r = inportw(PCI_CONFIG_DATA) + (field & 2);
+        return r;
+    } else if (size == 1) {
+        uint8_t r = inportb(PCI_CONFIG_DATA + (field & 3));
+        return r;
+    }
+
+    return PCI_NONE; // Error
+}
+
+
+/* PCI SCANNING - Scans the PCI buses for devices and calls the given function for each device */
+
+// (static) pciScanHit(pciFunction_t func, uint32_t device, void *extra) - Calls the function for the device
+static void pciScanHit(pciFunction_t func, uint32_t device, void *extra) {
+    int dev_vend = (int)pciConfigReadField(device, PCI_OFFSET_VENDORID, 2);
+    int dev_dvid = (int)pciConfigReadField(device, PCI_OFFSET_DEVICEID, 2);
+
+    func(device, dev_vend, dev_dvid, extra);
+}
+
+// pciScanFunc(pciFunction_t f, int type, int bus, int slot, int func, void *extra) - Scans the slots for a device
+void pciScanFunc(pciFunction_t f, int type, int bus, int slot, int func, void *extra) {
+    uint32_t device = (uint32_t)((bus << 16) | (slot << 8) | func);
+    uint32_t device_type = ((pciConfigReadField(device, PCI_OFFSET_VENDORID, 2) << 8) | pciConfigReadField(device, PCI_OFFSET_SUBCLASSID, 1));
+
+    if (type == -1 || type == device_type) pciScanHit(f, device, extra);
+
+    if (device_type == PCI_TYPE_BRIDGE) pciScanBus(f, type, pciConfigReadField(device, PCI_SECONDARY_BUS, 1), extra);
+}
+
+
+// pciScanSlot(pciFunction_t func, int type, int bus, int slot, void *extra) - Scans a slot for a device
+void pciScanSlot(pciFunction_t func, int type, int bus, int slot, void *extra) {
+    uint32_t device = (uint32_t)((bus << 16) | (slot << 8) | 0); 
+    
+    if (pciConfigReadField(device, PCI_OFFSET_VENDORID, 2) == PCI_NONE) {
+        return;
+    }   
+
+    pciScanFunc(func, type, bus, slot, 0, extra);
+    if (!pciConfigReadField(device, PCI_OFFSET_HEADERTYPE, 1)) return;
+
+    for (int f = 0; f < 8; f++) {
+        uint32_t device = (uint32_t)((bus << 16) | (slot << 8) | f);
+        if (pciConfigReadField(device, PCI_OFFSET_VENDORID, 2) != PCI_NONE) {
+            pciScanFunc(func, type, bus, slot, f, extra);
+        }
+    }
+}
+
+
+// pciScanBus(pciFunction_t func, int type, int bus, void *extra) - Scans each slot on the bus for a device
+void pciScanBus(pciFunction_t func, int type, int bus, void *extra) {
+    for (int slot = 0; slot < PCI_MAX_SLOTS; slot++) {
+        pciScanSlot(func, type, bus, slot, extra);
+    }
+}
+
+
+// pciScan(pciFunction_t func, int type, void *extra) - Scans the PCI buses for devices (used to implement device discovery)
+void pciScan(pciFunction_t func, int type, void *extra) {
+    if ((pciConfigReadField(0, PCI_OFFSET_HEADERTYPE, 1) & 0x80) == 0) {
+        pciScanBus(func, type, 0, extra);
+        return;
+    }
+
+    int hit = 0;
+    for (int f = 0; f < 8; f++) {
+        uint32_t dev = (uint32_t)((0 << 16) | (0 << 8) | f);
+        if (pciConfigReadField(dev, PCI_OFFSET_VENDORID, 2) != PCI_NONE) {
+            hit = 1;
+            pciScanBus(func, type, f, extra);
+        } else {
+            break;
+        }
+    }
+
+    if (!hit) {
+        for (int bus = 0; bus < 256; bus++) {
+            for (int slot = 0; slot < PCI_MAX_SLOTS; slot++) {
+                pciScanSlot(func, type, bus, slot, extra);
+            }
+        }
+    }
+}
+
 
 uint16_t pciGetVendorID(uint16_t bus, uint16_t device, uint16_t function) {
-    return (uint16_t)pciConfigRead(bus, device, function, OFFSET_VENDORID);
+    return (uint16_t)pciConfigRead(bus, device, function, PCI_OFFSET_VENDORID);
 }
 
 
 
 uint16_t pciGetDeviceID(uint16_t bus, uint16_t device, uint16_t function) {
-    return (uint16_t)pciConfigRead(bus, device, function, OFFSET_DEVICEID);
+    return (uint16_t)pciConfigRead(bus, device, function, PCI_OFFSET_DEVICEID);
 }
 
 uint16_t pciGetClassID(uint16_t bus, uint16_t device, uint16_t function) {
-    return (uint16_t)(((uint32_t)pciConfigRead(bus, device, function, OFFSET_CLASSID)) & ~0x00FF) >> 8;
+    return (uint16_t)(((uint32_t)pciConfigRead(bus, device, function, PCI_OFFSET_CLASSID)) & ~0x00FF) >> 8;
 }
 
 uint16_t pciGetSubClassID(uint16_t bus, uint16_t device, uint16_t function) {
-    return (uint16_t)(((uint32_t)pciConfigRead(bus, device, function, OFFSET_SUBCLASSID)) & ~0xFF00);
+    return (uint16_t)(((uint32_t)pciConfigRead(bus, device, function, PCI_OFFSET_SUBCLASSID)) & ~0xFF00);
 }
 
 void pciProbeForDevices() {

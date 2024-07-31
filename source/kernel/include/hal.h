@@ -24,6 +24,8 @@ void enableHardwareInterrupts(); // Enable hardware interrupts
 void disableHardwareInterrupts(); // Disable hardware interrupts
 uint8_t inportb(uint16_t port); // Read data from a device using port mapped IO
 void outportb(uint16_t port, uint8_t value); // Write data to a device using port mapped IO
+uint16_t inportw(uint16_t port); // Read data from a device using port mapped IO
+void outportw(uint16_t port, uint16_t data); // Write data to a device using port mapped IO
 void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx); // Returns an assembly cpuid instruction.
 uint32_t inportl(uint16_t port); // Read data from a device via port mapped IO
 void outportl(uint16_t port, uint32_t data); // Write data to a device via port mapped IO

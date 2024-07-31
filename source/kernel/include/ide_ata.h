@@ -139,9 +139,9 @@ uint8_t idePolling(uint8_t channel, uint32_t advancedCheck); // Returns whether 
 uint8_t idePrintErrors(uint32_t drive, uint8_t err); // Prints the errors that may have occurred.
 void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t bar4); // Initialize IDE drives.
 void printIDESummary(); // Print a summary of all IDE drives found.
-uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi); // Access an ATA drive (direction specifies what operation to perform)
+uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint64_t lba, uint8_t sectorNum, uint32_t edi); // Access an ATA drive (direction specifies what operation to perform)
 uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi); // Read from an ATAPI drive.
-int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi); // Read from an ATA/ATAPI drive.
+int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint64_t lba, uint32_t edi); // Read from an ATA/ATAPI drive.
 int ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi); // Write to an ATA drive.
 int ideGetDriveCapacity(uint8_t drive); // Returns drive capacity
 uint32_t ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer); // Read function for the VFS

@@ -486,10 +486,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     
 
-    // Initialize the IDE controller.
-    updateBottomText("Initializing IDE controller...");
-    ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
-    
     // Initialize ACPI
     updateBottomText("Initializing ACPI...");
     acpiInit();
@@ -525,6 +521,13 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
     
+
+    // Initialize the IDE controller.
+    updateBottomText("Initializing IDE controller...");
+    ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
+    
+    //ide_init();
+
 
     /* VESA initialization */
     bool didInitVesa = true;

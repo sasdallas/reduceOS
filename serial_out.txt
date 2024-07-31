@@ -1,11 +1,11 @@
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 2391-DEBUG, compiled on 07/30/24, 13:29:07
+	Build 2443-DEBUG, compiled on 07/31/24, 12:54:12
 ============================================================================================================================
 
-Kernel location: 0x100000 - 0x5D5994
-Text section: 0x100000 - 0x118000; Data section: 0x145000 - 0x5CA580; BSS section: 0x5CB000 - 0x5D5994
+Kernel location: 0x100000 - 0x5D69B4
+Text section: 0x100000 - 0x119000; Data section: 0x146000 - 0x5CB620; BSS section: 0x5CC000 - 0x5D69B4
 Loader magic: 0x43D8C305
 
 Serial logging initialized!
@@ -34,7 +34,7 @@
 kmain: CPU has long mode support: 0
 pmm_initRegion: Region at 0x0 (size 0x9F000) initialized. Blocks used: 0. Free blocks: 159
 pmm_initRegion: Region at 0x100000 (size 0x1EF0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x4D5994) deinitialized. Blocks used: 919. Free blocks: 6842
+pmm_deinitRegion: Region at 0x100000 (size 0x4D69B4) deinitialized. Blocks used: 920. Free blocks: 6841
 vmmInit: Successfully initialized paging.
 Initialized memory management successfully.
 bios32 initialized successfully!
@@ -46,32 +46,30 @@
 pciProbeForDevices: Found PCI device (function = 0x3, vendor ID = 0x8086, device ID = 0x7113)
 pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x1234, device ID = 0x1111)
 initPCI: PCI probe completed
-IDE driver completed initialization.
-Found ATA drive - EXT2 Disk                               
-	Capacity: 40 GB 0 MB 41943040 KB
-Found ATAPI drive - ISO bootdrive                           
-	Capacity: 0 GB 0 MB 0 KB
 acpiInit: Found RSDP signature at 0xFA330
 acpiParseRSDP: (dbg) OEM is BOCHS 
 acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
 ACPI table signatures (RSDT):
 acpiInit: Successfully enabled ACPI.
 GRUB did pass an initial ramdisk at 0x100B0.
-initrdInit: Initial ramdisk loaded - location is 0x5DC000 and end address is 0x5DD32F
+initrdInit: Initial ramdisk loaded - location is 0x5DE000 and end address is 0x5DF32F
 Initialized floppy drive successfully.
 WARNING: Enabling liballoc! Stand away from the flames!
+IDE driver completed initialization.
+Found ATA drive - EXT2 Disk                               
+	Capacity: 20 GB 0 MB 20971520 KB
+Found ATAPI drive - ISO bootdrive                           
+	Capacity: 0 GB 0 MB 0 KB
 Preparing to call BIOS32 for int 0x10...
-	AX = 0x4F00 BX = 0xEE20 CX = 0x20 DX = 0x5C
+	AX = 0x4F00 BX = 0xFE8C CX = 0x149C DX = 0x5C
 Preparing to call BIOS32 for int 0x10...
 	AX = 0x4F01 BX = 0x0 CX = 0x4144 DX = 0x0
-pmm_deinitRegion: Region at 0x40000000 (size 0xC0000) deinitialized. Blocks used: 1187. Free blocks: 6574
+pmm_deinitRegion: Region at 0x40000000 (size 0xC0000) deinitialized. Blocks used: 1188. Free blocks: 6573
 Preparing to call BIOS32 for int 0x10...
 	AX = 0x4F02 BX = 0x4144 CX = 0x0 DX = 0x0
 vesaInit: Allocated framebuffer to 0x5E0040 - 0x8E0040
-pmm_deinitRegion: Region at 0x5E0040 (size 0x300000) deinitialized. Blocks used: 2725. Free blocks: 5036
+pmm_deinitRegion: Region at 0x5E0040 (size 0x300000) deinitialized. Blocks used: 2726. Free blocks: 5035
 fatInit: FAT trying to initialize on driveNode...
-Sending read request for 2 sectors at LBA offset 0
-ideReadSectors: ATA read running
 vfsMount: Searching for ide0...
 vfsMount: Could not find ide0 - creating it.
 === VFS TREE ===
@@ -79,53 +77,15 @@
   ide0 (0x8E0370) -> 0x8E0230 (IDE/ATA drive)
 === END VFS TREE ===
 ext2_readSuperblock: Reading superblock on drive 0...
-Sending read request for 3 sectors at LBA offset 2
-ideReadSectors: ATA read running
 ext2_init: Found ext2 signature on drive 0
-Sending read request for 9 sectors at LBA offset 8
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 1354 / 4096
-Sending read request for 9 sectors at LBA offset 16
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 337 / 4096
-ext2: 160 BGDs, 1310720 inodes, 8192 inodes per group
-	4096 block size, 2 BGD disk blocks, 4096 fragment size
+ext2: 80 BGDs, 655360 inodes, 8192 inodes per group
+	4096 block size, 1 BGD disk blocks, 4096 fragment size
 	last mount path: /mnt/test
-Reading in data about inode 1 - inode structure size is 0x100
-group: 0x0 inodeTableBlock: 0x403 blockOffset: 0x0
-Sending read request for 9 sectors at LBA offset 8216
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 107 / 4096
 ext2_init: ext2 disk mounted
-Reading in data about inode 1 - inode structure size is 0x100
-group: 0x0 inodeTableBlock: 0x403 blockOffset: 0x0
-Sending read request for 9 sectors at LBA offset 8216
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 107 / 4096
-Sending read request for 9 sectors at LBA offset 12312
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 40 / 4096
+vaporwave.bmp
+Running the 'is it ext2 or my ide driver' test...
 kmain: Memory management online with 31044 KB of physical memory
 kmain: All commands registered successfully.
 kmain: Warning: User is an unstable environment.
-Reading in data about inode 1 - inode structure size is 0x100
-group: 0x0 inodeTableBlock: 0x403 blockOffset: 0x0
-Sending read request for 9 sectors at LBA offset 8216
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 107 / 4096
-Sending read request for 9 sectors at LBA offset 12312
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 40 / 4096
-Reading in data about inode 1 - inode structure size is 0x100
-group: 0x0 inodeTableBlock: 0x403 blockOffset: 0x0
-Sending read request for 9 sectors at LBA offset 8216
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 107 / 4096
-Sending read request for 9 sectors at LBA offset 12312
-ideReadSectors: ATA read running
-ext2_readBlock: Reading completed. Ratio: 40 / 4096
-===========================================================
-panic() called! FATAL ERROR!
-*** Page fault at address 0x9C
-*** Flags: present 
-
+Drive capacity: 20971520
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

@@ -1,8 +1,8 @@
 # Programs
 ASM = nasm
-CC = gcc
-LD = ld
-AS = as
+CC = i686-elf-gcc
+LD = i686-elf-ld
+AS = i686-elf-as
 GRUB_FILE = grub-file
 OBJCOPY = objcopy
 PYTHON = python3
@@ -51,12 +51,13 @@ OUT_IMG = out/img
 # Misc. things
 LOOP0 = /dev/loop0
 cat = cat
+LIBGCC = $(dir $(shell $(CC) -print-libgcc-file-name))
 
 
 # Flags for compilers
 ASM_FLAGS = -f elf32 -F dwarf -g
 CC_FLAGS = -m32 -fno-stack-protector -g -std=gnu99 -ffreestanding -fno-pie -Wall -Wextra -I$(KERNEL_SOURCE)/
-LD_FLAGS = -m elf_i386 -T linker.ld 
+LD_FLAGS = -m elf_i386 -L $(LIBGCC) -T linker.ld
 
 
 # Source files
@@ -101,7 +102,7 @@ dbg: $(OUT_KERNEL)/kernel_debug.elf $(OUT_INITRD)/initrd.img
 # I'm sorry for naming this target out/kernel/kernel_debug.elf when it does not produce a kernel_debug.elf
 $(OUT_KERNEL)/kernel_debug.elf: MAKE_DIRS DELETE_KERNEL_OBJ BUILDSCRIPTS_DEBUG $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking debug kernel... ]\n"
-	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf -lgcc
 	@printf "[ Copying debug symbols to kernel.sym... ]\n"
 	$(OBJCOPY) --only-keep-debug $(OUT_KERNEL)/kernel.elf $(OUT_KERNEL)/kernel.sym
 	@printf "[ Stripping debug symbols... ]\n"
@@ -112,7 +113,7 @@ $(OUT_KERNEL)/kernel_debug.elf: MAKE_DIRS DELETE_KERNEL_OBJ BUILDSCRIPTS_DEBUG $
 
 $(OUT_KERNEL)/kernel.elf: MAKE_DIRS DELETE_KERNEL_OBJ BUILDSCRIPTS_RELEASE $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) PATCH_TARGETS
 	@printf "[ Linking C kernel... ]\n"
-	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf
+	$(LD) $(LD_FLAGS) $(ASM_KLOADEROBJS) $(C_OBJS) $(FONT_OBJS) $(IMAGE_OBJS) -o $(OUT_KERNEL)/kernel.elf -lgcc
 	@printf "[ Stripping debug symbols... ]\n"
 	$(OBJCOPY) --strip-debug $(OUT_KERNEL)/kernel.elf
 	@printf "\n"

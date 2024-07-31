@@ -11,10 +11,9 @@ If you would like to learn more about the development of the kernel, scroll down
 reduceOS has switched to a brand new kernel, with cleaner, commented code and more features. This kernel is also written entirely by me, without a base.
 
 # Compiling
-### Windows builds are NOT supported!
 
-### IMPORTANT NOTE: If you are not using a 32-bit (i686) toolchain to build, you MUST download the obj/assembly/crtbegin.o and obj/assembly/crtend.o. They are REQUIRED.
-**To build reduceOS, you need these packages:** `gcc`, `nasm`, `make`, `grub`\
+### IMPORTANT NOTE: YOU MUST HAVE A CROSS-COMPILER (i686-elf) READY FOR YOUR SYSTEM. 
+**To build reduceOS, you need these packages:** `i686-elf-gcc`, `nasm`, `make`, `grub`\
 **To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso` (for building an ISO - does not work in QEMU!)
 
 The makefile of reduceOS has two main targets for building - `rel` and `dbg`.\
@@ -29,12 +28,11 @@ Run `make qemu` to launch QEMU and start the OS.
 
 **macOS users:** The default version of gcc and ld included WILL NOT work! You need to use a package manager such as [homebrew](https://brew.sh) to install a custom version of gcc and ld. See below.
 
-You can build reduceOS with a custom version of gcc or ld by passing them as parameters to make, like so: `make CC=<gcc version path> LD=<ld version path>`. See the makefile for all program variables.
-
+You can build reduceOS with a custom version of gcc or ld by passing them as parameters to make, like so: `make CC=<gcc version path> LD=<ld version path>`. See the makefile for all program variables.\
 
 
 # Known Bugs
-- **Priority:** ATAPI driver does not work properly, and the ATA driver can't read >1 GB.
+- **SEVERE:** The previous ATA bug was rather in the fact that we are experiencing integer overflows in my math operations. This will NEED to be resolved.
 - ACPI no longer detects table signatures in the RSDT
 - initrd is broken, addres cannot be found
 - **TODO:** ext2 driver needs deletion functions

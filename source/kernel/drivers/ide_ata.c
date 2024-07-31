@@ -158,6 +158,7 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
         }
     }
 
+    isrRegisterInterruptHandler(14, ideIRQHandler);
     isrRegisterInterruptHandler(15, ideIRQHandler);
     
     // Update VFS root.
@@ -358,6 +359,8 @@ void outsl(uint16_t reg, uint32_t *buffer, int quads) {
     }
 }
 
+
+
 // idePolling(uint8_t channel, uint32_t advancedCheck) - Returns whether there was an error.
 uint8_t idePolling(uint8_t channel, uint32_t advancedCheck) {
     // First, delay 400 ns for BSY to be set.
@@ -415,8 +418,8 @@ uint8_t idePrintErrors(uint32_t drive, uint8_t err) {
 }
 
 
-// ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi) - Read/write sectors to an ATA drive (if direction is 0 we read, else write)
-uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t edi) {
+// ideAccessATA(uint8_t direction, uint8_t drive, uint64_t lba, uint8_t sectorNum, uint32_t edi) - Read/write sectors to an ATA drive (if direction is 0 we read, else write)
+uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint64_t lba, uint8_t sectorNum, uint32_t edi) {
     /* A bit of explanation about the parameters:
     Drive is the drive number (can be 0-3)
     lba is the LBA address which allows us to access disks (up to 2TB supported)
@@ -442,7 +445,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     if (lba >= 0x10000000) {
         // Drive supports LBA48. Use that.
         
-
+        serialPrintf("WARNING: USAGE OF LBA48 DETECTED\n");
         lbaMode = 2;
         lbaIO[0] = (lba & 0x000000FF) >> 0;
         lbaIO[1] = (lba & 0x0000FF00) >> 8;
@@ -488,6 +491,8 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     if (lbaMode == 0) ideWrite(channel, ATA_REG_HDDEVSEL, 0xA0 | (slaveBit << 4) | head); // Drive & CHS.
     else ideWrite(channel, ATA_REG_HDDEVSEL, 0xE0 | (slaveBit << 4) | head);
 
+    serialPrintf("Drive selected\n");
+
     // Next, write the parameters to the registers.
     if (lbaMode == 2) {
         // Make sure to write a few extra parameters if we use LBA48.
@@ -498,6 +503,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
         ideWrite(channel, ATA_REG_LBA5, lbaIO[5]);
     }
 
+    serialPrintf("Writing LBA parameters\n\tlbaIO[0] = 0x%x\n\tlbaIO[1] = 0x%x\n\tlbaIO[2] = 0x%x\n", lbaIO[0], lbaIO[1], lbaIO[2]);
     ideWrite(channel, ATA_REG_SECCOUNT0, sectorNum);
     ideWrite(channel, ATA_REG_LBA0, lbaIO[0]);
     ideWrite(channel, ATA_REG_LBA1, lbaIO[1]);
@@ -525,6 +531,8 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
     if (lbaMode == 0 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA;
     if (lbaMode == 1 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA;
     if (lbaMode == 2 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA_EXT;
+
+    serialPrintf("Sending command 0x%x (lbamode = %i dma = %i direction = %i)\n", cmd, lbaMode, dma, direction);
     ideWrite(channel, ATA_REG_COMMAND, cmd); // Send the command.
 
     
@@ -534,6 +542,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t sec
         
     } else {
         if (direction == 0) {
+            serialPrintf("PIO read running\n");
             // PIO read.
             for (int i = 0; i < sectorNum; i++) {
                 err = idePolling(channel, 1);
@@ -637,8 +646,8 @@ uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t ed
 
 uint8_t package[8]; // package[0] contains err code
 
-// ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) - Read from an ATA/ATAPI drive.
-int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) {
+// ideReadSectors(uint8_t drive, uint8_t sectorNum, uint64_t lba, uint32_t edi) - Read from an ATA/ATAPI drive.
+int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint64_t lba, uint32_t edi) {
     // Check if the drive is present.
     if (drive > 3 | ideDevices[drive].reserved == 0) {
         package[0] = 0x1;
