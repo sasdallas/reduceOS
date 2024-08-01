@@ -8,6 +8,7 @@
 
 // Declarations
 
-typedef unsigned char *va_list; // Parameter list. Used mainly with functions that have "..." in their parameter list (unlimited parameters)
+typedef __builtin_va_list va_list;
 
 #endif
+

@@ -86,12 +86,14 @@ int strlen(char *str) {
 
 // itoa() - converts an integer to a string
 // Three parameters - Integer, string buffer, integer base (1-16)
-void itoa(int num, char *buffer, int base) {
+void itoa(void *n, char *buffer, int base) {
     static char bchars[] = {"FEDCBA9876543210123456789ABCDEF"};
     char tbuf[32]; // Temporary buffer
     int pos = 0;
     int opos = 0;
     int top = 0;
+
+    int num = (int)n;
 
     if (num < 0 && base == 10) { // We need to do a little extra work if the value is negative.
         *buffer++ = '-';
@@ -118,6 +120,36 @@ void itoa(int num, char *buffer, int base) {
     buffer[opos] = 0;
 }
 
+
+// itoa_long(uint64_t value, char *str, int base) - Disgusting hack to make longs work with itoa()
+void itoa_long(uint64_t value, char* str, int base) {
+    if (base < 2 || base > 36) {
+        *str = '\0'; // Invalid base; return an empty string
+        return str;
+    }
+
+    char* digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    char buffer[65]; // Enough to handle uint64_t in binary (base 2)
+    char* ptr = buffer + sizeof(buffer) - 1;
+    *ptr = '\0'; // Null-terminate the buffer
+
+    // Handle zero explicitly
+    if (value == 0) {
+        *--ptr = digits[0];
+    } else {
+        // Convert the number to the specified base
+        while (value != 0) {
+            *--ptr = digits[value % base];
+            value /= base;
+        }
+    }
+
+    // Copy the result to the output string
+    while (*ptr) {
+        *str++ = *ptr++;
+    }
+    *str = '\0'; // Null-terminate the result string
+}
 
 
 

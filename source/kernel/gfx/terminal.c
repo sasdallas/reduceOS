@@ -451,6 +451,31 @@ static bool print(const char *data, size_t length) {
 }
 
 
+
+void reversestr(uint8_t *string, uint64_t length) {
+    uint8_t ch;
+    uint64_t i, j;
+
+    for (i = 0, j = (length - 1); i < j; i++, j--) {
+        ch = string[i];
+        string[i] = string[j];
+        string[j] = ch;
+    }
+}
+
+void uint64_to_string(uint64_t n, char *string) {
+    uint8_t i = 0;
+    do {
+        string[i++] = n % 10 + '0';
+    } while ((n /= 10) > 0);
+
+    string[i] = '\0';
+    reversestr(string, strlen(string));
+
+}
+
+
+
 // Now we move to the actual main function, printf.
 
 // printf(const char* format, ...) - The most recommended function to use. Don't know why I didn't opt to put this in a libc/ file but whatever. This prints something but has formatting options and multiple arguments.
@@ -474,8 +499,7 @@ int printf(const char*  format, ...) {
                     // There are a few possible characters after this, mainly %c, %s, %d, %x, and %i
                     // %c is for characters.
                     case 'c': {
-                        char c = va_arg(args, char); // We need to get the next argument that is a character.
-                        
+                        char c = va_arg(args, int); // We need to get the next argument that is a character.
                         
                         if (!putc(c)) return -1; // Print error!
 
@@ -484,6 +508,7 @@ int printf(const char*  format, ...) {
                         break;
                     }
 
+                    
                     // %s is for strings (or address of).
                     case 's': {
                         const char *c = va_arg(args, const char *); // Char promotes to integer, and we're trying to get the address of the string.
@@ -512,13 +537,18 @@ int printf(const char*  format, ...) {
 
                     }
 
+                    
                     // %x or %X is for hexadecimal
+                    // %u or %U is for unsigned
+                    // %p or %P is for pointers
                     case 'X':
-                    case 'x': {
-                        unsigned int c = va_arg(args, unsigned int); // We need to get the next integer.
+                    case 'x':
+                    case 'u':
+                    case 'U':
+                    case 'p':
+                    case 'P': {
+                        unsigned int c = va_arg(args, int); // We need to get the next integer.
                         char str[32] = {0}; // String buffer where the hexadecimal will go.
-
-                        // BUGGED WITH PAGING FOR SOME REASON!
 
                         itoa(c, str, 16);
 
@@ -530,21 +560,20 @@ int printf(const char*  format, ...) {
                     }
 
 
-                    // %u or %U is for an unsigned integer
-                    case 'U':
-                    case 'u': {
-                        unsigned int c = va_arg(args, int);
-                        char str[32] = {0};
+                    case 'l':
+                    case 'L': {
+                        unsigned long long c = va_arg(args, unsigned long long);
+                        char str[65] = {0};
 
-                        // itoa() takes care of the negative stuff
-                        itoa(c, str, 10);
+                        itoa_long(c, str, 16); // Disgust.
 
-                        if (!print(str, strlen(str))) return -1;
+                        if (!print(str, strlen(str))) return -1; // Print error
 
                         charsWritten++;
                         i++;
                         break;
                     }
+
                     default:
                         terminalPutchar(format[i]); // If else place the character
                         break;
@@ -606,7 +635,7 @@ void printf_putchar(const char *format, void(*put_method)(char), va_list args) {
                     // There are a few possible characters after this, mainly %c, %s, %d, %x, and %i
                     // %c is for characters.
                     case 'c': {
-                        char c = va_arg(args, char); // We need to get the next argument that is a character.
+                        char c = va_arg(args, int); // We need to get the next argument that is a character.
                         
                         
                         put_method(c);
@@ -648,38 +677,43 @@ void printf_putchar(const char *format, void(*put_method)(char), va_list args) {
                     }
 
                     // %x or %X is for hexadecimal
+                    // %u or %U is for unsigned
+                    // %p or %P is for pointers
                     case 'X':
-                    case 'x': {
-                        unsigned long c = va_arg(args, unsigned long); // We need to get the next integer (it will be converted to hexadecimal when we use itoa.) from the parameters.
+                    case 'x':
+                    case 'u':
+                    case 'U':
+                    case 'p':
+                    case 'P': {
+                        unsigned int c = va_arg(args, int); // We need to get the next integer.
                         char str[32] = {0}; // String buffer where the hexadecimal will go.
 
-                        // itoa() will convert the integer to base-16 or hex.
-                        itoa(c, str, 16); // Convert the integer to a hex string.
+                        itoa(c, str, 16);
 
                         for (int i = 0; i < strlen(str); i++) 
                             put_method(str[i]);
-    
+                            
                         charsWritten++; // Increment charsWritten
                         i++; // Increment i.
                         break;
                     }
 
-                    // %u or %U is for an unsigned integer
-                    case 'U':
-                    case 'u': {
-                        unsigned int c = va_arg(args, unsigned int);
-                        char str[32] = {0};
 
-                        // itoa() takes care of the negative stuff
-                        itoa(c, str, 10);
+                    case 'l':
+                    case 'L': {
+                        unsigned long long c = va_arg(args, unsigned long long);
+                        char str[65] = {0};
+
+                        itoa_long(c, str, 16); // Disgust.
 
                         for (int i = 0; i < strlen(str); i++) 
                             put_method(str[i]);
-    
+
                         charsWritten++;
                         i++;
                         break;
                     }
+
                     default:
                         put_method(format[i]); // If else place the character
                         // Double check if the character was a newline or not - since serial doesn't reset the X.

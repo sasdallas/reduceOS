@@ -9,8 +9,10 @@
 #include "include/libc/stdbool.h" // Boolean declarations
 #include "include/libc/string.h" // String functions
 #include "include/libc/limits.h" // Limits on integers and more.
-#include "include/libc/stdarg.h" // va argument handling (for ... on printf)
-#include "include/libc/va_list.h" // va_list declared here.
+
+//#include "include/libc/stdarg.h" // va argument handling (for ... on printf)
+// #include "include/libc/va_list.h" // va_list declared here.
+#include <stdarg.h>
 #include "include/graphics.h" // Utility functions
 #include "include/serial.h" // Serial logging
 #include "include/vesa.h" // VESA VBE

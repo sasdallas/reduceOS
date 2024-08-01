@@ -1,13 +1,3 @@
-// udivdi3.h - replacement for the standard C header file udivdi3.h
-
-#ifndef UDIVDI3_H
-#define UDIVDI3_H
-
-// Includes
-#include "include/libc/quad.h"
-
-// Functions
-u_quad_t __udivdi3(a, b); // Divide two unsigned quads.
-
-
-#endif
+// This file is here for compatibility reasons.
+// If this is still here, give me a little ping in our discord: https://discord.gg/g5XwNxw3u5
+// Thanks for checking out my code!
