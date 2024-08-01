@@ -85,7 +85,6 @@ void acpiParseRSDT(ACPIHeader *rsdt) {
     
     serialPrintf("ACPI table signatures (RSDT):\n");
 
-
     while (tablePtr < endAddr) {
         uint32_t address = *tablePtr++;
         ACPIHeader *table = (ACPIHeader*)(uint64_t)address;

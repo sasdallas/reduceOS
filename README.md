@@ -32,9 +32,10 @@ You can build reduceOS with a custom version of gcc or ld by passing them as par
 
 
 # Known Bugs
-- **SEVERE:** The previous ATA bug was rather in the fact that we are experiencing integer overflows in my math operations. This will NEED to be resolved.
+- **SEVERE:** Integer overflow bugs render VFS abstraction system in need of repair.
+- printf() long handler is disgusting and does not work for signed longs
 - ACPI no longer detects table signatures in the RSDT
-- initrd is broken, addres cannot be found
+- initrd is broken, address cannot be found
 - **TODO:** ext2 driver needs deletion functions
 - A bitmap that is too large will crash the system
 - **Severe:** System calls not working.

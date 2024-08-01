@@ -454,6 +454,13 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     uint32_t kernelEnd = (uint32_t)&bss_end;
     pmm_deinitRegion(0x100000, (kernelEnd - kernelStart));
 
+    // Before anything else is allocated, we need to deinitialize a few other regions.
+    // Here is the list:
+    /*
+        - ACPI (0x000E0000 - 0x000FFFFF)
+    */
+
+   pmm_deinitRegion(0x000E0000, 0x000FFFFF-0x000E0000);
 
     // Initialize VMM
     vmmInit();
