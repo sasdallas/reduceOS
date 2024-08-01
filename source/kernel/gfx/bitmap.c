@@ -34,16 +34,12 @@ bitmap_t *bitmap_loadBitmap(fsNode_t *node) {
         serialPrintf("bitmap_loadBitmap: Cannot load bitmap - signature is not 0x4D42 (BM). Signature given: 0x%x\n", h->type);
         kfree(image_data);
         return NULL;
-    } else {
-        serialPrintf("bitmap_loadBitmap: Validated signature\n");
     }
 
     uint32_t offset = h->offbits;
 
     // Setup the infoheader
     bitmap_infoHeader_t *info = image_data + sizeof(bitmap_fileHeader_t);
-
-    serialPrintf("bitmap_loadBitmap: Bitmap offset = %u\n", offset);
 
     // Setup the bitmap_t we are returning
     bitmap_t *bmp = kmalloc(sizeof(bitmap_t));
@@ -54,11 +50,6 @@ bitmap_t *bitmap_loadBitmap(fsNode_t *node) {
     bmp->buffer = image_data;
     bmp->totalSize = h->size;
     bmp->bpp = info->bitcount;
-
-    serialPrintf("bitmap_loadBitmap: Bitmap dimensions are %u x %u\n", bmp->width, bmp->height);
-    serialPrintf("bitmap_loadBitmap: Image is located at 0x%x\n", bmp->imageBytes);
-    serialPrintf("bitmap_loadBitmap: Bitmap size = %u\n", h->size);
-    serialPrintf("bitmap_loadBitmap: Successfully loaded bitmap '%s'.\n", node->name);
 
     
 

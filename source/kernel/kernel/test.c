@@ -960,11 +960,12 @@ int bitmap_test() {
     printf("\tLocating \"test.bmp\"...");
     fsNode_t *d = ext2_root->finddir(ext2_root, "badapple");
     if (!d) { printf("FAIL\n"); return -1; }
-    fsNode_t *image = d->finddir(d, "22.bmp");
+    fsNode_t *image = d->finddir(d, "74.bmp");
     if (!image) { printf("FAIL\n"); return -1; }
     printf("OK\n");
 
     printf("\tLoading bitmap...");
+    
     bitmap_t *bmp = bitmap_loadBitmap(image);
     if (bmp == NULL) {
         printf("FAIL (bmp is NULL)\n");
@@ -978,11 +979,16 @@ int bitmap_test() {
     displayBitmap(bmp, 0, 0);
     sleep(2000);
 
+    kfree(bmp);
+
     return 0;
 }
 
 int badapple_test() {
     // no audio (yet)
+
+    printf("\tbroken sorry\n");
+    return -1;
 
     printf("\tTo run this test, please attach an EXT2 disk to the system.\n");
     printf("\tThe frames should be in a folder called badapple, and be numbered 0-whatever.\n");
@@ -1009,37 +1015,37 @@ int badapple_test() {
     
 
     // Frame latency test, using this to calculate how many frames we should load per second
-    printf("\tPerforming 2 frame load time test...");
+    /*printf("\tPerforming 2 frame load time test...");
     uint8_t *b = kmalloc(1024 * 40); // Allocate 60 KB for each frame
     uint8_t *b2 = kmalloc(1024 * 40);
     int start_ticks = pitGetTickCount();
-    fsNode_t *frame = dir->finddir(dir, "1.bmp");
+    fsNode_t *frame = dir->finddir(dir, "24.bmp");
     if (frame) {
         int ret = frame->read(frame, 0, frame->length, b);
 
         if (ret == frame->length) {
             // Nothing to do 
         } else {
-            printf("FAIL - could not read '1.bmp'!\n");
+            printf("FAIL - could not read '24.bmp'!\n");
             return -1;
         }
     } else {
-        printf("FAIL - could not open '1.bmp'!\n");
+        printf("FAIL - could not open '24.bmp'!\n");
         return -1;
     }
 
-    fsNode_t *frame2 = dir->finddir(dir, "2.bmp");
+    fsNode_t *frame2 = dir->finddir(dir, "26.bmp");
     if (frame) {
         int ret = frame2->read(frame, 0, frame->length, b);
 
         if (ret == frame2->length) {
             // We're done!
         } else {
-            printf("FAIL - could not read '2.bmp'!\n");
+            printf("FAIL - could not read '26.bmp'!\n");
             return -1;
         }
     } else {
-        printf("FAIL - could not open '2.bmp'!\n");
+        printf("FAIL - could not open '26.bmp'!\n");
         return -1;
     }
 
@@ -1060,7 +1066,7 @@ int badapple_test() {
         printf("\tWARNING: FPS may be reduced.\n");
     }
 
-    printf("\tLoad Time FPS: %i FPS\n", target_fps);
+    printf("\tLoad Time FPS: %i FPS\n", target_fps);*/
 
 
     // Let's do this. First, we need to allocate 2 bitmaps for our frame data to be stored in.
@@ -1072,11 +1078,15 @@ int badapple_test() {
     while (true) {
         int tickCount = pitGetTickCount(); // Used for timing our frames
 
+        
+
         // The way this will work is we'll start the loop by displaying whatever's in fb2
         if (currentFrame != 1) {
+            kfree(fb1->buffer);
+            kfree(fb1);
             displayBitmap(fb2, 0, 0);
+            kfree(fb2->buffer);
             kfree(fb2);
-            kfree(fb2->imageBytes);
         }        
 
         // First, we need to get the names of the frames.
@@ -1113,10 +1123,8 @@ int badapple_test() {
         if (!breakAfterDisplayOne) fb2 = bitmap_loadBitmap(f2);
 
         // NOTE: The system could bug out if an invalid bitmap is passed
-        serialPrintf("Bitmap fb1 = 0x%x imagebytes 0x%x\n", fb1, fb1->imageBytes);
         displayBitmap(fb1, 0, 0);
-        kfree(fb1->imageBytes);
-        kfree(fb1);
+        
         if (breakAfterDisplayOne) break; // We have no more bitmaps left to display
 
 
@@ -1124,9 +1132,8 @@ int badapple_test() {
         kfree(fn2);
         
         // Time ourselves
-        while (pitGetTickCount() - tickCount < 1000);
+        // while (pitGetTickCount() - tickCount < 1000);
     }
-
     return 0;
 }
 

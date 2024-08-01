@@ -49,8 +49,7 @@
 #define LIBALLOC_DEAD	0xdeaddead
 
 #if defined DEBUG || defined INFO
-#include <stdio.h>
-#include <stdlib.h>
+#include "include/serial.h"
 
 #define FLUSH() asm ("nop")
 

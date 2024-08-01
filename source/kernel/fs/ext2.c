@@ -19,12 +19,10 @@ extern ideDevice_t ideDevices[4];
 
 // ext2_readBlock(ext2_t *fs, uint32_t block, uint8_t *buf) - Read a block from the device
 int ext2_readBlock(ext2_t *fs, uint32_t block, uint8_t *buf) {
-    serialPrintf("ext2_readBlock: Reading block %i (offset = 0x%x)...\n", block, block * fs->block_size);
-    // We have an issue where drives with >UINT_MAX bytes will cause... issues... so to speak
-    
-    uint64_t offset = fs->block_size * (uint64_t)block;
-    serialPrintf("ext2_readBlock: Offset was calculated as 0x%x\n", offset);
-    int ret = fs->drive->read(fs->drive, fs->block_size * block, fs->block_size, buf);
+    uint64_t offset = ((uint64_t)(fs->block_size)) * block;
+    offset = offset / 512;
+    serialPrintf("ext2_readBlock: Block %i offset was calculated as 0x%l\n", block, offset);
+    int ret = ideReadSectors(fs->drive->impl, fs->block_size / 512, offset, buf);
     
 }
 

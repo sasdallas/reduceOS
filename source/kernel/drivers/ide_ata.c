@@ -216,7 +216,6 @@ uint32_t ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *
     // Calculate the LBA, based off of offset rounded down
     int lba = (off - (off % 512)) / 512;
     
-
     // Read in the sectors
     int ret = ideReadSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, temporary_buffer);
     if (ret != IDE_OK) return ret;
@@ -426,6 +425,7 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint64_t lba, uint8_t sec
     sectorNum is the number of sectors to be read 
     edi is the offset in that segment (data buffer memory address)*/
 
+
     // First, we define a few variables
     uint8_t lbaMode, dma, cmd; // lbaMode: 0: CHS, 1: LBA28, 2: LBA48. dma: 0: No DMA, 1: DMA
     uint8_t lbaIO[6];
@@ -491,7 +491,6 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint64_t lba, uint8_t sec
     if (lbaMode == 0) ideWrite(channel, ATA_REG_HDDEVSEL, 0xA0 | (slaveBit << 4) | head); // Drive & CHS.
     else ideWrite(channel, ATA_REG_HDDEVSEL, 0xE0 | (slaveBit << 4) | head);
 
-    serialPrintf("Drive selected\n");
 
     // Next, write the parameters to the registers.
     if (lbaMode == 2) {
@@ -503,7 +502,6 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint64_t lba, uint8_t sec
         ideWrite(channel, ATA_REG_LBA5, lbaIO[5]);
     }
 
-    serialPrintf("Writing LBA parameters\n\tlbaIO[0] = 0x%x\n\tlbaIO[1] = 0x%x\n\tlbaIO[2] = 0x%x\n", lbaIO[0], lbaIO[1], lbaIO[2]);
     ideWrite(channel, ATA_REG_SECCOUNT0, sectorNum);
     ideWrite(channel, ATA_REG_LBA0, lbaIO[0]);
     ideWrite(channel, ATA_REG_LBA1, lbaIO[1]);
@@ -532,7 +530,6 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint64_t lba, uint8_t sec
     if (lbaMode == 1 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA;
     if (lbaMode == 2 && dma == 1 && direction == 1) cmd = ATA_WRITE_DMA_EXT;
 
-    serialPrintf("Sending command 0x%x (lbamode = %i dma = %i direction = %i)\n", cmd, lbaMode, dma, direction);
     ideWrite(channel, ATA_REG_COMMAND, cmd); // Send the command.
 
     
@@ -542,7 +539,6 @@ uint8_t ideAccessATA(uint8_t direction, uint8_t drive, uint64_t lba, uint8_t sec
         
     } else {
         if (direction == 0) {
-            serialPrintf("PIO read running\n");
             // PIO read.
             for (int i = 0; i < sectorNum; i++) {
                 err = idePolling(channel, 1);
@@ -648,6 +644,7 @@ uint8_t package[8]; // package[0] contains err code
 
 // ideReadSectors(uint8_t drive, uint8_t sectorNum, uint64_t lba, uint32_t edi) - Read from an ATA/ATAPI drive.
 int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint64_t lba, uint32_t edi) {
+
     // Check if the drive is present.
     if (drive > 3 | ideDevices[drive].reserved == 0) {
         package[0] = 0x1;
