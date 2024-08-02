@@ -28,10 +28,12 @@
 // Filesystem node (prototype)
 struct fsNode;
 
+typedef uint64_t off_t;
+
 // Function prototypes (from the POSIX specification):
 /* These prototypes define the type of callbacks that are called when the read/write/open/close methods are called */
-typedef uint32_t (*read_t)(struct fsNode*, uint32_t, uint32_t, uint8_t*);
-typedef uint32_t (*write_t)(struct fsNode*, uint32_t, uint32_t, uint8_t*);
+typedef uint32_t (*read_t)(struct fsNode*, off_t, uint32_t, uint8_t*);
+typedef uint32_t (*write_t)(struct fsNode*, off_t, uint32_t, uint8_t*);
 typedef void (*open_t)(struct fsNode*);
 typedef void (*close_t)(struct fsNode*);
 
@@ -83,8 +85,8 @@ typedef struct vfsEntry {
 extern fsNode_t *fs_root; // Filesystem root
 
 // Functions:
-uint32_t readFilesystem(fsNode_t *node, uint32_t off, uint32_t size, uint8_t *buf); // Reads a file in a filesystem.
-uint32_t writeFilesystem(fsNode_t *node, uint32_t off, uint32_t size, uint8_t *buf); // Writes a file in a filesystem.
+uint32_t readFilesystem(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf); // Reads a file in a filesystem.
+uint32_t writeFilesystem(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf); // Writes a file in a filesystem.
 void openFilesystem(fsNode_t *node, uint8_t read, uint8_t write); // Opens a filesystem.
 void closeFilesystem(fsNode_t *node); // Closes a filesystem.
 struct dirent *readDirectoryFilesystem(fsNode_t *node, uint32_t index); // Reads a directory in a filesystem.

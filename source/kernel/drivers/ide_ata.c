@@ -11,13 +11,6 @@
 // More sources: https://wiki.osdev.org/PCI_IDE_Controller
 
 
-/*
-    WARNING:
-    This code, in its current state, IS BUGGED.
-    IT DOES NOT LOAD ANYTHING GREATER THAN A GIGABYTE, FROM SOME TESTING (ATA).
-    Unfortunately, this code is old, and I don't remember all of its workings.
-*/
-
 // Variables
 ideChannelRegisters_t channels[2]; // Primary and secondary channels
 uint8_t ideBuffer[2048] = {0}; // Buffer to read the identification space into (see ide_ata.h).
@@ -199,23 +192,22 @@ fsNode_t *ideGetVFSNode(int driveNum) {
     ret->close = NULL;
     ret->finddir = NULL;
     ret->create = NULL;
-    ret->read = ideRead_vfs;
-    ret->write = ideWrite_vfs;
+    ret->read = &ideRead_vfs;
+    ret->write = &ideWrite_vfs;
     ret->readdir = NULL;
     ret->mkdir = NULL;
     strcpy(ret->name, "IDE/ATA drive");
     return ret;
 }
 
-// ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) - Read function for the VFS
-uint32_t ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) {
+// ideRead_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buffer) - Read function for the VFS
+uint32_t ideRead_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buffer) {
     // Create a temporary buffer that rounds up size to the nearest 512 multiple.
     uint8_t *temporary_buffer = kmalloc((size + 512) - ((size + 512) % 512)); 
 
-
-    // Calculate the LBA, based off of offset rounded down
+    // Calculate the LBA, based off of offset rounded down (TODO: Make this conversion a longer value)
     int lba = (off - (off % 512)) / 512;
-    
+
     // Read in the sectors
     int ret = ideReadSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, temporary_buffer);
     if (ret != IDE_OK) return ret;
@@ -230,8 +222,8 @@ uint32_t ideRead_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *
     return IDE_OK;
 }
 
-// ideWrite_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) - Write function for the VFS
-uint32_t ideWrite_vfs(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buffer) {
+// ideWrite_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buffer) - Write function for the VFS
+uint32_t ideWrite_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buffer) {
     // First, create a padded buffer that rounds up size to the nearest 512 multiple.
     // This buffer will serve as the actual things to write to the sector.
     // We're first going to read in the sector at LBA, then replace the contents at offset to be the input buffer.

@@ -32,8 +32,6 @@ You can build reduceOS with a custom version of gcc or ld by passing them as par
 
 
 # Known Bugs
-- **SEVERE:** Integer overflow bugs render VFS abstraction system in need of repair.
-- printf() long handler is disgusting and does not work for signed longs
 - ACPI no longer detects table signatures in the RSDT
 - initrd is broken, address cannot be found
 - **TODO:** ext2 driver needs deletion functions

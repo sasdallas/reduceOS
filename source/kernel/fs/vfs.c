@@ -21,8 +21,8 @@ tree_t *fs_tree = NULL; // Mountpoint tree
 
 /* Most of these functions are really simple - just check if there's a callback in the node and call it! */
 
-// readFilesystem(fsNode_t *node, uint32_t off, uint32_t size, uint8_t *buf) - Reads a file in a filesystem.
-uint32_t readFilesystem(fsNode_t *node, uint32_t off, uint32_t size, uint8_t *buf) {
+// readFilesystem(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) - Reads a file in a filesystem.
+uint32_t readFilesystem(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
     // This is pretty simple, we just use the callbacks in each node.
     // Check if the node has a callback.
     if (node->read != 0) {
@@ -32,8 +32,8 @@ uint32_t readFilesystem(fsNode_t *node, uint32_t off, uint32_t size, uint8_t *bu
     }
 }
 
-// writeFilesystem(fsNode_t *node, uint32_t off, uint32_t size, uint8_t *buf) - Writes a file in a filesystem.
-uint32_t writeFilesystem(fsNode_t *node, uint32_t off, uint32_t size, uint8_t *buf) {
+// writeFilesystem(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) - Writes a file in a filesystem.
+uint32_t writeFilesystem(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
     if (node->write != 0) {
         return node->write(node, off, size, buf);
     } else {

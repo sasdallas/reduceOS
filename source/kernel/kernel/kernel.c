@@ -566,21 +566,25 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     vfsInit();
 
     fsNode_t *ideNode = ideGetVFSNode(0);
-
+    
 
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
-    else kfree(ideNode);
+    
+    if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) ext2_root = ext2_init(ideNode);
+    //else kfree(ideNode);
 
-    //if (fatDriver) vfsMount("/", fatDriver);
+    
+    
+    if (fatDriver) vfsMount("/", fatDriver);
+    if (ext2_root) vfsMount("/", ext2_root);
 
-    if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
+    if ((fatDriver || ext2_root) && ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
     
 
     debug_print_vfs_tree();
 
 
 
-    if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) ext2_root = ext2_init(ideNode);
     
     //uint8_t seconds, minutes, hours, days, months;
     //int years;
@@ -637,12 +641,6 @@ void useCommands() {
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
     enableShell("reduceOS> "); // Enable a boundary (our prompt)
-    
-    printf("If you read this things are cool\n");
-    printf("%i\n", 2);
-    int64_t longr = 0x00000011D111BEEF;
-    printf("0x%016llX\n", longr);
-    
 
     while (true) {
         printf("reduceOS> ");

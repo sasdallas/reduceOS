@@ -710,7 +710,6 @@ fsNode_t *fatInit(fsNode_t *driveNode) {
         }
 
         // Create the VFS node and return it
-        serialPrintf("The driver is located in memory at 0x%x\n", driver);
         fsNode_t *ret = kmalloc(sizeof(fsNode_t));
         ret->uid = ret->gid = ret->inode = ret->impl = ret->mask = 0;
         ret->open = &fatOpen;

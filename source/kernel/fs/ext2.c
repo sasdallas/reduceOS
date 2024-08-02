@@ -19,16 +19,15 @@ extern ideDevice_t ideDevices[4];
 
 // ext2_readBlock(ext2_t *fs, uint32_t block, uint8_t *buf) - Read a block from the device
 int ext2_readBlock(ext2_t *fs, uint32_t block, uint8_t *buf) {
-    uint64_t offset = ((uint64_t)(fs->block_size)) * block;
-    offset = offset / 512;
-    serialPrintf("ext2_readBlock: Block %i offset was calculated as 0x%l\n", block, offset);
-    int ret = ideReadSectors(fs->drive->impl, fs->block_size / 512, offset, buf);
-    
+    uint64_t offset = (uint64_t)(fs->block_size) * block;
+    int ret = fs->drive->read(fs->drive, offset, fs->block_size, buf); 
+    return ret;
 }
 
 // ext2_writeBlock(ext2_t *fs, uint32_t block, uint8_t *buf) - Write a block to the device
 int ext2_writeBlock(ext2_t *fs, uint32_t block, uint8_t *buf) {
-    return fs->drive->write(fs->drive, fs->block_size * block, fs->block_size, buf);
+    uint64_t offset = (uint64_t)(fs->block_size) * block;
+    return fs->drive->write(fs->drive, offset, fs->block_size, buf);
 }
 
 // ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock) - Reads a block in the specified inode
@@ -40,8 +39,10 @@ int ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, ui
     }
     
     // Get the disk block number and read it in
-    uint32_t diskBlock = ext2_getDiskBlockNumber(fs, inode, inodeBlock);
+    unsigned int diskBlock = ext2_getDiskBlockNumber(fs, inode, inodeBlock);
+    serialPrintf("ext2_readInodeBlock: Calculated disk block as %i\n", diskBlock);
     ext2_readBlock(fs, diskBlock, buffer);
+
     return 0;
 }
 
@@ -76,55 +77,67 @@ uint32_t ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNum
 }
 
 
-// ext2_getDiskBlockNumber(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock) - Gets the actual index of inodeBlock on the disk
-uint32_t ext2_getDiskBlockNumber(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock) {
+// ext2_getDiskBlockNumber(ext2_t *this, ext2_inode_t *inode, uint32_t iblock) - Gets the actual index of inodeBlock on the disk
+uint32_t ext2_getDiskBlockNumber(ext2_t *this, ext2_inode_t *inode, uint32_t iblock) {
     // This function is stupidly complex, and you know what they say: "steal from the best, invent the rest."
-    // This function and ext2_setDiskBlockNumber, as well as a few others are sourced from szhou42's osdev project with a decent amount of modifications and bugfixes
+    // This function and ext2_setDiskBlockNumber, as well as a few others are sourced from klange's osdev project with a decent amount of modifications and bugfixes
 
-    // Could be bugged because it's reading into the same buffer. Will test and find out.
-    uint32_t p = fs->block_size / 4, ret;
-    int b, c, d, e, f, g;
-    uint32_t *tmp = kmalloc(fs->block_size);
+    unsigned int p = this->block_size / 4;
 
-    // Check how many blocks are left, minus direct blocks.
-    int remainingBlocks = inodeBlock - EXT2_DIRECT_BLOCKS;
-    if (remainingBlocks < 0) {
-        ret = inode->blocks [inodeBlock];
-        return ret;
-    }
+	/* We're going to do some crazy math in a bit... */
+	unsigned int a, b, c, d, e, f, g;
 
-    b = remainingBlocks - p;
-    if (b < 0) {
-        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS], (uint8_t*)tmp);
-        ret = tmp[remainingBlocks];
-        goto done; // Disgusting
-    }
+	uint8_t * tmp;
 
-    c = b - p * p;
-    if (c < 0) {
-        c = b / p;
-        d = b - c * p;
-        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS] + 1, (uint8_t*)tmp);
-        ext2_readBlock(fs, tmp[c], (uint8_t*)tmp);
-        ret = tmp[d];
-        goto done;
-    }
+	if (iblock < EXT2_DIRECT_BLOCKS) {
+		return inode->blocks[iblock];
+	} else if (iblock < EXT2_DIRECT_BLOCKS + p) {
+		/* XXX what if inode->block[EXT2_DIRECT_BLOCKS] isn't set? */
+		tmp = kmalloc(this->block_size);
+		ext2_readBlock(this, inode->blocks[EXT2_DIRECT_BLOCKS], (uint8_t *)tmp);
 
-    d = c - p * p * p;
-    if (d < 0) {
-        e = c / (p * p);
-        f = (c - e * p * p) / p;
-        g = (c - e * p *p - f * p);
-        ext2_readBlock(fs, inode->blocks[EXT2_DIRECT_BLOCKS + 2], (uint8_t*)tmp);
-        ext2_readBlock(fs, tmp[e], (uint8_t*)tmp);
-        ext2_readBlock(fs, tmp[f], (uint8_t*)tmp);
-        ret = tmp[g];
-        goto done;
-    }
+		unsigned int out = ((uint32_t *)tmp)[iblock - EXT2_DIRECT_BLOCKS];
+		kfree(tmp);
+		return out;
+	} else if (iblock < EXT2_DIRECT_BLOCKS + p + p * p) {
+		a = iblock - EXT2_DIRECT_BLOCKS;
+		b = a - p;
+		c = b / p;
+		d = b - c * p;
 
-    done:
-    kfree(tmp);
-    return ret;
+		tmp = kmalloc(this->block_size);
+		ext2_readBlock(this, inode->blocks[EXT2_DIRECT_BLOCKS + 1], (uint8_t *)tmp);
+
+		uint32_t nblock = ((uint32_t *)tmp)[c];
+		ext2_readBlock(this, nblock, (uint8_t *)tmp);
+
+		unsigned int out = ((uint32_t  *)tmp)[d];
+		kfree(tmp);
+		return out;
+	} else if (iblock < EXT2_DIRECT_BLOCKS + p + p * p + p) {
+		a = iblock - EXT2_DIRECT_BLOCKS;
+		b = a - p;
+		c = b - p * p;
+		d = c / (p * p);
+		e = c - d * p * p;
+		f = e / p;
+		g = e - f * p;
+
+		tmp = kmalloc(this->block_size);
+		ext2_readBlock(this, inode->blocks[EXT2_DIRECT_BLOCKS + 2], (uint8_t *)tmp);
+
+		uint32_t nblock = ((uint32_t *)tmp)[d];
+		ext2_readBlock(this, nblock, (uint8_t *)tmp);
+
+		nblock = ((uint32_t *)tmp)[f];
+		ext2_readBlock(this, nblock, (uint8_t *)tmp);
+
+		unsigned int out = ((uint32_t  *)tmp)[g];
+		kfree(tmp);
+		return out;
+	}
+
+    return 0;
 }
 
 // ext2_setDiskBlockNumber(ext2_t *fs, ext2_inode_t *inode, uint32_t index, uint32_t inodeBlock, uint32_t diskBlock) - Sets a disk block number
@@ -314,6 +327,7 @@ ext2_superblock_t *ext2_readSuperblock(fsNode_t *device) {
     uint8_t *buffer = kmalloc(1024);
     int ret = device->read(device, 1024, 1024, buffer); // Superblock always starts at LBA 2 and occupies 1024 bytes.
 
+
     if (ret != IDE_OK) {
         kfree(buffer);
         return NULL;
@@ -421,6 +435,7 @@ int ext2_writeInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index) {
 
 
 // ext2_readInodeFiledata(ext2_t *fs, ext2_inode_t *inode, uint32_t offset, uint32_t size, uint8_t *buffer) - Read the actual file data referenced from the inode
+// ! NOT USED - DO NOT USE !
 uint32_t ext2_readInodeFiledata(ext2_t *fs, ext2_inode_t *inode, uint32_t offset, uint32_t size, uint8_t *buffer) {
     // Calculate the end offset
     uint32_t endOffset = (inode->size >= offset + size) ? (offset + size) : (inode->size);
@@ -604,8 +619,8 @@ void ext2_freeInode(ext2_t *fs, uint32_t inode) {
 }
 
 
-// (static) ext2_writeInodeBuffer(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNumber, uint32_t offset, uint32_t size, uint8_t *buffer) - Write file data to an inode
-static int ext2_writeInodeBuffer(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNumber, uint32_t offset, uint32_t size, uint8_t *buffer) {
+// (static) ext2_writeInodeBuffer(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNumber, off_t offset, uint32_t size, uint8_t *buffer) - Write file data to an inode
+static int ext2_writeInodeBuffer(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNumber, off_t offset, uint32_t size, uint8_t *buffer) {
     // Check out ext2_read() for some more information on how this actually works
 
     uint32_t end = offset + size;
@@ -689,28 +704,32 @@ static int ext2_createEntry(fsNode_t *parent, char *name, uint32_t inode) {
     // Time to add the entry
     uint8_t *block = kmalloc(fs->block_size);
     uint8_t blockNumber = 0;
-    uint32_t dirOffset, totalOffset = 0;
+    uint32_t dirOffset = 0, totalOffset = 0;
     int modifyOrReplace = 0;
     ext2_dirent_t *previous_entry;
 
     ext2_readInodeBlock(fs, pinode, blockNumber, block);
+
     while (totalOffset < pinode->size) {
         if (dirOffset >= fs->block_size) {
-            // Offset has passed this block, move on to the next one.
+            // Offset has passed this block, move on to the next one.;
             blockNumber++;
             dirOffset = dirOffset - fs->block_size;
             ext2_readInodeBlock(fs, pinode, blockNumber, block);
         }
 
-        ext2_dirent_t *dent = (ext2_dirent_t*)((uintptr_t)block + dirOffset);
-        
+
+        ext2_dirent_t *dent = (ext2_dirent_t*)((uint32_t)block + dirOffset);       
+
         uint32_t s_entrySize = dent->name_length + sizeof(ext2_dirent_t);
         s_entrySize += (s_entrySize % 4) ? (4 - (s_entrySize % 4)) : 0;
+
 
         // Get the name of the dirent and null-terminate it
         char f[dent->name_length + 1];
         memcpy(f, dent->name, dent->name_length);
         f[dent->name_length] = 0;
+
 
         if (dent->entry_size != s_entrySize && totalOffset + dent->entry_size == pinode->size) {
             serialPrintf("ext2_createEntry: entry size should be %i but points to end of block - need to change the pointer\n", s_entrySize);
@@ -1029,7 +1048,6 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
         memcpy(dname, &(dent->name), dent->name_length);
         dname[dent->name_length] = '\0';
 
-        serialPrintf("%s\n", dent->name);
 
 
         if (!strcmp(dname, name)) {
@@ -1066,8 +1084,8 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
 
 
 
-// ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) - VFS node read
-int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
+// ext2_read(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) - VFS node read
+int ext2_read(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) {
     ext2_t *fs = (ext2_t*)node->impl_struct;
 
     // Read in the inode's metadata
@@ -1077,7 +1095,7 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
     // We have to calculate when to stop reading, simple.    
     uint32_t end;
     if (offset + size > inode->size) {
-        serialPrintf("WARNING: Truncating size from %i to %i\n", size, inode->size);
+        serialPrintf("ext2_read: WARNING: Truncating size from %i to %i\n", size, inode->size);
         end = inode->size; // Offset + size is too big
     } else end = offset + size;
 
@@ -1088,6 +1106,7 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
     // Calculate the ending size and the size to read
     uint32_t endSize = end - endBlock * fs->block_size;
     uint32_t sizeToRead = end - offset;
+    
 
     // Now we can actually start reading
     uint8_t *buf = kmalloc(fs->block_size);
@@ -1110,6 +1129,7 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
             }
         }
 
+
         if (endSize) {
             ext2_readInodeBlock(fs, inode, endBlock, buf);
             memcpy(buffer + fs->block_size * blocksRead - (offset % fs->block_size), buf, endSize);
@@ -1123,8 +1143,8 @@ int ext2_read(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
 }
 
 
-// ext2_write(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) - VFS node write function
-int ext2_write(fsNode_t *node, uint32_t offset, uint32_t size, uint8_t *buffer) {
+// ext2_write(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) - VFS node write function
+int ext2_write(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) {
     ext2_t *fs = (ext2_t*)node->impl_struct;
     
     ext2_inode_t *inode = ext2_readInodeMetadata(fs, node->inode);
@@ -1323,7 +1343,6 @@ fsNode_t *ext2_init(fsNode_t *node) {
         return ext2;   
     } else {
         kfree(superblock);
-        kfree(node);
     }
 
     return NULL;

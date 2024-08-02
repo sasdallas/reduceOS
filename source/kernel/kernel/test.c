@@ -771,6 +771,8 @@ int ext2_tests() {
             break;
         case 3:
             printf("FAIL (subdir/subdir.txt)\n");
+            printf("\tWARNING: This indicates a long read failure. To prevent damage to disks, the tests will be terminated.\n");
+            return -1;
             break;
         case 4:
             printf("FAIL (nonexistant.txt)\n");
