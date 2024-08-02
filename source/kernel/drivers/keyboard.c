@@ -173,7 +173,10 @@ static void keyboardHandler(registers_t *r) {
         // Do nothing if ch is 0 or \n. 
     } else {
         keyboardRegisterKeyPress(ch);
-        if (printChars) printf("%c", ch);
+        if (printChars) {
+            terminalPutchar(ch);
+            vbeSwitchBuffers(); // sorry
+        }
     }
     
     return;

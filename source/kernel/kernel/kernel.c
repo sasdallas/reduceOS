@@ -581,13 +581,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
 
     if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) ext2_root = ext2_init(ideNode);
-    if (ext2_root) {
-        fsNode_t *longFile = ext2_root->finddir(ext2_root, "vaporwave.bmp");
-        if (longFile) {
-            serialPrintf("Running the 'is it ext2 or my ide driver' test...\n");
-
-        }
-    }    
+    
     //uint8_t seconds, minutes, hours, days, months;
     //int years;
 
@@ -644,6 +638,10 @@ void useCommands() {
     printf("Type 'help' for help.\n");
     enableShell("reduceOS> "); // Enable a boundary (our prompt)
     
+    printf("If you read this things are cool\n");
+    printf("%i\n", 2);
+    int64_t longr = 0x00000011D111BEEF;
+    printf("0x%016llX\n", longr);
     
 
     while (true) {

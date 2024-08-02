@@ -28,14 +28,13 @@ static int serialIsTransmitEmpty() {
     return inportb(SERIAL_COM1 + 5) & 0x20; 
 }
 
-// serialWrite(char c) - Writes character 'c' to serial when transmit is empty.
-void serialWrite(char c) {
+// serialWrite(void *user, char c) - Writes character 'c' to serial when transmit is empty.
+void serialWrite(void *user, char c) {
     while (serialIsTransmitEmpty() == 0);
     outportb(SERIAL_COM1, c);
 }
 
 
-// terminal.c contains a few special functions to aid serialPrintf, like printf_putchar() - a function that is used to put a char to a certain method (in our case, serialWrite).
 // Now, for the actual functions...
 
 // serialPrintf(const char *str, ...) - Prints a formatted line to SERIAL_COM1.
@@ -44,7 +43,7 @@ void serialPrintf(const char *str, ...) {
 
     va_list(ap);
     va_start(ap, str);
-    printf_putchar(str, serialWrite, ap);
+    xvasprintf(serialWrite, NULL, str, ap);
     va_end(ap);
 }
 
