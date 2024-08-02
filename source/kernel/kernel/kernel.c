@@ -380,6 +380,42 @@ int ls(int argc, char *args[]) {
             
 }
 
+int cd(int argc, char *args[]) {
+
+}
+
+int cat(int argc, char *args[]) {
+
+}
+
+int mkdir(int argc, char *args[]) {
+
+}
+
+int create(int argc, char *args[]) {
+
+}
+
+int mountFAT(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: mount_fat <directory, ex. /dev/ide>\n");
+        return -1;
+    }
+
+    printf("Mounting %s to /dev/fat...\n", args[1]);
+    int ret = vfs_mountType("fat", args[1], "/dev/fat");
+    if (ret == 0) {
+        printf("Successfully mounted to /dev/fat.\n");
+        change_cwd("/dev/");
+        fatDriver = open_file("fat", 0);
+        serialPrintf("mountFAT: Got %s 0x%x\n", fatDriver->name, fatDriver);
+    } else {
+        printf("Could not mount the drive. Error code %i\n", ret);
+    }
+
+    return 0;
+}
+
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(unsigned long addr, unsigned long loader_magic) {
@@ -610,6 +646,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // The user can use the mount_fat command to mount the FAT driver.
     ext2_root = open_file("/", 0);
 
+
     
     //uint8_t seconds, minutes, hours, days, months;
     //int years;
@@ -655,6 +692,7 @@ void useCommands() {
     registerCommand("pagefault", (command*)doPageFault);
     registerCommand("read_floppy", (command*)read_floppy);
     registerCommand("test", (command*)test);
+    registerCommand("mount_fat", (command*)mountFAT);
 
 
     serialPrintf("kmain: All commands registered successfully.\n");

@@ -648,6 +648,34 @@ int fat_tests() {
 
 
 
+        printf("\tTesting fatOpen (dir/)...");
+        memset(ret, 0, sizeof(fsNode_t));
+        ret->flags = -1; // Preventing false-passes
+        strcpy(ret->name, "/dir");
+        ret->impl_struct = fatDriver->impl_struct;
+
+        fatOpen(ret);
+
+        if (ret->flags != VFS_DIRECTORY) {
+            printf("FAIL (flags = 0x%x)\n", ret->flags);
+            fail = 1;
+        } else {
+            printf("PASS\n");
+        }
+
+        serialPrintf("Got directory, moving to next test...\n");
+        return 0;
+        
+
+        printf("\tTesting fatFindDirectory (dir/)...");
+        ret2 = fatFindDirectory(ret, "test.txt");
+        
+        if (ret2->flags != VFS_FILE) {
+            printf("FAIL (flags = 0x%x)\n", ret2->flags);
+        } else {
+            printf("PASS\n");
+        }
+
         kfree(comparison_buffer);
         // kfree(ret); - Glitches out??
 

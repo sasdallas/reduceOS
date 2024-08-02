@@ -191,6 +191,7 @@ static fsNode_t *vfs_mapper() {
     fnode->mask = 0555;
     fnode->flags = VFS_DIRECTORY;
     fnode->readdir = vfs_readdirMapper;
+    strcpy(fnode->name, "Mapped Directory");
     return fnode;
 }
 

@@ -32,6 +32,7 @@ You can build reduceOS with a custom version of gcc or ld by passing them as par
 
 
 # Known Bugs
+- Exception handlers aren't getting called, temporary hotfix in place.
 - ACPI no longer detects table signatures in the RSDT
 - initrd is broken, address cannot be found
 - **TODO:** ext2 driver needs deletion functions

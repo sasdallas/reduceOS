@@ -26,6 +26,12 @@ void isrEndInterrupt(int num) {
 }
 
 void isrExceptionHandler(registers_t *reg) {
+
+    // HOTFIX HOTFIX HOTFIX HOTFIX HOTFIX
+    // I don't know why, but interruptHandlers[reg->int_no] won't call. This is especially bad with paging, when it is critical that it is called.
+    // So we'll force it only for a page fault.
+    if (reg->int_no == 14) pageFault(reg);
+
     if (interruptHandlers[reg->int_no] != NULL) {
         ISR handler = interruptHandlers[reg->int_no];
         handler(reg);

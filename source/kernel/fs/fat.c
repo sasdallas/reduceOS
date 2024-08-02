@@ -443,6 +443,7 @@ fsNode_t *fatParseSubdirectory(fsNode_t *file, const char *path) {
 
 
 // fatOpenInternal(fsNode_t *driver, char *filename) - File open, can parse slashes and subdirectories
+// WARNING: DO NOT USE OUTSIDE OF fatOpen - IT WILL NOT WORK!
 fsNode_t *fatOpenInternal(fsNode_t *driver, char *filename) {
     fsNode_t *directory; // directory is our current directory
     bool isRootDir = true;
@@ -563,12 +564,34 @@ uint32_t fatOpen(struct fsNode *node) {
     // node->name should contain the filename that we want to open, and node->impl_struct should contain the fat_t object.
     // However, as I'm writing this we're currently prototyping - so let's check to make sure fat_t is there, panic if it's not.
 
+    // VFS is stupid so it will call this method in an attempt to open the FAT directory
+    if (!strcmp(((fsNode_t*)node)->name, "FAT driver")) { return 0; }
+
     if (((fat_t*)(((fsNode_t*)node)->impl_struct))->drive->bpb->bootjmp[0] != 0xEB) {
         panic("FAT", "fatOpen", "bootjmp[0] is not 0xEB");
     }
 
-    fsNode_t *ret = fatOpenInternal((fsNode_t*)node, ((fsNode_t*)node)->name);
+
+
+
+    char *oldpath = ((fat_t*)(((fsNode_t*)node)->impl_struct))->fullpath;
+
+    // Patch the test cases, where if oldpath is just "/" we'll instead use filename.
+
+    fsNode_t *ret;
+    if (!strcmp(oldpath, "/")) ret = fatOpenInternal((fsNode_t*)node, ((fsNode_t*)node)->name);
+    else ret = fatOpenInternal((fsNode_t*)node, oldpath);
+    
+    if (ret->flags != -1) {
+        char *newpath = ((fat_t*)(ret->impl_struct))->fullpath;
+        kfree(((fat_t*)(ret->impl_struct))->fullpath);
+        ((fat_t*)(ret->impl_struct))->fullpath = kmalloc(strlen(oldpath) + strlen(ret->name));
+        strcpy(newpath, oldpath);
+        strcpy(newpath + strlen(oldpath), ret->name);
+    }
+
     memcpy(node, ret, sizeof(fsNode_t));
+    kfree(ret);
 
     // Compare the two and make sure we're doing this correctly
     if (((fsNode_t*)node)->flags != ret->flags) {
@@ -583,9 +606,21 @@ uint32_t fatClose(struct fsNode *node) {
     return 0; // So much closing happening here
 }
 
+
+// fatFindDirectory(struct fsNode *node, char *name) - Searches through directories to find a file
+uint32_t fatFindDirectory(struct fsNode *node, char *name) {
+     
+    char *nodepath  = ((fat_t*)(((fsNode_t*)(node))->impl_struct))->fullpath;
+    char *path = kmalloc(strlen(nodepath) + strlen(name));
+    strcpy(path, nodepath);
+    strcpy(path + strlen(nodepath), name);
+    serialPrintf("fatFindDirectory: Need to read path %s\n", path);
+   
+}
+
 // fatInit(fsNode_t *driveNode, int flags) - Creates a FAT filesystem driver on driveNode and returns it
 fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
-    serialPrintf("fatInit: FAT trying to initialize on driveNode...\n");
+    serialPrintf("fatInit: FAT trying to initialize on driveNode (drive number/impl: %i)...\n", driveNode->impl);
 
     // Allocate a buffer to read in the BPB
     uint32_t *buffer = kmalloc(512);
@@ -709,6 +744,11 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
             return NULL;
         }
 
+
+        // Setup the driver's full path
+        driver->fullpath = kmalloc(2);
+        strcpy(driver->fullpath, "/");
+
         // Create the VFS node and return it
         fsNode_t *ret = kmalloc(sizeof(fsNode_t));
         ret->uid = ret->gid = ret->inode = ret->impl = ret->mask = 0;
@@ -763,7 +803,9 @@ fsNode_t *fat_fs_mount(const char *device, const char *mount_path) {
     // No flags right now
     int flags = 0;
 
-    return fatInit(dev, flags);
+    fsNode_t *fat = fatInit(dev, flags);
+    serialPrintf("%s mounted\n", fat->name);
+    return fat;
 }
 
 // fat_install(int argc, char *argv[]) - Installs the FAT filesystem driver to automatically initialize on an ext2-type disk

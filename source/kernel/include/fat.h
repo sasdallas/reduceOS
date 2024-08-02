@@ -114,6 +114,7 @@ typedef struct {
 typedef struct {
     fat_fileEntry_t *fileEntry; // Used if this is a structure for a file
     fat_drive_t *drive; 
+    char *fullpath; // Dirty hack
 } fat_t;
 
 // Functions

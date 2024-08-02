@@ -107,7 +107,7 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
-    stackTrace(5);
+    //stackTrace(5);
 
     asm volatile ("hlt");
     for (;;);
