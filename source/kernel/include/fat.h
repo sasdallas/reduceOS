@@ -118,11 +118,12 @@ typedef struct {
 
 // Functions
 
-fsNode_t *fatInit(fsNode_t *driveNode);
+fsNode_t *fatInit(fsNode_t *driveNode, int flags);
 uint32_t fatOpen(struct fsNode *node);
 uint32_t fatRead(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf);
 uint32_t fatClose(struct fsNode *node);
 uint32_t fatWrite(struct fsNode *node, uint32_t off, uint32_t size, uint8_t *buf);
+int fat_install(int argc, char *argv[]); // Installs the FAT filesystem driver
 
 fsNode_t *fatOpenInternal(fsNode_t *driver, char *filename);
 int fatReadInternal(fsNode_t *file, uint8_t *buffer, uint32_t length);

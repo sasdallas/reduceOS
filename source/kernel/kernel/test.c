@@ -702,10 +702,6 @@ int vfs_tests() {
     if (canonicalize_fail) printf("FAIL (pass %i)\n", canonicalize_fail);
     else printf("PASS\n");
     
-    if (!ext2_root && !fatDriver) {
-        printf("\tCannot complete VFS tests - please mount a drive.\n");
-        return -1;
-    }
 
     // Now, let's test the open_file function, as well as CWD support
     change_cwd("/");
@@ -713,7 +709,7 @@ int vfs_tests() {
     
     // Open the file test.txt
     printf("\tTesting open_file (test.txt)...");
-    fsNode_t *f = open_file("/", 0);
+    fsNode_t *f = open_file("/test.txt", 0);
 
     if (f != NULL) {
         printf("PASS\n");

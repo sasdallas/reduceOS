@@ -6,4 +6,13 @@
 
 #include "include/liballoc_forwarder.h"
 
+
+extern void *kmalloc(size_t);
+extern void *krealloc(void *, size_t);
+extern void *kcalloc(size_t, size_t);
+extern void kfree(void *);
+
+
+
+
 #endif

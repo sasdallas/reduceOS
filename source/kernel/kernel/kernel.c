@@ -572,25 +572,43 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Initialize the VFS
     vfsInit();
 
-    fsNode_t *ideNode = ideGetVFSNode(0);
-    
+    // First, we need to install the EXT2 and FAT drivers.
+    ext2_install();
+    fat_install();
 
-    if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) fatDriver = fatInit(ideNode); // Try to initialize FAT on IDE drive 0
-    
-    if (ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) ext2_root = ext2_init(ideNode);
-    //else kfree(ideNode);
+    // Then, we need to map the /dev/ directory
+    vfs_mapDirectory("/dev");
 
-    
-    
-    if (fatDriver) vfsMount("/", fatDriver);
-    if (ext2_root) vfsMount("/", ext2_root);
+    // Now, we can iterate through each IDE node, mount them to the dev directory, and try to use them as root if needed
+    bool rootMounted = false;
+    for (int i = 0; i < 4; i++) {
+        fsNode_t *ideNode = ideGetVFSNode(i);
 
-    if ((fatDriver || ext2_root) && ideNode->impl != -1 && ideDevices[ideNode->impl].size >= 1) vfsMount("/ide0", ideNode);
-    
+        // First, we'll mount this device to /dev/idex
+        char *name = kmalloc(sizeof(char) * (strlen("/dev/ide")  + 1));
+        strcpy(name, "/dev/ide");
+        itoa(i, name + strlen("/dev/ide"), 10);
+        
+        vfsMount(name, ideNode);
+
+
+        if ((ideDevices[i].reserved == 1) && (ideDevices[i].size > 1)) {
+            // The EXT2 driver needs to be mounted first on /
+            if (!rootMounted) {
+                int ret = vfs_mountType("ext2", name, "/");
+                if (ret == 0) rootMounted = true;
+                else {
+                    // Other filesystem should initialize differently
+                }
+            } 
+        }
+    }
 
     debug_print_vfs_tree();
 
-
+    // For compatibility with our tests, we need to set the ext2_root variable.
+    // The user can use the mount_fat command to mount the FAT driver.
+    ext2_root = open_file("/", 0);
 
     
     //uint8_t seconds, minutes, hours, days, months;

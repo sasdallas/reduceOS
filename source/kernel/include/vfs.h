@@ -10,6 +10,8 @@
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/libc/tree.h" // Mountpoint tree
+#include "include/hashmap.h" // Mount hashmap
+
 
 // Definitions
 #define VFS_FILE 0x01
@@ -28,6 +30,8 @@
 // Filesystem node (prototype)
 struct fsNode;
 
+
+// Offset
 typedef uint64_t off_t;
 
 // Function prototypes (from the POSIX specification):
@@ -64,11 +68,16 @@ typedef struct {
     create_t create;    // Create function
     mkdir_t mkdir;      // Make directory function.
     struct fsNode *ptr; // Used by mountpoints and symlinks.
+    struct fsNode *device;   // Pointer to the device needed
 } fsNode_t;
+
+// Hashmap callback
+typedef fsNode_t * (*vfs_mountCallback)(const char * arg, const char * mount_point);
+
 
 // Directory entry.
 struct dirent {
-    char name[128];     // Filename
+    char name[256];     // Filename
     uint32_t ino;       // (required by POSIX) Inode number.
 };
 
@@ -100,5 +109,8 @@ void change_cwd(const char *newdir); // Changes the current working directory
 char *get_cwd(); // Returns the current working directory
 fsNode_t *open_file_recursive(const char *filename, uint64_t flags, uint64_t symlink_depth, char *relative); // Opens a file (but recursive and does all the work
 fsNode_t *vfs_getMountpoint(char *path, unsigned int path_depth, char **outpath, unsigned int *outdepth); // Gets the mountpoint of something at path
+int vfs_mountType(const char *type, const char *arg, const char *mountpoint); // Calls the mount handler for the filesystem driver for type
+int vfs_registerFilesystem(const char *name, vfs_mountCallback callback); // Registers a filesystem mount callback that will be called when needed
+void vfs_mapDirectory(const char *c); // Maps a directory in the virtual filesystem
 
 #endif

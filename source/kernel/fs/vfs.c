@@ -10,6 +10,7 @@
 
 fsNode_t *fs_root = 0; // Root of the filesystem
 tree_t *fs_tree = NULL; // Mountpoint tree
+hashmap_t *fs_types = NULL;
 char cwd[256] = "/";
 
 
@@ -74,7 +75,10 @@ fsNode_t *findDirectoryFilesystem(fsNode_t *node, char *name) {
     // Check if the node is a directory and if it has a callback.
     if ((node->flags & 0x7) == VFS_DIRECTORY && node->finddir != 0) {
         return node->finddir(node, name);
-    } else { return 0; }
+    } else {
+        serialPrintf("The node does not have a finddir function\n");
+        return 0; 
+    }
 }
 
 
@@ -96,10 +100,109 @@ void vfsInit() {
     strcpy(root->name, "/");
     root->file = 0; // Nothing is mounted
 
-    
+    // Setup the tree root    
     tree_set_root(fs_tree, root);
 
-    if (fs_tree->root->value != root) panic("VFS", "vfsInit", "tree fail");
+    // Create the hashmap
+    fs_types = hashmap_create(5);
+}
+
+
+// vfs_registerFilesystem(const char *name, vfs_mountCallback callback) - Register a filesystem mount callback that will be called when needed (TOARU)
+int vfs_registerFilesystem(const char *name, vfs_mountCallback callback) {
+    if (hashmap_get(fs_types, name)) return 1;
+    hashmap_set(fs_types, name, (void*)(uintptr_t)callback);
+    return 0;
+}
+
+// vfs_mountType(const char *type, const char *arg, const char *mountpoint) - Calls the mount handler for a filesystem with the type (TOARU)
+int vfs_mountType(const char *type, const char *arg, const char *mountpoint) {
+    vfs_mountCallback t = (vfs_mountCallback)(uintptr_t)hashmap_get(fs_types, type);
+    if (!t) {
+        serialPrintf("vfs_mountType: Unknown filesystem type: %s\n", type);
+        return -1;
+    }
+
+    fsNode_t *n = t(arg, mountpoint);
+
+    // Quick hack to let partition mappers not return a node to mount at mountpoint
+    if ((uintptr_t)n == (uintptr_t)1) return 0;
+    if (!n) return -1;
+
+    // Mount the filesystem
+    tree_node_t *node = vfsMount(mountpoint, n);
+    if (node && node->value) {
+        vfsEntry_t *entry = (vfsEntry_t*)node->value;
+        entry->fs_type = kmalloc(strlen(type) + 1);
+        entry->device = kmalloc(strlen(arg) + 1);
+
+        strcpy(entry->fs_type, type);
+        strcpy(entry->device, arg);
+    }
+
+    serialPrintf("vfs_mountType: Mounted %s[%s] to %s: %p\n", type, arg, mountpoint, (void*)n);
+    debug_print_vfs_tree();
+
+    return 0;
+}
+
+// (static) vfs_readdirMapper(fsNode_t *node, unsigned long index) - Maps a dirent to the VFS (TOARU)
+static struct dirent *vfs_readdirMapper(fsNode_t *node, unsigned long index) {
+    tree_node_t *d = (tree_node_t*)node->device;
+
+    if (!d) return NULL;
+    
+    if (index == 0) {
+        struct dirent *dir = kmalloc(sizeof(struct dirent));
+        strcpy(dir->name, ".");
+        dir->ino = 0;
+        return dir;
+    } else if (index == 1) {
+        struct dirent *dir = kmalloc(sizeof(struct dirent));
+        strcpy(dir->name, "..");
+        dir->ino = 1;
+        return dir;
+    }
+
+    index -= 2;
+    unsigned long i = 0;
+    foreach (child, d->children) {
+        if (i == index) {
+            // Recursively print the children
+            tree_node_t *tchild = (tree_node_t*)child->value;
+            vfsEntry_t *n  = (vfsEntry_t*)tchild->value;
+            struct dirent *dir = kmalloc(sizeof(struct dirent));
+
+            size_t len = strlen(n->name) + 1;
+            memcpy(&dir->name, n->name, (256 < len) ? 256 : len);
+            dir->ino = 1;
+            return dir;
+        }
+        i++;
+    }
+
+    return NULL;
+}
+
+// (static) vfs_mapper() - Works with vfs_mapDirectory (TOARU)
+static fsNode_t *vfs_mapper() {
+    fsNode_t *fnode = kmalloc(sizeof(fsNode_t));
+    memset(fnode, 0x00, sizeof(fsNode_t));
+    fnode->mask = 0555;
+    fnode->flags = VFS_DIRECTORY;
+    fnode->readdir = vfs_readdirMapper;
+    return fnode;
+}
+
+// vfs_mapDirectory(const char *c) - Maps a directory in the virtual filesystem (TOARU)
+void vfs_mapDirectory(const char *c) {
+    fsNode_t *f = vfs_mapper();
+    vfsEntry_t *entry = vfsMount((char*)c, f);
+    if (!strcmp(c, "/")) {
+        f->device = fs_tree->root;
+    } else {
+        f->device = entry;
+    }
 }
 
 // Technically (TOARU)

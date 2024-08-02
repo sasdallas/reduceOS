@@ -1209,6 +1209,7 @@ fsNode_t *ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) {
     node->readdir = ext2_readdir;
     node->finddir = ext2_finddir;
 
+    strcpy(node->name, "EXT2 driver");
     
     return node;
 }
@@ -1262,7 +1263,7 @@ int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNo
 
 
 // ext2_init() - Initializes the filesystem on a disk
-fsNode_t *ext2_init(fsNode_t *node) {
+fsNode_t *ext2_init(fsNode_t *node, int flags) {
     // Read in the superblock for the drive
     
     ext2_superblock_t *superblock = ext2_readSuperblock(node);
@@ -1350,4 +1351,47 @@ fsNode_t *ext2_init(fsNode_t *node) {
     }
 
     return NULL;
+}
+
+// (static) ext2_tokenize(char *str, const char *sep, char **buf) - Wrapper to strtok_r, just here for compatibility with the impl. (Toaru)
+static int ext2_tokenize(char *str, const char *sep, char **buf) {
+    char * pch_i;
+	char * save_i;
+	int    argc = 0;
+	pch_i = strtok_r(str,sep,&save_i);
+	if (!pch_i) { return 0; }
+	while (pch_i != NULL) {
+		buf[argc] = (char *)pch_i;
+		++argc;
+		pch_i = strtok_r(NULL,sep,&save_i);
+	}
+	buf[argc] = NULL;
+	return argc;
+}
+
+// ext2_fs_mount(const char *device, const char *mount_path) - Mounts the etx2 filesystem
+fsNode_t *ext2_fs_mount(const char *device, const char *mount_path) {
+    char *arg = kmalloc(strlen(device) + 1);
+    strcpy(arg, device);
+
+    char *argv[10];
+    int argc = ext2_tokenize(arg, ",", argv);
+
+    fsNode_t *dev = open_file(argv[0], 0);
+    if (!dev) {
+        serialPrintf("ext2_fs_mount: Could not open device %s\n", argv[0]);
+        return NULL;
+    }
+
+
+    // No flags right now
+    int flags = 0;
+
+    return ext2_init(dev, flags);
+}
+
+// ext2_install(int argc, char *argv[]) - Installs the ext2 filesystem driver to automatically initialize on an ext2-type disk
+int ext2_install(int argc, char *argv[]) {
+    vfs_registerFilesystem("ext2", ext2_fs_mount);
+    return 0;
 }

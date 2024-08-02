@@ -583,8 +583,8 @@ uint32_t fatClose(struct fsNode *node) {
     return 0; // So much closing happening here
 }
 
-// fatInit(fsNode_t *driveNode) - Creates a FAT filesystem driver on driveNode and returns it
-fsNode_t *fatInit(fsNode_t *driveNode) {
+// fatInit(fsNode_t *driveNode, int flags) - Creates a FAT filesystem driver on driveNode and returns it
+fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
     serialPrintf("fatInit: FAT trying to initialize on driveNode...\n");
 
     // Allocate a buffer to read in the BPB
@@ -727,4 +727,47 @@ fsNode_t *fatInit(fsNode_t *driveNode) {
     }
 
     return NULL;
+}
+
+// (static) fat_tokenize(char *str, const char *sep, char **buf) - Wrapper to strtok_r, just here for compatibility with the impl. (Toaru)
+static int fat_tokenize(char *str, const char *sep, char **buf) {
+    char * pch_i;
+	char * save_i;
+	int    argc = 0;
+	pch_i = strtok_r(str,sep,&save_i);
+	if (!pch_i) { return 0; }
+	while (pch_i != NULL) {
+		buf[argc] = (char *)pch_i;
+		++argc;
+		pch_i = strtok_r(NULL,sep,&save_i);
+	}
+	buf[argc] = NULL;
+	return argc;
+}
+
+// fat_fs_mount(const char *device, const char *mount_path) - Mounts the FAT filesystem
+fsNode_t *fat_fs_mount(const char *device, const char *mount_path) {
+    char *arg = kmalloc(strlen(device) + 1);
+    strcpy(arg, device);
+
+    char *argv[10];
+    int argc = fat_tokenize(arg, ",", argv);
+
+    fsNode_t *dev = open_file(argv[0], 0);
+    if (!dev) {
+        serialPrintf("fat_fs_mount: Could not open device %s\n", argv[0]);
+        return NULL;
+    }
+
+
+    // No flags right now
+    int flags = 0;
+
+    return fatInit(dev, flags);
+}
+
+// fat_install(int argc, char *argv[]) - Installs the FAT filesystem driver to automatically initialize on an ext2-type disk
+int fat_install(int argc, char *argv[]) {
+    vfs_registerFilesystem("fat", fat_fs_mount);
+    return 0;
 }
