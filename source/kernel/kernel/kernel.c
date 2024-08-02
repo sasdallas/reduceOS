@@ -371,8 +371,15 @@ void usermodeMain() {
 }
 
 
+
+
 fsNode_t *fatDriver = NULL;
 fsNode_t *ext2_root = NULL;
+
+int ls(int argc, char *args[]) {
+            
+}
+
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(unsigned long addr, unsigned long loader_magic) {

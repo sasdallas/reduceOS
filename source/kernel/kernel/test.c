@@ -11,6 +11,7 @@
 #include "include/floppy.h"
 #include "include/ext2.h"
 #include "include/bitmap.h"
+#include "include/vfs.h"
 
 
 extern ideDevice_t ideDevices[4];
@@ -18,27 +19,6 @@ extern fsNode_t *fatDriver;
 extern fsNode_t *ext2_root;
 
 
-tree_comparator_t test_comparator(void *a, void *b) {
-       return (a == b);
-}
-
-void test_debug_print_tree_node(tree_t *tree, tree_node_t *node, size_t height) {
-    if (!node) return;
-
-    // Indent output according to height
-    char indents[18];
-    memset(indents, 0, 18);
-    for (int i = 0; i < height; i++) indents[i] = ' ';
-
-
-    // Get the current node
-    // Print it out
-    printf("\t%s0x%x\n", indents, node->value);
-
-    foreach(child, node->children) {
-        test_debug_print_tree_node(tree, child->value, height + 1);
-    }
-}
 
 int pmm_tests() {
     void *a = pmm_allocateBlock();
@@ -722,6 +702,28 @@ int vfs_tests() {
     if (canonicalize_fail) printf("FAIL (pass %i)\n", canonicalize_fail);
     else printf("PASS\n");
     
+    if (!ext2_root && !fatDriver) {
+        printf("\tCannot complete VFS tests - please mount a drive.\n");
+        return -1;
+    }
+
+    // Now, let's test the open_file function, as well as CWD support
+    change_cwd("/");
+
+    
+    // Open the file test.txt
+    printf("\tTesting open_file (test.txt)...");
+    fsNode_t *f = open_file("/", 0);
+
+    if (f != NULL) {
+        printf("PASS\n");
+        kfree(f);
+    } else printf("FAIL\n");
+
+
+    // Make sure we're not being fooled
+
+
     return 0;
 }
 
@@ -1193,94 +1195,9 @@ int test(int argc, char *args[]) {
         else printf("=== TESTS FAILED ===\n"); 
     } else if (!strcmp(args[1], "bad_apple")) {
         printf("=== bad apple!!! ===\n");
+
         if (badapple_test() == 0) printf("finished\n");
         else printf("=== TESTS FAILED ===\n");
-    } else if (!strcmp(args[1], "tree")) {
-        // to be moved
-        printf("=== TESTING TREE ===\n"); 
-
-        printf("\tTesting tree_create...");
-        tree_t *tree = tree_create();
-        if (tree) printf("PASS\n");
-        else {
-            printf("FAIL\n");
-            printf("=== TESTS FAILED ===\n");
-            return -1;
-        }
-
-        printf("\tTesting tree_set_root...");
-        tree_set_root(tree, 0xB16B00B5);
-        
-        if (tree->root->value == 0xB16B00B5) printf("PASS\n");
-        else printf("FAIL\n");
-
-        printf("\tTesting tree_node_create...");
-        
-        tree_node_t *node = tree_node_create(0x11111111);
-        if (node->value == 0x11111111) printf("PASS\n");
-        else printf("FAIL\n");
-
-        printf("\tTesting tree_insert_child_node (root/node)...");
-        tree_node_insert_child_node(tree, tree->root, node);
-        printf("PASS\n");
-
-        printf("\tTesting tree_find...");
-
-        tree_node_t *returned_node = tree_find(tree, 0x11111111, test_comparator);
-        if (returned_node->value == 0x11111111) printf("PASS\n");
-        else printf("FAIL\n");
-
-        printf("\tTesting tree_node_remove (0 children)...");
-        tree_node_remove(tree, returned_node);
-    
-        if (tree_find(tree, 0x11111111, test_comparator) == NULL) printf("PASS\n");
-        else printf("FAIL\n");
-
-        printf("\tTesting tree_node_insert_child...");
-        tree_node_insert_child(tree, tree->root, 0x1);
-        if (tree_count_children(tree->root) == 1) printf("PASS\n");
-        else printf("FAIL\n");
-
-        // We already tested tree_count_children, technically (even though it might be wrong) ;)
-        printf("\tTesting tree_count_children...PASS\n");
-
-        kfree(node);
-
-
-        printf("\tFilling tree with data...");
-        for (int i = 0; i < 3; i++) {
-            tree_node_t *n = tree_node_insert_child(tree, tree->root, i * 4); // i * 4 is just a random value from my head
-            for (int j = 0; j < 4; j++) {
-                tree_node_insert_child(tree, n, i*4 + j + 1);
-            }
-        }
-        printf("DONE\n");
-
-        
-        printf("\tTesting tree_node_find_parent...");
-        
-        // We'll test this function on a specific tree node
-        tree_node_t *test_node = tree_find(tree, 0xC, test_comparator);
-
-        if (test_node) {
-            tree_node_t *parent = tree_find_parent(tree, test_node);
-            if (parent) {
-                if (parent->value == 0x8) printf("PASS\n");
-                else printf("FAIL (parent->value = 0x%x)\n", parent->value);
-            } else {
-                printf("FAIL (returned NULL)\n");
-            }
-        } else {
-            printf("FAIL (tree_find failed)\n");
-        }
-
-        
-        printf("\tDestroying tree...");
-        tree_free(tree);
-        printf("DONE\n");
-
-        printf("=== TESTS COMPLETED ===\n");
-
     } else if (!strcmp(args[1], "vfs")) {
         printf("=== TESTING VFS ===\n");
 

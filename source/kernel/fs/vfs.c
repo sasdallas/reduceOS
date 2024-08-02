@@ -2,11 +2,15 @@
 // vfs.c - Virtual File System handler
 // =====================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
+// NOTE: Some functions are from ToaruOS by klange - these functions will be marked with a (TOARU) in their header.
+// Thank you!
+
 
 #include "include/vfs.h" // Main header file
 
 fsNode_t *fs_root = 0; // Root of the filesystem
 tree_t *fs_tree = NULL; // Mountpoint tree
+char cwd[256] = "/";
 
 
 /*
@@ -41,14 +45,14 @@ uint32_t writeFilesystem(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf)
     }
 }
 
-// openFilesystem(fsNode_t *node, uint8_t read, uint8_t write) - Opens a filesystem.
+// openFilesystem(fsNode_t *node, uint8_t read, uint8_t write) - Opens a node.
 void openFilesystem(fsNode_t *node, uint8_t read, uint8_t write) {
     if (node->open != 0) {
         return node->open(node);
     }
 }
 
-// closeFilesystem(fsNode_t *node) - Closes a filesystem.
+// closeFilesystem(fsNode_t *node) - Closes a node.
 void closeFilesystem(fsNode_t *node) {
     if (node->close != 0)
         return node->close(node);
@@ -73,10 +77,6 @@ fsNode_t *findDirectoryFilesystem(fsNode_t *node, char *name) {
     } else { return 0; }
 }
 
-// mountRootFilesystem(fsNode_t *node) - Mounts a root filesystem.
-void mountRootFilesystem(fsNode_t *node) {
-    fs_root = node;
-}
 
 // getRootFilesystem() - Returns root filesystem
 fsNode_t *getRootFilesystem() {
@@ -85,7 +85,7 @@ fsNode_t *getRootFilesystem() {
 
 // vfsInit() - Initializes the VFS
 void vfsInit() {
-    fs_tree = tree_create(); // Create the monuntpoint tree
+    fs_tree = tree_create(); // Create the mountpoint tree
 
     vfsEntry_t *root = kmalloc(sizeof(vfsEntry_t));
 
@@ -102,7 +102,7 @@ void vfsInit() {
     if (fs_tree->root->value != root) panic("VFS", "vfsInit", "tree fail");
 }
 
-
+// Technically (TOARU)
 void debug_print_vfs_tree_node(tree_node_t *node, size_t height) {
     if (!node) return;
 
@@ -137,7 +137,7 @@ void debug_print_vfs_tree() {
     serialPrintf("=== END VFS TREE ===\n");
 }
 
-// vfsMount(char *path, fsNode_t *localRoot) - Mount a filesystem to the specified path (ToaruOS has a really good impl. of this)
+// vfsMount(char *path, fsNode_t *localRoot) - Mount a filesystem to the specified path (TOARU)
 void *vfsMount(char *path, fsNode_t *localRoot) {
     if (!fs_tree) {
         serialPrintf("vfsMount: Attempt to mount filesystem when tree is non-existant\n");
@@ -231,7 +231,7 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
     return ret_val;
 }
 
-// vfs_canonicalizePath(const char *cwd, const char *input) - Canonicalizes a path (cwd = current working directory, input = path to append/canonicalize on)
+// vfs_canonicalizePath(const char *cwd, const char *input) - Canonicalizes a path (cwd = current working directory, input = path to append/canonicalize on) (TOARU)
 char *vfs_canonicalizePath(const char *cwd, const char *input) {
     list_t *out = list_create(); // Stack-based canonicalizer, use list as a stack (ToaruOS)
 
@@ -326,4 +326,199 @@ char *vfs_canonicalizePath(const char *cwd, const char *input) {
     kfree(out);
 
     return output;
+}
+
+// vfs_getMountpoint(char *path, unsigned int path_depth, char **outpath, unsigned int *outdepth) - Gets the mount point of something at path (TOARU)
+fsNode_t *vfs_getMountpoint(char *path, unsigned int path_depth, char **outpath, unsigned int *outdepth) {
+    size_t depth = 0;
+
+    for (depth = 0; depth <= path_depth; depth++) {
+        path += strlen(path) + 1;
+    }
+
+    // Last available node
+    fsNode_t *last = fs_root;
+    tree_node_t *node = fs_tree->root;
+
+    char *at = *outpath;
+    int _depth = 1;
+    int _tree_depth = 0;
+
+    while (true) {
+        if (at >= path) break; // We exceeded path, we're done.
+
+        int found = 0;
+        serialPrintf("vfs_getMountpoint: Searching for %s...\n", at);
+
+        foreach(child, node->children) {
+            tree_node_t *tchild = (tree_node_t*)child->value;
+            vfsEntry_t *entry = (vfsEntry_t*)tchild->value;
+
+            if (!strcmp(entry->name, at)) {
+                // We found the entry
+                found = 1;
+                node = tchild;
+                at = at + strlen(at) + 1;
+                if (entry->file) {
+                    _tree_depth = _depth;
+                    last = entry->file;
+                    *outpath = at;
+                }
+                break;
+            }
+        }
+
+        if (!found) break;
+        _depth++;
+    }
+
+    *outdepth = _tree_depth;
+
+    if (last) {
+        // Clone the last object and return it.
+        fsNode_t *last2 = kmalloc(sizeof(fsNode_t));
+        memcpy(last2, last, sizeof(fsNode_t));
+        return last2;
+    }
+
+    return last;
+}
+
+
+// open_file_recursive(const char *filename, uint64_t flags, uint64_t symlink_depth, char *relative) - Opens a file (but recursive and does all the work) (TOARU)
+fsNode_t *open_file_recursive(const char *filename, uint64_t flags, uint64_t symlink_depth, char *relative) {
+    /* TODO: Add support for flags */
+
+    if (!filename) return NULL; // Stupid users.
+
+    // Canonicalize the potentially relative path (doesn't start from /)
+    char *path = vfs_canonicalizePath(relative, filename);
+
+    // Store the length to save those precious CPU cycles
+    size_t pathLength = strlen(path);
+
+
+    // If the length is 1, it can only be for the root filesystem, so clone & return that.
+    if (pathLength == 1) {
+        fsNode_t *rootClone = kmalloc(sizeof(fsNode_t));
+        memcpy(rootClone, fs_root, sizeof(fsNode_t));
+
+        // Free the path
+        kfree(path);
+
+        // Call the filesystem's open method
+        openFilesystem(rootClone, 1, 1); // Ignore flags because why not.
+
+        return rootClone;
+    }
+
+    // Man, we gotta do actual work now. This sucks.
+    
+    // First, we'll need to find each path separator.
+    char *pathOffset = path;
+    uint64_t pathDepth = 0;
+    
+    while (pathOffset < path + pathLength) {
+        if (*pathOffset == '/') {
+            *pathOffset = '\0';
+            pathDepth++;
+        }
+
+        pathOffset++;
+    }
+
+    // Null-terminate
+    path[pathLength] = '\0';
+    pathOffset = path + 1;
+
+
+
+    // The path is currently tokenized and pathOffset points to the first token
+    // pathDepth is the number of directories in the path
+    
+    // So we'll have to dig through the tree to find the file.
+    unsigned int depth = 0;
+    fsNode_t *nodePtr = vfs_getMountpoint(path, pathDepth, &pathOffset, &depth); // Get the mountpoint for the file
+
+    serialPrintf("open_file_recursive: path_offset %s - depth %d\n", pathOffset, depth);
+
+    if (!nodePtr) return NULL; // Failed to find the file
+
+    do {
+        // TODO: Symlink support is needed. Coming to you in 2026.
+
+        if (pathOffset >= path + pathLength) {
+            kfree(path);
+            openFilesystem(nodePtr, 1, 1);
+            return nodePtr;
+        }
+
+        if (depth == pathDepth) {
+            // We found the file and are done, open the node
+            openFilesystem(nodePtr, 1, 1);
+            kfree(path);
+            return nodePtr;
+        }
+
+        // Still searching
+        serialPrintf("open_file_recursive: ... continuing to search for %s...\n", pathOffset);
+        
+        fsNode_t *node_next = findDirectoryFilesystem(nodePtr, pathOffset);
+        kfree(nodePtr);
+        nodePtr = node_next;
+
+        if (!nodePtr) {
+            // Could not find the requested directory
+            kfree(path);
+            return NULL;
+        }
+
+        pathOffset += strlen(pathOffset) + 1;
+        ++depth;
+    } while (depth < pathDepth + 1);
+
+    serialPrintf("open_file_recursive: Not found\n");
+    kfree(path);
+    return NULL;
+}
+
+
+
+
+// open_file(const char *filename, unsigned int flags) - Opens a file using the VFS current working directory
+fsNode_t *open_file(const char *filename, unsigned int flags) {
+    return open_file_recursive(filename, flags, 0, (char *)cwd);
+}
+
+
+// change_cwd(const char *newdir) - Changes the current working directory
+void change_cwd(const char *newdir) {
+    // This is a little weird - but we'll first need to just see if newdir refers to a relative path or a root directory
+    if (newdir[0] == '/') {
+        // It refers to the root directory, so this is easy, just overwrite cwd with newdir.
+        if (strlen(newdir) > 256) {
+            serialPrintf("change_cwd: Maximum path length (256) reached! Cannot continue.\n");
+            return;
+        }
+
+        strcpy(cwd, newdir);
+        return;
+    }
+
+    // We just have to canonicalize the path, and then update CWD.
+
+    char *temp_cwd = vfs_canonicalizePath(cwd, newdir);
+    if (strlen(temp_cwd) > 256) {
+        serialPrintf("change_cwd: Maximum path length (256) reached! Cannot continue.\n");
+        kfree(temp_cwd);
+        return;
+    }
+
+    strcpy(cwd, temp_cwd);
+    kfree(temp_cwd);
+}
+
+// get_cwd() - Returns the current working directory
+char *get_cwd() {
+    return cwd;
 }

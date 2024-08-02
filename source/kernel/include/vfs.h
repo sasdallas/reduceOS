@@ -92,9 +92,13 @@ void closeFilesystem(fsNode_t *node); // Closes a filesystem.
 struct dirent *readDirectoryFilesystem(fsNode_t *node, uint32_t index); // Reads a directory in a filesystem.
 fsNode_t *findDirectoryFilesystem(fsNode_t *node, char *name); // Finds a directory in a filesystem.
 fsNode_t *openFile(const char *name); // Opens a file.
-void mountRootFilesystem(fsNode_t *node); // Mounts a root filesystem.
 fsNode_t *getRootFilesystem(); // Returns root filesystem.
 void *vfsMount(char *path, fsNode_t *localRoot); // Mount a filesystem to the specified path
 void vfsInit(); // Initialize the VFS
+fsNode_t *open_file(const char *filename, unsigned int flags); // Opens a file using the VFS current working directory
+void change_cwd(const char *newdir); // Changes the current working directory
+char *get_cwd(); // Returns the current working directory
+fsNode_t *open_file_recursive(const char *filename, uint64_t flags, uint64_t symlink_depth, char *relative); // Opens a file (but recursive and does all the work
+fsNode_t *vfs_getMountpoint(char *path, unsigned int path_depth, char **outpath, unsigned int *outdepth); // Gets the mountpoint of something at path
 
 #endif

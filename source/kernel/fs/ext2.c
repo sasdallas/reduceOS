@@ -1156,6 +1156,10 @@ int ext2_write(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) {
 
 // ext2_open(fsNode_t *file) - VFS node open function
 int ext2_open(fsNode_t *file) {
+    // VFS is stupid and calls this method to open a file with a non-relative path
+    serialPrintf("ext2_open: Received open request for %s\n", file->name);
+
+
     return 0;
 }
 
@@ -1217,7 +1221,7 @@ int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNo
     // Copy dirent information
     ret->impl_struct = (void*)fs;
     ret->inode = dirent->inode;
-    memcpy(&ret->name, &dirent->name, dirent->name_length);
+    memcpy(&ret->name, &dirent->name, dirent->name_length); // BUG: This isn't a full path and relies on CWD. Does it need to be a full path.
     ret->name[dirent->name_length] = '\0';
 
     // Copy inode information

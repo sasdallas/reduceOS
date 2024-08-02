@@ -154,21 +154,7 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
     isrRegisterInterruptHandler(14, ideIRQHandler);
     isrRegisterInterruptHandler(15, ideIRQHandler);
     
-    // Update VFS root.
-    fsNode_t ataRoot;
-    ataRoot.mask = ataRoot.uid = ataRoot.gid = ataRoot.inode = ataRoot.length = 0;
-    ataRoot.flags = VFS_DIRECTORY;
-    ataRoot.open = 0; // No lol
-    ataRoot.close = 0;
-    ataRoot.read = ideRead_vfs;
-    ataRoot.write = ideWrite_vfs;
-    ataRoot.readdir = 0;
-    ataRoot.finddir = 0;
-    ataRoot.impl = 0; // THIS WILL BE DRIVENUM
-    ataRoot.ptr = 0;
     
-    mountRootFilesystem(&ataRoot);
-
 
     printf("IDE driver initialized - found %i drives.\n", drives);
 
