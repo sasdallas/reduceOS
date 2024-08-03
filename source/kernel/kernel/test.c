@@ -443,7 +443,6 @@ int fat_tests() {
             printf("PASS\n");
         }
         
-        serialPrintf("The file has been returned\n");
         kfree(ret2);
 
 
@@ -458,6 +457,32 @@ int fat_tests() {
         }
 
         kfree(ret);
+
+
+        printf("\tTesting fatOpenInternal (dir/)...");
+
+        ret = fatOpenInternal(fatDriver, "/dir");
+        if (ret->flags != VFS_DIRECTORY) {
+            printf("FAIL (flags = 0x%x)\n", ret->flags);
+            fail = 1;
+        } else {
+            printf("PASS\n");
+        }
+
+        kfree(ret);
+
+        printf("\tTesting fatOpenInternal (dir/nested)...");
+
+        ret = fatOpenInternal(fatDriver, "/dir/nested");
+        if (ret->flags != VFS_DIRECTORY) {
+            printf("FAIL (flags = 0x%x)\n", ret->flags);
+            fail = 1;
+        } else {
+            printf("PASS\n");
+        }
+
+        kfree(ret);
+
 
         uint8_t *buffer;
 
@@ -651,7 +676,7 @@ int fat_tests() {
         printf("\tTesting fatOpen (dir/)...");
         memset(ret, 0, sizeof(fsNode_t));
         ret->flags = -1; // Preventing false-passes
-        strcpy(ret->name, "/dir");
+        strcpy(ret->name, "/dir/");
         ret->impl_struct = fatDriver->impl_struct;
 
         fatOpen(ret);
@@ -663,21 +688,83 @@ int fat_tests() {
             printf("PASS\n");
         }
 
-        serialPrintf("Got directory, moving to next test...\n");
-        return 0;
-        
 
-        printf("\tTesting fatFindDirectory (dir/)...");
-        ret2 = fatFindDirectory(ret, "test.txt");
-        
-        if (ret2->flags != VFS_FILE) {
-            printf("FAIL (flags = 0x%x)\n", ret2->flags);
+        // This is a bugcheck for the user passing fatDriver.
+        printf("\tTesting fatFindDirectory (test.txt)...");
+        ret2 = fatFindDirectory(fatDriver, "test.txt");
+        if (!ret2) {
+            printf("FAIL\n");
         } else {
             printf("PASS\n");
         }
 
+        // This is a bugcheck for the user using open_file to get the root.
+        printf("\tRunning open_file finddir bugcheck...");
+        fsNode_t *root = open_file("/dev/fat", 0); // hardcoded path alert, call the police!
+        if (root) {
+            ret2 = fatFindDirectory(root, "test.txt");
+            if (!ret2) {
+                printf("FAIL\n");
+            } else {
+                printf("PASS\n");
+            }
+        } else {
+            printf("FAIL (did you not mount to /dev/fat?)\n");
+        }
+
+
+        printf("\tTesting fatFindDirectory (dir/test.txt)...");
+        ret2 = fatFindDirectory(ret, "test.txt");
+        
+        if (!ret2) {
+            printf("FAIL\n");
+        } else {
+            printf("PASS\n");
+        }
+
+        printf("\tTesting fatFindDirectory (dir/nested)...");
+        ret2 = fatFindDirectory(ret, "nested/");
+        
+        if (!ret2) {
+            printf("FAIL\n");
+        } else {
+            printf("PASS\n");
+            printf("\tTesting fatFindDirectory (dir/nested/nest.txt)...");
+            fsNode_t *ret3 = fatFindDirectory(ret2, "nest.txt");
+        
+            if (!ret3) {
+                printf("FAIL\n");
+            } else {
+                printf("PASS\n");
+                kfree(ret3);
+            }
+            
+            kfree(ret2);
+        }
+
+
+        printf("\tTesting fatFindDirectory (nonexistant.txt)...");
+
+        ret = fatFindDirectory(fatDriver, "nonexistant.txt");
+        if (!ret) {
+            printf("PASS\n");
+        } else {
+            printf("FAIL\n");
+            kfree(ret);
+        }
+
+        printf("\tPerforming final finddir bugcheck (/)...");
+
+        ret = fatFindDirectory(fatDriver, "/");
+        if (!ret) {
+            printf("FAIL\n");
+        } else {
+            printf("PASS\n");
+            kfree(ret);
+        }
+
+        
         kfree(comparison_buffer);
-        // kfree(ret); - Glitches out??
 
         return fail;
     }

@@ -40,7 +40,6 @@ int ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, ui
     
     // Get the disk block number and read it in
     unsigned int diskBlock = ext2_getDiskBlockNumber(fs, inode, inodeBlock);
-    serialPrintf("ext2_readInodeBlock: Calculated disk block as %i\n", diskBlock);
     ext2_readBlock(fs, diskBlock, buffer);
 
     return 0;

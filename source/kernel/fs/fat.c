@@ -445,19 +445,21 @@ fsNode_t *fatParseSubdirectory(fsNode_t *file, const char *path) {
 // fatOpenInternal(fsNode_t *driver, char *filename) - File open, can parse slashes and subdirectories
 // WARNING: DO NOT USE OUTSIDE OF fatOpen - IT WILL NOT WORK!
 fsNode_t *fatOpenInternal(fsNode_t *driver, char *filename) {
-    fsNode_t *directory; // directory is our current directory
+    fsNode_t *directory = NULL; // directory is our current directory
     bool isRootDir = true;
 
     // First, we do some hacky logic to determine if the file is in a subdirectory.
     char *filepath = filename;
-    char *slash = strchr(filepath, '/'); // Should definitely be updated to allow for future inode paths like /device/hda0
+    char *slash = strchr(filepath, '/');
+
+    
 
     if (!slash) {
         fat_t *fs = (fat_t*)(driver->impl_struct);
         // The file is not in a subdirectory. Scan the root directory.
         directory = fatParseRootDirectory((fat_t*)(driver->impl_struct), filepath);
 
-        if (directory->flags == VFS_FILE) {
+        if (directory->flags == VFS_FILE || directory->flags == VFS_DIRECTORY) {
             return directory; // Nailed it
         }
 
@@ -467,6 +469,17 @@ fsNode_t *fatOpenInternal(fsNode_t *driver, char *filename) {
     }
 
     slash++; // Go to next character
+
+    // Okay, so there's a bit of a funny little bug in the code again.
+    // It's if the user tries to pass dir/nested instead of /dir/nested.
+    // The code skips to the first '/', completely ignoring the dir/
+    // So we'll run a check here to make sure something's not going on here.
+
+    if (filename[0] != '/') {
+        // There's a slash, but it's not at the beginning. Reset slash to be at 0.
+        slash = filepath;
+    }
+
     while (slash) {
         // Get the path name.
         char path[16];
@@ -480,6 +493,13 @@ fsNode_t *fatOpenInternal(fsNode_t *driver, char *filename) {
 
         path[i] = 0; // Null-terminate.
 
+        // Check the bottom of the function for a bug description, but we'll check if the length is 0, as that means the user ended it with a "/" and nothing else
+        // This means they want a directory.
+        if (strlen(path) <= 0 && directory != NULL) {
+            // Preventing page faults with a directory != NULL
+            if (directory->flags == VFS_DIRECTORY) return directory;
+        }
+        
         // Open subdirectory or file
         if (isRootDir) {
             directory = fatParseRootDirectory((fat_t*)(driver->impl_struct), path);
@@ -501,6 +521,16 @@ fsNode_t *fatOpenInternal(fsNode_t *driver, char *filename) {
         // Find the next '/'
         slash = strchr(slash + 1, '/');
         if (slash) slash++;
+        else {
+            // Here's an interesting conundrum. This function searches through subdirectories for files/directories.
+            // If we want a file it's all good, it'll just return a file. But not a directory, since it might be a subdirectory that needs to be searched.
+            // We can resolve this using a little else statement that says if there are no more slashes in the path and there's a directory, return it.
+
+            // There's just a slight problem: If the user puts something like "/dir/". This will break the code, since it sees another slash and thinks "oh, we have to use that slash."
+            // So we take care of that using the strlen() check further up
+
+            if (directory->flags == VFS_DIRECTORY) return directory;
+        }
     }
 
     // Unable to find.
@@ -564,7 +594,7 @@ uint32_t fatOpen(struct fsNode *node) {
     // node->name should contain the filename that we want to open, and node->impl_struct should contain the fat_t object.
     // However, as I'm writing this we're currently prototyping - so let's check to make sure fat_t is there, panic if it's not.
 
-    // VFS is stupid so it will call this method in an attempt to open the FAT directory
+    // VFS is stupid so it will call this method in an attempt to open the FAT directory, which might corrupt it.
     if (!strcmp(((fsNode_t*)node)->name, "FAT driver")) { return 0; }
 
     if (((fat_t*)(((fsNode_t*)node)->impl_struct))->drive->bpb->bootjmp[0] != 0xEB) {
@@ -574,21 +604,10 @@ uint32_t fatOpen(struct fsNode *node) {
 
 
 
-    char *oldpath = ((fat_t*)(((fsNode_t*)node)->impl_struct))->fullpath;
-
-    // Patch the test cases, where if oldpath is just "/" we'll instead use filename.
-
     fsNode_t *ret;
-    if (!strcmp(oldpath, "/")) ret = fatOpenInternal((fsNode_t*)node, ((fsNode_t*)node)->name);
-    else ret = fatOpenInternal((fsNode_t*)node, oldpath);
+    ret = fatOpenInternal((fsNode_t*)node, ((fsNode_t*)node)->name);
     
-    if (ret->flags != -1) {
-        char *newpath = ((fat_t*)(ret->impl_struct))->fullpath;
-        kfree(((fat_t*)(ret->impl_struct))->fullpath);
-        ((fat_t*)(ret->impl_struct))->fullpath = kmalloc(strlen(oldpath) + strlen(ret->name));
-        strcpy(newpath, oldpath);
-        strcpy(newpath + strlen(oldpath), ret->name);
-    }
+    
 
     memcpy(node, ret, sizeof(fsNode_t));
     kfree(ret);
@@ -608,14 +627,54 @@ uint32_t fatClose(struct fsNode *node) {
 
 
 // fatFindDirectory(struct fsNode *node, char *name) - Searches through directories to find a file
-uint32_t fatFindDirectory(struct fsNode *node, char *name) {
-     
-    char *nodepath  = ((fat_t*)(((fsNode_t*)(node))->impl_struct))->fullpath;
-    char *path = kmalloc(strlen(nodepath) + strlen(name));
-    strcpy(path, nodepath);
-    strcpy(path + strlen(nodepath), name);
-    serialPrintf("fatFindDirectory: Need to read path %s\n", path);
-   
+fsNode_t *fatFindDirectory(struct fsNode *node, char *name) {
+    if (strlen(name) == 0) return NULL; // Users!
+
+    char *nodename = ((fsNode_t*)node)->name;
+    // There's a potential bug where if the user passes the FAT driver object, we want to change it to a "/", because FAT driver isn't a directory.
+    // Plus: The VFS will try to call this driver will a full path to wherever it's mounted to, and since the mountpoint isn't actually a directory on the VFS, we get some issues.
+    if (!strcmp(nodename, "FAT driver")) nodename = "/";
+
+    // A special test case to prevent stupidity in users, where they try and run this with fatDriver as the node and "/". In an attempt to get the root directory, they pass the root directory.
+    // However, this may also be because node has a name of "FAT driver" instead of "/", in which case we'll go ahead and copy the contents to a return node while changing the name.
+    if (!strcmp(name, "/")) {
+        // Do note that this case could also be used on a user trying to get the root of a subdirectory, which is stupid but whatever.
+        fsNode_t *ret = kmalloc(sizeof(fsNode_t));
+        memcpy(ret, node, sizeof(fsNode_t));
+    
+        if (!strcmp(ret->name, "FAT driver")) strcpy(ret->name, "/");
+        return ret;
+    }
+
+    
+    char *path = kmalloc(strlen(nodename) + strlen(name) + 2);
+    strcpy(path, nodename);
+
+    // Small patch to fix a potential negative bug.
+    if (strlen(nodename) > 0) {
+        if (nodename[strlen(nodename)-1] != '/') strcpy(path + strlen(nodename), "/"); // Adds a '/' if nodename doesn't add a slash.
+    }
+
+    strcpy(path + strlen(path), name);
+    path[strlen(path)] = 0;
+
+    // Construct the return node
+    fsNode_t *ret = fatOpenInternal((fsNode_t*)node, path); // I wanted to use fatOpen, but it doesn't work. Not sure why.
+
+    // Check the flags. finddir methods are supposed to return NULL if something doesn't exist.
+    if (ret->flags == -1) {
+        kfree(path);
+        kfree(ret);
+        return NULL;
+    }
+
+    // The issue becomes that the FAT parsing methods will automatically discard the full path and only keep the file/directory name
+    // Therefore, we'll have to override that.
+    strcpy(ret->name, path); // This can cause bugs in the future, since I'm not sure fatOpen is prepared to deal with this.
+
+    // Else, we can simply free the path and return the node.
+    kfree(path);
+    return ret;
 }
 
 // fatInit(fsNode_t *driveNode, int flags) - Creates a FAT filesystem driver on driveNode and returns it
@@ -757,7 +816,7 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
         ret->create = NULL;
         ret->read = &fatRead;
         ret->write = &fatWrite;
-        ret->finddir = NULL;
+        ret->finddir = &fatFindDirectory;
         ret->readdir = NULL;
         ret->mkdir = NULL;
         ret->impl_struct = driver;

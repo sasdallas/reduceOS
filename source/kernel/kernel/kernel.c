@@ -406,9 +406,9 @@ int mountFAT(int argc, char *args[]) {
     int ret = vfs_mountType("fat", args[1], "/dev/fat");
     if (ret == 0) {
         printf("Successfully mounted to /dev/fat.\n");
-        change_cwd("/dev/");
-        fatDriver = open_file("fat", 0);
-        serialPrintf("mountFAT: Got %s 0x%x\n", fatDriver->name, fatDriver);
+        //change_cwd("/dev/");
+        fatDriver = open_file("/dev/fat", 0);
+        change_cwd("/");
     } else {
         printf("Could not mount the drive. Error code %i\n", ret);
     }
