@@ -377,23 +377,255 @@ fsNode_t *fatDriver = NULL;
 fsNode_t *ext2_root = NULL;
 
 int ls(int argc, char *args[]) {
-            
-}
+    if (argc > 2) {
+        printf("Usage: ls <directory (optional)>\n");
+        return -1;
+    }
+
+    char *dir = kmalloc(256);
+    strcpy(dir, get_cwd());
+    if (argc == 2) strcpy(dir, args[1]);
+
+    // Open the directory
+    fsNode_t *directory = open_file(dir, 0);
+
+    // Sorry if this is a little messy - I had a REALLY bad time debugging a specific function that wasn't even related. Too burnt out to clean up.
+
+    if (directory && directory->flags == VFS_DIRECTORY) {
+        // TODO: EXT2 and FAT driver use custom names to identify themselves when returned.
+        // This is cool and all, but it makes it weird when it says "Files in directory 'EXT2 driver':", so we'll use dir instead.
+        printf("Files in directory '%s':\n", dir);
+
+        uint32_t i = 0;
+        while (true) {
+            struct dirent *direntry = directory->readdir(directory, i);
+            if (!direntry || !direntry->name) break;  
+
+            printf("%s\n", direntry->name);
+            i++;
+            kfree(direntry);
+        }
+
+    } else {
+        printf("Directory '%s' not found\n", dir);
+    }
+
+    kfree(dir);
+
+    return 0;
+}  
 
 int cd(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: cd <directory>\n");
+        return -1;
+    }
 
+    change_cwd(args[1]);
+    return 0;
 }
 
 int cat(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: cat <file>\n");
+        return -1;
+    }
 
+    // We just need to open the file, read its contents and then print them.
+    fsNode_t *file = open_file(args[1], 0);
+
+    if (!file) {
+        printf("File '%s' not found\n", args[1]);
+        return -1;
+    }
+
+    if (file->flags != VFS_FILE) {
+        printf("'%s' is not a file\n", args[1]);
+        kfree(file);
+        return -1;
+    }
+
+    if (file->length == 0) {
+        printf("File '%s' is empty\n", args[1]);
+        kfree(file);
+        return -1;
+    }
+
+    uint8_t *buffer = kmalloc(file->length);
+    int ret = file->read(file, 0, file->length, buffer);
+
+    if (ret != file->length) {
+        printf("Failed to read the file (file->read returned %i).\n", ret);
+        kfree(buffer);
+        kfree(file);
+        return -1;
+    }
+
+    printf("%s", buffer);
+
+    kfree(buffer);
+    kfree(file);
+
+    return 0;
 }
 
 int mkdir(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: mkdir <directory>\n");
+        return -1;
+    }
 
+    char *dirname = args[1];
+    
+    // these users will probably completely break everything ive ever loved in this code (there's not much) but im too tired to fix them
+    // plus its funny
+
+    // First, we have to canonicalize the path.
+    char *path = vfs_canonicalizePath(get_cwd(), dirname);
+    
+    // Sadly, this will be complicated, but we can press on.
+    // We need to chop off the last part of the path. As simple as this seems, it's not very simple.
+
+    // The first thing we need to do is to verify that path doesn't end in a '/', and chop it off if it does
+    if (path[strlen(path)-1] == '/') path[strlen(path)-1] = 0;
+
+    // Now, we iterate through the slashes until there are no more
+    char *path2 = kmalloc(strlen(path));
+    char *directory_name = kmalloc(100); 
+
+
+    // Disgusting but works lol
+    int slashes = 0;
+    for (int i = 0; i < strlen(path); i++) {
+        if (path[i] == '/') slashes++;
+    }
+
+    if (slashes == 1) {
+        // Signifies root directory, set path2 to '/' and goto making_directory
+        memset(path2, 0, strlen(path2));
+        strcpy(path2, "/");
+        strcpy(directory_name, dirname);
+        goto making_directory;
+    }
+
+    int currentSlashes = 0;
+    for (int i = 0; i < strlen(path); i++) {
+        if (path[i] == '/') currentSlashes++;
+
+        if (currentSlashes == slashes) {
+            memset(directory_name, 0, 100);
+            memcpy(directory_name, path + i + 1, strlen(path) - i - 1);
+            break;
+        }
+
+        path2[i] = path[i];
+    }
+
+
+making_directory:
+    printf("Creating directory '%s' (path: '%s')...\n", directory_name, path2);
+
+    fsNode_t *dir = open_file(path2, 0);
+    if (dir) {
+        dir->mkdir(dir, directory_name, 0);
+        printf("Created directory successfully.\n");
+    } else {
+        printf("Path '%s' was not found.\n", path2);
+    }
 }
 
 int create(int argc, char *args[]) {
+    // Don't tell anyone but I literally just copy pasted mkdir
 
+    if (argc != 2) {
+        printf("Usage: create <filename>\n");
+        return -1;
+    }
+
+    char *fname = args[1];
+    
+    // these users will probably completely break everything ive ever loved in this code (there's not much) but im too tired to fix them
+    // plus its funny
+
+    // First, we have to canonicalize the path.
+    char *path = vfs_canonicalizePath(get_cwd(), fname);
+    
+    // Sadly, this will be complicated, but we can press on.
+    // We need to chop off the last part of the path. As simple as this seems, it's not very simple.
+
+    // The first thing we need to do is to verify that path doesn't end in a '/', and chop it off if it does
+    if (path[strlen(path)-1] == '/') path[strlen(path)-1] = 0;
+
+    // Now, we iterate through the slashes until there are no more
+    char *path2 = kmalloc(strlen(path));
+    char *file_name = kmalloc(100); 
+
+
+    // Disgusting but works lol
+    int slashes = 0;
+    for (int i = 0; i < strlen(path); i++) {
+        if (path[i] == '/') slashes++;
+    }
+
+    if (slashes == 1) {
+        // Signifies root directory, set path2 to '/' and goto making_file
+        memset(path2, 0, strlen(path2));
+        strcpy(path2, "/");
+        strcpy(file_name, fname);
+        goto making_file;
+    }
+
+    int currentSlashes = 0;
+    for (int i = 0; i < strlen(path); i++) {
+        if (path[i] == '/') currentSlashes++;
+
+        if (currentSlashes == slashes) {
+            memset(file_name, 0, 100);
+            memcpy(file_name, path + i + 1, strlen(path) - i - 1);
+            break;
+        }
+
+        path2[i] = path[i];
+    }
+
+
+making_file:
+    printf("Creating file '%s' (path: '%s')...\n", file_name, path2);
+    fsNode_t *dir = open_file(path2, 0);
+    if (dir) {
+        dir->create(dir, file_name, 0);
+        printf("Created file successfully.\n");
+    } else {
+        printf("Path '%s' was not found.\n", path2);
+    }
+
+    return 0;
+}
+
+int pwd(int argc, char *args[]) {
+    printf("%s\n", get_cwd());
+    return 0;
+}
+
+int show_bitmap(int argc, char *args[]) {
+    // This command will just show a bitmap the user requests.
+    if (argc != 2) {
+        printf("Usage: bitmap <filename>\n");
+        return -1;
+    }
+
+    printf("Loading bitmap '%s'...\n", args[1]);
+    fsNode_t *bitmap_file = open_file(args[1], 0);
+    if (bitmap_file) {
+        bitmap_t *bmp = bitmap_loadBitmap(bitmap_file);
+        displayBitmap(bmp, 0, 0);
+        kfree(bmp->imageBytes);
+        kfree(bmp);
+    } else {
+        printf("File not found\n");
+    }
+
+    return 0;
 }
 
 int mountFAT(int argc, char *args[]) {
@@ -609,8 +841,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     vfsInit();
 
     // First, we need to install the EXT2 and FAT drivers.
-    ext2_install();
-    fat_install();
+    ext2_install(0, NULL);
+    fat_install(0, NULL);
+    ide_install(0, NULL);
 
     // Then, we need to map the /dev/ directory
     vfs_mapDirectory("/dev");
@@ -624,9 +857,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         char *name = kmalloc(sizeof(char) * (strlen("/dev/ide")  + 1));
         strcpy(name, "/dev/ide");
         itoa(i, name + strlen("/dev/ide"), 10);
+    
         
-        vfsMount(name, ideNode);
-
+        vfsMount(name, ideGetVFSNode(i));
 
         if ((ideDevices[i].reserved == 1) && (ideDevices[i].size > 1)) {
             // The EXT2 driver needs to be mounted first on /
@@ -692,21 +925,31 @@ void useCommands() {
     registerCommand("pagefault", (command*)doPageFault);
     registerCommand("read_floppy", (command*)read_floppy);
     registerCommand("test", (command*)test);
+
+
     registerCommand("mount_fat", (command*)mountFAT);
 
+    registerCommand("ls", (command*)ls);
+    registerCommand("cd", (command*)cd);
+    registerCommand("cat", (command*)cat);
+    registerCommand("create", (command*)create);
+    registerCommand("mkdir", (command*)mkdir);
+    registerCommand("pwd", (command*)pwd);
+    registerCommand("bitmap", (command*)show_bitmap);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");
 
     
+    
     char buffer[256]; // We will store keyboard input here.
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
-    enableShell("reduceOS> "); // Enable a boundary (our prompt)
+    enableShell("reduceOS /> "); // Enable a boundary (our prompt)
 
     while (true) {
-        printf("reduceOS> ");
+        printf(getShell());
         keyboardGetLine(buffer);
         parseCommand(buffer);
     }

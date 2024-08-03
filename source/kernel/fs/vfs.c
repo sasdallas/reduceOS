@@ -565,7 +565,7 @@ fsNode_t *open_file_recursive(const char *filename, uint64_t flags, uint64_t sym
         }
 
         // Still searching
-        serialPrintf("open_file_recursive: ... continuing to search for %s...\n", pathOffset);
+        serialPrintf("open_file_recursive: ... continuing to search for %s (current node: %s)...\n", pathOffset, nodePtr->name);
         
         fsNode_t *node_next = findDirectoryFilesystem(nodePtr, pathOffset);
         kfree(nodePtr);
@@ -620,6 +620,10 @@ void change_cwd(const char *newdir) {
 
     strcpy(cwd, temp_cwd);
     kfree(temp_cwd);
+
+
+    // Inform terminal of changes
+    updateShell();
 }
 
 // get_cwd() - Returns the current working directory

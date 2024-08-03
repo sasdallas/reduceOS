@@ -186,6 +186,33 @@ fsNode_t *ideGetVFSNode(int driveNum) {
     return ret;
 }
 
+
+// ide_fs_mount(const char *device, const char *mount_path) - Initializes the filesystem on a device
+fsNode_t *ide_fs_mount(const char *device, const char *mount_path) {
+    serialPrintf("ide_fs_mount: Trying to mount drive %s on %s...\n", device, mount_path);
+
+    // Convert it back to a number
+    int i = atoi(device);
+
+    // Now, we try to get the VFS node for the device.
+    fsNode_t *vfsNode = ideGetVFSNode(i);
+
+    // Check if it's actually a valid node
+    if (vfsNode->impl == -1) {
+        kfree(vfsNode);
+        return NULL;
+    }
+
+    return vfsNode;
+}
+
+// ide_install(int argc, char *argv[]) - Installs the IDE driver to initialize on any compatible drives
+int ide_install(int argc, char *argv[]) {
+    vfs_registerFilesystem("ide", ide_fs_mount);
+    return 0;
+}
+
+
 // ideRead_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buffer) - Read function for the VFS
 uint32_t ideRead_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buffer) {
     // Create a temporary buffer that rounds up size to the nearest 512 multiple.

@@ -73,22 +73,20 @@ extern int psfGetFontHeight();
 // scrollTerminal_vesa() - I wonder what this function does.
 void scrollTerminal_vesa() {
     if (terminalY >= modeHeight) {
-        
+
         // Reading directly from vmem is very slow, but reading from our secondary buffer is not
         for (int y = psfGetFontHeight(); y < modeHeight; y++) {
             for (int x = 0; x < modeWidth; x++) {
-                vbePutPixel(x, y - psfGetFontHeight(), *(framebuffer + (y*modeWidth + x))); // Copy the pixels one line below to the current line.
-                ASSERT(((framebuffer + (y*modeWidth + x)) <= (framebuffer + 1024*768*4)), "scrollTerminal_vesa", "we have issue");
+                vbePutPixel(x, y - psfGetFontHeight(), *(framebuffer + (y*1024 + x))); // Copy the pixels one line below to the current line.
             }    
         }
 
-
         // Blank the bottom line.
-        for (int y = modeHeight-psfGetFontHeight(); y < modeWidth; y++) {
+        for (int y = modeHeight-psfGetFontHeight(); y < modeHeight; y++) {
             for (int x = 0; x < modeWidth; x++) {
                 vbePutPixel(x, y, VGA_TO_VBE(vbeTerminalBackground));
             }
-        }
+        } 
 
 
         // Update terminalY to the new position after scrolling
@@ -185,9 +183,14 @@ void updateTextCursor() {
 
 // updateTextCursor_vesa() - Does the same thing but in VESA (aka much more complex) - event in PIT IRQ
 
+
+static bool cursorEnabled = true;
 static int blinkTime = 0; // Time since last blink (~500ms)
 static int blinkedLast = 0; // Did it blink last time? Do we need to clear/draw it?
 void updateTextCursor_vesa() {
+
+    if (!cursorEnabled) return;
+
     // This function is called by pitTicks on a reasonable level
     if (blinkTime > 500) {
         if (blinkedLast) {
@@ -213,6 +216,9 @@ void updateTextCursor_vesa() {
 
 // When a character is typed, we want the cursor to follow it.
 static void redrawTextCursor_vesa() {
+    
+    if (!cursorEnabled) return;
+
     if (blinkedLast) {
         blinkTime = 0;
         for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
@@ -223,11 +229,18 @@ static void redrawTextCursor_vesa() {
 
 // If a newline is typed, remove the text cursor if it existed.
 static void clearTextCursor_vesa() {
+    
+    if (!cursorEnabled) return;
+
     if (blinkedLast) {
         for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
             vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalBackground));
         }
     }
+}
+
+void setCursorEnabled(bool enabled) {
+    cursorEnabled = enabled;
 }
 
 // No function description. Proprietary function used only by keyboard driver.
@@ -292,10 +305,7 @@ void terminalPutcharVESA(char c) {
     int line;
     unsigned char uc = c;
 
-    if (terminalX == vbeWidth) {
-        terminalY = terminalY + psfGetFontHeight();
-        terminalX = 0;
-    }
+    
 
     if (c == '\n') {
         clearTextCursor_vesa(); // Clear the text cursor.
@@ -317,8 +327,12 @@ void terminalPutcharVESA(char c) {
         terminalX = terminalX + psfGetFontWidth(); 
     }
 
+    if (terminalX == vbeWidth) {
+        terminalY = terminalY + psfGetFontHeight();
+        terminalX = 0;
+    }
+
     scrollTerminal_vesa();
-    
 }
 
 // terminalWrite(const char *data, size_t size) - Writes a certain amount of data to the terminal.
@@ -394,6 +408,17 @@ void updateBottomText(char *bottomText) {
 // enableShell() - Enables a boundary that cannot be overwritten.
 void enableShell(char *shellToUse) { shell = shellToUse; }
 
+// updateShell() - Updates the shell with the CWD.
+void updateShell() {
+    kfree(shell);
+    shell = kmalloc(strlen("reduceOS > ") + strlen(get_cwd()));
+    strcpy(shell, "reduceOS ");
+    strcpy(shell + strlen("reduceOS "), get_cwd());
+    strcpy(shell + strlen("reduceOS ") + strlen(get_cwd()), "> ");
+}
+
+// getShell() - Returns the current shell
+char *getShell() { return shell; }
 
 // instantUpdateTerminalColor(uint8_t fg, uint8_t bg) - Instantly update the terminal color (VESA only)
 void instantUpdateTerminalColor(uint8_t fg, uint8_t bg) {

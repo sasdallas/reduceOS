@@ -112,5 +112,5 @@ fsNode_t *vfs_getMountpoint(char *path, unsigned int path_depth, char **outpath,
 int vfs_mountType(const char *type, const char *arg, const char *mountpoint); // Calls the mount handler for the filesystem driver for type
 int vfs_registerFilesystem(const char *name, vfs_mountCallback callback); // Registers a filesystem mount callback that will be called when needed
 void vfs_mapDirectory(const char *c); // Maps a directory in the virtual filesystem
-
+char *vfs_canonicalizePath(const char *cwd, const char *input); // Canonicalizes a path
 #endif

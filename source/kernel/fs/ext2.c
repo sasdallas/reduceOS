@@ -819,7 +819,10 @@ ext2_dirent_t *ext2_direntry(ext2_t *fs, ext2_inode_t *inode, uint32_t no, uint3
         if (dirOffset >= fs->block_size) {
             blockNumber++;
             dirOffset -= fs->block_size;
-            ext2_readInodeBlock(fs, inode, blockNumber, block);
+            int ret = ext2_readInodeBlock(fs, inode, blockNumber, block);
+            if (ret == -1) {
+                break;
+            }
         }
     }
 
@@ -989,7 +992,7 @@ struct dirent *ext2_readdir(fsNode_t *node, uint32_t index) {
     ext2_inode_t *inode = ext2_readInodeMetadata(fs, node->inode);
 
     ext2_dirent_t *direntry = ext2_direntry(fs, inode, node->inode, index);
-    if (!direntry) {
+    if (direntry == NULL) {
         kfree(inode);
         return NULL;
     }
@@ -1009,6 +1012,7 @@ struct dirent *ext2_readdir(fsNode_t *node, uint32_t index) {
 fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
     ext2_t *fs = (ext2_t*)node->impl_struct;
 
+
     ext2_inode_t *inode = ext2_readInodeMetadata(fs, node->inode);
     ext2_dirent_t *dirent = NULL;
     uint8_t blockNumber = 0;
@@ -1023,7 +1027,6 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
 
     
 
-
     while (totalOffset < inode->size) {
         if (dirOffset >= fs->block_size) {
             blockNumber++;
@@ -1034,7 +1037,6 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
 
 
         ext2_dirent_t *dent = (ext2_dirent_t*)((uintptr_t)block + dirOffset);
-
 
         if (dent->inode == 0 || strlen(name) != dent->name_length) {
             dirOffset += dent->entry_size;
@@ -1155,10 +1157,6 @@ int ext2_write(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) {
 
 // ext2_open(fsNode_t *file) - VFS node open function
 int ext2_open(fsNode_t *file) {
-    // VFS is stupid and calls this method to open a file with a non-relative path
-    serialPrintf("ext2_open: Received open request for %s\n", file->name);
-
-
     return 0;
 }
 

@@ -113,8 +113,7 @@ typedef struct {
 // This will be what's in impl_struct, it contains information about the filesystem and the drive object
 typedef struct {
     fat_fileEntry_t *fileEntry; // Used if this is a structure for a file
-    fat_drive_t *drive; 
-    char *fullpath; // Dirty hack
+    fat_drive_t *drive;
 } fat_t;
 
 // Functions

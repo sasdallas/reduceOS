@@ -804,9 +804,6 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
         }
 
 
-        // Setup the driver's full path
-        driver->fullpath = kmalloc(2);
-        strcpy(driver->fullpath, "/");
 
         // Create the VFS node and return it
         fsNode_t *ret = kmalloc(sizeof(fsNode_t));
