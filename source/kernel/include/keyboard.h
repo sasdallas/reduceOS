@@ -82,5 +82,6 @@ void keyboardGetLine(char *buffer); // keyboardGetLine() - Returns keyboard inpu
 char keyboardGetChar(); // keyboardGetChar() - Returns the current character char (after waiting for it to be non-0)
 void keyboardGetKey(char key, bool printChars); // keyboardGetKey() - Returns whenever keyboardGetChar returns key (or a special character)
 char isKeyPressed(); // isKeyPressed() - Returns if a key is being pressed.
+bool getControl(); // getControl() - Returns whether control is down
 
 #endif

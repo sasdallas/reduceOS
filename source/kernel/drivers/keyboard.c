@@ -34,6 +34,10 @@ void setKBHandler(bool state) { isEnabled = state; }
 // setKBPrintChars(bool state) - Changes if the keyboard handler is allowed to output characters.
 void setKBPrintChars(bool state) { printChars = state; }
 
+// getControl() - Returns whether control is down
+bool getControl() { return ctrlPressed; }
+
+
 char altChars(char ch) {
     switch (ch) {
         case '`': return '~';
@@ -183,12 +187,12 @@ static void keyboardHandler(registers_t *r) {
 }
 
 
-// keyboardGetChar() - Returns the character currently present in ch - only if the character is NOT a \0 (signifying the end)
+// keyboardGetChar() - Returns the character currently present in ch- only if the character is NOT a \0 (signifying the end)
 char keyboardGetChar() {
     char c; // Our return value
     while (true) {
         if (ch == '\0') {    
-            printf(NULL); // UNKNOWN BUG: For some reason, we have to do something whenever this is called, or it doesn't return. I don't know why and I hope this will be fixed later.
+            //printf(NULL); // UNKNOWN BUG: For some reason, we have to do something whenever this is called, or it doesn't return. I don't know why and I hope this will be fixed later.
         } else {
             c = ch; // Update c and ch to have proper values.
             ch = 0;
@@ -196,6 +200,22 @@ char keyboardGetChar() {
         }
     }
     return c;
+}
+
+// Custom method to wait for a character or until when ctrl is pressed, and then it returns -1.
+char keyboardGetChar_ctrl() {
+    char c;
+    while (true) {
+        if (ch != '\0') {
+            c = ch;
+            ch = 0;
+            return c;
+        }
+
+        if (ctrlPressed) {
+            return -1;
+        }
+    }
 }
 
 // isKeyPressed() - A small method to return the key currently being pressed (if any)

@@ -103,6 +103,8 @@ void vfsInit() {
     // Setup the tree root    
     tree_set_root(fs_tree, root);
 
+    fs_root = NULL;
+
     // Create the hashmap
     fs_types = hashmap_create(5);
 }
@@ -597,6 +599,8 @@ fsNode_t *open_file(const char *filename, unsigned int flags) {
 
 // change_cwd(const char *newdir) - Changes the current working directory
 void change_cwd(const char *newdir) {
+    if (fs_root == NULL) return;
+
     // This is a little weird - but we'll first need to just see if newdir refers to a relative path or a root directory
     if (newdir[0] == '/') {
         // It refers to the root directory, so this is easy, just overwrite cwd with newdir.

@@ -38,11 +38,11 @@ void *panic(char *caller, char *code, char *reason) {
 
     printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
     if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0  - Kernel Panic") - strlen(CODENAME)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
     } else {
-        printf("                                                                                          \n"); // cry about it neat freaks
+        for (int i = 0; i < ((modeWidth - ((strlen("reduceOS v  - Kernel Panic") + strlen(CODENAME) + strlen(VERSION)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
     }
-
+    
     // updateBottomText("A fatal error occurred!");
 
     updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED);
@@ -79,9 +79,9 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
 
     printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
     if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0  - Kernel Panic") - strlen(CODENAME)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
     } else {
-        printf("                                                                                          \n"); // cry about it neat freaks
+        for (int i = 0; i < ((modeWidth - ((strlen("reduceOS v  - Kernel Panic") + strlen(CODENAME) + strlen(VERSION)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
     }
 
     // updateBottomText("A fatal error occurred!");
@@ -135,9 +135,9 @@ void *pageFault(registers_t *reg) {
 
     printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
     if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v1.0  - Kernel Panic") - strlen(CODENAME)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
+        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
     } else {
-        printf("                                                                                          \n"); // cry about it neat freaks
+        for (int i = 0; i < ((modeWidth - ((strlen("reduceOS v  - Kernel Panic") + strlen(CODENAME) + strlen(VERSION)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
     }
 
     // updateBottomText("A fatal error occurred!");

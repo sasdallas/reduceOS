@@ -382,12 +382,19 @@ int ls(int argc, char *args[]) {
         return -1;
     }
 
+    if (!fs_root) {
+        printf("No filesystem is currently mounted.\n");
+        return -1;
+    }
+
     char *dir = kmalloc(256);
     strcpy(dir, get_cwd());
     if (argc == 2) strcpy(dir, args[1]);
 
     // Open the directory
     fsNode_t *directory = open_file(dir, 0);
+    
+
 
     // Sorry if this is a little messy - I had a REALLY bad time debugging a specific function that wasn't even related. Too burnt out to clean up.
 
@@ -420,6 +427,20 @@ int cd(int argc, char *args[]) {
         printf("Usage: cd <directory>\n");
         return -1;
     }
+
+    fsNode_t *file = open_file(args[1], 0);
+    if (!file) {
+        printf("Directory '%s' not found\n", args[1]);
+        return -1;
+    }
+
+    if (file->flags != VFS_DIRECTORY) {
+        printf("'%s' is not a directory\n", args[1]);
+        kfree(file);
+        return -1;
+    }
+
+    kfree(file);
 
     change_cwd(args[1]);
     return 0;
@@ -474,6 +495,12 @@ int mkdir(int argc, char *args[]) {
         printf("Usage: mkdir <directory>\n");
         return -1;
     }
+
+    if (!fs_root) {
+        printf("No filesystem is currently mounted.\n");
+        return -1;
+    }
+
 
     char *dirname = args[1];
     
@@ -539,6 +566,11 @@ int create(int argc, char *args[]) {
 
     if (argc != 2) {
         printf("Usage: create <filename>\n");
+        return -1;
+    }
+
+    if (!fs_root) {
+        printf("No filesystem is currently mounted.\n");
         return -1;
     }
 
@@ -626,6 +658,72 @@ int show_bitmap(int argc, char *args[]) {
     }
 
     return 0;
+}
+
+
+
+int edit(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: edit <filename>\n");
+        return -1;
+    }
+
+    // Load the file
+    fsNode_t *file = open_file(args[1], 0);
+    if (!file) {
+        printf("File '%s' not found.\n", args[1]);
+        return -1;
+    }
+
+    if (!file->write) {
+        printf("File is not writable\n");
+        return -1;
+    }
+
+    char *buffer = kmalloc(4096); // 4096 bytes to start off with
+    printf("Welcome to the editor. Press ENTER + CTRL to exit.\n");
+
+    int chars = 0;
+    int currentlyAllocated = 4096;
+    while (true) {
+        char *tmp_buffer = kmalloc(4095);
+        keyboardGetLine(tmp_buffer);
+        strcpy(buffer + chars, tmp_buffer);
+        chars += strlen(tmp_buffer);
+        
+        if (getControl()) break;
+
+        buffer[chars] = '\n';
+        chars++;
+        kfree(tmp_buffer);
+        
+
+
+        if (chars+1 >= currentlyAllocated) {
+            buffer = krealloc(buffer, currentlyAllocated * 2);
+            currentlyAllocated = currentlyAllocated * 2;
+        }
+    }
+
+    printf("\nDo you want to save your changes? [y/n] ");
+
+    char *line = kmalloc(256); // Safety lol
+    keyboardGetLine(line);
+
+    if (!strcmp(line, "y") || !strcmp(line, "Y")) {
+        printf("Saving, please wait..\n");
+        int ret = file->write(file, 0, chars, buffer);
+        if (ret != chars) {
+            printf("Error: Write method returned %i.\n", ret);
+        } else {
+            printf("Saved successfully.\n");
+        }
+    } 
+
+    kfree(line);
+    kfree(buffer);
+    return 0;
+
 }
 
 int mountFAT(int argc, char *args[]) {
@@ -877,7 +975,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // For compatibility with our tests, we need to set the ext2_root variable.
     // The user can use the mount_fat command to mount the FAT driver.
-    ext2_root = open_file("/", 0);
+    if (rootMounted) ext2_root = open_file("/", 0);
 
 
     
@@ -936,6 +1034,7 @@ void useCommands() {
     registerCommand("mkdir", (command*)mkdir);
     registerCommand("pwd", (command*)pwd);
     registerCommand("bitmap", (command*)show_bitmap);
+    registerCommand("edit", (command*)edit);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");
@@ -946,6 +1045,7 @@ void useCommands() {
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
+    if (!fs_root) printf("WARNING: No root filesystem is mounted.\n");
     enableShell("reduceOS /> "); // Enable a boundary (our prompt)
 
     while (true) {
