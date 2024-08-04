@@ -193,7 +193,8 @@ img: $(OUT_KERNEL)/kernel.elf $(OUT_INITRD)/initrd.img
 # Needed for now because some files don't work without -O2
 PATCH_TARGETS:
 	@printf "[ Recompiling files that need optimization... ]\n"
-	$(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/base/isr.c -o $(OUT_OBJ)/base/isr.o 
+	
+# $(CC) $(CC_FLAGS) -O2 -c $(KERNEL_SOURCE)/base/isr.c -o $(OUT_OBJ)/base/isr.o 
 	
 	
 

@@ -151,7 +151,6 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
         }
     }
 
-    isrRegisterInterruptHandler(14, ideIRQHandler);
     isrRegisterInterruptHandler(15, ideIRQHandler);
     
     

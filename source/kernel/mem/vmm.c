@@ -6,6 +6,9 @@
 
 #include "include/vmm.h" // Main header file
 
+
+#include "include/panic.h" // Kernel panicking
+
 // Variables
 pagedirectory_t *currentDirectory = 0; // Current page directory 
 uint32_t currentPDBR = 0; // Current page directory base register address
@@ -172,6 +175,9 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
     pde_setframe(pagedir_entry, (uint32_t)table);
 }
 
+
+
+
 // vmmInit() - Initialize the VMM.
 void vmmInit() {
     // Allocate the default page table.
@@ -297,3 +303,4 @@ void vmmInit() {
 
     serialPrintf("vmmInit: Successfully initialized paging.\n");
 }
+

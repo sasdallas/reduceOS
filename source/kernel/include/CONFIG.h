@@ -7,9 +7,9 @@
 
 // YOU CAN MODIFY THE BELOW LINES
 #define CODENAME "Apricity"
-#define VERSION "1.3"
+#define VERSION "1.3-prerelease1"
 
 // DO NOT MODIFY THE BELOW LINES!!!
-#define BUILD_NUMBER "3105"
-#define BUILD_DATE "08/03/24, 15:21:15"
+#define BUILD_NUMBER "3127"
+#define BUILD_DATE "08/04/24, 09:31:41"
 #define BUILD_CONFIGURATION "DEBUG"

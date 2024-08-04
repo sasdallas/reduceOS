@@ -9,29 +9,16 @@ ISR interruptHandlers[256]; // A list of all interrupt handlers
  
 #pragma GCC diagnostic ignored "-Wint-conversion" // Lots of warnings about setvector() not taking an unsigned int. Ignore them all.
 
-/*
-    This file is awful, it literally has to get compiled separately to work.
-    It cannot run with PIE (Position Independent Executable) or optimization.
-    I have no idea why, even though it's probably obvious
-*/
 
 // isrRegisterInterruptHandler(int num, ISR handler) - Registers an interrupt handler.
 void isrRegisterInterruptHandler(int num, ISR handler) {
-    if (num < 256) { interruptHandlers[num] = handler; }
+    if (num < 256) {
+        interruptHandlers[num] = handler;
+    }
 }
 
-// isrEndInterrupt(int num) - Ends an interrupt.
-void isrEndInterrupt(int num) {
-    interruptCompleted((uint32_t) num); // Notify HAL interrupt is completed.
-}
 
 void isrExceptionHandler(registers_t *reg) {
-
-    // HOTFIX HOTFIX HOTFIX HOTFIX HOTFIX
-    // I don't know why, but interruptHandlers[reg->int_no] won't call. This is especially bad with paging, when it is critical that it is called.
-    // So we'll force it only for a page fault.
-    if (reg->int_no == 14) pageFault(reg);
-
     if (interruptHandlers[reg->int_no] != NULL) {
         ISR handler = interruptHandlers[reg->int_no];
         handler(reg);
