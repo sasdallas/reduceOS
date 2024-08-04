@@ -979,11 +979,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
 
     
-    //uint8_t seconds, minutes, hours, days, months;
-    //int years;
+    uint8_t seconds, minutes, hours, days, months;
+    int years;
 
-    //rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
-    //serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
+    rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
+    serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
 
     
