@@ -162,6 +162,7 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
         pte_t page = 0;
         pte_addattrib(&page, PTE_PRESENT);
         pte_addattrib(&page, PTE_WRITABLE);
+        pte_addattrib(&page, PTE_USER);
         pte_setframe(&page, frame);
 
         // Add the above page to the page table.
@@ -172,6 +173,7 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
     pde_t *pagedir_entry = &(vmm_getCurrentDirectory())->entries[PAGEDIR_INDEX(virtual_address)];
     pde_addattrib(pagedir_entry, PDE_PRESENT);
     pde_addattrib(pagedir_entry, PDE_WRITABLE);
+    pde_addattrib(pagedir_entry, PDE_USER);
     pde_setframe(pagedir_entry, (uint32_t)table);
 }
 
@@ -209,6 +211,7 @@ void vmmInit() {
         pte_t page = 0;
         pte_addattrib(&page, PTE_PRESENT);
         pte_addattrib(&page, PTE_WRITABLE);
+        pte_addattrib(&page, PTE_USER);
         pte_setframe(&page, frame);
 
         // Add the above page to the page table.
@@ -216,12 +219,12 @@ void vmmInit() {
     }
     
     // Remove the present flag for the first 4KB, for debugging, as if a pointer goes to 0x0, we'll know
-    pte_t page = 0;
+    /*pte_t page = 0;
     pte_setframe(&page, 0x0);
     if (pte_ispresent(page)) pte_delattrib(page, PTE_PRESENT);
     if (pte_iswritable(page)) pte_delattrib(page, PTE_WRITABLE);
 
-    table->entries[PAGETBL_INDEX(0x00000000)] = page;
+    table->entries[PAGETBL_INDEX(0x00000000)] = page;*/
 
 
     for (int i = 0, frame=0x400000, virt=0x00400000; i < 1024; i++, frame += 4096, virt += 4096) {
@@ -229,6 +232,7 @@ void vmmInit() {
         pte_t page = 0;
         pte_addattrib(&page, PTE_PRESENT);
         pte_addattrib(&page, PTE_WRITABLE);
+        pte_addattrib(&page, PTE_USER);
         pte_setframe(&page, frame);
 
         // Add the above page to the page table.
@@ -240,6 +244,7 @@ void vmmInit() {
         pte_t page = 0;
         pte_addattrib(&page, PTE_PRESENT);
         pte_addattrib(&page, PTE_WRITABLE);
+        pte_addattrib(&page, PTE_USER);
         pte_setframe(&page, frame);
 
         // Add the above page to the page table.
@@ -251,6 +256,7 @@ void vmmInit() {
         pte_t page = 0;
         pte_addattrib(&page, PTE_PRESENT);
         pte_addattrib(&page, PTE_WRITABLE);
+        pte_addattrib(&page, PTE_USER);
         pte_setframe(&page, frame);
 
         // Add the above page to the page table.
@@ -268,21 +274,25 @@ void vmmInit() {
     pde_t *entry = &dir->entries[PAGEDIR_INDEX(0x00000000)];
     pde_addattrib(entry, PDE_PRESENT);
     pde_addattrib(entry, PDE_WRITABLE);
+    pde_addattrib(entry, PDE_USER);
     pde_setframe(entry, (uint32_t)table);
 
     pde_t *entry2 = &dir->entries[PAGEDIR_INDEX(0x00400000)];
     pde_addattrib(entry2, PDE_PRESENT);
     pde_addattrib(entry2, PDE_WRITABLE);
+    pde_addattrib(entry2, PDE_USER);
     pde_setframe(entry2, (uint32_t)table2);
 
     pde_t *entry3 = &dir->entries[PAGEDIR_INDEX(0x00800000)];
     pde_addattrib(entry3, PDE_PRESENT);
     pde_addattrib(entry3, PDE_WRITABLE);
+    pde_addattrib(entry3, PDE_USER);
     pde_setframe(entry3, (uint32_t)table3);
 
     pde_t *entry4 = &dir->entries[PAGEDIR_INDEX(0x00C00000)];
     pde_addattrib(entry4, PDE_PRESENT);
     pde_addattrib(entry4, PDE_WRITABLE);
+    pde_addattrib(entry4, PDE_USER);
     pde_setframe(entry4, (uint32_t)table4);
 
     // Set our ISR interrupt handler

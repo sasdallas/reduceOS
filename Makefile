@@ -14,6 +14,7 @@ echo = echo
 
 DD = dd
 qemu-system-x86_64 = qemu-system-x86_64
+qemu-system-i386 = qemu-system-i386
 qemu-img = qemu-img
 
 MKIMAGE = grub-mkrescue
@@ -223,7 +224,7 @@ qemu_dbg:
 
 qemu_dbg_gdb:
 	@printf "[ Launching QEMU with GDB and debug options... ]\n"
-	@${qemu-system-x86_64} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.elf -serial stdio -s -S
+	@${qemu-system-i386} -initrd $(OUT_INITRD)/initrd.img -kernel out/kernel/kernel.elf -serial stdio -s -S
 
 
 qemu_drive:

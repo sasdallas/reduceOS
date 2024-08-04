@@ -367,9 +367,16 @@ int memoryInfo(int argc, char *args[]) {
 
 
 void usermodeMain() {
-
+    printf("Hello from usermode!\n");
+    for (;;);
 }
 
+int enterUsermode(int argc, char *args[]) {
+    printf("Entering usermode, please wait...\n");
+    setKernelStack(2048);
+    switchToUserMode();
+    return -1;
+}
 
 
 
@@ -992,7 +999,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
 
-    
+
+    // Initialize system calls
+    initSyscalls();
 
     // Start paging if VBE was not initialized.
     useCommands();
@@ -1028,6 +1037,7 @@ void useCommands() {
     registerCommand("pagefault", (command*)doPageFault);
     registerCommand("read_floppy", (command*)read_floppy);
     registerCommand("test", (command*)test);
+    registerCommand("user", (command*)enterUsermode);
 
 
     registerCommand("mount_fat", (command*)mountFAT);
@@ -1043,8 +1053,6 @@ void useCommands() {
 
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");
-
-    
     
     char buffer[256]; // We will store keyboard input here.
     printf("reduceOS has finished loading successfully.\n");

@@ -17,14 +17,13 @@ reduceOS has switched to a brand new kernel, with cleaner, commented code and mo
 **To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso` (for building an ISO - does not work in QEMU!)
 
 The makefile of reduceOS has two main targets for building - `rel` and `dbg`.\
-The target to actually build the OS is `rel`. If you need to do further debugging, use `dbg` (outputs debug symbols)
-
 Run `make rel` to build the OS in a release configuration, or `make dbg` if you're trying to debug it.
 
 Finally, you need to launch the OS. This can be done in a variety of different ways, but the Makefile uses QEMU.\
 Run `make qemu` to launch QEMU and start the OS.
 
-**For debug:** You can use `make qemu_dbg` to route serial output to stdio, or you can use `make qemu_dbg_gdb` to output serial to stdio and wait for a GDB connection.
+**For debug:** You can use `make qemu_dbg` to route serial output to stdio, or you can use `make qemu_dbg_gdb` to output serial to stdio and wait for a GDB connection (note that GDB uses i386 QEMU).
+
 
 **macOS users:** The default version of gcc and ld included WILL NOT work! You need to use a package manager such as [homebrew](https://brew.sh) to install a custom version of gcc and ld. See below.
 
