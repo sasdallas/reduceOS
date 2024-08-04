@@ -3,24 +3,23 @@
 // ====================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-// Broken as of 6/30/2023.
 
 #include "include/syscall.h" // Main header file
 
 
 
 DECLARE_SYSCALL1(terminalWriteString, 0, const char*);
-DECLARE_SYSCALL1(terminalPutchar, 0, char);
-
+DECLARE_SYSCALL1(terminalPutchar, 1, char);
+DECLARE_SYSCALL0(terminalUpdateScreen, 0);
 
 // List of system calls
-void *syscalls[2] = {
+void *syscalls[3] = {
     &terminalWriteString,
-    &terminalPutchar
-
+    &terminalPutchar,
+    &terminalUpdateScreen
 };
 
-uint32_t syscallAmount = 2;
+uint32_t syscallAmount = 3;
 
 
 
@@ -37,18 +36,16 @@ void initSyscalls() {
     // As much as I'd rather just call isrRegisterInterruptHandler, we have to do something different.
     // CPU will throw a GPF if IDT DPL < CPL so we have to manually make it use RING3.
     // isrRegisterInterruptHandler(0x80, syscallHandler);
-    setVector_flags(0x80, syscallHandler, I86_IDT_DESC_RING3);
-    //isrRegisterInterruptHandler(0x80, syscallHandler);
+    //setVector_flags(0x80, isr128, I86_IDT_DESC_RING3);
+    isrRegisterInterruptHandler(0x80, syscallHandler);
 }
 
 
 
-void syscallHandler() {
-    int syscallNumber;
-    asm ("mov %%eax, %0" : "=a"(syscallNumber));
+void syscallHandler(registers_t *regs) {
+    printf("System call received\n");
+    int syscallNumber = regs->eax;
 
-    printf("Syscall received\n");
-    printf("Requested for %i\n", syscallNumber);
     // Check if system call number is valid.
     if (syscallNumber >= syscallAmount) {
         return; // Requested call number >= available system calls
@@ -59,7 +56,7 @@ void syscallHandler() {
 
     // In this assembly code, we first push all the parameters/return variables, call the function, then pop them.
     int returnValue;
-    /*asm volatile("  \
+    asm volatile("  \
         push %1;     \
         push %2;     \
         push %3;     \
@@ -71,17 +68,5 @@ void syscallHandler() {
         pop %%ebx;   \
         pop %%ebx;   \
         pop %%ebx;   \  
-    " : "=a" (returnValue) : "r" (regs->edi), "r" (regs->esi), "r" (regs->edx), "r" (regs->ecx), "r" (regs->ebx), "r" (fn));*/
-
-
-    asm volatile ("     \
-        push %%edi;      \
-        push %%esi;      \
-        push %%edx;      \
-        push %%ecx;      \
-        push %%ebx;      \
-        call *%0;        \
-        add %%esp, 20;     \
-        iret;           \
-    " : "=a"(returnValue) : "r"(fn));
+    " : "=a" (returnValue) : "r" (regs->edi), "r" (regs->esi), "r" (regs->edx), "r" (regs->ecx), "r" (regs->ebx), "r" (fn));
 }

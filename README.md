@@ -34,7 +34,6 @@ You can build reduceOS with a custom version of gcc or ld by passing them as par
 - **Unsure:** initrd doesn't work on QEMU but does on GRUB??
 - **TODO:** ext2 driver needs deletion functions
 - A bitmap that is too large will crash the system
-- **Severe:** System calls not working.
 - **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code (temporary fix: auto uses 1024*768)
 
 

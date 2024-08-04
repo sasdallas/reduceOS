@@ -1,7 +1,7 @@
 ============================================================================================================================
 	reduceOS v1.3-prerelease1 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 3319-DEBUG, compiled on 08/04/24, 14:09:17
+	Build 3321-DEBUG, compiled on 08/04/24, 14:11:48
 ============================================================================================================================
 
 Kernel location: 0x100000 - 0x5e2c30
@@ -72,7 +72,7 @@ Found ATA drive - EXT2 Disk
 Found ATAPI drive - ISO bootdrive                           
 	Capacity: 0 GB 0 MB 0 KB
 Preparing to call BIOS32 for int 0x10...
-	AX = 0x4f00 BX = 0x647f CX = 0xa DX = 0x10
+	AX = 0x4f00 BX = 0x6482 CX = 0xa DX = 0x10
 Preparing to call BIOS32 for int 0x10...
 	AX = 0x4f01 BX = 0x0 CX = 0x4144 DX = 0x0
 pmm_deinitRegion: Region at 0xc0000000 (size 0xc0000) deinitialized. Blocks used: 1231. Free blocks: 6530
@@ -119,17 +119,7 @@ vfsMount: Could not find ide3 - creating it.
    ide2 (0x81fb0) -> 0x81e70 ()
    ide3 (0x82310) -> 0x821d0 ()
 === END VFS TREE ===
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 8/4/2024 14:9:44
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 8/4/2024 14:20:52
 kmain: Memory management online with 31044 KB of physical memory
 kmain: All commands registered successfully.
 kmain: Warning: User is an unstable environment.
-===========================================================
-panic() called! FATAL ERROR!
-*** ISR threw exception: General protection
-panic type: registers, ISR Exception.
-
-err_code 0
-REGISTER DUMP:
-eax=0x17, ebx=0x4, ecx=0x2ffffc, edx=0xc02ffffc
-edi=0x2c, esi=0x9, ebp=0x5e1e0c, esp=0x7e4
-eip=0x10df0d, cs=0x23, ss=0x10002, eflags=0x5e1e04, useresp=0x0

@@ -22,12 +22,14 @@ extern void switchToUserMode(); // User mode switch function
 
 
 void usermodeMain() {
-    printf("Hello, usermode world!\n"); /* If you're like me you would've thought this would fail, but no it doesn't.
-                                            printf() doesn't touch anything privileged, it's just writing to a buffer that is usermode paged.
-                                        */
+    printf("Hello, usermode world! printf() is working!\n");
     
-    // Causes GPF, something about CS being 0xFFFC:
-    //syscall_terminalPutchar('a');
+    syscall_terminalWriteString("System calls are online!\n");
+    
+    // Prints garbage to screen. Will need to debug further.
+    //syscall_terminalUpdateScreen();
+
+    printf("... and we're back!\n");
     for (;;);
 }
 

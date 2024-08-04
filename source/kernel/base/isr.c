@@ -100,7 +100,7 @@ void isrInstall() {
     setVector(46, (uint32_t)irq_14);
     setVector(47, (uint32_t)irq_15);
     
-    // Register exception 128
-    setVector(128, (uint32_t)isr128);
-
+    // Register exception 128 (SYSCALLS)
+    //setVector(128, (uint32_t)isr128);
+    setVector_flags(128, (uint32_t)isr128, I86_IDT_DESC_RING3);
 }
