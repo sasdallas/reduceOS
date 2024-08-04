@@ -21,12 +21,12 @@ void tssWrite(int32_t index, uint16_t ss0, uint32_t esp0) {
     // Set the kernel stack segment and pointer.
     tss.ss0 = ss0;
     tss.esp0 = esp0;
+    
 
     // Setup CS, SS, DS, ES, FS, and GS entries in the TSS - they specify what segments should be loaded when processor switches to kernel mode.
     tss.cs = 0x0B;
     tss.ss = tss.ds = tss.es = tss.fs = tss.gs = 0x13;
 }
-
 
 
 

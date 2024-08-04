@@ -2,6 +2,7 @@ global switchToUserMode
 extern usermodeMain
 
 switchToUserMode:
+	cli
     mov ax, (4 * 8) | 3 ; ring 3 data with bottom 2 bits set for ring 3
 	mov ds, ax
 	mov es, ax 

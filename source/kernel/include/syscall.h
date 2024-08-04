@@ -16,6 +16,7 @@
 
 // Define some system calls
 DEFINE_SYSCALL1(terminalWriteString, const char*);
+DEFINE_SYSCALL1(terminalPutchar, char);
 
 // 5 DECLARE_SYSCALL macros, the only reason we have 5 is to allow for parameters.
 // EAX = Number, EBX = Parameter 1, ECX = Parameter 2, EDX = Parameter 3

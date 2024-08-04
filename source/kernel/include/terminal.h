@@ -51,5 +51,6 @@ void enableShell(char *shellToUse); // Enables a boundary that cannot be overwri
 void updateTextCursor_vesa(); // Updating the text cursor in VESA VBE. 
 void terminalUpdateScreen(); // Update the screen buffers
 void instantUpdateTerminalColor(uint8_t fg, uint8_t bg); // Instantly update the terminal color (VESA only)
+void terminalSetUpdateScreen(bool state); // Toggles whether the screen should update when terminalUpdateScreen() is called
 
 #endif

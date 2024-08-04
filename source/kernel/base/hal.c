@@ -24,6 +24,11 @@ void setVector(int intNo, uint32_t vect) {
     idtInstallIR(intNo,  0x8E, 0x08, (uint32_t)vect);
 }
 
+// void setVector_flags(int intNo, uint32_t vect, int flags) - Sets a new interrupt vector using flags.
+void setVector_flags(int intNo, uint32_t vect, int flags) {
+    idtInstallIR(intNo, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32 | flags, 0x8, vect);
+}
+
 // void enableHardwareInterrupts() - Enable hardware interrupts
 void enableHardwareInterrupts() {
     asm volatile ("sti");

@@ -1,14 +1,19 @@
 ============================================================================================================================
 	reduceOS v1.3-prerelease1 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 3228-DEBUG, compiled on 08/04/24, 10:59:05
+	Build 3319-DEBUG, compiled on 08/04/24, 14:09:17
 ============================================================================================================================
 
-Kernel location: 0x100000 - 0x5d3c10
-Text section: 0x100000 - 0x11b000; Data section: 0x149000 - 0x5ce8e0; BSS section: 0x5cf000 - 0x5d3c10
+Kernel location: 0x100000 - 0x5e2c30
+Text section: 0x100000 - 0x11b000; Data section: 0x158000 - 0x5dda20; BSS section: 0x5de000 - 0x5e2c30
 Loader magic: 0x43d8c305
 
 Serial logging initialized!
+kmain: CPU has long mode support: 0
+pmm_initRegion: Region at 0x0 (size 0x9f000) initialized. Blocks used: 0. Free blocks: 159
+pmm_initRegion: Region at 0x100000 (size 0x1ef0000) initialized. Blocks used: 0. Free blocks: 8079
+pmm_deinitRegion: Region at 0x100000 (size 0x4e2c30) deinitialized. Blocks used: 932. Free blocks: 6829
+pmm_deinitRegion: Region at 0xe0000 (size 0x1ffff) deinitialized. Blocks used: 963. Free blocks: 6798
 GDT, IDT, and ISR have initialized successfully.
 Interrupts successfully enabled.
 ======== CPU Data Collection Summary ========
@@ -31,11 +36,6 @@ SSE5 support data summary:
 == End SSE Data Collection Summary ==
 ======== End CPU Data Collection Summary ========
 CPU initialization completed
-kmain: CPU has long mode support: 0
-pmm_initRegion: Region at 0x0 (size 0x9f000) initialized. Blocks used: 0. Free blocks: 159
-pmm_initRegion: Region at 0x100000 (size 0x1ef0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x4d3c10) deinitialized. Blocks used: 917. Free blocks: 6844
-pmm_deinitRegion: Region at 0xe0000 (size 0x1ffff) deinitialized. Blocks used: 948. Free blocks: 6813
 acpiInit: Found RSDP signature at 0xfa330
 acpiParseRSDP: (dbg) OEM is BOCHS 
 acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
@@ -53,8 +53,8 @@ acpiInit: Successfully enabled ACPI.
 vmmInit: Successfully initialized paging.
 Initialized memory management successfully.
 GRUB did pass an initial ramdisk at 0x100b0.
-	mod_start = 0x5e1000, mod_end = 0x5e232f, cmdline = 
-initrdInit: Initial ramdisk loaded - location is 0x5e1000 and end address is 0x5e232f
+	mod_start = 0x5f0000, mod_end = 0x5f132f, cmdline = 
+initrdInit: Initial ramdisk loaded - location is 0x5f0000 and end address is 0x5f132f
 bios32 initialized successfully!
 Keyboard handler initialized.
 PIT started at 1000hz
@@ -72,14 +72,14 @@ Found ATA drive - EXT2 Disk
 Found ATAPI drive - ISO bootdrive                           
 	Capacity: 0 GB 0 MB 0 KB
 Preparing to call BIOS32 for int 0x10...
-	AX = 0x4f00 BX = 0x6424 CX = 0xa DX = 0x10
+	AX = 0x4f00 BX = 0x647f CX = 0xa DX = 0x10
 Preparing to call BIOS32 for int 0x10...
 	AX = 0x4f01 BX = 0x0 CX = 0x4144 DX = 0x0
-pmm_deinitRegion: Region at 0xc0000000 (size 0xc0000) deinitialized. Blocks used: 1216. Free blocks: 6545
+pmm_deinitRegion: Region at 0xc0000000 (size 0xc0000) deinitialized. Blocks used: 1231. Free blocks: 6530
 Preparing to call BIOS32 for int 0x10...
 	AX = 0x4f02 BX = 0x4144 CX = 0x0 DX = 0x0
-vesaInit: Allocated framebuffer to 0x5e0040 - 0x8e0040
-pmm_deinitRegion: Region at 0x5e0040 (size 0x300000) deinitialized. Blocks used: 2754. Free blocks: 5007
+vesaInit: Allocated framebuffer to 0x600040 - 0x900040
+pmm_deinitRegion: Region at 0x600040 (size 0x300000) deinitialized. Blocks used: 2769. Free blocks: 4992
 vfsMount: Searching for dev...
 vfsMount: Could not find dev - creating it.
 vfsMount: Searching for dev...
@@ -95,12 +95,12 @@ ext2: 16 BGDs, 131072 inodes, 8192 inodes per group
 	last mount path: /mnt/test2
 ext2_init: ext2 disk mounted
 vfsMount: Mounting to /
-vfsMount: Setting up values (localRoot = 0x900000)
-vfs_mountType: Mounted ext2[/dev/ide0] to /: 0x900000
+vfsMount: Setting up values (localRoot = 0x920000)
+vfs_mountType: Mounted ext2[/dev/ide0] to /: 0x920000
 === VFS TREE ===
- / (0x8e00c0) -> 0x900000 (EXT2 driver)
-  dev (0x8e0590) -> 0x8e0460 (Mapped Directory)
-   ide0 (0x8e0940) -> 0x8e0800 (IDE/ATA drive)
+ / (0x9000c0) -> 0x920000 (EXT2 driver)
+  dev (0x900590) -> 0x900460 (Mapped Directory)
+   ide0 (0x900940) -> 0x900800 (IDE/ATA drive)
 === END VFS TREE ===
 vfsMount: Searching for dev...
 vfsMount: Searching for ide1...
@@ -112,14 +112,24 @@ vfsMount: Searching for dev...
 vfsMount: Searching for ide3...
 vfsMount: Could not find ide3 - creating it.
 === VFS TREE ===
- / (0x8e00c0) -> 0x900000 (EXT2 driver)
-  dev (0x8e0590) -> 0x8e0460 (Mapped Directory)
-   ide0 (0x8e0940) -> 0x8e0800 (IDE/ATA drive)
+ / (0x9000c0) -> 0x920000 (EXT2 driver)
+  dev (0x900590) -> 0x900460 (Mapped Directory)
+   ide0 (0x900940) -> 0x900800 (IDE/ATA drive)
    ide1 (0x81c50) -> 0x81b00 (IDE/ATA drive)
    ide2 (0x81fb0) -> 0x81e70 ()
    ide3 (0x82310) -> 0x821d0 ()
 === END VFS TREE ===
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 8/4/2024 10:59:35
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 8/4/2024 14:9:44
 kmain: Memory management online with 31044 KB of physical memory
 kmain: All commands registered successfully.
 kmain: Warning: User is an unstable environment.
+===========================================================
+panic() called! FATAL ERROR!
+*** ISR threw exception: General protection
+panic type: registers, ISR Exception.
+
+err_code 0
+REGISTER DUMP:
+eax=0x17, ebx=0x4, ecx=0x2ffffc, edx=0xc02ffffc
+edi=0x2c, esi=0x9, ebp=0x5e1e0c, esp=0x7e4
+eip=0x10df0d, cs=0x23, ss=0x10002, eflags=0x5e1e04, useresp=0x0

@@ -449,8 +449,15 @@ void instantUpdateTerminalColor(uint8_t fg, uint8_t bg) {
     vbeSwitchBuffers();
 }
 
+static bool updateScreen = true;
+
+// terminalSetUpdateScreen(bool state) - Toggles whether the screen should update when terminalUpdateScreen() is called. Useful for long printfs
+void terminalSetUpdateScreen(bool state) {
+    updateScreen = state;
+}
+
 // terminalUpdateScreen() - Update the buffers on the screen
 void terminalUpdateScreen() {
-    if (terminalMode == 1) vbeSwitchBuffers();
+    if (terminalMode == 1 && updateScreen) vbeSwitchBuffers();
 }
 
