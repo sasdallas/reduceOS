@@ -162,7 +162,7 @@ bool acpiParseRSDP(uint8_t *ptr) {
     
     // OEMID is bugged (properly because it's not null terminated?) so we just copy the OEM to a char
     char oem[7];
-    memcpy(oem, ptr + 9, 6);
+    memcpy(oem, header->OEMID, 6);
     oem[6] = '\0';
     serialPrintf("acpiParseRSDP: (dbg) OEM is %s\n", oem);
     
@@ -173,10 +173,12 @@ bool acpiParseRSDP(uint8_t *ptr) {
         serialPrintf("acpiParseRSDP: found ACPI version 1.0, parsing RSDT...\n");
         
         uint32_t addr = *(uint32_t*)(ptr + 16);
+
         
-        
-        ACPIHeader *rsdt = (ACPIHeader*)(uint64_t)addr;
         vmm_allocateRegion(addr, addr, (uint32_t)(addr + (sizeof(char)*4)));
+
+        ACPIHeader *rsdt = (ACPIHeader*)addr;
+
         acpiParseRSDT(rsdt);
     } else if (header->revision == 2) {
         // (for debugging purposes)

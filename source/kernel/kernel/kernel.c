@@ -148,10 +148,10 @@ int shutdown(int argc, char *args[]) {
 int getInitrdFiles(int argc, char *args[]) {
     int i = 0;
     struct dirent *node = 0;
-    while ((node = readDirectoryFilesystem(fs_root, i)) != 0)
+    while ((node = readDirectoryFilesystem(open_file("/dev/initrd", 0), i)) != 0)
     {
         printf("Found file %s", node->name);
-        fsNode_t *fsNode = findDirectoryFilesystem(fs_root, node->name);
+        fsNode_t *fsNode = findDirectoryFilesystem(open_file("/dev/initrd", 0), node->name);
 
         if ((fsNode->flags & 0x7 ) == VFS_DIRECTORY)
         {
@@ -794,10 +794,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n", &text_start, &bss_end, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
     serialPrintf("Loader magic: 0x%x\n\n", loader_magic);
     serialPrintf("Serial logging initialized!\n");
-    
 
     printf("Serial logging initialized on COM1.\n");
-
 
 
     if (loader_magic != 0x43D8C305) {
@@ -814,6 +812,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     
     serialPrintf("kmain: CPU has long mode support: %i\n", isCPULongModeCapable());
 
+    
+
     // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
     // Now that initial ramdisk has loaded, we can initialize memory management
     updateBottomText("Initializing physical memory manager...");
@@ -821,6 +821,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Initialize the memory map
     pmm_initializeMemoryMap(globalInfo);
+    
 
     // Deallocate the kernel's region.
     uint32_t kernelStart = (uint32_t)&text_start;
@@ -833,13 +834,38 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         - ACPI (0x000E0000 - 0x000FFFFF)
     */
 
-   pmm_deinitRegion(0x000E0000, 0x000FFFFF-0x000E0000);
+    pmm_deinitRegion(0x000E0000, 0x000FFFFF-0x000E0000);
+
+    // Initialize ACPI (has to be done before VMM initializes)
+    updateBottomText("Initializing ACPI...");
+    acpiInit();
 
     // Initialize VMM
     vmmInit();
     serialPrintf("Initialized memory management successfully.\n");
 
-   
+
+    // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit?
+
+    
+    ASSERT(globalInfo->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
+    uint32_t initrdLocation = *((uint32_t*)(globalInfo->m_modsAddr));
+    uint32_t initrdEnd = *(uint32_t*)(globalInfo->m_modsAddr + 4);
+    serialPrintf("GRUB did pass an initial ramdisk at 0x%x.\n", globalInfo->m_modsAddr);
+
+    multiboot_mod_t *mod;
+    int i;
+    for (i = 0, mod = (multiboot_mod_t*)globalInfo->m_modsAddr; i < globalInfo->m_modsCount; i++, mod++) {
+        serialPrintf("\tmod_start = 0x%x, mod_end = 0x%x, cmdline = %s\n", mod->mod_start, mod->mod_end, (char*)mod->cmdline);
+    }
+
+
+    // ONLY WORKS WHEN LOADING WITH GRUB. DOES NOT WORK ON QEMU.
+    //fsNode_t *initrd = initrdInit(initrdLocation);    
+    printf("Initrd image initialized!\n");
+    serialPrintf("initrdInit: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
+    
+
 
     bios32_init();
     serialPrintf("bios32 initialized successfully!\n");
@@ -866,20 +892,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     
 
-    // Initialize ACPI
-    updateBottomText("Initializing ACPI...");
-    acpiInit();
-
-    // Calculate the initial ramdisk location in memory (panic if it's not there)
-    ASSERT(globalInfo->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
-    uint32_t initrdLocation = *((uint32_t*)(globalInfo->m_modsAddr));
-    uint32_t initrdEnd = *(uint32_t*)(globalInfo->m_modsAddr + 4);
-    serialPrintf("GRUB did pass an initial ramdisk at 0x%x.\n", globalInfo->m_modsAddr);
-
-    // Bugged initrd driver.
-    //fs_root = initrdInit(initrdLocation);    
-    printf("Initrd image initialized!\n");
-    serialPrintf("initrdInit: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
     
 
@@ -889,25 +901,19 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("Initialized floppy drive successfully.\n");
 
 
-
-    // Finally, all setup has been completed. We can ask the user if they want to enter the backup command line.
-    // By ask, I mean check if they're holding c.
-
-
-    // Here's a nasty little hack to get around liballoc messing everything up.
-    // We force our secondary framebuffer to 0x85A000 - 0xB5A000
     
     // DEFINITELY sketchy! What's going on with this system? 
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
+    
+    // Calculate the initial ramdisk location in memory (panic if it's not there)
+    
     
 
     // Initialize the IDE controller.
     updateBottomText("Initializing IDE controller...");
     ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
     
-    //ide_init();
-
 
     /* VESA initialization */
     bool didInitVesa = true;
@@ -1001,7 +1007,6 @@ void useCommands() {
     clearScreen(COLOR_WHITE, COLOR_CYAN);
     
     clearBuffer();
-    // The user entered the command handler. We will not return.
 
 
     initCommandHandler();

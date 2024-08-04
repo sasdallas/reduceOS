@@ -83,7 +83,6 @@ static fsNode_t *initrdFinddir(fsNode_t *node, char *name) {
 fsNode_t *initrdInit(uint32_t location) {
     // First, iniitalize the main and file header pointers and populate the root directory.
     
-    serialPrintf("Location: 0x%x\n", location);
     
 
     initrdHeader = (initrd_imageHeader_t*)location;
@@ -127,11 +126,6 @@ fsNode_t *initrdInit(uint32_t location) {
 
     rootNodes = (fsNode_t*)kmalloc(sizeof(fsNode_t) * initrdHeader->fileAmnt);
     rootNodes_amount = initrdHeader->fileAmnt;
-
-    serialPrintf("Mapping region from 0x%x - 0x%x\n", rootNodes, rootNodes + (sizeof(fsNode_t) * initrdHeader->fileAmnt));
-    serialPrintf("Root nodes amount: %i (size = 0x%x)\n", rootNodes_amount, sizeof(fsNode_t));
-
-    vmm_allocateRegion(rootNodes, rootNodes, sizeof(fsNode_t) * 5);
 
     // Iterate through all files and setup each one.
     for (int i = 0; i < initrdHeader->fileAmnt; i++) {

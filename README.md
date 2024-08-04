@@ -32,8 +32,7 @@ You can build reduceOS with a custom version of gcc or ld by passing them as par
 
 
 # Known Bugs
-- ACPI no longer detects table signatures in the RSDT
-- initrd is broken, address cannot be found
+- **Unsure:** initrd doesn't work on QEMU but does on GRUB??
 - **TODO:** ext2 driver needs deletion functions
 - A bitmap that is too large will crash the system
 - **Severe:** System calls not working.

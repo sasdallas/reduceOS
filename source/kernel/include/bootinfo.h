@@ -55,6 +55,12 @@ typedef struct {
     uint8_t framebuffer_type;  // indexed = 0, RGB = 1, EGA = 2
 } multiboot_info;
 
+typedef struct {
+	uint32_t mod_start;
+	uint32_t mod_end;
+	uint32_t cmdline;
+	uint32_t padding;
+} multiboot_mod_t;
 
 
 #endif
