@@ -658,6 +658,11 @@ int edit(int argc, char *args[]) {
         return -1;
     }
 
+    if (!args[1]) {
+        printf("You need to actually provide something.\n");
+        return -1;
+    }
+
     // Load the file
     fsNode_t *file = open_file(args[1], 0);
     if (!file) {

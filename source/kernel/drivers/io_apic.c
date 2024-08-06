@@ -15,7 +15,7 @@
 
 
 // Global variables
-uint8_t *ioAPIC_addr; // SHOULD BE SET BY ACPI
+uint8_t *ioAPIC_addr = 0x0; // SHOULD BE SET BY ACPI
 
 // Static functions
 
@@ -41,6 +41,12 @@ void ioAPIC_setEntry(uint8_t *base, uint8_t index, uint64_t data) {
 
 // ioAPIC_init() - Initialize the IO APIC.
 void ioAPIC_init() {
+    // Make sure ACPI actually set this variable
+    if (ioAPIC_addr == 0x0) {
+        serialPrintf("ioAPIC_init: Cannot initialize I/O APIC when ioAPIC_addr == 0x0\n");
+        return;
+    }
+
     // First, get the number of entries supported by the IO APIC.
     uint32_t x = ioAPIC_read(ioAPIC_addr, IO_APIC_VER);
     uint32_t count = ((x >> 16) & 0xFF) + 1;

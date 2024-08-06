@@ -15,7 +15,7 @@
 // https://wiki.osdev.org/APIC
 
 // NOTE: localAPICAddress should be defined by the ACPI and/or linker script!
-uint8_t *localAPICAddress;
+uint8_t *localAPICAddress = 0x0;
 
 // Now, onto the static functions!
 
@@ -34,6 +34,12 @@ static void localAPIC_write(uint32_t reg, uint32_t data) {
 
 // localAPIC_init() - Initialize the local APIC
 void localAPIC_init() {
+    // Make sure ACPI actually set something
+    if (localAPICAddress == 0x0) {
+        serialPrintf("localAPIC_init: Cannot initialize if localAPIC is 0x0.\n");    
+        return;
+    }
+
     // Clear task priority to enable all interrupts.
     localAPIC_write(LOCAL_APIC_TPR, 0);
 

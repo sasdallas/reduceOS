@@ -10,7 +10,7 @@
 
 DECLARE_SYSCALL1(terminalWriteString, 0, const char*);
 DECLARE_SYSCALL1(terminalPutchar, 1, char);
-DECLARE_SYSCALL0(terminalUpdateScreen, 0);
+DECLARE_SYSCALL0(terminalUpdateScreen, 2);
 
 // List of system calls
 void *syscalls[3] = {
@@ -33,9 +33,6 @@ void syscallHandler();
 
 // initSyscalls() - Registers interrupt handler 0x80 to allow system calls to happen.
 void initSyscalls() {
-    // As much as I'd rather just call isrRegisterInterruptHandler, we have to do something different.
-    // CPU will throw a GPF if IDT DPL < CPL so we have to manually make it use RING3.
-    // isrRegisterInterruptHandler(0x80, syscallHandler);
     //setVector_flags(0x80, isr128, I86_IDT_DESC_RING3);
     isrRegisterInterruptHandler(0x80, syscallHandler);
 }
@@ -43,7 +40,6 @@ void initSyscalls() {
 
 
 void syscallHandler(registers_t *regs) {
-    printf("System call received\n");
     int syscallNumber = regs->eax;
 
     // Check if system call number is valid.

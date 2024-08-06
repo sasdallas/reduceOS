@@ -26,10 +26,8 @@ void usermodeMain() {
     
     syscall_terminalWriteString("System calls are online!\n");
     
-    // Prints garbage to screen. Will need to debug further.
-    //syscall_terminalUpdateScreen();
+    syscall_terminalUpdateScreen();
 
-    printf("... and we're back!\n");
     for (;;);
 }
 
@@ -296,7 +294,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Initialize system calls
     initSyscalls();
-    //syscall_terminalPutchar('c');
 
     // Start paging if VBE was not initialized.
     useCommands();
