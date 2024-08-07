@@ -14,20 +14,14 @@ reduceOS has switched to a brand new kernel, with cleaner, commented code and mo
 
 ### IMPORTANT NOTE: YOU MUST HAVE A CROSS-COMPILER (i686-elf) READY FOR YOUR SYSTEM. 
 **To build reduceOS, you need these packages:** `i686-elf-gcc`, `nasm`, `make`, `grub`\
-**To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso` (for building an ISO - does not work in QEMU!)
+**To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso`
 
-The makefile of reduceOS has two main targets for building - `rel` and `dbg`.\
-Run `make rel` to build the OS in a release configuration, or `make dbg` if you're trying to debug it.
+There are **two targets** available to build reduceOS for - RELEASE and DEBUG.\
+To change the target you want to build, edit the `make.config` file to have BUILD_TARGET set to either release or debug.
 
-Finally, you need to launch the OS. This can be done in a variety of different ways, but the Makefile uses QEMU.\
-Run `make qemu` to launch QEMU and start the OS.
+Then, you can run `make build iso` to build an ISO in `out/iso`.
 
-**For debug:** You can use `make qemu_dbg` to route serial output to stdio, or you can use `make qemu_dbg_gdb` to output serial to stdio and wait for a GDB connection (note that GDB uses i386 QEMU).
-
-
-**macOS users:** The default version of gcc and ld included WILL NOT work! You need to use a package manager such as [homebrew](https://brew.sh) to install a custom version of gcc and ld. See below.
-
-You can build reduceOS with a custom version of gcc or ld by passing them as parameters to make, like so: `make CC=<gcc version path> LD=<ld version path>`. See the makefile for all program variables.\
+Run `make targets` to get a full list of targets.
 
 
 # Known Bugs

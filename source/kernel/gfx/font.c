@@ -13,8 +13,8 @@
 PSF2_Header *font; // TODO: PSF1 support
 
 // External variables
-extern char _binary_source_fonts_font_psf_start;
-extern char _binary_source_fonts_font_psf_end;
+extern char _binary_font_psf_start;
+extern char _binary_font_psf_end;
 extern uint32_t *vbeBuffer;
 extern uint32_t font_data[127][20];
 
@@ -82,8 +82,8 @@ void bitmapFontDrawString(char *str, int x, int y, int color) {
 
 
 void psfGetPSFInfo() {
-    serialPrintf("psfGetPSFInfo: PSF font is loaded from 0x%x to 0x%x\n", &_binary_source_fonts_font_psf_start, &_binary_source_fonts_font_psf_end);
-    char *start_addr = &_binary_source_fonts_font_psf_start;
+    serialPrintf("psfGetPSFInfo: PSF font is loaded from 0x%x to 0x%x\n", &_binary_font_psf_start, &_binary_font_psf_end);
+    char *start_addr = &_binary_font_psf_start;
     PSF1_Header *h1 = start_addr;
     if (h1->magic == 0x0436) {
         serialPrintf("psfGetPSFInfo: Font is PSF version 1\n");
@@ -106,7 +106,7 @@ void psfGetPSFInfo() {
 
 // psfInit() - Initializes the default PSF font for reduceOS.
 void psfInit() {
-    char *start_addr = &_binary_source_fonts_font_psf_start;
+    char *start_addr = &_binary_font_psf_start;
 
 
     PSF1_Header *h1 = start_addr;
@@ -134,7 +134,7 @@ void psfDrawChar(unsigned short int c, int cx, int cy, uint32_t fg, uint32_t bg)
     int bytesPerLine = (font->width + 7) / 8;
     
     // Get a glyph for the character.
-    unsigned char *glyph = (unsigned char*)&_binary_source_fonts_font_psf_start + font->header_size + (c > 0 && c < font->glyphs ? c : 0) * font->bytesPerGlyph;
+    unsigned char *glyph = (unsigned char*)&_binary_font_psf_start + font->header_size + (c > 0 && c < font->glyphs ? c : 0) * font->bytesPerGlyph;
 
     // Display the pixels according to the bitmap.
     int x, y, mask;

@@ -6,8 +6,7 @@
 #include "include/bitmap.h" // Main header file
 #include "include/ext2.h"
 
-extern char _binary_source_images_vaporwave_bmp_start;
-extern char _binary_source_images_vaporwave_bmp_end;
+
 
 char *addr = NULL;
 
@@ -62,7 +61,7 @@ bitmap_t *createBitmap() {
     bitmap_t *ret = kmalloc(sizeof(bitmap_t));
     char *start_addr;
     if (addr != NULL) start_addr = addr;
-    else start_addr = &_binary_source_images_vaporwave_bmp_start;
+    else return NULL;
 
     bitmap_fileHeader_t *h = start_addr;
 

@@ -7,9 +7,11 @@ PROJECT_ROOT=${PROJECT_ROOT:-"${BUILDSCRIPTS_ROOT}/.."}
 
 . $BUILDSCRIPTS_ROOT/config.sh
 
+cd $PROJECT_ROOT
+
 mkdir -p "$SYSROOT"
 
 echo $PROJECT_ROOT
-for PROJECT in $PROJECTS; do
-    $(cd $PROJECT && DESTDIR="$SYSROOT" $MAKE install-headers)
+for PROJECT in $SYSTEM_HEADER_PROJECTS; do
+    (cd $PROJECT_ROOT/source/$PROJECT && DESTDIR="$SYSROOT" $MAKE install-headers)
 done
