@@ -4,8 +4,8 @@
 #define DMA_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/hal.h" // Hardware Abstraction Layer
+#include <stdint.h> // Integer declarations
+#include <kernel/hal.h> // Hardware Abstraction Layer
 
 
 // Definitions

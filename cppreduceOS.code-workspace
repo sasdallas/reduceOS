@@ -27,7 +27,12 @@
 			"pmm.h": "c",
 			"panic.h": "c",
 			"floppy.h": "c",
-			"syscall.h": "c"
+			"syscall.h": "c",
+			"mem.h": "c",
+			"list.h": "c",
+			"hashmap.h": "c",
+			"liballoc_forwarder.h": "c",
+			"vmm.h": "c"
 		}
 	}
 }

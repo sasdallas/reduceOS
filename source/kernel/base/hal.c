@@ -3,7 +3,7 @@
 // This file handles functions of the Hardware Abstraction Layer (HAL)
 // =====================================================================
 
-#include "include/hal.h" // Main header file
+#include <kernel/hal.h> // Main header file
 
 
 // Functions

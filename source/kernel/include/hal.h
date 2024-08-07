@@ -5,11 +5,11 @@
 
 
 // Includes
-#include "include/idt.h" // Interrupt Descriptor Table
-#include "include/pic.h" // Programmable Interrupt Controller
-#include "include/pit.h" // Programmable interval Timer
-#include "include/libc/stdint.h" // Integer declarations (like uint8_t, uint16_t, etc..)
-#include "include/libc/stddef.h" // size_t declaration
+#include <kernel/idt.h> // Interrupt Descriptor Table
+#include <kernel/pic.h> // Programmable Interrupt Controller
+#include <kernel/pit.h> // Programmable interval Timer
+#include <stdint.h> // Integer declarations (like uint8_t, uint16_t, etc..)
+#include <stddef.h> // size_t declaration
 
 // Definitions
 

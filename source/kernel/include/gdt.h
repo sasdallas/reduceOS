@@ -4,10 +4,10 @@
 #define GDT_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/terminal.h" // printf
-#include "include/libc/assert.h" // ASSERT() macro
-#include "include/tss.h" // Task State Segment
+#include <stdint.h> // Integer declarations
+#include <kernel/terminal.h> // printf
+#include <assert.h> // ASSERT() macro
+#include <kernel/tss.h> // Task State Segment
 
 // Definitions
 #define MAX_DESCRIPTORS 8

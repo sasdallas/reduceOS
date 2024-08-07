@@ -2,10 +2,10 @@
 #ifndef BITMAP_H
 #define BITMAP_H
 
-#include "libc/string.h" // String functions
-#include "libc/stdint.h" // Integer types (uint32_t, ...)
-#include "initrd.h" // Initial ramdisk support
-#include "vesa.h" // VESA VBE support
+#include <string.h> // String functions
+#include <stdint.h> // Integer types (uint32_t, ...)
+#include <kernel/initrd.h> // Initial ramdisk support
+#include <kernel/vesa.h> // VESA VBE support
 
 // Typedefs
 typedef struct {

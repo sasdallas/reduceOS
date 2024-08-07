@@ -3,9 +3,9 @@
 // ==========================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/cmds.h"
-#include "include/kernel.h"
-#include "include/vfs.h"
+#include <kernel/cmds.h>
+#include <kernel/kernel.h>
+#include <kernel/vfs.h>
 
 extern fsNode_t *fatDriver;
 extern fsNode_t *ext2_root;

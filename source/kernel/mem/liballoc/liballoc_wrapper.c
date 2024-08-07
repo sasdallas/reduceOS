@@ -5,7 +5,7 @@
 // NOTE: liballoc is NOT by me! It is not by blanham (creator of the repo linked in the README.MD), but rather by Durand Miller
 // NO CODE OF LIBALLOC.C OR LIBALLOC.H IS CREATED BY ME.
 
-#include "include/liballoc_wrapper.h" // Main header file
+#include <kernel/liballoc_wrapper.h> // Main header file
 
 atomic_flag lock = ATOMIC_FLAG_INIT; // Memory lock (we dont use spinlock_init because ehhhh)
 

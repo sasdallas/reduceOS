@@ -3,7 +3,7 @@
 // =========================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/floppy.h" // Main header file
+#include <kernel/floppy.h> // Main header file
 
 // Variables
 static int floppyIRQ_fired = 0;

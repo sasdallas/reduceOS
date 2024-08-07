@@ -4,7 +4,7 @@
 #define FONT_DATA_H
 
 // Includes
-#include "include/libc/stdint.h"
+#include <stdint.h>
 
 // Variables
 extern uint32_t font_data[127][20];

@@ -4,7 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 // Some code was sourced from JamesM's Kernel Development Tutorials. Please credit him as well.
 
-#include "include/pmm.h" // Main header file
+#include <kernel/pmm.h> // Main header file
 
 // (from JamesM's kernel dev tutorials)
 #define INDEX_BIT(a) (a/(8*4))

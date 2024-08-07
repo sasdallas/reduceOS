@@ -5,10 +5,10 @@
 #define TREE_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/stddef.h" // size_t
-#include "include/list.h" // List implementation
-#include "include/mem.h" // Memory allocation
+#include <stdint.h> // Integer declarations
+#include <stddef.h> // size_t
+#include <kernel/list.h> // List implementation
+#include <kernel/mem.h> // Memory allocation
 
 // Typedefs
 typedef struct tree_node {

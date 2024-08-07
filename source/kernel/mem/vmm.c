@@ -4,10 +4,10 @@
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 // NOTICE: Paging file structure and design sourced from BrokenThorn Entertainment. MOST code is written by me, but PLEASE credit them!
 
-#include "include/vmm.h" // Main header file
+#include <kernel/vmm.h> // Main header file
 
 
-#include "include/panic.h" // Kernel panicking
+#include <kernel/panic.h> // Kernel panicking
 
 // Variables
 pagedirectory_t *currentDirectory = 0; // Current page directory 

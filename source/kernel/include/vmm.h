@@ -4,18 +4,18 @@
 #define VMM_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/string.h" // String functions
+#include <stdint.h> // Integer declarations
+#include <string.h> // String functions
 
 
-#include "include/vmm_pte.h"
-#include "include/vmm_pde.h"
+#include <kernel/vmm_pte.h>
+#include <kernel/vmm_pde.h>
 
-#include "include/panic.h" // Kernel panicking
-#include "include/heap.h" // Kernel heap management.
-#include "include/terminal.h"
-#include "include/serial.h"
-#include "include/pmm.h" // Physical memory management
+#include <kernel/panic.h> // Kernel panicking
+#include <kernel/heap.h> // Kernel heap management.
+#include <kernel/terminal.h>
+#include <kernel/serial.h>
+#include <kernel/pmm.h> // Physical memory management
 
 
 

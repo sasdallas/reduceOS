@@ -3,7 +3,7 @@
 // This file handles setting up the Interrupt Descriptor Table (IDT)
 // =====================================================================
 
-#include "include/idt.h" // IDT header file
+#include <kernel/idt.h> // IDT header file
 
 extern void install_idt(uint32_t);
 

@@ -4,7 +4,7 @@
 #define CMDS_H
 
 // Includes
-#include "include/kernel.h" // Steal everything from the kernel includes file (very bad practice)
+#include <kernel/kernel.h> // Steal everything from the kernel includes file (very bad practice)
 
 // Functions
 // I'm too tired to put them here, gcc will deal with it

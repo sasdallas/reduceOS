@@ -4,9 +4,9 @@
 #define VESA_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/bios32.h" // BIOS32 calls (for switching)
-#include "include/bootinfo.h"
+#include <stdint.h> // Integer declarations
+#include <kernel/bios32.h> // BIOS32 calls (for switching)
+#include <kernel/bootinfo.h>
 
 // Typedefs
 

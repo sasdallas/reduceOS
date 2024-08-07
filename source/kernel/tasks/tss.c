@@ -3,7 +3,7 @@
 // =================================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/tss.h" // Task State Segment
+#include <kernel/tss.h> // Task State Segment
 
 tss_entry_t tss;
 

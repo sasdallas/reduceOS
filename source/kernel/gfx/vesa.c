@@ -8,7 +8,7 @@
 // These modes can correspond to different resolutions and colordepths
 // For more information, see https://wiki.osdev.org/Drawing_In_a_Linear_Framebuffer
 
-#include "include/vesa.h" // Main header file
+#include <kernel/vesa.h> // Main header file
 
 // Variables
 

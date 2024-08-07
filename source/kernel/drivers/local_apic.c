@@ -3,7 +3,7 @@
 // =======================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/local_apic.h" // Main header file
+#include <kernel/local_apic.h> // Main header file
 
 
 

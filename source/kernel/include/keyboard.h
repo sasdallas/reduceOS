@@ -5,14 +5,14 @@
 
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations like uint8_t, etc.
-#include "include/libc/string.h" // String functions
-#include "include/libc/stdbool.h" // Booleans
+#include <stdint.h> // Integer declarations like uint8_t, etc.
+#include <string.h> // String functions
+#include <stdbool.h> // Booleans
 
-#include "include/isr.h" // Interrupt Service Routines
-#include "include/terminal.h" // Terminal functions like printf.
-#include "include/panic.h" // Register declarations
-#include "include/heap.h" // Heap declarations (for allocating memory)
+#include <kernel/isr.h> // Interrupt Service Routines
+#include <kernel/terminal.h> // Terminal functions like printf.
+#include <kernel/panic.h> // Register declarations
+#include <kernel/heap.h> // Heap declarations (for allocating memory)
 
 // Definitions
 

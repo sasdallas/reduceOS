@@ -4,11 +4,11 @@
 #define PCI_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations.
+#include <stdint.h> // Integer declarations.
 
-#include "include/hal.h" // outportl and inportl
-#include "include/terminal.h" // printf
-#include "include/pci_vendors.h"
+#include <kernel/hal.h> // outportl and inportl
+#include <kernel/terminal.h> // printf
+#include <kernel/pci_vendors.h>
 
 // Definitions
 #define PCI_CONFIG_ADDR 0xCF8 // PCI_CONFIG_ADDR specifies the configuration address required to be accessed.

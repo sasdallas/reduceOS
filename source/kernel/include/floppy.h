@@ -4,9 +4,9 @@
 #define FLOPPY_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer definitions
-#include "include/hal.h" // Hardware Abstraction Layer
-#include "include/dma.h" // Direct Memory Addressing (floppies CAN use PIO mode to transfer, but its better to do ISA DMA)
+#include <stdint.h> // Integer definitions
+#include <kernel/hal.h> // Hardware Abstraction Layer
+#include <kernel/dma.h> // Direct Memory Addressing (floppies CAN use PIO mode to transfer, but its better to do ISA DMA)
 
 // Definitions (note: not gonna even bother with 5.25-inch drives, sticking with 3.5-inch)
 #define FLOPPY_HEADS 2

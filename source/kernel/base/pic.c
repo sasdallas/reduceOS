@@ -10,7 +10,7 @@
 // DO NOT USE - SEE IDT.C FOR TEMPORARY WORK AROUND
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#include "include/pic.h" // Main header file
+#include <kernel/pic.h> // Main header file
 
 
 // picSendCommand(uint8_t cmd, uint8_t picNum) - Send a command to a certain PIC

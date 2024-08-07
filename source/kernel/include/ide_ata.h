@@ -4,11 +4,11 @@
 #define IDE_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/hal.h" // Hardware abstraction layer
-#include "include/isr.h" // IRQ handling
-#include "include/vfs.h" // Virtual File System
-#include "include/libc/sleep.h" // Sleep function
+#include <stdint.h> // Integer declarations
+#include <kernel/hal.h> // Hardware abstraction layer
+#include <kernel/isr.h> // IRQ handling
+#include <kernel/vfs.h> // Virtual File System
+#include <sleep.h> // Sleep function
 
 
 // Definitions

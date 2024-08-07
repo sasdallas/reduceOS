@@ -1,6 +1,6 @@
 // tree.c - General purpose tree implementation, shouldn't even be in libc.
 
-#include "include/tree.h" // Main header file
+#include <kernel/tree.h> // Main header file
 
 // tree_create() - Create a new tree
 tree_t *tree_create() {

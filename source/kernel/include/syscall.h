@@ -4,8 +4,8 @@
 #define SYSCALL_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/isr.h" // Interrupt Service Routines
+#include <stdint.h> // Integer declarations
+#include <kernel/isr.h> // Interrupt Service Routines
 
 // Macros
 // See syscall.c for an explanation of why we need these macros.

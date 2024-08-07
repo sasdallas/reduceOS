@@ -1,9 +1,9 @@
 // fat.h - include file for FAT
 
-#include "include/libc/stdint.h" // Integer definitions (uint32_t, ...)
-#include "include/libc/string.h" // String functions
-#include "include/vfs.h" // Virtual File System
-#include "include/ide_ata.h" // IDE ATA driver
+#include <stdint.h> // Integer definitions (uint32_t, ...)
+#include <string.h> // String functions
+#include <kernel/vfs.h> // Virtual File System
+#include <kernel/ide_ata.h> // IDE ATA driver
 
 // Typedefs
 

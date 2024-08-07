@@ -4,40 +4,40 @@
 #define KERNEL_H
 
 // Includes
-#include "include/libc/stddef.h" // size_t declaration
-#include "include/libc/stdint.h" // Integer type declarations
-#include "include/libc/stdbool.h" // Boolean declarations
-#include "include/libc/string.h" // String functions
-#include "include/libc/limits.h" // Limits on integers and more.
-#include "include/libc/stdarg.h" // va argument handling (for ... on printf)
-#include "include/libc/va_list.h" // va_list declared here.
-#include "include/libc/assert.h" // Assertion macro
-#include "include/libc/udivdi3.h" // udivdi3
-#include "include/libc/sleep.h" // Sleeping
-#include "include/graphics.h" // Graphics handling
-#include "include/terminal.h" // Terminal handling
-#include "include/idt.h" // Interrupt Descriptor Table
-#include "include/gdt.h" // Global Descriptor Table
-#include "include/pic.h" // Programmable Interrupt Controller
-#include "include/pit.h" // Programmable Interval Timer
-#include "include/hal.h" // Hardware Abstraction Layer
-#include "include/keyboard.h" // Keyboard driver
-#include "include/panic.h" // Kernel panicking
-#include "include/bootinfo.h" // Boot information
-#include "include/command.h" // Command parser
-#include "include/pci.h" // PCI driver
-#include "include/serial.h" // Serial logging
-#include "include/initrd.h" // Initial ramdisk management.
-#include "include/vfs.h" // Virtual file system.
-#include "include/ide_ata.h" // ATA driver
-#include "include/rtc.h" // Real-time clock.
-#include "include/bios32.h" // BIOS32 calls
-#include "include/processor.h" // Procesor handler
-#include "include/vesa.h" // VESA VBE graphics driver
-#include "include/syscall.h" // System call
-#include "include/bitmap.h" // Bitmap image controls
-#include "include/CONFIG.h" // reduceOS configuration
-#include "include/floppy.h" // FDC driver
-#include "include/test.h" // Test command
+#include <stddef.h> // size_t declaration
+#include <stdint.h> // Integer type declarations
+#include <stdbool.h> // Boolean declarations
+#include <string.h> // String functions
+#include <limits.h> // Limits on integers and more.
+#include <stdarg.h> // va argument handling (for ... on printf)
+#include <va_list.h> // va_list declared here.
+#include <assert.h> // Assertion macro
+#include <udivdi3.h> // udivdi3
+#include <sleep.h> // Sleeping
+#include <kernel/graphics.h> // Graphics handling
+#include <kernel/terminal.h> // Terminal handling
+#include <kernel/idt.h> // Interrupt Descriptor Table
+#include <kernel/gdt.h> // Global Descriptor Table
+#include <kernel/pic.h> // Programmable Interrupt Controller
+#include <kernel/pit.h> // Programmable Interval Timer
+#include <kernel/hal.h> // Hardware Abstraction Layer
+#include <kernel/keyboard.h> // Keyboard driver
+#include <kernel/panic.h> // Kernel panicking
+#include <kernel/bootinfo.h> // Boot information
+#include <kernel/command.h> // Command parser
+#include <kernel/pci.h> // PCI driver
+#include <kernel/serial.h> // Serial logging
+#include <kernel/initrd.h> // Initial ramdisk management.
+#include <kernel/vfs.h> // Virtual file system.
+#include <kernel/ide_ata.h> // ATA driver
+#include <kernel/rtc.h> // Real-time clock.
+#include <kernel/bios32.h> // BIOS32 calls
+#include <kernel/processor.h> // Procesor handler
+#include <kernel/vesa.h> // VESA VBE graphics driver
+#include <kernel/syscall.h> // System call
+#include <kernel/bitmap.h> // Bitmap image controls
+#include <kernel/CONFIG.h> // reduceOS configuration
+#include <kernel/floppy.h> // FDC driver
+#include <kernel/test.h> // Test command
 
 #endif

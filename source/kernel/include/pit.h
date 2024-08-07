@@ -4,12 +4,12 @@
 #define PIT_H
 
 // Includes
-#include "include/idt.h" // Interrupt Descriptor Table
-#include "include/pic.h" // Programmable Interrupt Controller
-#include "include/hal.h" // Hardware Abstraction Layer
-#include "include/terminal.h" // Terminal output (printf)
-#include "include/isr.h" // Interrupt Service Routines
-#include "include/libc/stdint.h" // Integer declarations
+#include <kernel/idt.h> // Interrupt Descriptor Table
+#include <kernel/pic.h> // Programmable Interrupt Controller
+#include <kernel/hal.h> // Hardware Abstraction Layer
+#include <kernel/terminal.h> // Terminal output (printf)
+#include <kernel/isr.h> // Interrupt Service Routines
+#include <stdint.h> // Integer declarations
 
 // Definitions
 

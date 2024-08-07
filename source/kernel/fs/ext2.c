@@ -6,9 +6,9 @@
 
 
 
-#include "include/ext2.h" // Main header file
-#include "include/ide_ata.h" // IDE/ATA driver
-#include "include/vfs.h"
+#include <kernel/ext2.h> // Main header file
+#include <kernel/ide_ata.h> // IDE/ATA driver
+#include <kernel/vfs.h>
 
 // External variables
 extern ideDevice_t ideDevices[4];

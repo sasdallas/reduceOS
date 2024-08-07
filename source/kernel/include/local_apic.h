@@ -4,8 +4,8 @@
 #define LOCAL_APIC_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/hal.h" // Hardware abstraction layer
+#include <stdint.h> // Integer declarations
+#include <kernel/hal.h> // Hardware abstraction layer
 
 // Definitions
 #define LOCAL_APIC_ID 0x0020

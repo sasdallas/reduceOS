@@ -3,7 +3,7 @@
 // This file handles setting up the Programmable Interval Timer (PIT)
 // =====================================================================
 
-#include "include/pit.h" // Main header file
+#include <kernel/pit.h> // Main header file
 
 static volatile uint32_t pitTicks = 0; // Total PIT ticks
 static bool pit_isInit = false; // Is the PIT initialized?

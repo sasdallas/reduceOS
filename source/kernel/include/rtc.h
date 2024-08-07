@@ -4,8 +4,8 @@
 #define RTC_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer definitions
-#include "include/hal.h" // Hardware abstraction layer
+#include <stdint.h> // Integer definitions
+#include <kernel/hal.h> // Hardware abstraction layer
 
 // WARNING: The below is a user-created constant! This needs to change each year and cannot automatically update!
 #define RTC_CURRENT_YEAR 2023 // wooo 2023

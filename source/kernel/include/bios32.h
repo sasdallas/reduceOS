@@ -4,10 +4,10 @@
 #define BIOS32_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer definitions
-#include "include/gdt.h" // Global descriptor table
-#include "include/idt.h" // Interrupt descriptor table
-#include "include/regs.h" // Registers
+#include <stdint.h> // Integer definitions
+#include <kernel/gdt.h> // Global descriptor table
+#include <kernel/idt.h> // Interrupt descriptor table
+#include <kernel/regs.h> // Registers
 
 // External functions
 extern void BIOS32_START();

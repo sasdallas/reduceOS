@@ -4,7 +4,7 @@
 #define IO_APIC_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
+#include <stdint.h> // Integer declarations
 
 // Definitions
 

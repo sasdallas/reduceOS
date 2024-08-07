@@ -3,10 +3,10 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/stdbool.h" // Boolean declarations
-#include "include/libc/stddef.h" // size_t declaration
-#include "include/libc/string.h" // String functions
+#include <stdint.h> // Integer declarations
+#include <stdbool.h> // Boolean declarations
+#include <stddef.h> // size_t declaration
+#include <string.h> // String functions
 
 
 // Basic graphics definitions, like the video memory address

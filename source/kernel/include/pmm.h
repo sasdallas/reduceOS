@@ -4,11 +4,11 @@
 #define PMM_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/string.h" // String functions
-#include "include/heap.h" // kmalloc()
-#include "include/bootinfo.h" // Multiboot info
-#include "include/serial.h"
+#include <stdint.h> // Integer declarations
+#include <string.h> // String functions
+#include <kernel/heap.h> // kmalloc()
+#include <kernel/bootinfo.h> // Multiboot info
+#include <kernel/serial.h>
 
 // Variables
 extern uint32_t *frames;

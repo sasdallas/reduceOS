@@ -3,7 +3,7 @@
 // =========================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/ide_ata.h" // Main header file
+#include <kernel/ide_ata.h> // Main header file
 
 // What is IDE?
 // According to the OSDev wiki, IDE is a keyword which refers to the electrical specification of the cables which connect ATA drives (like hard drives) to another device. The drives use the ATA (Advanced Technology Attachment) interface. An IDE cable also can terminate at an IDE card connected to PCI.

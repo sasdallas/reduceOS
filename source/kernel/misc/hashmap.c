@@ -9,10 +9,13 @@
  */
 
 
-#include "include/libc/string.h"
-#include "include/libc/list.h"
-#include "include/hashmap.h"
-#include "include/mem.h"
+#include <string.h>
+#include <kernel/list.h>
+#include <kernel/hashmap.h>
+
+extern void kfree(void *);
+
+
 
 unsigned int hashmap_string_hash(const void * _key) {
 	unsigned int hash = 0;

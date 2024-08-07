@@ -6,7 +6,7 @@
 // Thank you!
 
 
-#include "include/vfs.h" // Main header file
+#include <kernel/vfs.h> // Main header file
 
 fsNode_t *fs_root = 0; // Root of the filesystem
 tree_t *fs_tree = NULL; // Mountpoint tree

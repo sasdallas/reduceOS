@@ -4,8 +4,8 @@
 #define EXT2_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/vfs.h"
+#include <stdint.h> // Integer declarations
+#include <kernel/vfs.h>
 
 // Typedefs
 

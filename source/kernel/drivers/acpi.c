@@ -3,7 +3,7 @@
 // =====================================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/acpi.h" // Main header file
+#include <kernel/acpi.h> // Main header file
 
 // Variables
 int ACPI_cpuCount = 0;

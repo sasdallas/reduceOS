@@ -1,8 +1,8 @@
 // hashmap.h - Authored by klange, I deserve no credit. License information in misc/hashmap.c
 
 #include <stddef.h>
-#include "include/libc/string.h"
-#include "include/list.h"
+#include <string.h>
+#include <kernel/list.h>
 
 
 typedef unsigned int (*hashmap_hash_t) (const void * key);

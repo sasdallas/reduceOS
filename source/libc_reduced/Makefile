@@ -12,7 +12,7 @@ PYTHON = python3 # Should expose this so the user can modify. Sorry!
 # Source directories
 
 # Other Directories
-OUT_OBJ = $(PROJECT_ROOT)/obj/libc_reduced/
+OUT_OBJ = $(PROJECT_ROOT)/obj/libc_reduced
 OUT_LIBRARY = . 
 
 # Directories (EDIT ME)
@@ -37,7 +37,7 @@ TARGET_DISABLED:
 
 
 
-libc_reduced.a: $(C_OBJS)
+libc_reduced.a: MAKE_OUTPUT_DIRS $(C_OBJS)
 	@echo "-- Building libc_reduced.a..."
 	$(AR) rcs $@ $(C_OBJS)
 
@@ -45,6 +45,7 @@ libc_reduced.a: $(C_OBJS)
 # Other targets for the Makefile
 
 MAKE_OUTPUT_DIRS:
+	@-$(MKDIR) $(OUT_OBJ)
 	@-$(MKDIR) $(DIRECTORIES)
 
 
@@ -68,10 +69,10 @@ install-headers:
 install: libc_reduced.a
 	@echo "-- Installing libc_reduced.a..."
 	mkdir -p $(DESTDIR)$(LIBDIR)
-	cp libc.a $(DESTDIR)$(LIBDIR)
+	cp libc_reduced.a $(DESTDIR)$(LIBDIR)
 
 # Clean function
 clean:
 	-$(RM) -rf $(DIRECTORIES)
 	-$(RM) $(OUT_ASMOBJ)/*.o
-	-$(RM) libc.a
+	-$(RM) libc_reduced.a

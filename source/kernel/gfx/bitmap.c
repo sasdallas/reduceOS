@@ -3,8 +3,8 @@
 // ==================================================
 // Written originally by szhou42, adapted into reduceOS. Credit to him.
 
-#include "include/bitmap.h" // Main header file
-#include "include/ext2.h"
+#include <kernel/bitmap.h> // Main header file
+#include <kernel/ext2.h>
 
 
 

@@ -3,7 +3,7 @@
 // ==========================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/font.h" // Main header file
+#include <kernel/font.h> // Main header file
 
 // PSF (as mentioned in the header file) stands for 'PC screen font', which is the font used by Linux for its console.
 // The font is encoded with its own header and in unicode

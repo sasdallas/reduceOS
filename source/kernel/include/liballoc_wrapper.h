@@ -3,10 +3,10 @@
 #define LIBALLOC_WRAPPER_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/spinlock.h" // Spinlocks
-#include "include/vmm.h" // VMM functions
-#include "include/vmm_pte.h" // Page structures
+#include <stdint.h> // Integer declarations
+#include <spinlock.h> // Spinlocks
+#include <kernel/vmm.h> // VMM functions
+#include <kernel/vmm_pte.h> // Page structures
 
 // Functions
 

@@ -4,9 +4,9 @@
 #define SERIAL_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/hal.h" // outportb() and inportb()
-#include "include/terminal.h" // printf_putchar function.
+#include <stdint.h> // Integer declarations
+#include <kernel/hal.h> // outportb() and inportb()
+#include <kernel/terminal.h> // printf_putchar function.
 
 // Definitions
 #define SERIAL_COM1 0x3F8

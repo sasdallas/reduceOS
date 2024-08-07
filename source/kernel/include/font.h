@@ -4,12 +4,12 @@
 #define FONT_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/limits.h" // Limits.
-#include "include/heap.h" // Allocation functions.
-#include "include/vesa.h" // VESA VBE drawing
-#include "include/font_data.h" // Font data
-#include "include/terminal.h"
+#include <stdint.h> // Integer declarations
+#include <limits.h> // Limits.
+#include <kernel/heap.h> // Allocation functions.
+#include <kernel/vesa.h> // VESA VBE drawing
+#include <kernel/font_data.h> // Font data
+#include <kernel/terminal.h>
 
 
 /* Note: PSF stands for 'PC Screen Font', the font used by Linux for its console */

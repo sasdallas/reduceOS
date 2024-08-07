@@ -1,17 +1,17 @@
 // test.c - Test command for reduceOS
 
-#include "include/test.h"
+#include <kernel/test.h>
 
-#include "include/libc/stdint.h" 
-#include "include/libc/string.h"
+#include <stdint.h> 
+#include <string.h>
 
-#include "include/fat.h"
-#include "include/serial.h"
-#include "include/terminal.h"
-#include "include/floppy.h"
-#include "include/ext2.h"
-#include "include/bitmap.h"
-#include "include/vfs.h"
+#include <kernel/fat.h>
+#include <kernel/serial.h>
+#include <kernel/terminal.h>
+#include <kernel/floppy.h>
+#include <kernel/ext2.h>
+#include <kernel/bitmap.h>
+#include <kernel/vfs.h>
 
 
 extern ideDevice_t ideDevices[4];

@@ -19,7 +19,7 @@ OUT_KERNEL = .
 ASM_SOURCE_DIR = assembly
 
 # Directories (EDIT ME)
-SOURCE_DIRECTORIES = kernel libc drivers base gfx fs mem tasks misc
+SOURCE_DIRECTORIES = kernel drivers base gfx fs mem tasks misc
 SOURCE_SUBDIRECTORIES = mem/liballoc # We do this because shell find will pick up anything in subdirectories twice
 DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES)) $(addprefix $(OUT_OBJ)/,$(SOURCE_SUBDIRECTORIES))
 
@@ -51,11 +51,11 @@ TARGET_DISABLED:
 
 $(OUT_KERNEL)/kernel_debug.elf:  MAKE_OUTPUT_DIRS DELETE_OLD_KERNEL_OBJ BUILDSCRIPTS_DEBUG PRINT_ASM_HEADER $(ASM_OBJS) PRINT_C_HEADER $(C_OBJS)
 	@echo "-- Linking $(OUT_KERNEL)/kernel.elf for DEBUG target..."
-	$(LD) $(LDFLAGS) -T linker.ld $(C_OBJS) $(ASM_OBJS) $(OUT_OBJ)/fonts/*.o -o kernel.elf $(LIBS) -lgcc
+	$(LD) $(LDFLAGS) -T linker.ld $(C_OBJS) $(ASM_OBJS) $(OUT_OBJ)/fonts/*.o -o kernel.elf $(LIBS)
 
 $(OUT_KERNEL)/kernel_release.elf:  MAKE_OUTPUT_DIRS DELETE_OLD_KERNEL_OBJ BUILDSCRIPTS_RELEASE PRINT_ASM_HEADER $(ASM_OBJS) PRINT_C_HEADER $(C_OBJS)
 	@echo "-- Linking $(OUT_KERNEL)/kernel.elf for RELEASE target..."
-	$(LD) $(LDFLAGS) -T linker.ld $(C_OBJS) $(ASM_OBJS) $(OUT_OBJ)/fonts/*.o -o kernel.elf $(LIBS) -lgcc
+	$(LD) $(LDFLAGS) -T linker.ld $(C_OBJS) $(ASM_OBJS) $(OUT_OBJ)/fonts/*.o -o kernel.elf $(LIBS)
 
 	@echo "-- Stripping debug symbols..."
 	objcopy --strip-debug kernel.elf
@@ -106,7 +106,7 @@ $(OUT_OBJ)/%.o: %.c Makefile
 
 
 $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o:
-	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
+	OBJ=`$(CC) $(CFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
 
 # Installation functions
 

@@ -4,10 +4,10 @@
 #define LIBALLOC_FORWARDER_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/string.h" // String functions
-#include "include/libc/assert.h"
-#include "include/vmm.h"
+#include <stdint.h> // Integer declarations
+#include <string.h> // String functions
+#include <assert.h>
+#include <kernel/vmm.h>
 
 // Macros
 #define ALIGN_PAGE(addr) (((uint32_t)addr & 0xFFFFF000) + 4096)

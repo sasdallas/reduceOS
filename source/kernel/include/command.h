@@ -4,10 +4,10 @@
 #define COMMAND_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/string.h" // String functions
-#include "include/heap.h" // Memory allocation functions
-#include "include/terminal.h" // printf()
+#include <stdint.h> // Integer declarations
+#include <string.h> // String functions
+#include <kernel/heap.h> // Memory allocation functions
+#include <kernel/terminal.h> // printf()
 
 // Typedefs
 typedef int command(int argc, char *args[]); // This is the command FUNCTION - the thing that is called on a command.

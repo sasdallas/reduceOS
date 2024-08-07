@@ -1,6 +1,6 @@
 // list.c - Simple list implementation, shouldn't be in libc but whatever
 
-#include "include/list.h" // Main header file
+#include <kernel/list.h> // Main header file
 
 // list_destroy(list_t *list) - Destroys the contents of a list
 void list_destroy(list_t *list) {

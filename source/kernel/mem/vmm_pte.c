@@ -4,7 +4,7 @@
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 // NOTICE: Paging file structure and design sourced from BrokenThorn Entertainment. MOST code is written by me, but PLEASE credit them!
 
-#include "include/vmm_pte.h" // Main header file
+#include <kernel/vmm_pte.h> // Main header file
 
 // Most of this file is just PTE helper functions.
 

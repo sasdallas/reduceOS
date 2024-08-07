@@ -5,7 +5,7 @@
 // This file is apart of the reduceOS C kernel. Please credit me if you use this code.
 
 
-#include "include/panic.h" // Main panic include file
+#include <kernel/panic.h> // Main panic include file
 
 typedef struct {
     struct stack_frame* ebp;

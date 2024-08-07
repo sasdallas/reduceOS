@@ -1,6 +1,6 @@
 // font_data.c - A small utility file containing some bitmap font data.
 
-#include "include/font_data.h"
+#include <kernel/font_data.h>
 
 // Sourced from: https://github.com/pritamzope/OS
 

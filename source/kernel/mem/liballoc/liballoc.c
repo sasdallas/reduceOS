@@ -1,4 +1,4 @@
-#include "include/liballoc.h"
+#include <kernel/liballoc.h>
 
 /**  Durand's Amazing Super Duper Memory functions.  */
 
@@ -49,7 +49,7 @@
 #define LIBALLOC_DEAD	0xdeaddead
 
 #if defined DEBUG || defined INFO
-#include "include/serial.h"
+#include <kernel/serial.h>
 
 #define FLUSH() asm ("nop")
 

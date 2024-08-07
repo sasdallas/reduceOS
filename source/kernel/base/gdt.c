@@ -5,7 +5,7 @@
 
 /* Developer note: When reduceOS switched to multiboot, I totally forgot about this file. I'm not sure if this is why paging is failing, but it would be pretty funny if so. */
 
-#include "include/gdt.h" // Main header file
+#include <kernel/gdt.h> // Main header file
 
 // Variable definitions
 gdtEntry_t gdtEntries[MAX_DESCRIPTORS];

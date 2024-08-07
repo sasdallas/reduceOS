@@ -6,9 +6,9 @@
 #define LIST_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/stddef.h" // size_t
-#include "include/mem.h" // Memory functions
+#include <stdint.h> // Integer declarations
+#include <stddef.h> // size_t
+#include <kernel/mem.h> // Memory functions
 
 // Typedefs
 typedef struct node { 

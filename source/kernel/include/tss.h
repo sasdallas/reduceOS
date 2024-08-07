@@ -4,8 +4,8 @@
 #define TSS_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer definitions
-#include "include/gdt.h"
+#include <stdint.h> // Integer definitions
+#include <kernel/gdt.h>
 
 
 // Typedefs

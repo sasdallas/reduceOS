@@ -4,11 +4,11 @@
 #define ACPI_H
 
 // Includes
-#include "include/libc/stdint.h" // Integer declarations.
-#include "include/local_apic.h" // Local APIC (different from ACPI)
-#include "include/io_apic.h" // IO APIC
-#include "include/libc/string.h" // Misc. functions
-#include "include/bios32.h" // BIOS32 functions
+#include <stdint.h> // Integer declarations.
+#include <kernel/local_apic.h> // Local APIC (different from ACPI)
+#include <kernel/io_apic.h> // IO APIC
+#include <string.h> // Misc. functions
+#include <kernel/bios32.h> // BIOS32 functions
 
 // Typedefs
 

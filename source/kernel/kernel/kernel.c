@@ -4,8 +4,8 @@
 // =====================================================================
 // This file is apart of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/kernel.h" // Kernel header file
-#include "include/cmds.h"
+#include <kernel/kernel.h> // Kernel header file
+#include <kernel/cmds.h>
 
 
 

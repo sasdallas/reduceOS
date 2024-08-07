@@ -3,7 +3,7 @@
 // ===================================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/terminal.h" // This header file contains variable declarations as not to clutter up the actual C code.
+#include <kernel/terminal.h> // This header file contains variable declarations as not to clutter up the actual C code.
 
 static char *shell = "\0"; // This will be used if we're handling typing - mainly used with backspace, to prevent deleting the prompt by accident. If this variable is \0, it will not be used.
 

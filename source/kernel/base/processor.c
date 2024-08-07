@@ -3,7 +3,7 @@
 // ======================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/processor.h" // Main header file
+#include <kernel/processor.h> // Main header file
 
 
 // Variables

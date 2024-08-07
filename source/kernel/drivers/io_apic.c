@@ -3,7 +3,7 @@
 // =======================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/io_apic.h" // Main header file
+#include <kernel/io_apic.h> // Main header file
 
 // (copy and pasted from local_apic.c)
 // First, what is the local APIC? Well, APIC stands for "Advanced Programmable Interrupt Controller", or a newer version of the 8259 PIC chip.

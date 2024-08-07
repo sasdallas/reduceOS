@@ -3,7 +3,7 @@
 // ================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
 
-#include "include/serial.h" // Main header file
+#include <kernel/serial.h> // Main header file
 
 // Variable declarations
 bool serialTestPassed = true; 

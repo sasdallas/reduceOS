@@ -3,7 +3,7 @@
 // =========================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/dma.h" // Main header file
+#include <kernel/dma.h> // Main header file
 
 // NOTE: This file is NOT for PCI Busmastering DMA, rather ISA DMA
 // Also, ISA DMA is pretty useless (OSDev wiki refers to it as the fitting "appendix of the PC")

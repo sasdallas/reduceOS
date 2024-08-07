@@ -3,7 +3,7 @@
 // ============================================================
 // Some code and concepts are from JamesM's kernel development tutorials.
 
-#include "include/initrd.h" // Main header file
+#include <kernel/initrd.h> // Main header file
 
 // First of all, what is an initial ramdisk?
 /* Well, an initial ramdisk is a filesystem that is loaded in to memory on boot.

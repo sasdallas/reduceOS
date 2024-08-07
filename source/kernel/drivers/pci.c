@@ -5,7 +5,7 @@
 
 // For more information on this topic, check https://wiki.osdev.org/PCI
 
-#include "include/pci.h" // Main header file
+#include <kernel/pci.h> // Main header file
 
 // TODO: Implement support for different header types, we always assume header type 0x0.
 

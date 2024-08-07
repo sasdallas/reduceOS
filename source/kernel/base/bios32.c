@@ -2,7 +2,7 @@
 // bios32.c - Handles real-mode interrupt calls in protected mode
 // ======================================================================
 
-#include "include/bios32.h" // Main header file
+#include <kernel/bios32.h> // Main header file
 
 idtPtr_t realModeGDT;
 idtPtr_t realModeIDT;

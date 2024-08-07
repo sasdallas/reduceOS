@@ -3,7 +3,7 @@
 // ============================================================
 // This file was written for the reduceOS C kernel. Please credit me if you use this code.
 
-#include "include/fat.h" // Main header file
+#include <kernel/fat.h> // Main header file
 
 // This driver is compatible with VFS standards but is missing writing functionality. That will be added later.
 // DO NOT USE ANY INTERNAL FUNCTIONS. USE THE VFS ONES.
