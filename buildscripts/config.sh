@@ -1,5 +1,5 @@
-SYSTEM_HEADER_PROJECTS="kernel"
-PROJECTS="fonts initial_ramdisk kernel"
+SYSTEM_HEADER_PROJECTS="libc_reduced kernel"
+PROJECTS="fonts initial_ramdisk libc_reduced  kernel"
 
 export MAKE=${MAKE:-make}
 export HOST=${HOST:-$($BUILDSCRIPTS_ROOT/default_host.sh)}

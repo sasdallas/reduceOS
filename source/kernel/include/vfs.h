@@ -9,7 +9,7 @@
 
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
-#include "include/libc/tree.h" // Mountpoint tree
+#include "include/tree.h" // Mountpoint tree
 #include "include/hashmap.h" // Mount hashmap
 
 

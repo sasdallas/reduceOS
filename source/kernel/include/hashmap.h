@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 #include "include/libc/string.h"
-#include "include/libc/list.h"
+#include "include/list.h"
 
 
 typedef unsigned int (*hashmap_hash_t) (const void * key);

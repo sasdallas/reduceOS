@@ -7,7 +7,7 @@
 // Includes
 #include "include/libc/stdint.h" // Integer declarations
 #include "include/libc/stddef.h" // size_t
-#include "include/libc/list.h" // List implementation
+#include "include/list.h" // List implementation
 #include "include/mem.h" // Memory allocation
 
 // Typedefs
