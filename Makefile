@@ -84,7 +84,7 @@ C_OBJS = $(patsubst $(KERNEL_SOURCE)/%.c, $(OUT_OBJ)/%.o, $(C_SRCS))
 
 
 # EDIT THIS WHEN NEW DIRECTORIES ARE ADDED (NOTE: assembly/ is handled separately)
-SOURCE_DIRECTORIES = kernel libc drivers base gfx fs mem tasks mem/liballoc
+SOURCE_DIRECTORIES = kernel libc drivers base gfx fs mem tasks mem/liballoc misc
 DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES))
 
 INITRD_SRCS = $(wildcard $(INITRD_SRC)/src/*.c)

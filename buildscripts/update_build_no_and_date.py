@@ -11,7 +11,13 @@ if sys.argv[1].lower() != "release" and sys.argv[1].lower() != "debug":
 
 print("You are currently building reduceOS as a " + str(sys.argv[1]) + " build.")
 
-with open("source/kernel/include/CONFIG.h", "r") as f:
+# Check if we're being called from the right directory
+path = "source/kernel/include/CONFIG.h"
+if not os.path.exists("source"):
+    print("source/ does not exist, assuming we're being called from kernel Makefile")
+    path = "include/CONFIG.h"
+
+with open(path, "r") as f:
     lines = f.readlines()
     f.close()
 
@@ -27,6 +33,6 @@ lines[12] = "#define BUILD_NUMBER \"" + str(build_no) + "\"\n"
 lines[13] = "#define BUILD_DATE \"" + build_date + "\"\n"
 lines[14] = "#define BUILD_CONFIGURATION \"" + sys.argv[1].upper() + "\"\n"
 
-with open("source/kernel/include/CONFIG.h", "w") as f:
+with open(path, "w") as f:
     f.write("".join(lines))
     f.close()

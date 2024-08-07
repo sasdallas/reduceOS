@@ -1,3 +1,1 @@
-These python scripts are run every build. They increment the current build number in CONFIG.h.
-
-NOTE: MODIFY THE CODE NAME IN CONFIG.H WHEN BUILDING!
+These scripts can be run by Makefiles to assist in the building process of anything.
