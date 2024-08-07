@@ -12,6 +12,7 @@
 SUPPORTED FILESYSTEMS:
     - FAT12
     - FAT16
+    - FAT32
 */
 
 // If you want a lot of the details about FAT, see https://wiki.osdev.org/FAT
@@ -807,6 +808,7 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
 
         // Create the VFS node and return it
         fsNode_t *ret = kmalloc(sizeof(fsNode_t));
+        ret->flags = VFS_DIRECTORY;
         ret->uid = ret->gid = ret->inode = ret->impl = ret->mask = 0;
         ret->open = &fatOpen;
         ret->close = &fatClose;
@@ -823,6 +825,18 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
     }
 
     return NULL;
+}
+
+struct dirent *fat_readdir(fsNode_t *node, uint32_t index) {
+    // Okay, so first thing we need to do is calculate the path.
+    // Because a user might try to list the root, and since root's name is FAT driver, that's not gonna happen
+
+    char *path = kmalloc(strlen(node->name));
+    if (!strcmp(path, "FAT driver")) strcpy(path, "/");
+    else strcpy(path, node->name);
+
+    // This is not going to be easy to implement.
+    // Not sure how I'm gonna do it while at least looking somewhat decent...
 }
 
 // (static) fat_tokenize(char *str, const char *sep, char **buf) - Wrapper to strtok_r, just here for compatibility with the impl. (Toaru)

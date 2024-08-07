@@ -454,7 +454,6 @@ fsNode_t *vfs_getMountpoint(char *path, unsigned int path_depth, char **outpath,
         if (at >= path) break; // We exceeded path, we're done.
 
         int found = 0;
-        serialPrintf("vfs_getMountpoint: Searching for %s...\n", at);
 
         foreach(child, node->children) {
             tree_node_t *tchild = (tree_node_t*)child->value;
@@ -545,8 +544,6 @@ fsNode_t *open_file_recursive(const char *filename, uint64_t flags, uint64_t sym
     // So we'll have to dig through the tree to find the file.
     unsigned int depth = 0;
     fsNode_t *nodePtr = vfs_getMountpoint(path, pathDepth, &pathOffset, &depth); // Get the mountpoint for the file
-
-    serialPrintf("open_file_recursive: path_offset %s - depth %d\n", pathOffset, depth);
 
     if (!nodePtr) return NULL; // Failed to find the file
 
