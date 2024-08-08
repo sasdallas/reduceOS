@@ -113,7 +113,7 @@ $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o:
 install-headers:
 	@echo "-- Installing kernel headers..."
 	-mkdir -p $(DESTDIR)$(INCLUDE_DIR)
-	cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDE_DIR)/.
+	cp -R --preserve=timestamps include/kernel/. $(DESTDIR)$(INCLUDE_DIR)/.
 
 install: $(OUT_KERNEL)/kernel_$(TARGET).elf
 	-mkdir -p $(DESTDIR)$(BOOT_OUTPUT)
