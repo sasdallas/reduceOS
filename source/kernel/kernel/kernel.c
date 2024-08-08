@@ -21,12 +21,74 @@ extern void switchToUserMode(); // User mode switch function
 
 
 
+int syscall0() {
+    printf("0 parameter - SUCCESS\n");
+    return 0;
+}
+
+int syscall1(int p1) {
+    if (p1 == 1) {
+        printf("1 parameter - SUCCESS\n");
+    }
+
+    return 1;
+}
+
+int syscall2(int p1, int p2) {
+    if (p1 == 1 && p2 == 2) {
+        printf("2 parameter - SUCCESS\n");
+    }
+
+    return 2;
+}
+
+int syscall3(int p1, int p2, int p3) {
+    if (p1 == 1 && p2 == 2 && p3 == 3) {
+        printf("3 parameter - SUCCESS\n");
+    }
+
+    return 3;
+}
+
+int syscall4(int p1, int p2, int p3, int p4) {
+    if (p1 == 1 && p2 == 2 && p3 == 3 && p4 == 4) {
+        printf("4 parameter - SUCCESS\n");
+    }
+
+    return 4;
+}
+
+int syscall5(int p1, int p2, int p3, int p4, int p5) {
+    if (p1 == 1 && p2 == 2 && p3 == 3 && p4 == 4 && p5 == 5) {
+        printf("5 parameter - SUCCESS\n");
+    }
+
+    return 5;
+}
+
+int syscall6(int p1, int p2, int p3, int p4, int p5, int p6) {
+    if (p1 == 1 && p2 == 2 && p3 == 3 && p4 == 4 && p5 == 5 && p6 == 6) {
+        printf("6 parameter - SUCCESS\n");
+    } else {
+        printf("6 parameter - CALLED BUT NOT SUCCESS (%i %i %i %i %i %i).\n", p1, p2, p3, p4, p5, p6);
+    }
+
+    return 6;
+}
+
 void usermodeMain() {
     printf("Hello, usermode world! printf() is working!\n");
-    
-    syscall_terminalWriteString("System calls are online!\n");
-    
-    syscall_terminalUpdateScreen();
+    int r1 = syscall_syscall0();
+    int r2 = syscall_syscall1(1);
+    int r3 = syscall_syscall2(1, 2);
+    int r4 = syscall_syscall3(1, 2, 3);
+    int r5 = syscall_syscall4(1, 2, 3, 4);
+    int r6 = syscall_syscall5(1, 2, 3, 4, 5);
+    int r7 = syscall_syscall6(1, 2, 3, 4, 5, 6);
+
+    if (r1 == 0 && r2 == 1 && r3 == 2 && r4 == 3 && r5 == 4 && r6 == 5 && r7 == 6) {
+        printf("All system calls are valid.\n");
+    }
 
     for (;;);
 }
@@ -184,7 +246,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("PIT started at 1000hz\n");
 
     
-    // Probe for PCI devices
+    // Probe for PCI devices (bugged on VBOX)
     updateBottomText("Probing PCI...");
     initPCI();
     serialPrintf("initPCI: PCI probe completed\n");
@@ -195,7 +257,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     
 
     
-    // Initialize the floppy drive
+    // Initialize the floppy drive (bugged on VBOX)
     floppy_init();
     serialPrintf("Initialized floppy drive successfully.\n");
 

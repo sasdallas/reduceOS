@@ -23,8 +23,21 @@ Then, you can run `make build iso` to build an ISO in `out/iso`.
 
 Run `make targets` to get a full list of targets.
 
+# System Filesystem Structure
+On build, the kernel and its libc will place their headers in `source/sysroot`. For the kernel, it will be under `sysroot/usr/include/kernel`, and for libc it will be under `sysroot/usr/include`.
+
+PSF files are placed under `sysroot/usr/fonts/`.
+
+The compiled `libc_reduced.a` is placed under `sysroot/usr/lib`, and this path is included in the compiler options for the kernel.
+
+The initial ramdisk and the kernel are placed under `sysroot/boot/`.
+
+Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesystem. 
+
 
 # Known Bugs
+- Kernel security is not being upheld with usermode as kernel pages are RW. Not good! (needs to be fixed in allocatePage)
+- VirtualBox builds of reduceOS do not work (PCI and FDC are the reason)
 - **Unsure:** initrd doesn't work on QEMU but does on GRUB??
 - **TODO:** ext2 driver needs deletion functions
 - A bitmap that is too large will crash the system

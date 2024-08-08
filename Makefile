@@ -1,4 +1,4 @@
-.PHONY: all targets clean build help buildkernel buildfonts iso qemu qemu_kernel qemu_dbg_gdb qemu_drive make_drive make_drive_blnk
+.PHONY: all targets clean build help buildkernel buildfonts updateheaders iso qemu qemu_kernel qemu_dbg_gdb qemu_drive make_drive make_drive_blnk
 
 export PROJECT_ROOT = $(CURDIR)
 export BUILDSCRIPTS_ROOT = $(PROJECT_ROOT)/buildscripts
@@ -12,6 +12,7 @@ targets:
 	@echo " buildinitrd		build the initial ramdisk module"
 	@echo " buildfonts		build the PSF objects for kernel (done by buildkernel)"
 	@echo " iso 			build an ISO "
+	@echo " updateheaders		installs headers for modules"
 	@echo " qemu			launch QEMU for the ISO file"
 	@echo " qemu_kernel		launch QEMU for the kernel/initrd files"
 	@echo " qemu_dbg_gdb 		launch QEMU with GDB waiting"
@@ -60,6 +61,13 @@ buildinitrd:
 buildfonts:
 	$(MAKE) headerlog header="Building module 'fonts', please wait..."
 	bash -c "$(BUILDSCRIPTS_ROOT)/build.sh fonts"
+
+
+# Header targets
+
+updateheaders:
+	$(MAKE) headerlog header="Updating headers, please wait..."
+	bash -c "$(BUILDSCRIPTS_ROOT)/install_headers.sh"
 
 
 
