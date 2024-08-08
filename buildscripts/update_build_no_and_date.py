@@ -15,7 +15,7 @@ print("You are currently building reduceOS as a " + str(sys.argv[1]) + " build."
 path = "source/kernel/include/kernel/CONFIG.h"
 if not os.path.exists("source"):
     print("source/ does not exist, assuming we're being called from kernel Makefile")
-    path = "include/CONFIG.h"
+    path = "include/kernel/CONFIG.h"
 
 with open(path, "r") as f:
     lines = f.readlines()
