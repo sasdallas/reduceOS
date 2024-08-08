@@ -12,7 +12,7 @@ if sys.argv[1].lower() != "release" and sys.argv[1].lower() != "debug":
 print("You are currently building reduceOS as a " + str(sys.argv[1]) + " build.")
 
 # Check if we're being called from the right directory
-path = "source/kernel/include/CONFIG.h"
+path = "source/kernel/include/kernel/CONFIG.h"
 if not os.path.exists("source"):
     print("source/ does not exist, assuming we're being called from kernel Makefile")
     path = "include/CONFIG.h"
