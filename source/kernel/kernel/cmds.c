@@ -142,10 +142,13 @@ int shutdown(int argc, char *args[]) {
 int getInitrdFiles(int argc, char *args[]) {
     int i = 0;
     struct dirent *node = 0;
-    while ((node = readDirectoryFilesystem(open_file("/dev/initrd", 0), i)) != 0)
+
+    fsNode_t *n = open_file((strcmp(fs_root->name, "initrd") ? "/dev/initrd" : "/"), 0);
+
+    while ((node = readDirectoryFilesystem(n, i)) != 0)
     {
         printf("Found file %s", node->name);
-        fsNode_t *fsNode = findDirectoryFilesystem(open_file("/dev/initrd", 0), node->name);
+        fsNode_t *fsNode = findDirectoryFilesystem(n, node->name);
 
         if ((fsNode->flags & 0x7 ) == VFS_DIRECTORY)
         {
@@ -472,7 +475,7 @@ int cat(int argc, char *args[]) {
         return -1;
     }
 
-    printf("%s", buffer);
+    printf("%s\n", buffer);
 
     kfree(buffer);
     kfree(file);

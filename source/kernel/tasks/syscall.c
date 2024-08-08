@@ -16,7 +16,7 @@ DECLARE_SYSCALL4(syscall4, 4, int, int, int, int);
 DECLARE_SYSCALL5(syscall5, 5, int, int, int, int, int);
 DECLARE_SYSCALL6(syscall6, 6, int, int, int, int, int, int);
 
-// List of system calls (TODO: This list sucks)
+// List of system calls
 void *syscalls[7] = {
     &syscall0,
     &syscall1,
@@ -27,8 +27,10 @@ void *syscalls[7] = {
     &syscall6
 };
 
-uint32_t syscallAmount = 7; // This sucks too
+uint32_t syscallAmount = 7;
 
+
+typedef int syscall_func(int p1, int p2, int p3, int p4, int p5, int p6);
 
 
 
@@ -56,10 +58,15 @@ void syscallHandler(registers_t *regs) {
 
     // Get the function.
     syscall_func *fn = syscalls[syscallNumber];
-   
-    // In this assembly code, we first push all the parameters/return variables, call the function, then pop them.
+
+    
+
+    
     int returnValue;
 
     // Call the system call from the table (TODO: >6 parameter system calls)
-    fn(regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
+    returnValue = fn(regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
+
+    // Set EAX to the return value
+    asm volatile ("mov %0, %%eax" :: "r"(returnValue));
 }

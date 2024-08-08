@@ -36,12 +36,14 @@ Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesy
 
 
 # Known Bugs
+- dev/ directory is not present when running `ls`
+- ATAPI drives cannot be read
+- **TODO:** DMA in IDE/ATA driver
+- **TODO:** System calls need a better interface(?)
 - Kernel security is not being upheld with usermode as kernel pages are RW. Not good! (needs to be fixed in allocatePage)
-- VirtualBox builds of reduceOS do not work (PCI and FDC are the reason)
-- **Unsure:** initrd doesn't work on QEMU but does on GRUB??
+- VirtualBox builds of reduceOS do not work (FDC is the reason)
 - **TODO:** ext2 driver needs deletion functions
 - A bitmap that is too large will crash the system
-- **Unsure:** System crashes multiple times when trying to detect VBE modes, but eventually gets it? Unsure if bug with QEMU or code (temporary fix: auto uses 1024*768)
 
 
 

@@ -13,9 +13,16 @@ int vbeTerminalForeground, vbeTerminalBackground;
 int terminalMode; // 0 signifies VGA mode, 1 signifies VESA VBE.
 int vbeWidth, vbeHeight;
 
+
 // initTerminal() - Load the terminal, setup the buffers, reset the values, etc.
 void initTerminal(void) {
     if (!terminalMode) {
+        // We're initializing the terminal for the first time
+        // Check to see if there's actually a monitor to display this to.
+        if (monitor_getVideoType() == VIDEO_TYPE_NONE || monitor_getVideoType() == VIDEO_TYPE_MONOCHROME) {
+            asm volatile ("hlt");
+        }
+
         terminalX = 0, terminalY = 0; // Reset terminal X and Y
         terminalColor = vgaColorEntry(COLOR_WHITE, COLOR_CYAN); // The terminal color will be white for the text and cyan for the BG on start.
         terminalBuffer = VIDEO_MEM; // Initialize the terminal buffer as VIDEO_MEM (0xB8000)

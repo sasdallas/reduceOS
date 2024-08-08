@@ -96,7 +96,12 @@ void serialInit() {
     outportb(SERIAL_COM1 + 4, 0x0B); // Enable IRQs, set RTS / DSR (RTS stands for "request to send" and DSR stands for "data set ready")
     
     // Test the serial port to make sure it works properly.
-    testSerial();
+    if (testSerial() == -1) {
+        printf("Failed to initialize serial logging.\n");
+        return;
+    }
 
     isSerialEnabled = true;
+    printf("Serial logging initialized on COM1\n");
+    serialPrintf("Serial logging started on COM1.\n");
 }

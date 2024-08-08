@@ -32,7 +32,8 @@
 			"list.h": "c",
 			"hashmap.h": "c",
 			"liballoc_forwarder.h": "c",
-			"vmm.h": "c"
+			"vmm.h": "c",
+			"idt.h": "c"
 		}
 	}
 }

@@ -158,8 +158,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("Loader magic: 0x%x\n\n", loader_magic);
     serialPrintf("Serial logging initialized!\n");
 
-    printf("Serial logging initialized on COM1.\n");
-
 
     if (loader_magic != 0x43D8C305) {
         serialPrintf("loader magic: 0x%x addr: 0x%x\n", loader_magic, addr);
@@ -173,10 +171,12 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
     // Now that initial ramdisk has loaded, we can initialize memory management
-    updateBottomText("Initializing physical memory manager...");
+    serialPrintf("Starting physical memory manager...\n");
     pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
 
+
     // Initialize the memory map
+    serialPrintf("Preparing memory map...\n");
     pmm_initializeMemoryMap(globalInfo);
     
 
@@ -193,6 +193,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     pmm_deinitRegion(0x000E0000, 0x000FFFFF-0x000E0000);
 
+
     updateBottomText("Initializing HAL...");
     cpuInit();
     printf("HAL initialization completed.\n");
@@ -206,6 +207,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("Initialized memory management successfully.\n");
 
 
+    
+
     // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit?
 
     
@@ -214,24 +217,31 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     uint32_t initrdEnd = *(uint32_t*)(globalInfo->m_modsAddr + 4);
     serialPrintf("GRUB did pass an initial ramdisk at 0x%x.\n", globalInfo->m_modsAddr);
 
+    // Deinitialize the ramdisk's region to prevent anything from using it.
+    pmm_deinitRegion(initrdLocation,  initrdEnd - initrdLocation + 8); // Adding 8 because some file contents get overwritten
+
     multiboot_mod_t *mod;
     int i;
     for (i = 0, mod = (multiboot_mod_t*)globalInfo->m_modsAddr; i < globalInfo->m_modsCount; i++, mod++) {
         serialPrintf("\tmod_start = 0x%x, mod_end = 0x%x, cmdline = %s\n", mod->mod_start, mod->mod_end, (char*)mod->cmdline);
+        
+
     }
 
 
-    // ONLY WORKS WHEN LOADING WITH GRUB. DOES NOT WORK ON QEMU.
-    //fsNode_t *initrd = initrdInit(initrdLocation);    
+    // Start the initial ramdisk
+    // Due to the new build system, the initial ramdisk should work using GRUB.
+    // IT DOES NOT WORK ON QEMU.
+    serialPrintf("kmain: Loading initial ramdisk...\n");
+    fsNode_t *initrd = initrdInit(initrdLocation);    
     printf("Initrd image initialized!\n");
-    serialPrintf("initrdInit: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
-    
+    serialPrintf("kmain: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
 
 
+
+    // Installs the GDT and IDT entries for BIOS32
     bios32_init();
     serialPrintf("bios32 initialized successfully!\n");
-    
-
     
     // Initialize Keyboard 
     updateBottomText("Initializing keyboard...");
@@ -246,7 +256,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("PIT started at 1000hz\n");
 
     
-    // Probe for PCI devices (bugged on VBOX)
+    // Probe for PCI devices
     updateBottomText("Probing PCI...");
     initPCI();
     serialPrintf("initPCI: PCI probe completed\n");
@@ -257,7 +267,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     
 
     
-    // Initialize the floppy drive (bugged on VBOX)
+    // Initialize the floppy drive
     floppy_init();
     serialPrintf("Initialized floppy drive successfully.\n");
 
@@ -266,10 +276,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // DEFINITELY sketchy! What's going on with this system? 
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
-    
-    // Calculate the initial ramdisk location in memory (panic if it's not there)
-    
-    
 
     // Initialize the IDE controller.
     updateBottomText("Initializing IDE controller...");
@@ -313,6 +319,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Then, we need to map the /dev/ directory
     vfs_mapDirectory("/dev");
 
+    // We can mount the initial ramdisk at /dev/initrd
+    // vfsMount("/dev/initrd", initrd);
+
     // Now, we can iterate through each IDE node, mount them to the dev directory, and try to use them as root if needed
     bool rootMounted = false;
     for (int i = 0; i < 4; i++) {
@@ -344,6 +353,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // The user can use the mount_fat command to mount the FAT driver.
     if (rootMounted) ext2_root = open_file("/", 0);
 
+    // If the user did not mount a drive, remount initial ramdisk to /.
+    if (!rootMounted) vfsMount("/", initrd);
+    else vfsMount("/dev/initrd", initrd);
 
     
     uint8_t seconds, minutes, hours, days, months;
@@ -412,7 +424,7 @@ void useCommands() {
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
-    if (!fs_root) printf("WARNING: No root filesystem is mounted.\n");
+    if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
     enableShell("reduceOS /> "); // Enable a boundary (our prompt)
 
     while (true) {

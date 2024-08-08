@@ -96,3 +96,10 @@ size_t msb(size_t i)
 	return ret;
 }
 
+
+// unsigned short hal_getBIOSArea(unsigned short offset) - Returns the value at the offset in the BDA
+unsigned short hal_getBIOSArea(unsigned short offset) {
+    if (HAL_BDA_START + offset > HAL_BDA_END) return 0x0;
+    const uint16_t *bda_area = (const uint16_t*)(HAL_BDA_START + offset);
+    return *bda_area;
+}
