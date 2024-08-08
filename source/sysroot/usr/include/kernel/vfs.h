@@ -47,6 +47,8 @@ typedef struct fsNode * (*finddir_t)(struct fsNode*, char *name);
 typedef void (*create_t) (struct vfs_node *, char *name, uint16_t permission);
 typedef void (*mkdir_t) (struct vfs_node *, char *name, uint16_t permission);
 
+typedef int (*unlink_t) (struct vfs_node *, char *name);
+
 
 // Actual typedef structures.
 typedef struct {
@@ -67,8 +69,9 @@ typedef struct {
     finddir_t finddir;  // Finddir function
     create_t create;    // Create function
     mkdir_t mkdir;      // Make directory function.
+    unlink_t unlink;    // Unlink function (deletion)
     struct fsNode *ptr; // Used by mountpoints and symlinks.
-    struct fsNode *device;   // Pointer to the device needed
+    struct fsNode *device;   // Pointer to the device needed (unused mostly)
 } fsNode_t;
 
 // Hashmap callback

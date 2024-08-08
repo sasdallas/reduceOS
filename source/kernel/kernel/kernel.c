@@ -416,6 +416,7 @@ void useCommands() {
     registerCommand("pwd", (command*)pwd);
     registerCommand("bitmap", (command*)show_bitmap);
     registerCommand("edit", (command*)edit);
+    registerCommand("rm", (command*)rm);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");

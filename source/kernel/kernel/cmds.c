@@ -743,3 +743,13 @@ int mountFAT(int argc, char *args[]) {
 
     return 0;
 }
+
+
+int rm(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: rm <file>\n");
+        return -1;
+    }
+
+    unlinkFilesystem(args[1]);
+}

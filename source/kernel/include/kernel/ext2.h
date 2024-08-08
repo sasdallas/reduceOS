@@ -221,6 +221,7 @@ typedef struct ext2 {
 #define BLOCKBIT(n)  (bg_buffer[((n) >> 3)] & (1 << (((n) % 8))))
 #define BLOCKBYTE(n) (bg_buffer[((n) >> 3)])
 #define SETBIT(n)    (1 << (((n) % 8)))
+#define CLEARBIT(n)  ~(1 << (((n) % 8)))
 
 
 // Functions
@@ -244,6 +245,6 @@ void ext2_freeInode(ext2_t *fs, uint32_t inode); // Frees an inode from the inod
 fsNode_t *ext2_finddir(fsNode_t *node, char *name); // Returns NULL if file exists, and the node for the file if it does
 int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNode_t *ret);
 int ext2_install(int argc, char *argv[]); // Installs the EXT2 filesystem driver to automatically initialize when a disk is detected
-
+int ext2_unlink(fsNode_t *file, char *name); // Unlinks/deletes a file
 
 #endif

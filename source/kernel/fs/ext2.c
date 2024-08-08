@@ -387,9 +387,18 @@ void ext2_refreshInode(ext2_t *fs, ext2_inode_t *inodet, uint32_t inode) {
 
     ext2_inode_t *inoder = (ext2_inode_t*)buffer;
 
+    // QUICK FIX: Disables reading the inode if deletion time is non-zero.
+    ext2_inode_t *inoderet = kmalloc(fs->superblock->extension.inode_struct_size);
+    memcpy(inoderet, (uint8_t*)((uintptr_t)inoder + offsetInBlock * fs->superblock->extension.inode_struct_size), fs->superblock->extension.inode_struct_size);
 
-    memcpy(inodet, (uint8_t*)((uintptr_t)inoder + offsetInBlock * fs->superblock->extension.inode_struct_size), fs->superblock->extension.inode_struct_size);
+    if (inoderet->deletion_time != 0) {
+        serialPrintf("ext2_refreshInode: Deletion time is %i, refusing to read.\n", inoderet->deletion_time);
+        kfree(buffer);
+        return;
+    }
 
+
+    memcpy(inodet, inoderet, fs->superblock->extension.inode_struct_size);
     kfree(buffer);
 }
 
@@ -578,7 +587,7 @@ uint32_t ext2_allocateInode(ext2_t *fs) {
     }
 
     BLOCKBYTE(nodeOffset) |= SETBIT(nodeOffset);
-
+    
 
     ext2_writeBlock(fs, (fs->bgd_list[group].inode_usage_bitmap), (uint8_t*)bg_buffer);
     if (fs->block_size == 4096) ext2_writeBlock(fs, (fs->bgd_list[group].inode_usage_bitmap + 1), (uint8_t*)bg_buffer + fs->block_size);
@@ -596,25 +605,40 @@ uint32_t ext2_allocateInode(ext2_t *fs) {
 
 // ext2_freeInode(ext2_t *fs, uint32_t inode) - Frees an inode from the inode bitmap
 void ext2_freeInode(ext2_t *fs, uint32_t inode) {
-    uint32_t *buffer = kmalloc(fs->block_size);
+    if (inode <= 10) {
+        serialPrintf("ext2_freeInode: Cannot free a reserved inode.\n");
+        return;
+    }
 
-    // Calculate the group, subbitmap, and the index in the sub bitmap the inode is in
-    uint32_t group = inode / fs->inodes_per_group;
-    uint32_t subbitmap = (inode - (fs->inodes_per_group * group)) / 4;
-    uint32_t index = (inode - (fs->inodes_per_group * group)) % 4;
+    uint8_t *bg_buffer = kmalloc(fs->block_size * 2);
 
-    // Read in the bitmap
-    uint32_t bitmapBlock = fs->bgd_list[group].inode_usage_bitmap;
-    ext2_readBlock(fs, bitmapBlock, (uint8_t*)buffer);
+    uint32_t group = (inode-1) / fs->inodes_per_group;
+    
+    // Make sure to do bg_buffer block sizes fix
+    memset(bg_buffer, 0xFF, fs->block_size * 2);
+    if (fs->block_size == 4096) {
+        ext2_readBlock(fs, fs->bgd_list[group].inode_usage_bitmap, (uint8_t*)bg_buffer);
+        ext2_readBlock(fs, fs->bgd_list[group].inode_usage_bitmap + 1, (uint8_t*)bg_buffer + 4096);
+    } else {
+        ext2_readBlock(fs, fs->bgd_list[group].inode_usage_bitmap, (uint8_t*)bg_buffer);
+    }
 
-    // Mask out the inode and write it back to the bitmap
-    uint32_t mask = ~(0x1 << index);
-    buffer[subbitmap] = buffer[subbitmap] & mask;
-    ext2_writeBlock(fs, bitmapBlock, (uint8_t*)buffer);
+    serialPrintf("deallocating at index %i\n", inode);
+    if (BLOCKBIT(inode-1)) {
+        serialPrintf("inode %i is allocated, deallocating..\n", inode);
+        BLOCKBYTE(inode-1) &= CLEARBIT(inode-1);
+    } else {
+        panic("ext2", "ext2_freeInode", "Cannot free inode if it is already free");
+    }
 
-    // Update free inodes
+    ext2_writeBlock(fs, fs->bgd_list[group].inode_usage_bitmap, (uint8_t*)bg_buffer);
+    if (fs->block_size == 4096) ext2_writeBlock(fs, (fs->bgd_list[group].inode_usage_bitmap + 1), (uint8_t*)bg_buffer + fs->block_size);
+
     fs->bgd_list[group].unallocated_inodes++;
     ext2_rewriteBGDs(fs);
+
+    fs->superblock->total_unallocated_inodes++;
+    ext2_writeSuperBlock(fs);
 }
 
 
@@ -772,7 +796,7 @@ static int ext2_createEntry(fsNode_t *parent, char *name, uint32_t inode) {
             serialPrintf("ext2_createEntry: Set previous node entry size to %i\n", s_entrySize);
         }
     } else if (modifyOrReplace == 2) {
-        serialPrintf("ext2_createEntryThe last node in the list is a fake node, will replace it.\n");
+        serialPrintf("ext2_createEntry: The last node in the list is a fake node, will replace it.\n");
     }
 
     ext2_dirent_t *dent = (ext2_dirent_t*)((uintptr_t)block + dirOffset);
@@ -990,6 +1014,7 @@ struct dirent *ext2_readdir(fsNode_t *node, uint32_t index) {
     ext2_t *fs = (ext2_t*)node->impl_struct;
 
     ext2_inode_t *inode = ext2_readInodeMetadata(fs, node->inode);
+    
 
     ext2_dirent_t *direntry = ext2_direntry(fs, inode, node->inode, index);
     if (direntry == NULL) {
@@ -1002,6 +1027,15 @@ struct dirent *ext2_readdir(fsNode_t *node, uint32_t index) {
     memcpy(&dirent->name, &direntry->name, direntry->name_length);
     dirent->name[direntry->name_length] = 0;
     dirent->ino = direntry->inode;
+
+    // this is bad
+    ext2_inode_t *inodechk = ext2_readInodeMetadata(fs, dirent->ino);
+    if (inodechk->deletion_time != 0 || inodechk->permissions == 0x0) {
+        kfree(inodechk);
+        kfree(dirent);
+        return NULL;
+    }
+
     kfree(direntry);
     kfree(inode);
 
@@ -1073,6 +1107,13 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name) {
 
 
     inode = ext2_readInodeMetadata(fs, dirent->inode);
+
+    // Make sure the inode wasn't deleted
+    if (inode->deletion_time != 0 || inode->permissions == 0x0) {
+        kfree(dirent);
+        kfree(inode);
+        return NULL;
+    }
 
     // Get the file's node
     fsNode_t *ret = kmalloc(sizeof(fsNode_t));
@@ -1165,6 +1206,109 @@ int ext2_close(fsNode_t *file) {
     return 0;
 }
 
+void ext2_deleteInode(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNumber) {
+    // Here's what we need to do:
+    // (1) Iterate through each block given to the inode and free it (updating BGDs)
+    // (2) Set dtime on the inode
+    // (3) Free the inode in the bitmap
+
+    uint32_t endBlock = inode->size / fs->block_size;
+    uint32_t endSize = end - endBlock * fs->block_size;
+
+    if (endBlock == 0) {
+        ext2_freeInodeBlock(fs, inode, inodeNumber, 0);
+    } else {
+        uint32_t blockOffset;
+
+        for (blockOffset = 0; blockOffset < endBlock; blockOffset++) {
+            ext2_freeInodeBlock(fs, inode, inodeNumber, blockOffset);
+        }
+        
+        if (endSize) {
+            ext2_freeInodeBlock(fs, inode, inodeNumber, endBlock);
+        }
+    }
+
+
+    // Done freeing the blocks, now we should actually delete the inode
+
+    inode->deletion_time = 1; // Signifies that we did delete it
+    ext2_writeInodeMetadata(fs, inode, inodeNumber);
+    //ext2_freeInode(fs, inodeNumber); // Mark the inode as free
+}
+
+// ext2_unlink(fsNode_t *file, char *name) - VFS node unlink function (sort of like delete)
+int ext2_unlink(fsNode_t *file, char *name) {
+    ext2_t *fs = (ext2_t*)file->impl_struct;
+
+    ext2_inode_t *inode = ext2_readInodeMetadata(fs, file->inode);
+    uint8_t *block = kmalloc(fs->block_size);
+    ext2_dirent_t *direntry = NULL;
+    uint8_t blockNumber = 0;
+    ext2_readInodeBlock(fs, inode, blockNumber, block);
+    uint32_t dirOffset = 0;
+    uint32_t totalOffset = 0;
+
+    while (totalOffset < inode->size) {
+        // We're trying to find name in file (because file should be a directory)
+        if (dirOffset >= fs->block_size) {
+            // Spanning past block size, read in another.
+            blockNumber++;
+            dirOffset -= fs->block_size;
+            ext2_readInodeBlock(fs, inode, blockNumber, block);
+        }
+
+        ext2_dirent_t *dent = (ext2_dirent_t*)((uintptr_t)block + dirOffset);
+
+        if (dent->inode == 0 || strlen(name) != dent->name_length) {
+            dirOffset += dent->entry_size;
+            totalOffset += dent->entry_size;
+            continue;
+        }
+
+        char *dname = kmalloc(sizeof(char) * (dent->name_length + 1));
+        memcpy(dname, &(dent->name), dent->name_length);
+        dname[dent->name_length] = 0;
+
+        if (!strcmp(dname, name)) {
+            kfree(dname);
+            direntry = dent;
+            break;
+        }
+
+        kfree(dname);
+
+        dirOffset += dent->entry_size;
+        totalOffset += dent->entry_size;
+    }
+
+    if (!direntry) {
+        kfree(inode);
+        kfree(block);
+        return -1;
+    }
+
+    unsigned int new_inode = direntry->inode;
+    ext2_writeInodeBlock(fs, inode, file->inode, blockNumber, block);
+    kfree(inode);
+    kfree(block);
+
+    inode = ext2_readInodeMetadata(fs, new_inode);
+
+    if (inode->hard_links == 1) {
+        ext2_deleteInode(fs, inode, new_inode);
+        serialPrintf("ext2_unlink: Deleted inode at %i\n", new_inode);
+    }
+
+
+    if (inode->hard_links > 0) {
+        inode->hard_links--;
+        ext2_writeInodeMetadata(fs, inode, new_inode);
+    }
+
+}
+
+
 // ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) - Returns the VFS node for the driver
 fsNode_t *ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) {
     fsNode_t *node = pmm_allocateBlocks(sizeof(fsNode_t));
@@ -1205,11 +1349,13 @@ fsNode_t *ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) {
     node->create = ext2_create;
     node->readdir = ext2_readdir;
     node->finddir = ext2_finddir;
+    node->unlink = ext2_unlink;
 
     strcpy(node->name, "EXT2 driver");
     
     return node;
 }
+
 
 
 // ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNode_t *ret) - Convert a dirent to a fsNode
@@ -1240,6 +1386,7 @@ int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNo
         ret->finddir = NULL;
         ret->readdir = NULL;
         ret->mkdir = NULL;
+        ret->unlink = NULL;
     } else if ((inode->permissions & EXT2_INODE_DIRECTORY) == EXT2_INODE_DIRECTORY) {
         ret->flags = VFS_DIRECTORY;
         ret->open = NULL;
@@ -1250,6 +1397,9 @@ int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNo
         ret->finddir = ext2_finddir;
         ret->readdir = ext2_readdir;
         ret->mkdir = ext2_mkdir;
+        ret->unlink = ext2_unlink;
+    } else if (inode->permissions == 0x0) {
+        ret->flags = -1;
     } else {
         serialPrintf("ext2_fileToNode: Attempt to use unimplemented type 0x%x\n", inode->permissions);
         return -1;

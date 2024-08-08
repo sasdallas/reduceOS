@@ -37,6 +37,7 @@ int mkdir(int argc, char *args[]);
 int pwd(int argc, char *args[]);
 int show_bitmap(int argc, char *args[]);
 int edit(int argc, char *args[]);
+int rm(int argc, char *args[]);
 
 
 
