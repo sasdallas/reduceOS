@@ -12,6 +12,7 @@
 #include <kernel/ext2.h>
 #include <kernel/bitmap.h>
 #include <kernel/vfs.h>
+#include <kernel/processor.h>
 
 
 extern ideDevice_t ideDevices[4];
@@ -1280,6 +1281,20 @@ int badapple_test() {
     return 0;
 }
 
+int cpu_tests() {
+    cpuInfo_t cpu = getCPUProcessorData();
+    printf("\tCPU vendor data: %s\n", getCPUVendorData());
+    printf("\tCPU frequency: %i Hz\n", getCPUFrequency());
+    printf("\tFPU support (CPUID): %i\n", cpu.fpuEnabled);
+
+    if (cpu.fpuEnabled == 1) {
+        float f = 2.430;
+        printf("\tFPU test (should be 2.43): %f", f);
+    }
+
+    return 0;
+}
+
 
 
 
@@ -1337,6 +1352,11 @@ int test(int argc, char *args[]) {
 
         if (badapple_test() == 0) printf("finished\n");
         else printf("=== TESTS FAILED ===\n");
+    } else if (!strcmp(args[1], "cpu")) {
+        printf("=== TESTING PROCESSOR ===\n");
+
+        if (cpu_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
     } else if (!strcmp(args[1], "vfs")) {
         printf("=== TESTING VFS ===\n");
 
@@ -1344,7 +1364,7 @@ int test(int argc, char *args[]) {
         else printf("=== TESTS FAILED ===\n");
     } else {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, bitmap\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, bitmap, badapple, cpu\n");
     }
 
     return 0;

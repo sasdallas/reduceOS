@@ -35,6 +35,9 @@ typedef struct {
     int ssse3_support; // SSSE3 Support (Supplemental Streaming SIMD Extensions)
     int sse4_support; // SSE4 support
     sseData_t sse5_Data; // SSE5 data
+
+    // FPU support
+    int fpuEnabled;
 } cpuInfo_t;
 
 
@@ -44,5 +47,6 @@ void cpuInit(); // Initializes the CPU with ISR, IDT, and GDT
 uint32_t getCPUFrequency(); // Returns the CPU frequency (todo: create processor.c).
 bool isCPULongModeCapable(); // Returns if the CPU is 64-bit capable
 char *getCPUVendorData(); // Returns CPU vendor data
+cpuInfo_t getCPUProcessorData();
 
 #endif

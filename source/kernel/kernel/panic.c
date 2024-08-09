@@ -109,8 +109,7 @@ void *panic(char *caller, char *code, char *reason) {
     serialPrintf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
 
 
-    // TODO: Add debug symbols into the initrd so we get function names.
-    stackTrace(5); // Get a stack trace.
+    stackTrace(7); // Get a stack trace.
 
     asm volatile ("hlt");
     for (;;);
@@ -165,7 +164,7 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
     // Perform stack trace
-    stackTrace(5);
+    stackTrace(7);
 
     asm volatile ("hlt");
     for (;;);
@@ -233,7 +232,7 @@ void *pageFault(registers_t *reg) {
     serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
 
-    stackTrace(5);
+    stackTrace(7);
 
 
     asm volatile ("hlt");

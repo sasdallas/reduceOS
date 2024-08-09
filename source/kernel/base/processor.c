@@ -44,12 +44,17 @@ void cpuInit() {
 	// SSE Support Checking
 	cpuCheckSSE();
 
+	// Initialize the FPU
+	int fpu = fpu_init();
+	processor_data.fpuEnabled = (fpu == 0) ? 1 : 0;
+
 
 	// Print a summary
 	// Now print a little summary
 	serialPrintf("======== CPU Data Collection Summary ========\n");
 	serialPrintf("- CPU VENDOR ID: %s\n", processor_data.vendor);
-	serialPrintf("- Long Mode (x64) support: %i\n\n", processor_data.long_mode_capable);
+	serialPrintf("- Long Mode (x64) support: %i\n", processor_data.long_mode_capable);
+	serialPrintf("- FPU support: %s\n\n", (fpu == 0) ? "YES": "NO");
 
 	serialPrintf("== SSE Data Collection Summary ==\n");
 	serialPrintf("SSE support: %s\n", processor_data.sse_support ? "YES" : "NO");
@@ -167,4 +172,8 @@ char *getCPUVendorData() {
 
 bool isCPULongModeCapable() {
 	return processor_data.long_mode_capable ? true : false;
+}
+
+cpuInfo_t getCPUProcessorData() {
+	return processor_data;
 }

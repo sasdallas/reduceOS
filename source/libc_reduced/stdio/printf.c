@@ -317,6 +317,64 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 					written += print_dec(val, arg_width, callback, userData, fill_zero, align, precision);
 				}
 				break;
+			case 'G':
+			case 'F':
+			case 'g':
+			case 'f':
+				{
+					if (precision == -1) precision = 8; // To 8 decimal points
+					double val = (double)va_arg(args, double);
+					uint64_t asBits;
+					memcpy(&asBits, &val, sizeof(double));
+#define SIGNBIT(d) (d & 0x8000000000000000UL)
+
+					/* Extract exponent */
+					int64_t exponent = (asBits & 0x7ff0000000000000UL) >> 52;
+
+					/* Fraction part */
+					uint64_t fraction = (asBits & 0x000fffffffffffffUL);
+
+					if (exponent == 0x7ff) {
+						if (!fraction) {
+							if (SIGNBIT(asBits)) OUT('-');
+							OUT('i');
+							OUT('n');
+							OUT('f');
+						} else {
+							OUT('n');
+							OUT('a');
+							OUT('n');
+						}
+						break;
+					} else if ((*f == 'g' || *f == 'G') && exponent == 0 && fraction == 0) {
+						if (SIGNBIT(asBits)) OUT('-');
+						OUT('0');
+						break;
+					}
+
+					/* Okay, now we can do some real work... */
+
+					int isNegative = !!SIGNBIT(asBits);
+					if (isNegative) {
+						OUT('-');
+						val = -val;
+					}
+
+					written += print_dec((unsigned long long)val, arg_width, callback, userData, fill_zero, align, 1);
+					OUT('.');
+					for (int j = 0; j < ((precision > -1 && precision < 16) ? precision : 16); ++j) {
+						if ((unsigned long long)(val * 100000.0) % 100000 == 0 && j != 0) break;
+						val = val - (unsigned long long)val;
+						val *= 10.0;
+						double roundy = ((double)(val - (unsigned long long)val) - 0.99999);
+						if (roundy < 0.00001 && roundy > -0.00001 && ((unsigned long long)(val) % 10) != 9) {
+							written += print_dec((unsigned long long)(val) % 10 + 1, 0, callback, userData, 0, 0, 1);
+							break;
+						}
+						written += print_dec((unsigned long long)(val) % 10, 0, callback, userData, 0, 0, 1);
+					}
+				}
+				break;
 			case '%': /* Escape */
 				OUT('%');
 				break;

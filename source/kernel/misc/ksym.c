@@ -62,6 +62,8 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
                 serialPrintf("ksym_bind_symbols: i = %i / %i, symbuf_idx = %i\n", i, symbolTable->length, symbuf_idx);
                 panic("ksym", "ksym_bind_symbols", "Detected overflow in symbuf_idx");
             }
+
+            if (i > strlen(symbolTable->length)) break;
         }
 
         // Sometimes things happen.
@@ -119,7 +121,6 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
         symbuf_idx = 0;
         *symbuf++; // Increment symbuf to prevent infinite loop
 
-        serialPrintf("Loaded symbol at %s (address 0x%x)\n", symname, addr);
     }
 
     debug_symbols_populated = true;
