@@ -307,21 +307,23 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     fat_install(0, NULL);
     ide_install(0, NULL);
 
-    // Then, we need to map the /dev/ directory
-    vfs_mapDirectory("/dev");
+    // Then, we need to map the /device/ directory
+    vfs_mapDirectory("/device");
 
-    // We can mount the initial ramdisk at /dev/initrd
-    // vfsMount("/dev/initrd", initrd);
+    // Mount the other devices
+    nulldev_init();             // /device/null
+    zerodev_init();             // /device/zero
+
 
     // Now, we can iterate through each IDE node, mount them to the dev directory, and try to use them as root if needed
     bool rootMounted = false;
     for (int i = 0; i < 4; i++) {
         fsNode_t *ideNode = ideGetVFSNode(i);
 
-        // First, we'll mount this device to /dev/idex
-        char *name = kmalloc(sizeof(char) * (strlen("/dev/ide")  + 1));
-        strcpy(name, "/dev/ide");
-        itoa(i, name + strlen("/dev/ide"), 10);
+        // First, we'll mount this device to /device/idex
+        char *name = kmalloc(sizeof(char) * (strlen("/device/ide")  + 1));
+        strcpy(name, "/device/ide");
+        itoa(i, name + strlen("/device/ide"), 10);
     
         
         vfsMount(name, ideGetVFSNode(i));
@@ -350,8 +352,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         vfsMount("/", initrd);
         debugsymbols = open_file("/kernel.map", 0);
     } else {
-        vfsMount("/dev/initrd", initrd);
-        debugsymbols = open_file("/dev/initrd/kernel.map", 0);
+        vfsMount("/device/initrd", initrd);
+        debugsymbols = open_file("/device/initrd/kernel.map", 0);
     }
 
     if (debugsymbols) {

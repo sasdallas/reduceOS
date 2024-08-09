@@ -63,6 +63,8 @@ void closeFilesystem(fsNode_t *node) {
 
 // readDirectoryFilesystem(fsNode_t *node, uint32_t index) - Reads a directory in a filesystem.
 struct dirent *readDirectoryFilesystem(fsNode_t *node, uint32_t index) {
+    // BUG: User needs to be able to see the /device/ directory but that's not possible right now
+
     // Check if the node is a directory and if it has a callback.
     if ((node->flags & 0x7) == VFS_DIRECTORY && node->readdir != 0) {
         return node->readdir(node, index);

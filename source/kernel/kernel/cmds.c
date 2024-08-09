@@ -143,7 +143,7 @@ int getInitrdFiles(int argc, char *args[]) {
     int i = 0;
     struct dirent *node = 0;
 
-    fsNode_t *n = open_file((strcmp(fs_root->name, "initrd") ? "/dev/initrd" : "/"), 0);
+    fsNode_t *n = open_file((strcmp(fs_root->name, "initrd") ? "/device/initrd" : "/"), 0);
 
     while ((node = readDirectoryFilesystem(n, i)) != 0)
     {
@@ -726,16 +726,16 @@ int edit(int argc, char *args[]) {
 
 int mountFAT(int argc, char *args[]) {
     if (argc != 2) {
-        printf("Usage: mount_fat <directory, ex. /dev/ide>\n");
+        printf("Usage: mount_fat <directory, ex. /device/ide>\n");
         return -1;
     }
 
-    printf("Mounting %s to /dev/fat...\n", args[1]);
-    int ret = vfs_mountType("fat", args[1], "/dev/fat");
+    printf("Mounting %s to /device/fat...\n", args[1]);
+    int ret = vfs_mountType("fat", args[1], "/device/fat");
     if (ret == 0) {
-        printf("Successfully mounted to /dev/fat.\n");
-        //change_cwd("/dev/");
-        fatDriver = open_file("/dev/fat", 0);
+        printf("Successfully mounted to /device/fat.\n");
+        //change_cwd("/device/");
+        fatDriver = open_file("/device/fat", 0);
         change_cwd("/");
     } else {
         printf("Could not mount the drive. Error code %i\n", ret);

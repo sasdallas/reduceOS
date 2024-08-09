@@ -56,14 +56,19 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
             symbuf_idx++;
             i++;
             if (symbuf_idx > 1024) {
-                if (*symbuf == 0) break; // Bug where it will break on the last character. 
+                if (*symbuf == 0 || !isalpha(*symbuf)) break; // Bug where it will break on the last character. 
             
                 // reduceOS: Preventing buffer overflows since 2022.
-                serialPrintf("ksym_bind_symbols: i = %i / %i, symbuf_idx = %i\n", i, symbolTable->length, symbuf_idx);
+                serialPrintf("ksym_bind_symbols: i = %i / %i, symbuf_idx = %i (fault ch: %c/%i)\n", i, symbolTable->length, symbuf_idx, *symbuf, *symbuf);
                 panic("ksym", "ksym_bind_symbols", "Detected overflow in symbuf_idx");
             }
 
-            if (i > strlen(symbolTable->length)) break;
+            // Happens on the last line of nm output.
+            if (i > symbolTable->length) {
+                serialPrintf("ksym_bind_symbols: Early termination, assuming symbols populated\n");
+                debug_symbols_populated = true;
+                break;
+            }
         }
 
         // Sometimes things happen.
@@ -96,6 +101,7 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
         memcpy(symname, symbolbuffer + pos, strlen(symbolbuffer) - pos);
         symname[strlen(symbolbuffer) - pos] = 0;
 
+    
         // Due to some complexities with strtol, it will panic on anything greater than LONG_MAX.
         // This is normally fine since our addresses are within that range.
         // However, there's a small circumstance in which a variable like ENABLE_PAGING (which is 80000001) is too great and will panic it.
