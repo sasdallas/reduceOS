@@ -8,12 +8,12 @@
 /* READ METHODS */
 
 uint32_t read_null(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buf) {
-    memset(buf + offset, NULL, size);
+    memset(buf, NULL, size);
     return size;
 }
 
 uint32_t read_zero(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buf) {
-    memset(buf + offset, 0, size);
+    memset(buf, 0, size);
     return size;
 }
 

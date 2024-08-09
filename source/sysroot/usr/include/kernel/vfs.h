@@ -13,7 +13,7 @@
 #include <kernel/hashmap.h> // Mount hashmap
 
 
-// Definitions
+// Definitions (TODO: Shouldn't these be bitmasks?)
 #define VFS_FILE 0x01
 #define VFS_DIRECTORY 0x02
 #define VFS_CHARDEVICE 0x03

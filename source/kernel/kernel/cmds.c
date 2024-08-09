@@ -680,6 +680,7 @@ int edit(int argc, char *args[]) {
 
     char *buffer = kmalloc(4096); // 4096 bytes to start off with
     printf("Welcome to the editor. Press ENTER + CTRL to exit.\n");
+    printf("Writing to device/file: %s\n", args[1]);
 
     int chars = 0;
     int currentlyAllocated = 4096;
