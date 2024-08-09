@@ -6,6 +6,7 @@
 #include <kernel/cmds.h>
 #include <kernel/kernel.h>
 #include <kernel/vfs.h>
+#include <kernel/ksym.h>
 
 extern fsNode_t *fatDriver;
 extern fsNode_t *ext2_root;
@@ -753,4 +754,41 @@ int rm(int argc, char *args[]) {
     }
 
     unlinkFilesystem(args[1]);
+}
+
+int strace(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: strace <max frames>\n");
+        return -1;
+    }
+
+    int maxFrames = atoi(args[1]);
+    printf("Traceback for %i frames:\n", maxFrames);
+    serialPrintf("Traceback for %i frames:\n", maxFrames);
+
+    stack_frame *stk;
+    asm volatile ("movl %%ebp, %0" : "=r"(stk));
+
+    for (uint32_t frame = 0; stk && frame < maxFrames; frame++) {
+        // Try to get the symbol
+        ksym_symbol_t *sym = kmalloc(sizeof(ksym_symbol_t));
+        int err = ksym_find_best_symbol(stk->eip, sym);
+        if (err == -1) {
+            printf("Frame %i: 0x%x (ksym did not initialize)\n", frame, stk->eip);
+            serialPrintf("FRAME %i: IP 0x%x (called before alloc init/ksym_init)\n", frame, stk->eip);
+        } else if (err == -2) {
+            printf("Frame %i: 0x%x (no debug symbols loaded)\n", frame, stk->eip);
+            serialPrintf("FRAME %i: IP 0x%x (no debug symbols loaded)\n", frame, stk->eip);
+        } else if (err == 0) {
+            printf("Frame %i: 0x%x (%s+0x%x)\n", frame, stk->eip, sym->symname, stk->eip - (long)sym->address);
+            serialPrintf("FRAME %i: IP 0x%x (%s+0x%x - base func addr 0x%x)\n", frame, stk->eip, sym->symname, stk->eip - (long)sym->address, (long)sym->address);
+        } else {
+            printf("Frame %i: 0x%x (unknown error when getting symbols)\n", frame, stk->eip);
+            serialPrintf("FRAME %i: IP 0x%x (err = %i, unknown)\n", frame, stk->eip, err);
+        }
+
+        kfree(sym);
+
+        stk = stk->ebp;
+    }
 }

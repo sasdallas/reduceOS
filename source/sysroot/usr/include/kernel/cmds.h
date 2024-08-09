@@ -39,6 +39,6 @@ int show_bitmap(int argc, char *args[]);
 int edit(int argc, char *args[]);
 int rm(int argc, char *args[]);
 
-
+int strace(int argc, char *args[]);
 
 #endif

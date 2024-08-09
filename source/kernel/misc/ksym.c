@@ -71,6 +71,8 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
             }
         }
 
+        if (debug_symbols_populated) break; // We did early termination
+
         // Sometimes things happen.
         if (strlen(symbolbuffer) <= 1) {
             i++;

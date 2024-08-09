@@ -12,6 +12,12 @@
 #include <kernel/serial.h> // Serial logging
 #include <kernel/CONFIG.h> // Configuration
 
+// Typedefs
+typedef struct {
+    struct stack_frame* ebp;
+    uint32_t eip;
+} stack_frame;
+
 // Functions
 void *panic(char *caller, char *code, char *reason);
 void *panicReg(char *caller, char *code, char *reason, registers_t  *reg);

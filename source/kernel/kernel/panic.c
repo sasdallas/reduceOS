@@ -8,10 +8,6 @@
 #include <kernel/panic.h> // Main panic include file
 #include <kernel/ksym.h>
 
-typedef struct {
-    struct stack_frame* ebp;
-    uint32_t eip;
-} stack_frame;
 
 // This static function performes a stack trace to get the callers of panic.
 static void stackTrace(uint32_t maximumFrames) {

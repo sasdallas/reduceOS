@@ -426,6 +426,8 @@ void useCommands() {
     registerCommand("edit", (command*)edit);
     registerCommand("rm", (command*)rm);
 
+    registerCommand("strace", (command*)strace);
+
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");
     
