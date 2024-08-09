@@ -4,12 +4,15 @@
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/floppy.h> // Main header file
+#include <kernel/cmos.h>
 
 // Variables
 static int floppyIRQ_fired = 0;
 static int DMA_BUFFER = 0x1000;
 uint8_t currentFloppyDrive = 0; // Should work
 static bool enableFDC = true; // Set to false if version sanity check fails.
+static bool primaryFloppy = false;
+static bool secondaryFloppy = false;
 
 // floppy_LBAtoCHS(uint32_t lba, int *cylinder, int *head, int *sector)
 void floppy_LBAtoCHS(uint32_t lba, int *cylinder, int *head, int *sector) {
@@ -63,19 +66,20 @@ static uint8_t floppy_getMSR() {
 // (static) floppy_sendCommand(uint8_t cmd) - Sends a command to the floppy
 static void floppy_sendCommand(uint8_t cmd) {
     // Wait until the data register is ready, then send a command.
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 1000; i++) {
         if (floppy_getMSR() & FLOPPY_MSR_RQM) outportb(FLOPPY_DATA_FIFO, cmd); return;
     }
+
     serialPrintf("floppy_sendCommand: Command timeout!\n");
 }
 
 // (static) floppy_readDataRegister() - Reads the data register. Usually done after a cmd
 static uint8_t floppy_readDataRegister() {
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 1000; i++) {
         if (floppy_getMSR() & FLOPPY_MSR_DIO) return inportb(FLOPPY_DATA_FIFO);
     }
 
-    serialPrintf("floppy_readDataRegister: Command timeout!\n");
+    serialPrintf("floppy_readDataRegister: Reading data register timeout!\n");
 
     return NULL;
 }
@@ -152,6 +156,8 @@ void floppy_dmaInit(uint8_t *buffer, size_t length) {
 
 // floppy_readSectorInternal(uint8_t head, uint8_t track, uint8_t sector) - Read a sector (internal)
 int floppy_readSectorInternal(uint8_t head, uint8_t track, uint8_t sector) {
+    if (!enableFDC) return FLOPPY_ERROR;
+
     // First, setup the DMA for write transfer
     dma_setRead(FLOPPY_DMA_CHANNEL);
 
@@ -249,6 +255,8 @@ int floppy_readSectorInternal(uint8_t head, uint8_t track, uint8_t sector) {
 
 // floppy_writeSectorInternal(uint8_t head, uint8_t track, uint8_t sector) - Writes whatever is in the DMA_BUFFER to LBA
 int floppy_writeSectorInternal(uint8_t head, uint8_t track, uint8_t sector) {
+    if (!enableFDC) return FLOPPY_ERROR;
+
     // First things first, setup channel 2 for write mode.
     dma_setWrite(FLOPPY_DMA_CHANNEL);
 
@@ -351,7 +359,6 @@ int floppy_writeSectorInternal(uint8_t head, uint8_t track, uint8_t sector) {
 
 // floppy_readSector(int lba, uint8_t *buffer) - Reads a sector, using LBA.
 int floppy_readSector(int lba, uint8_t *buffer) {
-    if (!enableFDC) return FLOPPY_ERROR;
 
     // First, convert the LBA to CHS
     int head, track, sector;
@@ -422,7 +429,14 @@ void floppy_driveData(uint32_t steprate, uint32_t loadtime, uint32_t unloadtime,
 
 // floppy_setDrive(uint8_t drive) - Set the current drive
 void floppy_setDrive(uint8_t drive) {
-    currentFloppyDrive = drive;
+    if (drive > 1) {
+        serialPrintf("floppy_setDrive: Attempt to set drive %i ignored (>1)\n", drive);
+        return;
+    }
+
+    if (drive == 0 && primaryFloppy) currentFloppyDrive = drive;
+    else if (drive == 1 && secondaryFloppy) currentFloppyDrive = drive;
+    else serialPrintf("floppy_setDrive: Refused to set drive %i\n", drive);
 }
 
 // floppy_calibrateDrive(uint32_t drive) - Calibrate a floppy drive
@@ -520,11 +534,28 @@ void floppy_reset() {
 
 // floppy_init() - Initialize the floppy drive
 void floppy_init() {
+    // BEFORE ANYTHING - WE NEED TO CHECK CMOS TO SEE A FLOPPY EVEN EXISTS
+    uint8_t cmosValue = cmos_readRegister(0x10);
+    if ((cmosValue & 0xF0) >> 4) {
+        serialPrintf("floppy_init: Found primary FDC\n");
+        primaryFloppy = true;
+    }
+
+    if ((cmosValue & 0x0F)) {
+        serialPrintf("floppy_init: Found secondary FDC\n");
+        secondaryFloppy = true;
+    }
+
+    if (!secondaryFloppy && !primaryFloppy) {
+        serialPrintf("floppy_init: Failed to initialize floppy - no controllers were found.\n");
+        enableFDC = false;
+        return;
+    }
+
     // First, install the IRQ handler.
     isrRegisterInterruptHandler(FLOPPY_IRQ + 32, floppy_IRQ);
 
-    // I can hear the page fault ready to happen because DMA wasn't properly allocated.
-    dma_initPool(256 * 1024); // 256 KB of DMA pool
+    // Setup our DMA buffer
     DMA_BUFFER = dma_allocPool(4096 * 5); // Something like 20 KB
 
     // We just reset it, because we can't really trust the BIOS to do anything, can we?

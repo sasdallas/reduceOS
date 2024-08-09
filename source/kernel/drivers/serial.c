@@ -77,7 +77,6 @@ int testSerial() {
     // Read the serial.
     // Note: We do this manually through inportb() because (I think) the serial can hang and not respond, and the serialRead method only reads after the serial was read.
     if (inportb(selected_com + 0) != 0xAE) {
-        printf("Serial test failed. Could not enable serial.\n");
         return -1;     
     }
 

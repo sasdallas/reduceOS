@@ -252,9 +252,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     
 
 
+    // Setup the DMA pool
+    // I can hear the page fault ready to happen because DMA wasn't properly allocated.
+    dma_initPool(256 * 1024); // 256 KB of DMA pool
     
 
-    
     // Initialize the floppy drive
     floppy_init();
     serialPrintf("Initialized floppy drive successfully.\n");
@@ -431,6 +433,31 @@ void useCommands() {
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");
     
+    uint32_t sector = 0;
+    uint8_t *fb = 0;
+
+    printf("Reading sector %i...\n", sector);
+
+    int ret = floppy_readSector(sector, &fb);
+    
+    if (ret != FLOPPY_OK) {
+        printf("Could not read sector. Error code %i\n", ret);
+        return -1;
+    }
+
+    printf("Contents of sector %i:\n", sector);
+
+    if (fb != 0) {
+        int i = 0;
+        for (int c = 0; c < 4; c++) {
+            for (int j = 0; j < 128; j++) printf("0x%x ", fb[i + j]);
+            i += 128;
+
+            printf("Press any key to continue.\n");
+            keyboardGetChar();
+        }
+    }
+
     char buffer[256]; // We will store keyboard input here.
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
