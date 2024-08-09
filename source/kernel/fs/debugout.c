@@ -6,7 +6,7 @@
 #include <kernel/debugdev.h> // Main header file
 
 static fsNode_t *debug_dev;
-
+static fsNode_t *output_dev;
 
 /* READ FUNCTIONS */
 uint32_t debug_read(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
@@ -35,14 +35,11 @@ uint32_t debug_write(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
     timestamp[len] = 0;
 
     // Open the serial device and write to it
-    fsNode_t *serialdev = open_file("/device/serial", 0);
-    if (!serialdev) {
-        return 0;
-    }
-    
-    serialdev->write(serialdev, 0, len, timestamp);
-    serialdev->write(serialdev, 0, size_to_write, buffer_to_write);
-    serialdev->close(serialdev);
+    if (!output_dev) return;
+
+    output_dev->write(output_dev, 0, len, timestamp);
+    output_dev->write(output_dev, 0, size_to_write, buffer_to_write);
+    output_dev->close(output_dev);
 
     kfree(buffer_to_write);
     return size;
@@ -77,6 +74,7 @@ static fsNode_t *get_debug_device() {
     return debug_dev;
 }
 
-void debugdev_init() {
+void debugdev_init(fsNode_t *odev) {
     vfsMount("/device/debug", get_debug_device());
+    output_dev = odev;
 }

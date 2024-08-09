@@ -313,8 +313,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Mount the other devices
     nulldev_init();             // /device/null
     zerodev_init();             // /device/zero
-    serialdev_init();           // /device/serial
-    debugdev_init();            // /device/debug
+    serialdev_init();           // /device/serial/COMx
+
+    fsNode_t *comPort = open_file("/device/serial/COM1", 0);
+    debugdev_init(comPort);     // /device/debug
+
 
     // Now, we can iterate through each IDE node, mount them to the dev directory, and try to use them as root if needed
     bool rootMounted = false;
