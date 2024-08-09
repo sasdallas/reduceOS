@@ -20,24 +20,6 @@
 #define DEFINE_SYSCALL6(func, p1, p2, p3, p4, p5, p6) int syscall_##func(p1, p2, p3, p4, p5, p6);
 
 
-extern int syscall0();
-extern int syscall1(int p1);
-extern int syscall2(int p1, int p2);
-extern int syscall3(int p1, int p2, int p3);
-extern int syscall4(int p1, int p2, int p3, int p4);
-extern int syscall5(int p1, int p2, int p3, int p4, int p5);
-extern int syscall6(int p1, int p2, int p3, int p4, int p5, int p6);
-
-
-// Define some system calls
-DEFINE_SYSCALL0(syscall0);
-DEFINE_SYSCALL1(syscall1, int);
-DEFINE_SYSCALL2(syscall2, int, int);
-DEFINE_SYSCALL3(syscall3, int, int, int);
-DEFINE_SYSCALL4(syscall4, int, int, int, int);
-DEFINE_SYSCALL5(syscall5, int, int, int, int, int);
-DEFINE_SYSCALL6(syscall6, int, int, int, int, int, int);
-
 
 
 // 6 macros to declare syscall functions
@@ -129,5 +111,16 @@ typedef int syscall_func(int p1, int p2, int p3, int p4, int p5, int p6);
 // Functions
 void initSyscalls();
 
+// Syscall prototypes
+long restart_syscall();
+void _exit(int status);
+long read(int file_desc, void *buf, size_t nbyte);
+long write(int file_desc, const void *buf, size_t nbyte);
+
+// Syscall definitions
+DEFINE_SYSCALL0(restart_syscall);
+DEFINE_SYSCALL1(_exit, int);
+DEFINE_SYSCALL3(read, int, void*, size_t);
+DEFINE_SYSCALL3(write, int, const void*, size_t);
 
 #endif

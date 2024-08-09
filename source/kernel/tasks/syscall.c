@@ -8,29 +8,24 @@
 
 
 
-DECLARE_SYSCALL0(syscall0, 0);
-DECLARE_SYSCALL1(syscall1, 1, int);
-DECLARE_SYSCALL2(syscall2, 2, int, int);
-DECLARE_SYSCALL3(syscall3, 3, int, int, int);
-DECLARE_SYSCALL4(syscall4, 4, int, int, int, int);
-DECLARE_SYSCALL5(syscall5, 5, int, int, int, int, int);
-DECLARE_SYSCALL6(syscall6, 6, int, int, int, int, int, int);
 
 // List of system calls
-void *syscalls[7] = {
-    &syscall0,
-    &syscall1,
-    &syscall2,
-    &syscall3,
-    &syscall4,
-    &syscall5,
-    &syscall6
+void *syscalls[4] = {
+    &restart_syscall,
+    &_exit,
+    &read,
+    &write
 };
 
-uint32_t syscallAmount = 7;
+uint32_t syscallAmount = 4;
 
+// DECLARATION OF SYSTEM CALLS
+DECLARE_SYSCALL0(restart_syscall, 0);
+DECLARE_SYSCALL1(_exit, 1, int);
+DECLARE_SYSCALL3(read, 2, int, void*, size_t);
+DECLARE_SYSCALL3(write, 3, int, const void*, size_t);
 
-typedef int syscall_func(int p1, int p2, int p3, int p4, int p5, int p6);
+// END DECLARATION OF SYSTEM CALLS
 
 
 
@@ -58,9 +53,6 @@ void syscallHandler(registers_t *regs) {
 
     // Get the function.
     syscall_func *fn = syscalls[syscallNumber];
-
-    
-
     
     int returnValue;
 
@@ -69,4 +61,32 @@ void syscallHandler(registers_t *regs) {
 
     // Set EAX to the return value
     asm volatile ("mov %0, %%eax" :: "r"(returnValue));
+}
+
+
+/* ACTUAL SYSTEM CALLS */
+
+// SYSCALL 0 (https://man7.org/linux/man-pages/man2/restart_syscall.2.html)
+long restart_syscall() {
+    serialPrintf("restart_syscall: doing things lol\n");
+    return 0; // This is supposed to return the system call number being restarted
+}
+
+// SYSCALL 1 (https://linux.die.net/man/2/exit)
+void _exit(int status) {
+    serialPrintf("_exit: Terminating process\n");
+}
+
+// SYSCALL 2 (https://man7.org/linux/man-pages/man2/read.2.html)
+// NOTE: Should return a ssize_t but long works I think
+long read(int file_desc, void *buf, size_t nbyte) {
+    // ssize_t really should be a type though ;)
+    serialPrintf("read: system call received for %i bytes on fd %i\n", nbyte, file_desc);
+    return nbyte;
+}
+
+// SYSCALL 3 (https://man7.org/linux/man-pages/man2/write.2.html)
+long write(int file_desc, const void *buf, size_t nbyte) {
+    serialPrintf("write: system call received for %i bytes on fd %i\n", nbyte, file_desc);
+    return nbyte;
 }

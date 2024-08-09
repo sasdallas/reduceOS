@@ -116,9 +116,17 @@ install-headers:
 	cp -R --preserve=timestamps include/kernel/. $(DESTDIR)$(INCLUDE_DIR)/.
 
 install: $(OUT_KERNEL)/kernel_$(TARGET).elf
+	@echo "-- Installing kernel..."
 	-mkdir -p $(DESTDIR)$(BOOT_OUTPUT)
 	cp $(OUT_KERNEL)/kernel.elf $(DESTDIR)$(BOOT_OUTPUT) 
+
+	@echo "-- Creating symbol map..."
+	$(NM) kernel.elf > kernel.map
+	cp kernel.map $(PROJECT_ROOT)/source/initial_ramdisk/initrd/
+	rm kernel.map
 	rm kernel.elf
+
+
 
 # Clean function
 clean:

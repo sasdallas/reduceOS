@@ -6,6 +6,7 @@
 
 
 #include <kernel/panic.h> // Main panic include file
+#include <kernel/ksym.h>
 
 typedef struct {
     struct stack_frame* ebp;
@@ -16,11 +17,30 @@ typedef struct {
 static void stackTrace(uint32_t maximumFrames) {
     stack_frame *stk;
     asm volatile ("movl %%ebp, %0" : "=r"(stk));
+    
     printf("\nStack trace:\n");
     serialPrintf("\nSTACK TRACE (EBP based):\n");
+    
     for (uint32_t frame = 0; stk && frame < maximumFrames; frame++) {
-        printf("Frame %i: 0x%x\n", frame, stk->eip);
-        serialPrintf("FRAME %i: 0x%x\n", frame, stk->eip);
+        // Try to get the symbol
+        ksym_symbol_t *sym = kmalloc(sizeof(ksym_symbol_t));
+        int err = ksym_find_best_symbol(stk->eip, sym);
+        if (err == -1) {
+            printf("Frame %i: 0x%x (exception occurred before ksym_init)\n", frame, stk->eip);
+            serialPrintf("FRAME %i: IP 0x%x (exception before alloc init/ksym_init)\n", frame, stk->eip);
+        } else if (err == -2) {
+            printf("Frame %i: 0x%x (no debug symbols loaded)\n", frame, stk->eip);
+            serialPrintf("FRAME %i: IP 0x%x (no debug symbols loaded)\n", frame, stk->eip);
+        } else if (err == 0) {
+            printf("Frame %i: 0x%x (%s+0x%x)\n", frame, stk->eip, sym->symname, stk->eip - (long)sym->address);
+            serialPrintf("FRAME %i: IP 0x%x (%s+0x%x - base func addr 0x%x)\n", frame, stk->eip, sym->symname, stk->eip - (long)sym->address, (long)sym->address);
+        } else {
+            printf("Frame %i: 0x%x (unknown error when getting symbols)\n", frame, stk->eip);
+            serialPrintf("FRAME %i: IP 0x%x (err = %i, unknown)\n", frame, stk->eip, err);
+        }
+
+        kfree(sym);
+
         stk = stk->ebp;
     }
 }

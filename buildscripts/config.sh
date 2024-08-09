@@ -1,5 +1,5 @@
 SYSTEM_HEADER_PROJECTS="libc_reduced kernel"
-PROJECTS="fonts initial_ramdisk libc_reduced  kernel"
+PROJECTS="fonts libc_reduced kernel initial_ramdisk"
 
 export MAKE=${MAKE:-make}
 export HOST=${HOST:-$($BUILDSCRIPTS_ROOT/default_host.sh)}
@@ -10,6 +10,7 @@ export AR=${HOST}-ar
 export AS=${HOST}-as
 export CC=${HOST}-gcc
 export LD=${HOST}-ld
+export NM=${HOST}-nm
 export NASM=${NASM:-nasm}
 
 export PREFIX=/usr

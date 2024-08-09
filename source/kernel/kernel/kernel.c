@@ -78,18 +78,8 @@ int syscall6(int p1, int p2, int p3, int p4, int p5, int p6) {
 
 void usermodeMain() {
     printf("Hello, usermode world! printf() is working!\n");
-    int r1 = syscall_syscall0();
-    int r2 = syscall_syscall1(1);
-    int r3 = syscall_syscall2(1, 2);
-    int r4 = syscall_syscall3(1, 2, 3);
-    int r5 = syscall_syscall4(1, 2, 3, 4);
-    int r6 = syscall_syscall5(1, 2, 3, 4, 5);
-    int r7 = syscall_syscall6(1, 2, 3, 4, 5, 6);
 
-    if (r1 == 0 && r2 == 1 && r3 == 2 && r4 == 3 && r5 == 4 && r6 == 5 && r7 == 6) {
-        printf("All system calls are valid.\n");
-    }
-
+    syscall_write(2, "Hello, system call world!", strlen("Hello, system call world!"));
     for (;;);
 }
 
@@ -224,8 +214,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     int i;
     for (i = 0, mod = (multiboot_mod_t*)globalInfo->m_modsAddr; i < globalInfo->m_modsCount; i++, mod++) {
         serialPrintf("\tmod_start = 0x%x, mod_end = 0x%x, cmdline = %s\n", mod->mod_start, mod->mod_end, (char*)mod->cmdline);
-        
-
     }
 
 
@@ -276,6 +264,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // DEFINITELY sketchy! What's going on with this system? 
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
+
+    // Initialize debug symbols
+    ksym_init();
 
     // Initialize the IDE controller.
     updateBottomText("Initializing IDE controller...");
@@ -354,10 +345,21 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     if (rootMounted) ext2_root = open_file("/", 0);
 
     // If the user did not mount a drive, remount initial ramdisk to /.
-    if (!rootMounted) vfsMount("/", initrd);
-    else vfsMount("/dev/initrd", initrd);
+    fsNode_t *debugsymbols;
+    if (!rootMounted) {
+        vfsMount("/", initrd);
+        debugsymbols = open_file("/kernel.map", 0);
+    } else {
+        vfsMount("/dev/initrd", initrd);
+        debugsymbols = open_file("/dev/initrd/kernel.map", 0);
+    }
 
-    
+    if (debugsymbols) {
+        ksym_bind_symbols(debugsymbols);
+    } else {
+        serialPrintf("kmain: Debugging symbols disabled\n");
+    }
+
     uint8_t seconds, minutes, hours, days, months;
     int years;
 
