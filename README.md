@@ -32,7 +32,7 @@ The compiled `libc_reduced.a` is placed under `sysroot/usr/lib`, and this path i
 
 The initial ramdisk and the kernel are placed under `sysroot/boot/`.
 
-Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesystem. 
+Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesystem.   
 
 
 # Known Bugs
