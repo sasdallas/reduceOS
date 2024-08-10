@@ -57,5 +57,5 @@ void vmm_enablePaging(); // Enables paging
 void vmm_disablePaging(); // Disables paging
 void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size); // Identity map a region
 void vmmInit(); // Initialize the VMM
-
+void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address, size_t size, int present, int writable, int user); // Identity map region with flags
 #endif

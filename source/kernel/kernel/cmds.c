@@ -792,3 +792,19 @@ int strace(int argc, char *args[]) {
         stk = stk->ebp;
     }
 }
+
+int pmm(int argc, char *args[]) {
+    printf("Physical memory management statistics:\n");
+    printf("\tMemory size: 0x%x / %i KB\n", pmm_getPhysicalMemorySize(), pmm_getPhysicalMemorySize());
+    printf("\tUsed blocks: %i blocks\n", pmm_getUsedBlocks());
+    printf("\tFree blocks: %i blocks\n", pmm_getFreeBlocks());
+    printf("\n");
+    pmm_printMemoryMap(globalInfo);
+    return 0;
+}
+
+int vfs(int argc, char *args[]) {
+    printf("VFS TREE DUMP:\n");
+    debug_print_vfs_tree(true);
+    return 0;
+}

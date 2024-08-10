@@ -36,8 +36,7 @@ Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesy
 
 
 # Known Bugs
-- PMM is broken
-- ksym page faults when I use `-m 1G`
+- **Severe:** Systems with a larger amount of memory will completely break the allocator. I hate my life.
 - FDC not working correctly
 - **TODO:** dev/ directory is not present when running `ls`
 - ATAPI drives cannot be read

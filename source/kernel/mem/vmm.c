@@ -146,8 +146,9 @@ void vmm_disablePaging() {
     pagingEnabled = false;
 }
 
-// vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) - Identity map a region
-void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) {
+
+// vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address, size_t size, int present, int writable, int user) - Identity map a region
+void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address, size_t size, int present, int writable, int user) {
     if (size < 1) return; // Size 0. I hate users.
 
 
@@ -167,9 +168,9 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
         pde_t *e = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)];
 
         // Map it in the table
-        pde_addattrib(e, PDE_PRESENT);
-        pde_addattrib(e, PDE_WRITABLE);
-        pde_addattrib(e, PDE_USER);
+        if (present) pde_addattrib(e, PDE_PRESENT);
+        if (writable) pde_addattrib(e, PDE_WRITABLE);
+        if (user) pde_addattrib(e, PDE_USER);
         pde_setframe(e, (uint32_t)table);
     }
 
@@ -181,43 +182,20 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
         pte_t *page = &table->entries[PAGETBL_INDEX(virt)];
 
         // Add the flags
-        pte_addattrib(page, PTE_PRESENT);
-        pte_addattrib(page, PTE_WRITABLE);
-        pte_addattrib(page, PTE_USER);
+        if (present) pde_addattrib(page, PTE_PRESENT);
+        if (writable) pte_addattrib(page, PTE_WRITABLE);
+        if (user) pte_addattrib(page, PTE_USER);
         pte_setframe(page, frame);
     }
 
     // We're done.
+}
 
-    /* 
+// vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) - Identity map a region
+void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) {
+    if (size < 1) return; // Size 0. I hate users.
 
-
-
-    // Allocate a page table.
-    pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
-
-    // Clear the page table
-    memset(table, 0, sizeof(pagetable_t));
-
-    // Identity map physical_address to virtual_address.
-    for (int i = 0, frame=physical_address, virt=virtual_address; i < size / 4096; i++, frame += 4096, virt += 4096) {
-        pte_t page = 0;
-        pte_addattrib(&page, PTE_PRESENT);
-        pte_addattrib(&page, PTE_WRITABLE);
-        pte_addattrib(&page, PTE_USER);
-        pte_setframe(&page, frame);
-
-        // Add the above page to the page table.
-        table->entries[PAGETBL_INDEX(virt)] = page;
-    }
-
-    // Create a new page directory entry
-    pde_t *pagedir_entry = &(vmm_getCurrentDirectory())->entries[PAGEDIR_INDEX(virtual_address)];
-    pde_addattrib(pagedir_entry, PDE_PRESENT);
-    pde_addattrib(pagedir_entry, PDE_WRITABLE);
-    pde_addattrib(pagedir_entry, PDE_USER);
-    pde_setframe(pagedir_entry, (uint32_t)table);
-    */
+    vmm_allocateRegionFlags(physical_address, virtual_address, size, 1, 1, 1);
 }
 
 

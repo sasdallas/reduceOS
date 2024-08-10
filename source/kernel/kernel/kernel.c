@@ -200,7 +200,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     
 
     // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit?
-
     
     ASSERT(globalInfo->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
     uint32_t initrdLocation = *((uint32_t*)(globalInfo->m_modsAddr));
@@ -346,7 +345,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         }
     }
 
-    debug_print_vfs_tree();
+    debug_print_vfs_tree(false);
 
     // For compatibility with our tests, we need to set the ext2_root variable.
     // The user can use the mount_fat command to mount the FAT driver.
@@ -363,7 +362,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     }
 
     if (debugsymbols) {
-        ksym_bind_symbols(debugsymbols);
+        //ksym_bind_symbols(debugsymbols);
     } else {
         serialPrintf("kmain: Debugging symbols disabled\n");
     }
@@ -429,6 +428,8 @@ void useCommands() {
     registerCommand("rm", (command*)rm);
 
     registerCommand("strace", (command*)strace);
+    registerCommand("pmm", (command*)pmm);
+    registerCommand("vfs", (command*)vfs);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");

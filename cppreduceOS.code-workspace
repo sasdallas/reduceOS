@@ -38,7 +38,8 @@
 			"ext2.h": "c",
 			"ide_ata.h": "c",
 			"processor.h": "c",
-			"serial.h": "c"
+			"serial.h": "c",
+			"cmds.h": "c"
 		}
 	}
 }

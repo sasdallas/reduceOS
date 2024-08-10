@@ -7,8 +7,6 @@
 #include <kernel/kernel.h> // Steal everything from the kernel includes file (very bad practice)
 
 // Functions
-// I'm too tired to put them here, gcc will deal with it
-
 
 int testISRException(int argc, char *args[]);
 int getSystemInformation(int argc, char *args[]);
@@ -40,5 +38,7 @@ int edit(int argc, char *args[]);
 int rm(int argc, char *args[]);
 
 int strace(int argc, char *args[]);
+int pmm(int argc, char *args[]);
+int vfs(int argc, char *args[]);
 
 #endif

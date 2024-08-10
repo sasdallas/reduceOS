@@ -192,7 +192,7 @@ int vfs_mountType(const char *type, const char *arg, const char *mountpoint) {
     }
 
     serialPrintf("vfs_mountType: Mounted %s[%s] to %s: %p\n", type, arg, mountpoint, (void*)n);
-    debug_print_vfs_tree();
+    debug_print_vfs_tree(false);
 
     return 0;
 }
@@ -258,7 +258,7 @@ void vfs_mapDirectory(const char *c) {
 }
 
 // Technically (TOARU)
-void debug_print_vfs_tree_node(tree_node_t *node, size_t height) {
+void debug_print_vfs_tree_node(tree_node_t *node, size_t height, bool printout) {
     if (!node) return;
 
     // Indent output according to height
@@ -274,21 +274,23 @@ void debug_print_vfs_tree_node(tree_node_t *node, size_t height) {
     // Print it out
     if (fnode->file) {
         serialPrintf("%s%s (0x%x) -> 0x%x (%s)\n", indents, fnode->name, node->value, (void*)fnode->file, fnode->file->name);
+        if (printout) printf("%s%s (0x%x) -> 0x%x (%s)\n", indents, fnode->name, node->value, (void*)fnode->file, fnode->file->name);
     } else {
         serialPrintf("%s%s (0x%x) -> (empty)\n", indents, fnode->name, node->value);
+        if (printout) printf("%s%s (0x%x) -> (empty)\n", indents, fnode->name, node->value);
     }
 
     kfree(indents);
 
     foreach(child, node->children) {
-        debug_print_vfs_tree_node(child->value, height + 1);
+        debug_print_vfs_tree_node(child->value, height + 1, printout);
     }
 }
 
 
-void debug_print_vfs_tree() {
+void debug_print_vfs_tree(bool printout) {
     serialPrintf("=== VFS TREE ===\n");
-    debug_print_vfs_tree_node(fs_tree->root, 1);
+    debug_print_vfs_tree_node(fs_tree->root, 1, printout);
     serialPrintf("=== END VFS TREE ===\n");
 }
 

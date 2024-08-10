@@ -29,6 +29,8 @@ void *liballoc_alloc(size_t pages) {
     // Allocate some physical memory for the pages
     void *ptr = pmm_allocateBlocks(pages + 1); // one extra to stop stupid liballoc from doing stupid things
     if (!ptr) {
+        serialPrintf("liballoc_alloc: Failure to allocate %i pages. Faulting.\n", pages + 1);
+        panic("alloc_wrapper", "liballoc_alloc", "Could not allocate pages");
         return  NULL;
     } 
 
