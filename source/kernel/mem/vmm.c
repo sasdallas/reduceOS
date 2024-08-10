@@ -151,6 +151,48 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
     if (size < 1) return; // Size 0. I hate users.
 
 
+    pagedirectory_t *pageDirectory = vmm_getCurrentDirectory();
+
+    // Get the page table
+    pde_t *entry = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)];
+    if ((*entry & PTE_PRESENT) != PTE_PRESENT) {
+        // Entry is not present, so we'll have to create a new one
+        pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
+        if (!table) return; // We failed to get the block
+
+        // Clear the page table
+        memset(table, 0, sizeof(pagetable_t));
+
+        // Create a new entry to hold it
+        pde_t *e = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)];
+
+        // Map it in the table
+        pde_addattrib(e, PDE_PRESENT);
+        pde_addattrib(e, PDE_WRITABLE);
+        pde_addattrib(e, PDE_USER);
+        pde_setframe(e, (uint32_t)table);
+    }
+
+    // Get the table
+    pagetable_t *table = (pagetable_t*)VIRTUAL_TO_PHYS(entry);
+
+    // Now we'll have to identity map
+    for (int i = 0, frame=physical_address, virt=virtual_address; i < size / 4096; i++, frame += 4096, virt += 4096) {
+        pte_t *page = &table->entries[PAGETBL_INDEX(virt)];
+
+        // Add the flags
+        pte_addattrib(page, PTE_PRESENT);
+        pte_addattrib(page, PTE_WRITABLE);
+        pte_addattrib(page, PTE_USER);
+        pte_setframe(page, frame);
+    }
+
+    // We're done.
+
+    /* 
+
+
+
     // Allocate a page table.
     pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
 
@@ -175,6 +217,7 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
     pde_addattrib(pagedir_entry, PDE_WRITABLE);
     pde_addattrib(pagedir_entry, PDE_USER);
     pde_setframe(pagedir_entry, (uint32_t)table);
+    */
 }
 
 
