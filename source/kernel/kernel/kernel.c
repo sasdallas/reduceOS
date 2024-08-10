@@ -248,10 +248,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Initialize the VFS
     vfsInit();
 
-    // First, we need to install the EXT2 and FAT drivers.
+    // First, we need to install some filesystem drivers.
     ext2_install(0, NULL);
     fat_install(0, NULL);
     ide_install(0, NULL);
+    tar_install();
 
     // Then, we need to map the /device/ directory
     vfs_mapDirectory("/device");
@@ -259,7 +260,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Mount the other devices
     nulldev_init();             // /device/null
     zerodev_init();             // /device/zero
-    serialdev_init();           // /device/serial/COMx
+    serialdev_init();           // /device/serial/COMx           
 
     fsNode_t *comPort = open_file("/device/serial/COM1", 0);
     debugdev_init(comPort);     // /device/debug
@@ -376,6 +377,7 @@ void useCommands() {
     registerCommand("pmm", (command*)pmm);
     registerCommand("vfs", (command*)vfs);
     registerCommand("load_elf", (command*)loadELF);
+    registerCommand("mount_tar", (command*)mountTAR);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");

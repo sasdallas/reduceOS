@@ -4,6 +4,7 @@
 #include <string.h> // String functions
 #include <kernel/vfs.h> // Virtual File System
 #include <kernel/ide_ata.h> // IDE ATA driver
+#include <kernel/tokenize.h> // Tokenizer
 
 // Typedefs
 

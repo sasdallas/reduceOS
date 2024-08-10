@@ -71,7 +71,7 @@ typedef struct {
     mkdir_t mkdir;      // Make directory function.
     unlink_t unlink;    // Unlink function (deletion)
     struct fsNode *ptr; // Used by mountpoints and symlinks.
-    struct fsNode *device;   // Pointer to the device needed (unused mostly)
+    struct fsNode *device;   // Pointer to the device needed (unused mostly, most drivers will use impl_struct but you can use this)
 } fsNode_t;
 
 // Hashmap callback

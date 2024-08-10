@@ -1,5 +1,5 @@
 // ==============================================================================
-// debugout.c - Provides /device/debug, which is the debugger output for serial
+// debug_dev.c - Provides /device/debug, which is the debugger output for serial
 // ==============================================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 

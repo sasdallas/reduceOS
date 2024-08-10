@@ -839,21 +839,6 @@ struct dirent *fat_readdir(fsNode_t *node, uint32_t index) {
     // Not sure how I'm gonna do it while at least looking somewhat decent...
 }
 
-// (static) fat_tokenize(char *str, const char *sep, char **buf) - Wrapper to strtok_r, just here for compatibility with the impl. (Toaru)
-static int fat_tokenize(char *str, const char *sep, char **buf) {
-    char * pch_i;
-	char * save_i;
-	int    argc = 0;
-	pch_i = strtok_r(str,sep,&save_i);
-	if (!pch_i) { return 0; }
-	while (pch_i != NULL) {
-		buf[argc] = (char *)pch_i;
-		++argc;
-		pch_i = strtok_r(NULL,sep,&save_i);
-	}
-	buf[argc] = NULL;
-	return argc;
-}
 
 // fat_fs_mount(const char *device, const char *mount_path) - Mounts the FAT filesystem
 fsNode_t *fat_fs_mount(const char *device, const char *mount_path) {
@@ -861,7 +846,7 @@ fsNode_t *fat_fs_mount(const char *device, const char *mount_path) {
     strcpy(arg, device);
 
     char *argv[10];
-    int argc = fat_tokenize(arg, ",", argv);
+    int argc = tokenize(arg, ",", argv);
 
     fsNode_t *dev = open_file(argv[0], 0);
     if (!dev) {

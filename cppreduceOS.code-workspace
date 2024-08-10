@@ -41,7 +41,9 @@
 			"serial.h": "c",
 			"cmds.h": "c",
 			"ksym.h": "c",
-			"kernel.h": "c"
+			"kernel.h": "c",
+			"fat.h": "c",
+			"tarfs.h": "c"
 		}
 	}
 }

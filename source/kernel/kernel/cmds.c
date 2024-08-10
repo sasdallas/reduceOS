@@ -838,6 +838,7 @@ int loadELF(int argc, char *args[]) {
     int ret = elf_file->read(elf_file, 0, elf_file->length, fbuf);
 
     if (ret != elf_file->length) {
+        kfree(path);
         kfree(fbuf);
         printf("Error: Failed to read the file '%s'.\n", args[1]);
         return -1;
@@ -851,4 +852,37 @@ int loadELF(int argc, char *args[]) {
     }
 
     return 0;
+}
+
+int mountTAR(int argc, char *args[]) {
+    if (argc != 3) {
+        printf("Usage: mount_tar <filename> <mountpoint>\n");
+        return -1;
+    }
+
+    char *mountpoint = vfs_canonicalizePath(get_cwd(), args[2]);
+    char *filename = vfs_canonicalizePath(get_cwd(), args[1]);
+
+    fsNode_t *file = open_file(filename, 0);
+    
+    if (!file) {
+        kfree(mountpoint);
+        kfree(filename);
+        printf("Failed to open file '%s'\n", args[1]);
+        return -1;
+    }
+
+    printf("Mounting '%s' to '%s'...\n", args[1], args[2]);
+    // user does this wrong its THEIR fault not mine (even though I should've accounted for it)
+    int ret = vfs_mountType("tar", file, mountpoint);
+
+    if (ret == 0) {
+        printf("Successfully mounted tar archive at %s.\n", mountpoint);
+    } else {
+        printf("Failed to mount to %s (ret = %i)\n", mountpoint, ret);
+    }
+
+    return 0;
+
+    
 }

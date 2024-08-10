@@ -36,5 +36,7 @@ size_t strcspn(const char *str1, const char *reject); // Scans str1 for the firs
 size_t strspn(const char *str1, const char *accept); // Scans str1 for the first occurence of any of the characters that are part of accept.
 char *strpbrk(const char *s, const char *b); // Returns a pointer to the first occurence of b within s.
 char *strtok_r(char *str, const char *delim, char **saveptr); // Thread-safe version of strtok
-
+char *strncat(char *dest, const char *src, size_t n); // Concatenate two strings
+char *strstr(const char * h, const char * n); 
+void * memchr(const void * src, int c, size_t n);
 #endif
