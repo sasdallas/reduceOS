@@ -40,5 +40,6 @@ int rm(int argc, char *args[]);
 int strace(int argc, char *args[]);
 int pmm(int argc, char *args[]);
 int vfs(int argc, char *args[]);
+int loadELF(int argc, char *args[]);
 
 #endif

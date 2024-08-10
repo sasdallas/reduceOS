@@ -25,7 +25,7 @@ int elf_checkFile(Elf32_Ehdr *ehdr) {
         return -1;
     }
 
-    if (ehdr->e_ident[EI_MAG3] != ELF_MAG2) {
+    if (ehdr->e_ident[EI_MAG2] != ELF_MAG2) {
         serialPrintf("elf_checkFile: EHDR check fail - EI_MAG2 incorrect (given 0x%x, expected 0x%x).\n", ehdr->e_ident[EI_MAG2], ELF_MAG2);
         return -1;
     }
@@ -180,6 +180,8 @@ static Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr) {
 }
 
 
+
+
 /* LOADING FUNCTIONS */
 
 // (static) elf_loadStage1(Elf32_Ehdr *ehdr) - Performs the first stage of loading an ELF file by alloacting memory for the sections.
@@ -299,8 +301,8 @@ static inline void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
 }
 
 
-// (static) elf_loadFileFromBuffer(void *buf) - Loads an ELF file from a buffer with its contents
-static void *elf_loadFileFrombuffer(void *buf) {
+// elf_loadFileFromBuffer(void *buf) - Loads an ELF file from a buffer with its contents
+void *elf_loadFileFromBuffer(void *buf) {
     Elf32_Ehdr *ehdr = (Elf32_Ehdr*)buf;
     
     // Check to make sure it is actually supported

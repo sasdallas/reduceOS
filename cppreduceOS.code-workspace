@@ -39,7 +39,9 @@
 			"ide_ata.h": "c",
 			"processor.h": "c",
 			"serial.h": "c",
-			"cmds.h": "c"
+			"cmds.h": "c",
+			"ksym.h": "c",
+			"kernel.h": "c"
 		}
 	}
 }

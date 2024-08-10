@@ -375,6 +375,7 @@ void useCommands() {
     registerCommand("strace", (command*)strace);
     registerCommand("pmm", (command*)pmm);
     registerCommand("vfs", (command*)vfs);
+    registerCommand("load_elf", (command*)loadELF);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");

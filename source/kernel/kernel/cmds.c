@@ -3,10 +3,13 @@
 // ==========================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
+#include <stdio.h>
 #include <kernel/cmds.h>
 #include <kernel/kernel.h>
 #include <kernel/vfs.h>
 #include <kernel/ksym.h>
+#include <kernel/pmm.h>
+#include <kernel/elf.h>
 
 extern fsNode_t *fatDriver;
 extern fsNode_t *ext2_root;
@@ -806,5 +809,46 @@ int pmm(int argc, char *args[]) {
 int vfs(int argc, char *args[]) {
     printf("VFS TREE DUMP:\n");
     debug_print_vfs_tree(true);
+    return 0;
+}
+
+int loadELF(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: load_elf <ELF file>\n");
+        return -1;
+    }
+
+    printf("Loading ELF '%s'...\n", args[1]);
+
+    char *path = vfs_canonicalizePath(get_cwd(), args[1]);
+    fsNode_t *elf_file = open_file(path, 0);
+
+    if (!elf_file) {
+        printf("Error: File '%s' not found\n", args[1]);
+        return -1;
+    }
+
+    if (elf_file->flags != VFS_FILE) {
+        printf("Error: '%s' is not a file", args[1]);
+        return -1;
+    }
+
+
+    char *fbuf = kmalloc(elf_file->length);
+    int ret = elf_file->read(elf_file, 0, elf_file->length, fbuf);
+
+    if (ret != elf_file->length) {
+        kfree(fbuf);
+        printf("Error: Failed to read the file '%s'.\n", args[1]);
+        return -1;
+    }
+    void *addr = elf_loadFileFromBuffer(fbuf);
+
+    if (addr == NULL) {
+        printf("Error: Failed to load ELF file (check debug)\n");
+    } else {
+        printf("Successfully loaded ELF file at 0x%x\n", addr);
+    }
+
     return 0;
 }

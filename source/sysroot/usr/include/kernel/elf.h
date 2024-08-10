@@ -5,6 +5,11 @@
 
 // Includes
 #include <stdint.h>
+#include <stddef.h>
+#include <kernel/serial.h>
+#include <kernel/ksym.h>
+#include <kernel/mem.h>
+
 
 
 // ELF data types (these can ediffer across machine types)
@@ -49,10 +54,26 @@ enum Sh_Attr {
     SHF_ALLOC       = 0x02          // Exists in memory
 };
 
-// Definitions
-#define ELF_NIDENT  16              // Number of ELF identifiers
+enum St_Binding {
+    STB_LOCAL       = 0,            // Local scope
+    STB_GLOBAL      = 1,            // Global scope
+    STB_WEAK        = 2             // Weak
+};
 
-#define SHN_UNDEF   (0x00)          // Undefined/Not Present
+enum St_Types {
+    STT_NOTYPE      = 0,            // No type
+    STT_OBJECT      = 1,            // Variables, arrays, etc.
+    STT_FUNC        = 2             // Methods or functions
+};
+
+enum Rt_Types {
+    R_386_NONE      = 0,            // No relocation
+    R_386_32        = 1,            // Symbol + Offset
+    R_386_PC32      = 2,            // Symbol + Offset - Section Offset
+};
+
+// ELF Definitions
+#define ELF_NIDENT  16              // Number of ELF identifiers
 
 // MAG0-3
 #define ELF_MAG0    0x7F
@@ -68,6 +89,28 @@ enum Sh_Attr {
 #define EM_386          (3)         // x86 machine type
 #define EV_CURRENT      (1)         // Current ELF version
 
+// Section Header Definitions
+#define SHN_UNDEF       0           // Undefined/Not Present
+#define SHN_LORESERVE   0xFF00      // ?
+#define SHN_LOPROC      0xFF00      // ?
+#define SHN_HIPROC      0xFF1F      // ?
+#define SHN_ABS         0xFFF1      // Absolute symbol
+#define SHN_COMMON      0xFFF2      // Common
+#define SHN_HIRESERVE   0xFFFF      // ?
+
+
+// Errors
+#define ELF_RELOC_ERROR -1          // Failure to relocate
+
+// Macros
+#define ELF32_ST_BIND(INFO)     ((INFO) >> 4)       // Get the binding
+#define ELF32_ST_TYPE(INFO)     ((INFO) & 0x0F)     // Get the type   
+
+#define ELF32_R_SYM(INFO)       ((INFO) >> 8)       // Get the relocatable symbol
+#define ELF32_R_TYPE(INFO)      ((uint8_t)(INFO))   // Get the relocation type
+
+#define DO_386_32(S, A)         ((S) + (A))         // Perform relocation for 386
+#define DO_386_PC32(S, A, P)    ((S) + (A) - (P))   // Perform relocation for 386 but subtract section offset
 
 
 
@@ -105,9 +148,44 @@ typedef struct {
     Elf32_Word  sh_entrysize;
 } Elf32_Shdr;
 
+// Symbol Table
+typedef struct {
+    Elf32_Word  st_name;
+    Elf32_Addr  st_value;
+    Elf32_Word  st_size;
+    uint8_t     st_info;
+    uint8_t     st_other;
+    Elf32_Half  st_shndx;
+} Elf32_Sym;
 
+
+// Relocatable Section (no explicit added)
+typedef struct {
+    Elf32_Addr  r_offset;
+    Elf32_Word  r_info;
+} Elf32_Rel;
+
+
+// Relocatable Section (explicit added)
+typedef struct {
+    Elf32_Addr  r_offset;
+    Elf32_Word  r_info;
+    Elf32_Sword r_addend;
+} Elf32_Rel_Added;
+
+// PHDR
+typedef struct {
+    Elf32_Word  p_type;
+    Elf32_Off   p_offset;
+    Elf32_Addr  p_vaddr;
+    Elf32_Addr  p_paddr;
+    Elf32_Word  p_filesize;
+    Elf32_Word  p_memsize;
+    Elf32_Word  p_flags;
+    Elf32_Word  p_align;
+} Elf32_Phdr;
 
 // Functions
-
+void *elf_loadFileFromBuffer(void *buf); // Loads an ELF file from a buffer with its contents
 
 #endif

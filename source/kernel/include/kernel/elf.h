@@ -70,7 +70,7 @@ enum Rt_Types {
     R_386_NONE      = 0,            // No relocation
     R_386_32        = 1,            // Symbol + Offset
     R_386_PC32      = 2,            // Symbol + Offset - Section Offset
-}
+};
 
 // ELF Definitions
 #define ELF_NIDENT  16              // Number of ELF identifiers
