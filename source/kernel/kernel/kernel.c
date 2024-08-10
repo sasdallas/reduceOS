@@ -21,61 +21,6 @@ extern void switchToUserMode(); // User mode switch function
 
 
 
-int syscall0() {
-    printf("0 parameter - SUCCESS\n");
-    return 0;
-}
-
-int syscall1(int p1) {
-    if (p1 == 1) {
-        printf("1 parameter - SUCCESS\n");
-    }
-
-    return 1;
-}
-
-int syscall2(int p1, int p2) {
-    if (p1 == 1 && p2 == 2) {
-        printf("2 parameter - SUCCESS\n");
-    }
-
-    return 2;
-}
-
-int syscall3(int p1, int p2, int p3) {
-    if (p1 == 1 && p2 == 2 && p3 == 3) {
-        printf("3 parameter - SUCCESS\n");
-    }
-
-    return 3;
-}
-
-int syscall4(int p1, int p2, int p3, int p4) {
-    if (p1 == 1 && p2 == 2 && p3 == 3 && p4 == 4) {
-        printf("4 parameter - SUCCESS\n");
-    }
-
-    return 4;
-}
-
-int syscall5(int p1, int p2, int p3, int p4, int p5) {
-    if (p1 == 1 && p2 == 2 && p3 == 3 && p4 == 4 && p5 == 5) {
-        printf("5 parameter - SUCCESS\n");
-    }
-
-    return 5;
-}
-
-int syscall6(int p1, int p2, int p3, int p4, int p5, int p6) {
-    if (p1 == 1 && p2 == 2 && p3 == 3 && p4 == 4 && p5 == 5 && p6 == 6) {
-        printf("6 parameter - SUCCESS\n");
-    } else {
-        printf("6 parameter - CALLED BUT NOT SUCCESS (%i %i %i %i %i %i).\n", p1, p2, p3, p4, p5, p6);
-    }
-
-    return 6;
-}
-
 void usermodeMain() {
     printf("Hello, usermode world! printf() is working!\n");
 

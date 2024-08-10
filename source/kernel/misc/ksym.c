@@ -41,97 +41,16 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
     // Column 1 - Address of the symbol
     // Column 2 - Type of the symbol (not defined)
     // Column 3 - Name of the symbol
-    char *symbolbuffer = kmalloc(1024);
-    memset(symbolbuffer, 0, 1024);
-    int i = 0;
-    int symbuf_idx = 0;
-    int symcount = 0;
-    while (i < symbolTable->length) {
-        // BE WARNED: THIS IS BAD
-
-        // First, get the line.
-        while (*symbuf != '\n') {
-            symbolbuffer[symbuf_idx] = *symbuf;
-            *symbuf++;
-            symbuf_idx++;
-            i++;
-            if (symbuf_idx > 1024) {
-                if (*symbuf == 0 || !isalpha(*symbuf)) break; // Bug where it will break on the last character. 
-            
-                // reduceOS: Preventing buffer overflows since 2022.
-                serialPrintf("ksym_bind_symbols: i = %i / %i, symbuf_idx = %i (fault ch: %c/%i)\n", i, symbolTable->length, symbuf_idx, *symbuf, *symbuf);
-                panic("ksym", "ksym_bind_symbols", "Detected overflow in symbuf_idx");
-            }
-
-            // Happens on the last line of nm output.
-            if (i > symbolTable->length) {
-                serialPrintf("ksym_bind_symbols: Early termination, assuming symbols populated\n");
-                debug_symbols_populated = true;
-                break;
-            }
-        }
-
-        if (debug_symbols_populated) break; // We did early termination
-
-        // Sometimes things happen.
-        if (strlen(symbolbuffer) <= 1) {
-            i++;
-            symbuf_idx = 0;
-            continue;
-        }
-
-
-        // Get the address as a string
-        char *addrstring = kmalloc(strlen(symbolbuffer));
-        int pos = -1;
-        for (pos = 0; pos < strlen(symbolbuffer); pos++) {
-            if (symbolbuffer[pos] != ' ') {
-                addrstring[pos] = symbolbuffer[pos];
-            } else {
-                break;
-            }
-        }
-        addrstring[pos] = 0;
-
-        // Get the type
-        pos++;
-        char type = symbolbuffer[pos];
-        pos += 2;
-
-        // Get the symbol name
-        char *symname = kmalloc(strlen(symbolbuffer) - pos + 1);
-        memcpy(symname, symbolbuffer + pos, strlen(symbolbuffer) - pos);
-        symname[strlen(symbolbuffer) - pos] = 0;
-
     
-        // Due to some complexities with strtol, it will panic on anything greater than LONG_MAX.
-        // This is normally fine since our addresses are within that range.
-        // However, there's a small circumstance in which a variable like ENABLE_PAGING (which is 80000001) is too great and will panic it.
-        // So we'll instead run a check
-        if (type == 'a') {
-            // a = absolute, should really add these types
-            // Do not register anything that is absolute
-            memset(symbolbuffer, 0, 512);
-            symbuf_idx = 0;
-            *symbuf++;
-            continue;
-        }
-        void *addr = (void*)strtol(addrstring, NULL, 16);
-        
-        // Bind the symbol
-        ksym_bind_symbol(symname, addr);
+    char *save;
+    char *token = strtok_r(symbuf, "\n", &save);
 
-        // kfree(symname)
-        kfree(addrstring);
-
-        // Next iteration
-        memset(symbolbuffer, 0, 512);
-        symbuf_idx = 0;
-        *symbuf++; // Increment symbuf to prevent infinite loop
-
+    while (token != NULL) {
+        serialPrintf("%s\n", token);
+        token = strtok_r(NULL, "\n", &save);
     }
 
-    debug_symbols_populated = true;
+    debug_symbols_populated = false;
 }
 
 // ksym_lookup_addr(const char *name) - Gets the address needed
