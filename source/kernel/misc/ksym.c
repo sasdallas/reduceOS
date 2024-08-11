@@ -43,14 +43,35 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
     // Column 3 - Name of the symbol
     
     char *save;
+    char *save2;
     char *token = strtok_r(symbuf, "\n", &save);
 
     while (token != NULL) {
-        serialPrintf("%s\n", token);
         token = strtok_r(NULL, "\n", &save);
+
+        char *token2 = kmalloc(strlen(token));
+        strcpy(token2, token);
+
+        if (strstr(token2, " ") == NULL) {
+            serialPrintf("ksym_bind_symbols: Early termination, assuming symbols populated.\n");
+            break;
+        }
+
+        char *address = strtok_r(token2, " ", &save2);
+        char *type = strtok_r(NULL, " ", &save2);
+        char *symname = strtok_r(NULL, " ", &save2);
+
+        if (!strcmp(type, "T")) {
+            void *addr = strtol(address, NULL, 16);
+            ksym_bind_symbol(symname, addr);
+        }
+
+
+        kfree(token2);
+
     }
 
-    debug_symbols_populated = false;
+    debug_symbols_populated = true;
 }
 
 // ksym_lookup_addr(const char *name) - Gets the address needed

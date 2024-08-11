@@ -347,9 +347,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     }
 
     if (debugsymbols) {
-        //ksym_bind_symbols(debugsymbols);
+        ksym_bind_symbols(debugsymbols);
     } else {
-        serialPrintf("kmain: Debugging symbols disabled\n");
+        panic("kernel", "kmain", "Failed to get kernel symbols!");
     }
 
     uint8_t seconds, minutes, hours, days, months;
