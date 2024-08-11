@@ -172,6 +172,7 @@ fsNode_t *ideGetVFSNode(int driveNum) {
     
 
     ret->gid = ret->uid = ret->inode = ret->length = ret->mask = 0;
+    ret->flags = VFS_BLOCKDEVICE;
     ret->impl = driveNum;
     ret->open = NULL;
     ret->close = NULL;

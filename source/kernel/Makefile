@@ -122,7 +122,7 @@ install: $(OUT_KERNEL)/kernel_$(TARGET).elf
 
 	@echo "-- Creating symbol map..."
 	$(NM) kernel.elf > kernel.map
-	cp kernel.map $(PROJECT_ROOT)/source/initial_ramdisk/initrd/
+	cp kernel.map $(PROJECT_ROOT)/source/initial_ramdisk/rootdir/
 	rm kernel.map
 	rm kernel.elf
 

@@ -420,6 +420,7 @@ fsNode_t *tar_mount(const char *device, const char *mount_path) {
     fsNode_t *root = kmalloc(sizeof(fsNode_t));
     memset(root, 0, sizeof(fsNode_t));
 
+    strcpy(root->name, "tarfs");
     root->uid = 0;
     root->gid = 0;
     root->length = 0;

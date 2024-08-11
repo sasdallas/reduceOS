@@ -152,10 +152,10 @@ void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address
     if (size < 1) return; // Size 0. I hate users.
 
 
-    pagedirectory_t *pageDirectory = vmm_getCurrentDirectory();
+    pagedirectory_t *pageDirectory = currentDirectory;
 
     // Get the page table
-    pde_t *entry = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)];
+    pde_t *entry = &(pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)]);
     if ((*entry & PTE_PRESENT) != PTE_PRESENT) {
         // Entry is not present, so we'll have to create a new one
         pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
@@ -169,8 +169,11 @@ void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address
 
         // Map it in the table
         if (present) pde_addattrib(e, PDE_PRESENT);
+        else pde_delattrib(e, PDE_PRESENT);
         if (writable) pde_addattrib(e, PDE_WRITABLE);
+        else pde_delattrib(e, PDE_WRITABLE);
         if (user) pde_addattrib(e, PDE_USER);
+        else pde_delattrib(e, PDE_USER);
         pde_setframe(e, (uint32_t)table);
     }
 
@@ -182,9 +185,12 @@ void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address
         pte_t *page = &table->entries[PAGETBL_INDEX(virt)];
 
         // Add the flags
-        if (present) pde_addattrib(page, PTE_PRESENT);
+        if (present) pte_addattrib(page, PTE_PRESENT);
+        else pte_delattrib(page, PTE_PRESENT);
         if (writable) pte_addattrib(page, PTE_WRITABLE);
+        else pte_delattrib(page, PTE_WRITABLE);
         if (user) pte_addattrib(page, PTE_USER);
+        else pte_delattrib(page, PTE_USER);
         pte_setframe(page, frame);
     }
 

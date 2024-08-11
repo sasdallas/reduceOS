@@ -142,33 +142,36 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("Initialized memory management successfully.\n");
 
 
+    multiboot_mod_t *mod;
+    int i2;
+    for (i2 = 0, mod = (multiboot_mod_t*)globalInfo->m_modsAddr; i2 < globalInfo->m_modsCount; i2++, mod++) {
+        pmm_deinitRegion(mod->mod_start, mod->mod_end - mod->mod_start);
+    }
     
 
     // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit?
     
+    /*
     ASSERT(globalInfo->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
     uint32_t initrdLocation = *((uint32_t*)(globalInfo->m_modsAddr));
     uint32_t initrdEnd = *(uint32_t*)(globalInfo->m_modsAddr + 4);
     serialPrintf("GRUB did pass an initial ramdisk at 0x%x.\n", globalInfo->m_modsAddr);
+    */
+
 
     // Deinitialize the ramdisk's region to prevent anything from using it.
-    pmm_deinitRegion(initrdLocation,  initrdEnd - initrdLocation + 8); // Adding 8 because some file contents get overwritten
-
-    multiboot_mod_t *mod;
-    int i;
-    for (i = 0, mod = (multiboot_mod_t*)globalInfo->m_modsAddr; i < globalInfo->m_modsCount; i++, mod++) {
-        serialPrintf("\tmod_start = 0x%x, mod_end = 0x%x, cmdline = %s\n", mod->mod_start, mod->mod_end, (char*)mod->cmdline);
-    }
+    //pmm_deinitRegion(initrdLocation,  initrdEnd - initrdLocation + 8); // Adding 8 because some file contents get overwritten
 
 
     // Start the initial ramdisk
     // Due to the new build system, the initial ramdisk should work using GRUB.
     // IT DOES NOT WORK ON QEMU.
+    /*
     serialPrintf("kmain: Loading initial ramdisk...\n");
     fsNode_t *initrd = initrdInit(initrdLocation);    
     printf("Initrd image initialized!\n");
     serialPrintf("kmain: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
-
+    */
 
 
     // Installs the GDT and IDT entries for BIOS32
@@ -257,14 +260,44 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Then, we need to map the /device/ directory
     vfs_mapDirectory("/device");
 
+
     // Mount the other devices
     nulldev_init();             // /device/null
     zerodev_init();             // /device/zero
     serialdev_init();           // /device/serial/COMx           
+    modfs_init(globalInfo);     // /device/modules/modx
 
     fsNode_t *comPort = open_file("/device/serial/COM1", 0);
     debugdev_init(comPort);     // /device/debug
 
+    // Try to find the initial ramdisk (sorry about the messy code)
+    int i = 0;
+    fsNode_t *initrd = NULL;
+    while (true) {
+        char *mntpoint = kmalloc(strlen("/device/modules/modx"));
+        strcpy(mntpoint, "/device/modules/mod");
+        itoa(i, mntpoint+strlen("/device/modules/mod"), 10);
+
+        fsNode_t *modnode = open_file(mntpoint, 0);
+        if (!modnode) { kfree(mntpoint); break; }
+        
+        multiboot_mod_t *mod = (multiboot_mod_t*)modnode->impl_struct;
+        if (strstr(mod->cmdline, "type=initrd") != NULL) {
+            modnode->close(modnode);
+            initrd = open_file(mntpoint, 0);
+            kfree(mntpoint);
+            kfree(modnode);
+            break;
+        }
+
+        kfree(mntpoint);
+        kfree(modnode);
+        i++;
+    }
+
+    if (initrd == NULL) {
+        panic("kernel", "kmain", "Initial ramdisk not found.");
+    }
 
     // Now, we can iterate through each IDE node, mount them to the dev directory, and try to use them as root if needed
     bool rootMounted = false;
@@ -300,10 +333,16 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // If the user did not mount a drive, remount initial ramdisk to /.
     fsNode_t *debugsymbols;
     if (!rootMounted) {
-        vfsMount("/", initrd);
+        int ret = vfs_mountType("tar", initrd->name, "/");
+        if (ret != 0) {
+            panic("kernel", "kmain", "Failed to initialize initrd (tarfs init fail)");
+        }
         debugsymbols = open_file("/kernel.map", 0);
     } else {
-        vfsMount("/device/initrd", initrd);
+        int ret = vfs_mountType("tar", initrd->name, "/device/initrd");
+        if (ret != 0) {
+            panic("kernel", "kmain", "Failed to initialize initrd (tarfs init fail)");
+        }
         debugsymbols = open_file("/device/initrd/kernel.map", 0);
     }
 

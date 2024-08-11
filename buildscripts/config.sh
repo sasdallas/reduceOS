@@ -13,6 +13,9 @@ export LD=${HOST}-ld
 export NM=${HOST}-nm
 export NASM=${NASM:-nasm}
 
+export PYTHON=echo
+command -v python3 > /dev/null && PYTHON=$(command -v python3) || PYTHON=$(command -v python)
+
 export PREFIX=/usr
 export EXEC_PREFIX=$PREFIX
 export BOOTDIR=/boot
