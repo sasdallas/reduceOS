@@ -75,10 +75,8 @@ static int tarfs_ustarFromOffset(tarfs_t *fs, unsigned int offset, ustar_t *out)
             out->ustar[2] != 't' ||
             out->ustar[3] != 'a' ||
             out->ustar[4] != 'r') {
-        serialPrintf("ustarFromOffset: Invalid signature (out->ustar != \"ustar\")\n");
         return 0;            
     }
-
     return 1;
 }
 
@@ -150,6 +148,7 @@ static struct dirent* readdir_tar_root(fsNode_t *node, unsigned long index) {
         if (!countSlashes(filename_workspace)) {
             char *slash = strstr(filename_workspace, "/");
             if (slash) *slash = '\0'; // Remove trailing slash
+
             if (strlen(filename_workspace)) {
                 if (index == 0) {
                     struct dirent *out = kmalloc(sizeof(struct dirent));
@@ -236,7 +235,7 @@ struct dirent* readdir_tarfs(fsNode_t *node, unsigned long index) {
         strncat(filename_workspace, file->prefix, 155);
         strncat(filename_workspace, file->filename, 100);
 
-        if (strstr(filename_workspace, filename) == filename) {
+        if (strstr(filename_workspace, filename) == filename_workspace) {
             if (!countSlashes(filename_workspace + strlen(filename))) {
                 if (strlen(filename_workspace + strlen(filename))) {
                     if (index == 0) {
