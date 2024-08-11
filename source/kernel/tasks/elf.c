@@ -6,7 +6,9 @@
 // Implementation source: https://wiki.osdev.org/ELF_Tutorial
 
 #include <kernel/elf.h> // Main header file
+#include <kernel/mod.h>
 
+// Variables
 
 /* EHDR FUNCTIONS */
 
@@ -112,6 +114,12 @@ void *elf_lookupSymbol(const char *name) {
     // 2. Our reduced libc, something like the init process might try to hook there.
     // 3. Other libraries that should be loaded (TODO)
 
+    // First, let's check the kernel symbol table. This will be pretty easy.
+    void *ksym = ksym_lookup_addr(name);
+    if (ksym != NULL) {
+        return ksym; // Found it!
+    }
+
     return NULL;
 }
 
@@ -133,9 +141,11 @@ static int elf_getSymbolValue(Elf32_Ehdr *ehdr, int table, uint32_t index) {
         return -1;
     }
 
+
     // Calculate the symbol address and get it
     int symbol_address = (int)ehdr + symtab->sh_offset;
     Elf32_Sym *symbol = &((Elf32_Sym*)symbol_address)[index];
+
 
     // Now we can check the type and calculate accordingly
     if (symbol->st_shndx == SHN_UNDEF) {
@@ -174,10 +184,42 @@ static int elf_getSymbolValue(Elf32_Ehdr *ehdr, int table, uint32_t index) {
 
 /* PHDR FUNCTIONS */
 
-// (static) elf_getPHDR(Elf32_Ehdr *ehdr) - Returns the ELF program header
-static Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr) {
-    return (Elf32_Phdr*)((int)ehdr + ehdr->e_phoff);
+// (static) elf_getPHDR(Elf32_Ehdr *ehdr, int offset) - Returns the ELF program header
+static Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr, int offset) {
+    return (Elf32_Phdr*)((int)ehdr + ehdr->e_phoff + ehdr->e_phentsize * offset);
 }
+
+// (static) elf_parsePHDR(Elf32_Ehdr *ehdr) - Parses the PHDR(s) for an ELF file
+static int elf_parsePHDR(Elf32_Ehdr *ehdr) {
+    for (int i = 0; i < ehdr->e_phnum; i++) {
+        Elf32_Phdr *phdr = elf_getPHDR(ehdr, i);
+        if (phdr->p_type == PT_DYNAMIC) {
+            // we dont have ld.so (rip)
+            serialPrintf("elf_parsePHDR: Cannot load dynamic libraries - no ld.so.\n");
+            return ELF_RELOC_ERROR;
+        }
+
+        serialPrintf("elf_parsePHDR: Creating memory space for PHDR (vaddr = 0x%x - memsize = 0x%x)\n", phdr->p_vaddr, phdr->p_memsize);
+
+        for (uint32_t ptr = phdr->p_vaddr; ptr < phdr->p_vaddr + phdr->p_memsize; ptr += 4096) {
+            pte_t page = 0;
+            pte_addattrib(&page, PTE_PRESENT);
+            pte_addattrib(&page, PTE_WRITABLE);
+            pte_setframe(&page, ptr);
+            vmm_allocatePage(&page);
+        }
+
+        pmm_deinitRegion(phdr->p_vaddr, phdr->p_memsize);
+
+        serialPrintf("elf_parsePHDR: Memory space created successfully.\n");
+    }
+
+    serialPrintf("elf_parsePHDR: Successfully parsed %i PHDRs.\n", ehdr->e_phnum);
+    return 0;
+
+
+}
+
 
 
 
@@ -266,6 +308,8 @@ static int elf_loadStage2(Elf32_Ehdr *ehdr) {
                 Elf32_Rel *reltab = &((Elf32_Rel*)((int)ehdr + section->sh_offset))[idx];
                 int result = elf_relocate(ehdr, reltab, section);
 
+
+
                 // On result, display message and return
                 if (result == ELF_RELOC_ERROR) {
                     serialPrintf("elf_loadStage2: Could not relocate symbol\n");
@@ -273,13 +317,14 @@ static int elf_loadStage2(Elf32_Ehdr *ehdr) {
             }
         }
     }
+    
 
     return 0;
 }
 
 
 // (static) elf_loadRelocatable(Elf32_Ehdr *ehdr) - Loads a relocatable ELF file into memory
-static inline void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
+static void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
     int result;
 
     // Load stage 1 and stage 2, and parse the program header
@@ -296,9 +341,19 @@ static inline void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
     }
 
     // Parse the program header
+    result = elf_parsePHDR(ehdr);
+    if (result == ELF_RELOC_ERROR) {
+        serialPrintf("elf_loadRelocatable: Failed to load ELF file (parse PHDR error)\n");
+        return NULL;
+    }
 
+
+
+    serialPrintf("elf_loadRelocatable: Successfully loaded the file. Entrypoint 0x%x\n", ehdr->e_entry);
     return (void*)ehdr->e_entry;
 }
+
+typedef int elf_func(int argc, char **args);
 
 
 // elf_loadFileFromBuffer(void *buf) - Loads an ELF file from a buffer with its contents
@@ -312,15 +367,19 @@ void *elf_loadFileFromBuffer(void *buf) {
     }
 
     // Check the type and do what's necessary for the file.
-    switch (ehdr->e_type) {
-        case ET_EXEC:
-            // TODO: actually do this lol
-            return NULL;
-        case ET_REL:
-            return elf_loadRelocatable(ehdr);
-        default:
-            serialPrintf("elf_loadFileFromBuffer: This should've been caught by isCompatible.\n");
-            return NULL;
+
+    if (ehdr->e_type == ET_EXEC) {
+        serialPrintf("elf_loadFileFromBuffer: ET_EXEC NOT IMPLEMENTED!\n");
+        return NULL;
+    } else if (ehdr->e_type == ET_REL) {
+        void *entry = elf_loadRelocatable(ehdr);
+        if (entry != NULL) {
+            elf_func *f = (elf_func*)((uint32_t*)buf);
+            f(1, NULL);
+        }
+    }  else {
+        serialPrintf("elf_loadFileFromBuffer: ???\n");
+        return NULL;
     }
 
     return NULL;

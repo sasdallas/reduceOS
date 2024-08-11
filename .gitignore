@@ -18,3 +18,5 @@ serial_out.txt
 cppreduceOS.code-workspace
 test
 test.c
+start
+test.o

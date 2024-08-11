@@ -67,8 +67,7 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
         }
 
 
-        kfree(token2);
-
+        kfree(token2); 
     }
 
     debug_symbols_populated = true;
