@@ -37,7 +37,6 @@ Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesy
 
 # Known Bugs
 - **Severe:** Systems with >1G break the allocator.
-- initrd should be replaced with a known-good impl. instead of something I wrote a few years ago
 - FDC not working correctly
 - **TODO:** dev/ directory is not present when running `ls`
 - ATAPI drives cannot be read

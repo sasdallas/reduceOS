@@ -9,7 +9,7 @@ int init(int argc, char *argv[]) {
     return 0;
 }
 
-mod_metadata_t metadata = {
+struct Metadata data = {
     .name = "example",
     .init = init
 };

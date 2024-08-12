@@ -114,6 +114,7 @@ void *elf_lookupSymbol(const char *name) {
     // 2. Our reduced libc, something like the init process might try to hook there.
     // 3. Other libraries that should be loaded (TODO)
 
+    serialPrintf("elf_lookupSymbol: Resolving symbol %s..\n", name);
     // First, let's check the kernel symbol table. This will be pretty easy.
     void *ksym = ksym_lookup_addr(name);
     if (ksym != NULL) {
@@ -153,6 +154,8 @@ static int elf_getSymbolValue(Elf32_Ehdr *ehdr, int table, uint32_t index) {
         Elf32_Shdr *strtab = elf_section(ehdr, symtab->sh_link);
         const char *symname = (const char *)ehdr + strtab->sh_offset + symbol->st_name;
 
+        serialPrintf("elf_getSymbolValue: Relocating symbol '%s'...\n", symname);
+
         void *target = elf_lookupSymbol(symname);
 
         if (target == NULL) {
@@ -181,6 +184,68 @@ static int elf_getSymbolValue(Elf32_Ehdr *ehdr, int table, uint32_t index) {
 }
 
 
+// elf_findSymbol(Elf32_Ehdr *ehdr, char *name) - Locates and returns the location of a symbol
+void *elf_findSymbol(Elf32_Ehdr *ehdr, char *name) {
+    void *out = NULL;
+
+    // First, grab the section header
+    Elf32_Shdr *shdr = elf_sheader(ehdr);
+
+    // Iterate over the section headers
+    unsigned int i, idx;
+    for (i = 0; i < ehdr->e_shnum; i++) {
+        Elf32_Shdr *section = &shdr[i];
+
+        // TODO: Is this required? Are we missing symbols?
+        if (section->sh_type == SHT_REL) {
+            // Process each entry in the table
+            for (idx = 0; idx < section->sh_size / section->sh_entrysize; idx++) {
+                Elf32_Rel *reltab = &((Elf32_Rel*)((int)ehdr + section->sh_offset))[idx];
+
+                // Normally, we'd call out to elf_relocate(ehdr, reltab, section), but I have a better idea
+                // Grab the target
+                Elf32_Shdr *target = elf_section(ehdr, section->sh_info);
+
+                // Then we'd call elf_getSymbolValue(ehdr, section->sh_link, ELF32_R_SYM(rel->r_info))
+                // Let's make sure we're not being fooled first
+                if (section->sh_link == SHN_UNDEF || ELF32_R_SYM(reltab->r_info) == SHN_UNDEF) continue;
+
+                // Calculate the symbol table entry & sanity check
+                Elf32_Shdr *symtab = elf_section(ehdr, section->sh_link);
+                
+                // Because we're iterating through symbols, make sure to AVOID the division by zero error.
+                uint32_t symtab_entries;
+                if (symtab->sh_size == 0  || symtab->sh_entrysize == 0) {
+                    symtab_entries = symtab->sh_size / sizeof(Elf32_Sym); // Will still technically cause divbyzero but much more unlikely (?)
+                } else  {
+                    symtab_entries = symtab->sh_size / symtab->sh_entrysize;
+                }
+
+                // Calculate the symbol address
+                int symbol_address = (int)ehdr + symtab->sh_offset;
+                Elf32_Sym *sym = &((Elf32_Sym*)symbol_address)[ELF32_R_SYM(reltab->r_info)];
+
+                // Let's get it's name
+                Elf32_Shdr *strtab = elf_section(ehdr, symtab->sh_link);
+                const char *symname = (const char *)ehdr + strtab->sh_offset + sym->st_name;
+
+                if (symname && !strcmp(symname, name) && ((sym->st_info >> 4) & 0xF)) {
+                    serialPrintf("elf_findSymbol: Found symbol '%s' successfully.\n");
+
+                    out = elf_getSymbolValue(ehdr, section->sh_link, ELF32_R_SYM(reltab->r_info));
+                    break;
+                }
+
+
+            }
+        }
+
+        if (out != NULL) break;
+    }
+
+    return out;
+}
+
 
 /* PHDR FUNCTIONS */
 
@@ -190,7 +255,7 @@ static Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr, int offset) {
 }
 
 // (static) elf_parsePHDR(Elf32_Ehdr *ehdr) - Parses the PHDR(s) for an ELF file
-static int elf_parsePHDR(Elf32_Ehdr *ehdr) {
+static int elf_parsePHDR(Elf32_Ehdr *ehdr, char *buffer) {
     for (int i = 0; i < ehdr->e_phnum; i++) {
         Elf32_Phdr *phdr = elf_getPHDR(ehdr, i);
         if (phdr->p_type == PT_DYNAMIC) {
@@ -201,15 +266,27 @@ static int elf_parsePHDR(Elf32_Ehdr *ehdr) {
 
         serialPrintf("elf_parsePHDR: Creating memory space for PHDR (vaddr = 0x%x - memsize = 0x%x)\n", phdr->p_vaddr, phdr->p_memsize);
 
-        for (uint32_t ptr = phdr->p_vaddr; ptr < phdr->p_vaddr + phdr->p_memsize; ptr += 4096) {
+        uint32_t size = phdr->p_memsize % 4096;
+        if (!size) size = phdr->p_memsize;
+        else size = phdr->p_memsize + (4096 - size);
+
+        vmm_allocateRegionFlags(phdr->p_vaddr, phdr->p_vaddr, size, 1, 1, 0);
+        vmm_allocateRegionFlags(phdr->p_vaddr + size, phdr->p_vaddr + size, 4096, 1, 1, 0);
+
+        /*for (uint32_t ptr = phdr->p_vaddr; ptr < phdr->p_vaddr + phdr->p_memsize; ptr += 4096) {
             pte_t page = 0;
             pte_addattrib(&page, PTE_PRESENT);
             pte_addattrib(&page, PTE_WRITABLE);
             pte_setframe(&page, ptr);
             vmm_allocatePage(&page);
-        }
+        }*/
 
         pmm_deinitRegion(phdr->p_vaddr, phdr->p_memsize);
+
+        // Copy the contents into the memory region
+        serialPrintf("elf_parsePHDR: Copying %i bytes from offset 0x%x to vaddr 0x%x...\n", phdr->p_filesize, phdr->p_offset, phdr->p_vaddr);
+        memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
+        for (int i = phdr->p_filesize; i < phdr->p_memsize; i++) *(char*)(phdr->p_vaddr + i) = 0;
 
         serialPrintf("elf_parsePHDR: Memory space created successfully.\n");
     }
@@ -236,19 +313,35 @@ static int elf_loadStage1(Elf32_Ehdr *ehdr) {
     for (unsigned int i = 0; i < ehdr->e_shnum; i++) {
         Elf32_Shdr *section = &shdr[i];
         
-        // If the section isn't present in the file
-        if (section->sh_type == SHT_NOBITS) {
-            // Skip it if the section is empty
-            if (!section->sh_size) continue; // No need allocate anything.
-
-            if (section->sh_flags & SHF_ALLOC) {
-                // Alloacte and zero out some memory.
-                void *memory = kmalloc(section->sh_size);
-                memset(memory, 0, section->sh_size);
-
-                // Assign the memory offset to the section offset
-                section->sh_offset = (int)memory -(int)ehdr;
+        if ((section->sh_flags & SHF_ALLOC) && section->sh_size > 0) {
+            char *mem = kmalloc(section->sh_size);
+            if (!mem) {
+                serialPrintf("elf_loadStage1: Failed to acquire memory.\n");
+                return ELF_RELOC_ERROR;
             }
+
+            if (section->sh_type == SHT_PROGBITS) {
+                // Copy data in
+                serialPrintf("elf_loadStage1: Copying bytes from offset 0x%x to 0x%x (size: %i)...\n", section->sh_offset, mem, section->sh_size);
+                memcpy(mem, (int)ehdr + section->sh_offset, section->sh_size);
+            } else if (section->sh_type == SHT_NOBITS) {
+                serialPrintf("elf_loadStage1: Zeroing out BSS data at 0x%x...\n", mem);
+                memset(mem, 0, section->sh_size);
+            }
+
+            section->sh_addr = mem;
+        }
+
+        if (section->sh_type == SHT_SYMTAB || section->sh_type == SHT_STRTAB) {
+            Elf32_Sym *table = kmalloc(section->sh_size);
+            if (!table) {
+                serialPrintf("elf_loadStage1: Failed to allocate memory\n");
+                return ELF_RELOC_ERROR;
+            }
+
+            serialPrintf("elf_loadStage1: Copying string table into memory at address 0x%x...\n", table);
+            memcpy(table, (int)ehdr + section->sh_offset, section->sh_size);
+            section->sh_addr = table;    
         }
     }
 
@@ -304,6 +397,7 @@ static int elf_loadStage2(Elf32_Ehdr *ehdr) {
         // Check if the section is relocatable
         if (section->sh_type == SHT_REL) {
             // Process each entry in the table
+            // BUG: This can cause a division by zero error - should implement sanity checks.
             for (idx = 0; idx < section->sh_size / section->sh_entrysize; idx++) {
                 Elf32_Rel *reltab = &((Elf32_Rel*)((int)ehdr + section->sh_offset))[idx];
                 int result = elf_relocate(ehdr, reltab, section);
@@ -315,6 +409,8 @@ static int elf_loadStage2(Elf32_Ehdr *ehdr) {
                     serialPrintf("elf_loadStage2: Could not relocate symbol\n");
                 }
             }
+        } else if (section->sh_type == SHT_REL_A) {
+            serialPrintf("elf_loadStage2: SHT_REL_A found but don't know what to do!\n");
         }
     }
     
@@ -322,6 +418,8 @@ static int elf_loadStage2(Elf32_Ehdr *ehdr) {
     return 0;
 }
 
+
+typedef int elf_func(int argc, char **args);
 
 // (static) elf_loadRelocatable(Elf32_Ehdr *ehdr) - Loads a relocatable ELF file into memory
 static void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
@@ -341,19 +439,52 @@ static void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
     }
 
     // Parse the program header
-    result = elf_parsePHDR(ehdr);
+    /*result = elf_parsePHDR(ehdr);
     if (result == ELF_RELOC_ERROR) {
         serialPrintf("elf_loadRelocatable: Failed to load ELF file (parse PHDR error)\n");
         return NULL;
-    }
+    }*/
 
 
 
     serialPrintf("elf_loadRelocatable: Successfully loaded the file. Entrypoint 0x%x\n", ehdr->e_entry);
+    
     return (void*)ehdr->e_entry;
 }
 
-typedef int elf_func(int argc, char **args);
+static void *elf_loadExecutable(char *buffer) {
+    // Get an EHDR
+    Elf32_Ehdr *ehdr = (Elf32_Ehdr*)buffer;
+
+    // Parse the PHDRs
+    //elf_parsePHDR(ehdr, buffer);
+
+    // Manual parsing, temporary (I promise)
+    uint32_t physicalLocation = kmalloc(sizeof(buffer)); // how the hell do we know what to allocate
+    Elf32_Phdr *phdr = (Elf32_Phdr*)(buffer + ehdr->e_phoff);
+
+    for (int i = 0; i < ehdr->e_phnum; i++, phdr++) {
+        switch (phdr->p_type) {
+            case 0:
+                break; // NULL type
+            case 1:
+                serialPrintf("elf_loadExecutable: PHDR #%i - offset 0x%x vaddr 0x%x paddr 0x%x filesize 0x%x memsize 0x%x\n", i, phdr->p_offset, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesize, phdr->p_memsize);
+                vmm_mapPage(physicalLocation, phdr->p_vaddr);
+                memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
+                break;
+            default:
+                serialPrintf("elf_loadExecutable: Unknown type\n");
+                return 0;
+        }
+    }
+
+    serialPrintf("elf_loadExecutable: Successfully loaded an executable.\n");
+
+    return (void*)ehdr->e_entry;
+}
+
+
+
 
 
 // elf_loadFileFromBuffer(void *buf) - Loads an ELF file from a buffer with its contents
@@ -369,14 +500,11 @@ void *elf_loadFileFromBuffer(void *buf) {
     // Check the type and do what's necessary for the file.
 
     if (ehdr->e_type == ET_EXEC) {
-        serialPrintf("elf_loadFileFromBuffer: ET_EXEC NOT IMPLEMENTED!\n");
-        return NULL;
+        void *entry = elf_loadExecutable(buf);
+        return entry;
     } else if (ehdr->e_type == ET_REL) {
         void *entry = elf_loadRelocatable(ehdr);
-        if (entry != NULL) {
-            elf_func *f = (elf_func*)((uint32_t*)buf);
-            f(1, NULL);
-        }
+        return entry;
     }  else {
         serialPrintf("elf_loadFileFromBuffer: ???\n");
         return NULL;

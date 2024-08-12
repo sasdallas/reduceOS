@@ -4,9 +4,9 @@
 #define MOD_H
 
 // Typedefs
-typedef struct {
+struct Metadata {
     char *name;
     int (*init)(int argc, char *argv[]);
-} mod_metadata_t;
+};
 
 #endif

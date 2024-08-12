@@ -833,7 +833,6 @@ int loadELF(int argc, char *args[]) {
         return -1;
     }
 
-
     char *fbuf = kmalloc(elf_file->length);
     int ret = elf_file->read(elf_file, 0, elf_file->length, fbuf);
 
