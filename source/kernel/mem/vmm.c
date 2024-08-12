@@ -91,8 +91,6 @@ void vmm_mapPage(void *physical_addr, void *virtual_addr) {
     // Get the page table
     pde_t *entry = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_addr)];
     if ((*entry & PTE_PRESENT) != PTE_PRESENT) {
-        serialPrintf("vmm_mapPage: entry not present, allocating it...\n");
-
         pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
         if (!table) return; // failed to get the block
 

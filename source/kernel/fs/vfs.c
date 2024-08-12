@@ -330,7 +330,7 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
         serialPrintf("vfsMount: Mounting to /\n");
         vfsEntry_t *root = (vfsEntry_t*)rootNode->value;
         if (root->file != 0) serialPrintf("vfsMount: Path %s is already mounted - please do the correct thing and UNMOUNT.\n", path);
-        serialPrintf("vfsMount: Setting up values (localRoot = 0x%x)\n", localRoot);
+        // serialPrintf("vfsMount: Setting up values (localRoot = 0x%x)\n", localRoot);
         root->file = localRoot;
         strcpy(root->device, "N/A");
         strcpy(root->fs_type, "N/A");
@@ -346,7 +346,7 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
 
             if (at >= p + strlen(path)) break;
             int found = 0;
-            serialPrintf("vfsMount: Searching for %s...\n", at);
+            //serialPrintf("vfsMount: Searching for %s...\n", at);
 
             foreach(child, node->children) {
                 tree_node_t *tchild = (tree_node_t *)child->value;
@@ -360,7 +360,7 @@ void *vfsMount(char *path, fsNode_t *localRoot) {
             }
 
             if (!found) {
-                serialPrintf("vfsMount: Could not find %s - creating it.\n", at);
+                //serialPrintf("vfsMount: Could not find %s - creating it.\n", at);
                 
                 
                 vfsEntry_t *entry = kmalloc(sizeof(vfsEntry_t));
@@ -615,7 +615,7 @@ fsNode_t *open_file_recursive(const char *filename, uint64_t flags, uint64_t sym
         }
 
         // Still searching
-        serialPrintf("open_file_recursive: ... continuing to search for %s (current node: %s)...\n", pathOffset, nodePtr->name);
+        // serialPrintf("open_file_recursive: ... continuing to search for %s (current node: %s)...\n", pathOffset, nodePtr->name);
         
         fsNode_t *node_next = findDirectoryFilesystem(nodePtr, pathOffset);
         kfree(nodePtr);
@@ -631,7 +631,7 @@ fsNode_t *open_file_recursive(const char *filename, uint64_t flags, uint64_t sym
         ++depth;
     } while (depth < pathDepth + 1);
 
-    serialPrintf("open_file_recursive: Not found\n");
+    // serialPrintf("open_file_recursive: Not found\n");
     kfree(path);
     return NULL;
 }

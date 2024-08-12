@@ -71,22 +71,33 @@ uint32_t pciConfigReadField(uint32_t device, int field, int size)  {
 
 /* PCI SCANNING - Scans the PCI buses for devices and calls the given function for each device */
 
+
+// Helper function
+uint16_t pci_find_type(uint32_t dev) {
+	return (pciConfigReadField(dev, PCI_OFFSET_CLASSID, 1) << 8) | pciConfigReadField(dev, PCI_OFFSET_SUBCLASSID, 1);
+}
+
+
 // (static) pciScanHit(pciFunction_t func, uint32_t device, void *extra) - Calls the function for the device
 static void pciScanHit(pciFunction_t func, uint32_t device, void *extra) {
     int dev_vend = (int)pciConfigReadField(device, PCI_OFFSET_VENDORID, 2);
     int dev_dvid = (int)pciConfigReadField(device, PCI_OFFSET_DEVICEID, 2);
-
+    serialPrintf("pciScanHit: Sending vend 0x%x dvid 0x%x for device 0x%x\n", dev_vend, dev_dvid, device);
     func(device, dev_vend, dev_dvid, extra);
 }
 
 // pciScanFunc(pciFunction_t f, int type, int bus, int slot, int func, void *extra) - Scans the slots for a device
 void pciScanFunc(pciFunction_t f, int type, int bus, int slot, int func, void *extra) {
-    uint32_t device = (uint32_t)((bus << 16) | (slot << 8) | func);
-    uint32_t device_type = ((pciConfigReadField(device, PCI_OFFSET_VENDORID, 2) << 8) | pciConfigReadField(device, PCI_OFFSET_SUBCLASSID, 1));
+    uint32_t dev = (uint32_t)((bus << 16) | (slot << 8) | func);
 
-    if (type == -1 || type == device_type) pciScanHit(f, device, extra);
+    if (type == -1 || type == pci_find_type(dev)) {
+        pciScanHit(f, dev, extra);
+    }
 
-    if (device_type == PCI_TYPE_BRIDGE) pciScanBus(f, type, pciConfigReadField(device, PCI_SECONDARY_BUS, 1), extra);
+    if (pci_find_type(dev) == PCI_TYPE_BRIDGE) {
+        // It's a bridge, do more work
+        pciScanBus(f, type, pciConfigReadField(dev, PCI_SECONDARY_BUS, 1), extra);
+    }
 }
 
 
@@ -264,4 +275,10 @@ void printPCIInfo() {
     
     }
 
+}
+
+
+// pciGetInterrupt(uint32_t device) - Returns the PCI interrupt for a specific device
+int pciGetInterrupt(uint32_t device) {
+    return pciConfigReadField(device, PCI_INTERRUPT_LINE, 1);
 }

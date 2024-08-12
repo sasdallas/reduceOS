@@ -189,13 +189,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     updateBottomText("Initializing PIT...");
     pitInit();
     serialPrintf("PIT started at 1000hz\n");
-
-    
-    // Probe for PCI devices
-    updateBottomText("Probing PCI...");
-    initPCI();
-    serialPrintf("initPCI: PCI probe completed\n");
-
     
 
 
@@ -213,6 +206,14 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // DEFINITELY sketchy! What's going on with this system? 
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
+
+
+    // Probe for PCI devices
+    updateBottomText("Probing PCI...");
+    initPCI();
+    serialPrintf("initPCI: PCI probe completed\n");
+
+
 
     // Initialize debug symbols
     ksym_init();
@@ -380,6 +381,8 @@ void useCommands() {
     
     clearBuffer();
 
+
+    // Scan and initialize modules for kernelspace
     module_parseCFG();
 
 

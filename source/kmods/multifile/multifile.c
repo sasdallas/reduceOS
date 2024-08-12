@@ -3,14 +3,13 @@
 #include <stdio.h>
 
 int init(int argc, char *args[]) {
-    printf("Multifile 1 says hello!\n");
+    serialPrintf("[module multifile] Multifile 1 says hello!\n");
     int ret = sayHello();
-    printf("sayHello returns %i\n", ret);
     return 0;
 }
 
 int deinit() {
-    printf("Multifile shutting down\n");
+    serialPrintf("[module multifile] Multifile shutting down\n");
     return 0;
 }
 

@@ -37,14 +37,15 @@ Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesy
 
 # Known Bugs
 - **Severe:** Systems with >1G break the allocator.
-- FDC not working correctly
+- **High priority:** ATAPI drives cannot be read
+- **High Priority:** `pciScan` does not work correctly
+- **Medium Priority:** FDC not working correctly
 - **TODO:** dev/ directory is not present when running `ls`
-- ATAPI drives cannot be read
 - **TODO:** DMA in IDE/ATA driver
 - **TODO:** System calls need a better interface(?)
-- Kernel security is not being upheld with usermode as kernel pages are RW. Not good! (needs to be fixed in allocatePage)
 - **TODO:** ext2 driver deletion functions suck
-- A bitmap that is too large will crash the system
+- **Likely will never be fixed:** Kernel security is not being upheld with usermode as kernel pages are RW. Not good! (needs to be fixed in allocatePage)
+- **Likely will never be fixed:** A bitmap that is too large will crash the system
 
 
 

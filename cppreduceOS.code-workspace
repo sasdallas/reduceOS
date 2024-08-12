@@ -47,7 +47,8 @@
 			"elf.h": "c",
 			"mod.h": "c",
 			"stddef.h": "c",
-			"module.h": "c"
+			"module.h": "c",
+			"pci_vendors.h": "c"
 		}
 	}
 }

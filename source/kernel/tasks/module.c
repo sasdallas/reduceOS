@@ -17,7 +17,11 @@ char *moduser_buf = NULL;
 
 // module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdataout) - Loads a module for modfile
 int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdataout) {
-    if (!modfile || modfile->flags != VFS_FILE || modfile->length <= 1) return MODULE_PARAM_ERROR;
+    if (!modfile) {
+        serialPrintf("module_load: Incorrect parameters specified.\n");
+        return MODULE_PARAM_ERROR;
+    }
+
 
     // A bit hacky, but it works lol
     // We'll allocate physical memory using our PMM, then map it into the last_load_address
@@ -203,14 +207,15 @@ void module_parseCFG() {
 
             // First, let's make sure the module exists.
             char *fullpath = kmalloc(strlen("/boot/modules/") + strlen(filename));
-            if (needsInitrd) strcpy(fullpath, "/modules/");
-            else strcpy(fullpath, "/boot/modules/");
+            if (needsInitrd) strcpy(fullpath, "/boot/modules/");
+            else strcpy(fullpath, "/modules/");
             strcpy(fullpath + strlen(fullpath), filename);
 
             serialPrintf("module_parseCFG: Loading module '%s' with priority %s...\n", fullpath, priority);
             fsNode_t *module = open_file(fullpath, 0);
             if (!module) {
                 module_handleFaultPriority(filename, priority);
+                goto _nextToken;
             }
 
             // Parse the module

@@ -5,13 +5,12 @@
 
 
 int init(int argc, char *argv[]) {
-    terminalWriteString("Hello, module world!\n");
-    printf("Libc go brrr\n");
+    serialPrintf("[module example] Hello, module world!\n");
     return 0;
 }
 
 int deinit() {
-    printf("Deinitializing module...\n");
+    serialPrintf("[module example] Deinitializing...\n");
     return 0;
 }
 
