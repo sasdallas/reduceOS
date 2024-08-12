@@ -15,4 +15,19 @@ struct Metadata {
     int (*deinit)();
 };
 
+// Function
+typedef int mod_init_func(int argc, char **args);
+
+// Definitions
+#define MODULE_ADDR_START 0xA0000000
+
+// Errors
+#define MODULE_LOAD_ERROR   -1          // ELF load failed
+#define MODULE_CONF_ERROR   -2          // Configuration invalid
+#define MODULE_META_ERROR   -3          // No metadata found
+#define MODULE_INIT_ERROR   -3          // No init symbol found (backup)
+#define MODULE_PARAM_ERROR  -4          // You specified incorrect parameters (dunce)
+#define MODULE_READ_ERROR   -5          // Failed to read the module
+
+
 #endif

@@ -10,7 +10,9 @@
 // Metadata exposed by the module and picked up by the loader
 struct Metadata {
     char *name;
+    char *description;
     int (*init)(int argc, char *argv[]);
+    int (*deinit)();
 };
 
 // Function

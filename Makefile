@@ -62,6 +62,9 @@ buildfonts:
 	$(MAKE) headerlog header="Building module 'fonts', please wait..."
 	bash -c "$(BUILDSCRIPTS_ROOT)/build.sh fonts"
 
+buildmods:
+	$(MAKE) headerlog header="Building module 'kmods', please wait..."
+	bash -c "$(BUILDSCRIPTS_ROOT)/build.sh kmods"
 
 # Header targets
 
