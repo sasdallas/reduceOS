@@ -417,6 +417,7 @@ void useCommands() {
     registerCommand("vfs", (command*)vfs);
     registerCommand("load_elf", (command*)loadELF);
     registerCommand("mount_tar", (command*)mountTAR);
+    registerCommand("modload", (command*)loadModule);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     serialPrintf("kmain: Warning: User is an unstable environment.\n");

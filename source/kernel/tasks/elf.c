@@ -258,43 +258,28 @@ static Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr, int offset) {
 static int elf_parsePHDR(Elf32_Ehdr *ehdr, char *buffer) {
     for (int i = 0; i < ehdr->e_phnum; i++) {
         Elf32_Phdr *phdr = elf_getPHDR(ehdr, i);
-        if (phdr->p_type == PT_DYNAMIC) {
-            // we dont have ld.so (rip)
-            serialPrintf("elf_parsePHDR: Cannot load dynamic libraries - no ld.so.\n");
-            return ELF_RELOC_ERROR;
+
+        uint32_t physicalLocation = kmalloc(sizeof(buffer));
+        
+        switch (phdr->p_type) {
+            case PT_NULL:
+                kfree(physicalLocation);
+                break;  // NULL type, nothing to do.
+            case PT_LOAD:
+                // We need to load it into memory
+                serialPrintf("elf_loadExecutable: PHDR #%i - offset 0x%x vaddr 0x%x paddr 0x%x filesize 0x%x memsize 0x%x\n", i, phdr->p_offset, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesize, phdr->p_memsize);
+                vmm_mapPage(physicalLocation, phdr->p_vaddr);
+                memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
+                break;
+            default:
+                // Unknown type
+                serialPrintf("elf_parsePHDR: Unknown type %i\n", phdr->p_type);
+                return ELF_PARSE_ERROR;
         }
-
-        serialPrintf("elf_parsePHDR: Creating memory space for PHDR (vaddr = 0x%x - memsize = 0x%x)\n", phdr->p_vaddr, phdr->p_memsize);
-
-        uint32_t size = phdr->p_memsize % 4096;
-        if (!size) size = phdr->p_memsize;
-        else size = phdr->p_memsize + (4096 - size);
-
-        vmm_allocateRegionFlags(phdr->p_vaddr, phdr->p_vaddr, size, 1, 1, 0);
-        vmm_allocateRegionFlags(phdr->p_vaddr + size, phdr->p_vaddr + size, 4096, 1, 1, 0);
-
-        /*for (uint32_t ptr = phdr->p_vaddr; ptr < phdr->p_vaddr + phdr->p_memsize; ptr += 4096) {
-            pte_t page = 0;
-            pte_addattrib(&page, PTE_PRESENT);
-            pte_addattrib(&page, PTE_WRITABLE);
-            pte_setframe(&page, ptr);
-            vmm_allocatePage(&page);
-        }*/
-
-        pmm_deinitRegion(phdr->p_vaddr, phdr->p_memsize);
-
-        // Copy the contents into the memory region
-        serialPrintf("elf_parsePHDR: Copying %i bytes from offset 0x%x to vaddr 0x%x...\n", phdr->p_filesize, phdr->p_offset, phdr->p_vaddr);
-        memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
-        for (int i = phdr->p_filesize; i < phdr->p_memsize; i++) *(char*)(phdr->p_vaddr + i) = 0;
-
-        serialPrintf("elf_parsePHDR: Memory space created successfully.\n");
     }
 
     serialPrintf("elf_parsePHDR: Successfully parsed %i PHDRs.\n", ehdr->e_phnum);
     return 0;
-
-
 }
 
 
@@ -421,7 +406,7 @@ static int elf_loadStage2(Elf32_Ehdr *ehdr) {
 
 typedef int elf_func(int argc, char **args);
 
-// (static) elf_loadRelocatable(Elf32_Ehdr *ehdr) - Loads a relocatable ELF file into memory
+// (static) elf_loadRelocatable(Elf32_Ehdr *ehdr) - Loads a relocatable ELF file into memory (NULL = failure, 0x0 = no entrypoint, otherwise entry)
 static void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
     int result;
 
@@ -438,7 +423,7 @@ static void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
         return NULL;
     }
 
-    // Parse the program header
+    // Parse the program header (TODO)
     /*result = elf_parsePHDR(ehdr);
     if (result == ELF_RELOC_ERROR) {
         serialPrintf("elf_loadRelocatable: Failed to load ELF file (parse PHDR error)\n");
@@ -457,25 +442,10 @@ static void *elf_loadExecutable(char *buffer) {
     Elf32_Ehdr *ehdr = (Elf32_Ehdr*)buffer;
 
     // Parse the PHDRs
-    //elf_parsePHDR(ehdr, buffer);
-
-    // Manual parsing, temporary (I promise)
-    uint32_t physicalLocation = kmalloc(sizeof(buffer)); // how the hell do we know what to allocate
-    Elf32_Phdr *phdr = (Elf32_Phdr*)(buffer + ehdr->e_phoff);
-
-    for (int i = 0; i < ehdr->e_phnum; i++, phdr++) {
-        switch (phdr->p_type) {
-            case 0:
-                break; // NULL type
-            case 1:
-                serialPrintf("elf_loadExecutable: PHDR #%i - offset 0x%x vaddr 0x%x paddr 0x%x filesize 0x%x memsize 0x%x\n", i, phdr->p_offset, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesize, phdr->p_memsize);
-                vmm_mapPage(physicalLocation, phdr->p_vaddr);
-                memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
-                break;
-            default:
-                serialPrintf("elf_loadExecutable: Unknown type\n");
-                return 0;
-        }
+    int ret = elf_parsePHDR(ehdr, buffer);
+    if (ret == ELF_PARSE_ERROR) {
+        serialPrintf("elf_loadExecutable: PHDR parse returned -2 - parser error\n");
+        return NULL;
     }
 
     serialPrintf("elf_loadExecutable: Successfully loaded an executable.\n");
@@ -506,9 +476,35 @@ void *elf_loadFileFromBuffer(void *buf) {
         void *entry = elf_loadRelocatable(ehdr);
         return entry;
     }  else {
-        serialPrintf("elf_loadFileFromBuffer: ???\n");
+        serialPrintf("elf_loadFileFromBuffer: Unsupported type %i\n", ehdr->e_type);
         return NULL;
     }
 
     return NULL;
+}
+
+// elf_loadFile(fsNode_t *file) - Loads a file. RETURN VALUE IS EITHER BUFFER FOR NO ENTRYPOINT OR ENTRYPOINT
+void *elf_loadFile(fsNode_t *file) {
+    if (file->flags != VFS_FILE) return NULL; 
+    
+    // Let's load it into memory
+    void *buf = kmalloc(file->length);
+    int ret = file->read(file, 0, file->length, (uint8_t*)buf);
+    
+    if (ret != file->length) {
+        serialPrintf("elf_loadFile: Failed to read file (ret = %i)\n", ret);
+        return NULL;
+    }
+
+    void *returnValue = elf_loadFileFromBuffer(buf);
+    if (returnValue == NULL) {
+        serialPrintf("elf_loadFile: Failed to load file.\n");
+        return NULL;
+    }
+
+    if (returnValue == 0x0) {
+        return buf;
+    } else {
+        return returnValue;
+    }
 }

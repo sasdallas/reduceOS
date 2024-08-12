@@ -10,6 +10,8 @@
 #include <kernel/ksym.h>
 #include <kernel/pmm.h>
 #include <kernel/elf.h>
+#include <kernel/mod.h>
+#include <kernel/module.h>
 
 extern fsNode_t *fatDriver;
 extern fsNode_t *ext2_root;
@@ -833,6 +835,7 @@ int loadELF(int argc, char *args[]) {
         return -1;
     }
 
+
     char *fbuf = kmalloc(elf_file->length);
     int ret = elf_file->read(elf_file, 0, elf_file->length, fbuf);
 
@@ -884,4 +887,58 @@ int mountTAR(int argc, char *args[]) {
     return 0;
 
     
+}
+
+int loadModule(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: modload <module file>\n");
+        return -1;
+    }
+
+    printf("Loading module '%s'...\n", args[1]);
+
+    char *path = vfs_canonicalizePath(get_cwd(), args[1]);
+    fsNode_t *elf_file = open_file(path, 0);
+
+    if (!elf_file) {
+        printf("Error: File '%s' not found\n", args[1]);
+        return -1;
+    }
+
+    if (elf_file->flags != VFS_FILE) {
+        printf("Error: '%s' is not a file", args[1]);
+        return -1;
+    }
+
+    struct Metadata *out = kmalloc(sizeof(struct Metadata));
+    int ret = module_load(elf_file, 1, NULL, out);
+
+    switch (ret) {
+        case MODULE_OK: 
+            printf("Successfully loaded module '%s'\n", out->name);
+            break;
+        case MODULE_LOAD_ERROR:
+            printf("Failed to load module (ELF load fail)\n");
+            break;
+        case MODULE_CONF_ERROR:
+            printf("Failed to load module (configuration error??)\n");
+            break;
+        case MODULE_META_ERROR:
+            printf("Failed to load module (no metadata)\n");
+            break;
+        case MODULE_PARAM_ERROR:
+            printf("Failed to load module (invalid parameters)\n");
+            break;
+        case MODULE_READ_ERROR:
+            printf("Failed to load module (read error)\n");
+            break;
+        case MODULE_INIT_ERROR:
+            printf("Failed to initialize module\n");
+            break;
+        default:
+            printf("Unknown module error\n");
+            break;
+    }
+
+    return 0;
 }

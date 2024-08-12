@@ -42,5 +42,6 @@ int pmm(int argc, char *args[]);
 int vfs(int argc, char *args[]);
 int loadELF(int argc, char *args[]);
 int mountTAR(int argc, char *args[]);
+int loadModule(int argc, char *args[]);
 
 #endif

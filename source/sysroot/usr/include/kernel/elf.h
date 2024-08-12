@@ -115,6 +115,7 @@ enum Rt_Types {
 
 // Errors
 #define ELF_RELOC_ERROR -1          // Failure to relocate
+#define ELF_PARSE_ERROR -2          // Failure to parse
 
 // Macros
 #define ELF32_ST_BIND(INFO)     ((INFO) >> 4)       // Get the binding
@@ -201,5 +202,7 @@ typedef struct {
 
 // Functions
 void *elf_loadFileFromBuffer(void *buf); // Loads an ELF file from a buffer with its contents
+void *elf_loadFile(fsNode_t *file); // Loads a file. RETURN VALUE IS EITHER BUFFER FOR NO ENTRYPOINT OR ENTRYPOINT
+void *elf_findSymbol(Elf32_Ehdr *ehdr, char *name); // Locates and returns the location of a symbol
 
 #endif

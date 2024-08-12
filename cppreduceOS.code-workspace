@@ -43,7 +43,10 @@
 			"ksym.h": "c",
 			"kernel.h": "c",
 			"fat.h": "c",
-			"tarfs.h": "c"
+			"tarfs.h": "c",
+			"elf.h": "c",
+			"mod.h": "c",
+			"stddef.h": "c"
 		}
 	}
 }
