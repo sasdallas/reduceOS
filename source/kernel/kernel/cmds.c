@@ -814,6 +814,8 @@ int vfs(int argc, char *args[]) {
     return 0;
 }
 
+typedef int entry_func(int argc, char *args[]);
+
 int loadELF(int argc, char *args[]) {
     if (argc != 2) {
         printf("Usage: load_elf <ELF file>\n");
@@ -831,7 +833,7 @@ int loadELF(int argc, char *args[]) {
     }
 
     if (elf_file->flags != VFS_FILE) {
-        printf("Error: '%s' is not a file", args[1]);
+        printf("Error: '%s' is not a file\n", args[1]);
         return -1;
     }
 
@@ -852,6 +854,14 @@ int loadELF(int argc, char *args[]) {
     } else {
         printf("Successfully loaded ELF file at 0x%x\n", addr);
     }
+
+    if (addr != 0x0 && addr != NULL) {
+        entry_func *f = (entry_func*)addr;
+        int ret = f(1, NULL);
+        printf("Got %i from ELF file entry\n", ret);
+    }
+
+    elf_cleanupFile(fbuf);
 
     return 0;
 }

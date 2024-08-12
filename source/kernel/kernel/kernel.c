@@ -363,6 +363,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Initialize system calls
     initSyscalls();
 
+    // Start the module system
+    module_init();
+
     // Start paging if VBE was not initialized.
     useCommands();
 }
@@ -376,6 +379,8 @@ void useCommands() {
     clearScreen(COLOR_WHITE, COLOR_CYAN);
     
     clearBuffer();
+
+    module_parseCFG();
 
 
     initCommandHandler();

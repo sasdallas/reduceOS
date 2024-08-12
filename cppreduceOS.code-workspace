@@ -46,7 +46,8 @@
 			"tarfs.h": "c",
 			"elf.h": "c",
 			"mod.h": "c",
-			"stddef.h": "c"
+			"stddef.h": "c",
+			"module.h": "c"
 		}
 	}
 }

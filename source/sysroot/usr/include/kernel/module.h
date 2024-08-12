@@ -11,6 +11,14 @@
 
 // Typedefs
 
+// Structure created
+typedef struct {
+    uint32_t load_addr;
+    struct Metadata *metadata;
+    uint32_t load_size;
+    uint32_t file_length;
+} loaded_module_t;
+
 // Function
 typedef int mod_init_func(int argc, char **args);
 
@@ -25,7 +33,7 @@ typedef int mod_init_func(int argc, char **args);
 #define MODULE_PARAM_ERROR  -4          // You specified incorrect parameters (dunce)
 #define MODULE_READ_ERROR   -5          // Failed to read the module
 #define MODULE_INIT_ERROR   -6          // Module did not initialize
-
+#define MODULE_EXISTS_ERROR -7          // Module already exists
 
 // Functions
 int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdataout); // Loads a module from modfile

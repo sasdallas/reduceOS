@@ -24,13 +24,10 @@ for file in glob.glob("*/*.conf"):
     for line in lines:
         if line.startswith("FILENAME"):
             name = line.replace("FILENAME ", "")
-            print("FILENAME: " + name)
         if line.startswith("MODLOAD"):
             modload = line.replace("MODLOAD ", "")
-            print("MODLOAD: " + modload)
         if line.startswith("PRIORITY"):
             priority = line.replace("PRIORITY ", "")
-            print("PRIORITY: " + priority)
     
     if priority != "REQUIRED" and priority != "HIGH" and priority != "LOW":
         print("- Unknown priority: " + priority)

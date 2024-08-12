@@ -17,14 +17,12 @@ TARGET_DISABLED:
 
 
 
-# WARNING: CFLAGS is overwritten for some reason..??
 %.o: %.c
-	$(CC) -ffreestanding -O2 -std=gnu99 -g -static -pedantic -c $< -o $@ -I$(DESTDIR)$(INCLUDE_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@ -I$(DESTDIR)$(INCLUDE_DIR)
 
 
-# WARNING: LDFLAGS is overwritten for some reason..??
 ./$(MODOUTPUT): $(C_OBJS)
-	$(LD) -r -o $(MODOUTPUT) $(C_OBJS) 
+	$(LD) $(LDFLAGS) -o $(MODOUTPUT) $(C_OBJS) 
 
 install: ./$(MODOUTPUT)
 	@echo "-- Installing $(MODOUTPUT)..."

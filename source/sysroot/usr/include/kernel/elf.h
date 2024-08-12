@@ -204,5 +204,5 @@ typedef struct {
 void *elf_loadFileFromBuffer(void *buf); // Loads an ELF file from a buffer with its contents
 void *elf_loadFile(fsNode_t *file); // Loads a file. RETURN VALUE IS EITHER BUFFER FOR NO ENTRYPOINT OR ENTRYPOINT
 void *elf_findSymbol(Elf32_Ehdr *ehdr, char *name); // Locates and returns the location of a symbol
-
+void elf_cleanupFile(char *buffer); // Frees memory where the file was relocated, depending on what it was
 #endif
