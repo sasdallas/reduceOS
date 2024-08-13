@@ -202,8 +202,53 @@ void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, siz
     vmm_allocateRegionFlags(physical_address, virtual_address, size, 1, 1, 1);
 }
 
+// vmm_getPhysicalAddress(pagedirectory_t *dir, uint32_t virt) - Returns the physical address of a virtual address from a specific address space
+void *vmm_getPhysicalAddress(pagedirectory_t *dir, uint32_t virt) {
+    pde_t *pagedir = dir->entries;
+    if (pagedir[virt >> 22] == 0) return 0;
+    return (void*)((uint32_t*)(pagedir[virt >> 22] & ~0xFFF))[virt << 10 >> 10 >> 12];
+}
 
+// vmm_mapPhysicalAddress(pagedirectory_t *dir, uint32_t virt, uint32_t phys, uint32_t flags) - Maps a physical address to a virtual address
+void vmm_mapPhysicalAddress(pagedirectory_t *dir, uint32_t virt, uint32_t phys, uint32_t flags) {
+    pde_t *pagedir = dir->entries;
+    if (pagedir[virt >> 22] == 0) {
+        vmm_createPageTable(dir, virt, flags); // Recursion possibility
+    }
 
+    ((uint32_t*)(pagedir[virt >> 22] & ~0xFFF))[virt << 10 >> 10 >> 12] = phys | flags;
+}
+
+// vmm_createPageTable(pagedirectory_t *dir, uint32_t virt, uint32_t flags) - Creates a page table
+int vmm_createPageTable(pagedirectory_t *dir, uint32_t virt, uint32_t flags) {
+    pde_t *pagedir = dir->entries;
+    if (pagedir[virt >> 22] == 0) {
+        // Need to allocate
+        void *block = pmm_allocateBlock();
+        if (!block) {
+            serialPrintf("vmm_createPageTable: Failed to create page table\n");
+            return -1;
+        }
+
+        pagedir[virt >> 22] = ((uint32_t)block | flags);
+        memset((uint32_t*)pagedir[virt >> 22], 0, 4096);
+        vmm_mapPhysicalAddress(dir, (uint32_t)block, (uint32_t)block, flags);
+    }
+
+    return 0; // Success
+}
+
+// vmm_createAddressSpace() - Create an address space
+pagedirectory_t *vmm_createAddressSpace() {
+    pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlock();
+    if (!dir) {
+        serialprintf("vmm_createAddressSpace: Failed to create address space\n");
+        return 0;
+    }
+
+    memset(dir, 0, sizeof(pagedirectory_t));
+    return dir;
+}
 
 // vmmInit() - Initialize the VMM.
 void vmmInit() {

@@ -15,6 +15,8 @@ int liballoc_enabled = 0;
 // BIOS32 will be replaced with a v86 monitor eventually,  but for now we're just not going to bother with it.
 // I hate my life.
 
+// EDIT: This file is useless since I fixed all the BIOS32 shenanigans.
+
 
 void enable_liballoc() { liballoc_enabled = 1; }
 

@@ -20,7 +20,6 @@ static void ac97_find(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
     ac97_t *ac97 = extra;
 
     // PCI driver is sort of borked. Need to investigate why.
-    serialPrintf("[module ac97] 0x%x 0x%x\n", vendorID, deviceID);
     if ((deviceID == 0x2415)) {
         serialPrintf("[module ac97] Found AC97 device\n");
         ac97->pciDevice = device;

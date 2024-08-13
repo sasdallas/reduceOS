@@ -58,7 +58,7 @@ uint32_t pciConfigReadField(uint32_t device, int field, int size)  {
     if (size == 4) {
         return inportl(PCI_CONFIG_DATA);
     } else if (size == 2) {
-        uint16_t r = inportw(PCI_CONFIG_DATA) + (field & 2);
+        uint16_t r = inportw(PCI_CONFIG_DATA + (field & 2));
         return r;
     } else if (size == 1) {
         uint8_t r = inportb(PCI_CONFIG_DATA + (field & 3));
@@ -82,7 +82,6 @@ uint16_t pci_find_type(uint32_t dev) {
 static void pciScanHit(pciFunction_t func, uint32_t device, void *extra) {
     int dev_vend = (int)pciConfigReadField(device, PCI_OFFSET_VENDORID, 2);
     int dev_dvid = (int)pciConfigReadField(device, PCI_OFFSET_DEVICEID, 2);
-    serialPrintf("pciScanHit: Sending vend 0x%x dvid 0x%x for device 0x%x\n", dev_vend, dev_dvid, device);
     func(device, dev_vend, dev_dvid, extra);
 }
 
