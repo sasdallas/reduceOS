@@ -44,10 +44,10 @@ typedef void (*close_t)(struct fsNode*);
 // These aren't from the POSIX specification.
 typedef struct dirent * (*readdir_t)(struct fsNode*, uint32_t);
 typedef struct fsNode * (*finddir_t)(struct fsNode*, char *name);
-typedef void (*create_t) (struct vfs_node *, char *name, uint16_t permission);
-typedef void (*mkdir_t) (struct vfs_node *, char *name, uint16_t permission);
+typedef void (*create_t) (struct fsNode *, char *name, uint16_t permission);
+typedef void (*mkdir_t) (struct fsNode *, char *name, uint16_t permission);
 
-typedef int (*unlink_t) (struct vfs_node *, char *name);
+typedef int (*unlink_t) (struct fsNode *, char *name);
 
 
 // Actual typedef structures.

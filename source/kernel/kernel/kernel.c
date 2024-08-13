@@ -362,10 +362,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
 
-    time_t rawtime;
-    time(&rawtime);
-    struct tm *timeinfo = localtime(&rawtime);
-    serialPrintf("Current local date and time: %s\n", asctime(timeinfo));
+    // Initialize the process scheduler
+    processInit();
 
     // Initialize system calls
     initSyscalls();
@@ -373,9 +371,10 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Start the module system
     module_init();
 
-    // Start paging if VBE was not initialized.
     useCommands();
 }
+
+
 
 
 
@@ -391,7 +390,7 @@ void useCommands() {
     initCommandHandler();
 
     // Scan and initialize modules for kernelspace
-    module_parseCFG();
+    //module_parseCFG();
 
     registerCommand("isr", (command*)testISRException);
     registerCommand("system", (command*)getSystemInformation);
@@ -432,16 +431,23 @@ void useCommands() {
     registerCommand("load_elf", (command*)loadELF);
     registerCommand("mount_tar", (command*)mountTAR);
     registerCommand("modload", (command*)loadModule);
+    registerCommand("start_process", (command*)makeProcess);
 
     serialPrintf("kmain: All commands registered successfully.\n");
-    serialPrintf("kmain: Warning: User is an unstable environment.\n");
     
-
-    char buffer[256]; // We will store keyboard input here.
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
     if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
+    
+    kshell();
+}
+
+void kshell() {
+    serialPrintf("kmain: Shell ready\n");
+    
+
+    char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS /> "); // Enable a boundary (our prompt)
 
     while (true) {

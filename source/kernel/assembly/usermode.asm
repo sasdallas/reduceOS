@@ -17,3 +17,5 @@ switchToUserMode:
 	push (3 * 8) | 3 ; code selector (ring 3 code with bottom 2 bits set for ring 3)
 	push usermodeMain ; instruction address to return to
 	iret
+
+

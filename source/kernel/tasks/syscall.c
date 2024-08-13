@@ -75,6 +75,7 @@ long restart_syscall() {
 // SYSCALL 1 (https://linux.die.net/man/2/exit)
 void _exit(int status) {
     serialPrintf("_exit: Terminating process\n");
+    terminateProcess();
 }
 
 // SYSCALL 2 (https://man7.org/linux/man-pages/man2/read.2.html)

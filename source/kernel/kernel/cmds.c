@@ -816,6 +816,29 @@ int vfs(int argc, char *args[]) {
 
 typedef int entry_func(int argc, char *args[]);
 
+int makeProcess(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: start_process <ELF file>\n");
+        return -1;
+    }
+
+    printf("Loading ELF '%s'...\n", args[1]);
+
+    char *path = vfs_canonicalizePath(get_cwd(), args[1]);
+
+    int ret = createProcess(path);
+    if (ret < 0) {
+        serialPrintf("createProcess returned %i\n", ret);
+        printf("Failed to create the process.\n");
+        return -1;
+    }
+
+    printf("Created process successfully.\n");
+    printf("Executing process...\n");
+    executeProcess();
+
+}
+
 int loadELF(int argc, char *args[]) {
     if (argc != 2) {
         printf("Usage: load_elf <ELF file>\n");
@@ -825,6 +848,7 @@ int loadELF(int argc, char *args[]) {
     printf("Loading ELF '%s'...\n", args[1]);
 
     char *path = vfs_canonicalizePath(get_cwd(), args[1]);
+
     fsNode_t *elf_file = open_file(path, 0);
 
     if (!elf_file) {

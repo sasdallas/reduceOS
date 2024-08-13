@@ -62,6 +62,8 @@ int vmm_createPageTable(pagedirectory_t *dir, uint32_t virt, uint32_t flags);
 void *vmm_getPhysicalAddress(pagedirectory_t *dir, uint32_t virt);
 void vmm_mapPhysicalAddress(pagedirectory_t *dir, uint32_t virt, uint32_t phys, uint32_t flags);
 pagedirectory_t *vmm_createAddressSpace();
+void vmm_unmapPageTable(pagedirectory_t *dir, uint32_t virt);
+void vmm_unmapPhysicalAddress(pagedirectory_t *dir, uint32_t virt);
 
 
 #endif

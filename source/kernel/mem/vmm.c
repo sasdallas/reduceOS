@@ -242,12 +242,34 @@ int vmm_createPageTable(pagedirectory_t *dir, uint32_t virt, uint32_t flags) {
 pagedirectory_t *vmm_createAddressSpace() {
     pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlock();
     if (!dir) {
-        serialprintf("vmm_createAddressSpace: Failed to create address space\n");
+        serialPrintf("vmm_createAddressSpace: Failed to create address space\n");
         return 0;
     }
 
     memset(dir, 0, sizeof(pagedirectory_t));
     return dir;
+}
+
+// vmm_unmapPageTable(pagedirectory_t *dir, uint32_t virt) - Unmaps a paeg table
+void vmm_unmapPageTable(pagedirectory_t *dir, uint32_t virt) {
+    pde_t *pagedir = dir->entries;
+
+    // If it's not mapped, we don't have to do anything.
+    if (pagedir[virt >> 22] != 0) {
+        // Get the mapped frame
+        void *frame = (void*)(pagedir[virt >> 22] & 0x7FFFF000);
+
+        // Free & unmap it
+        pmm_freeBlock(frame);
+        pagedir[virt >> 22] = 0;
+    }
+}
+
+// vmm_unmapPhysicalAddress(pagedirectory_t *dir, uint32_t virt) - Unmaps a physical address
+void vmm_unmapPhysicalAddress(pagedirectory_t *dir, uint32_t virt) {
+    // Caller should free the memory
+    pde_t *pagedir = dir->entries;
+    if (pagedir[virt >> 22] != 0) vmm_unmapPageTable(dir, virt);
 }
 
 // vmmInit() - Initialize the VMM.

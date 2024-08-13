@@ -247,8 +247,8 @@ void *elf_findSymbol(Elf32_Ehdr *ehdr, char *name) {
 
 /* PHDR FUNCTIONS */
 
-// (static) elf_getPHDR(Elf32_Ehdr *ehdr, int offset) - Returns the ELF program header
-static Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr, int offset) {
+// elf_getPHDR(Elf32_Ehdr *ehdr, int offset) - Returns the ELF program header
+Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr, int offset) {
     return (Elf32_Phdr*)((int)ehdr + ehdr->e_phoff + ehdr->e_phentsize * offset);
 }
 
@@ -280,6 +280,7 @@ static int elf_parsePHDR(Elf32_Ehdr *ehdr, char *buffer) {
     serialPrintf("elf_parsePHDR: Successfully parsed %i PHDRs.\n", ehdr->e_phnum);
     return 0;
 }
+
 
 
 
