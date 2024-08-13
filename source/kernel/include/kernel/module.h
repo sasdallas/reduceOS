@@ -37,5 +37,7 @@ typedef int mod_init_func(int argc, char **args);
 
 // Functions
 int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdataout); // Loads a module from modfile
+void module_parseCFG();
+hashmap_t *module_getHashmap();
 
 #endif

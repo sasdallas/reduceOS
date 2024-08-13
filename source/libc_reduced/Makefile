@@ -16,7 +16,7 @@ OUT_OBJ = $(PROJECT_ROOT)/obj/libc_reduced
 OUT_LIBRARY = . 
 
 # Directories (EDIT ME)
-SOURCE_DIRECTORIES = ordered_array sleep spinlock stdio stdlib string
+SOURCE_DIRECTORIES = ordered_array sleep spinlock stdio stdlib string time
 DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES))
 
 

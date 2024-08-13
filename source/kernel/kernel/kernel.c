@@ -6,7 +6,7 @@
 
 #include <kernel/kernel.h> // Kernel header file
 #include <kernel/cmds.h>
-
+#include <time.h>
 
 
 // ide_ata.c defined variables
@@ -353,6 +353,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         panic("kernel", "kmain", "Failed to get kernel symbols!");
     }
 
+
+
     uint8_t seconds, minutes, hours, days, months;
     int years;
 
@@ -360,6 +362,10 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
 
+    time_t rawtime;
+    time(&rawtime);
+    struct tm *timeinfo = localtime(&rawtime);
+    serialPrintf("Current local date and time: %s\n", asctime(timeinfo));
 
     // Initialize system calls
     initSyscalls();
@@ -381,12 +387,12 @@ void useCommands() {
     
     clearBuffer();
 
+    // Modules may want to use registerCommand
+    initCommandHandler();
 
     // Scan and initialize modules for kernelspace
     module_parseCFG();
 
-
-    initCommandHandler();
     registerCommand("isr", (command*)testISRException);
     registerCommand("system", (command*)getSystemInformation);
     registerCommand("echo", (command*)echo);

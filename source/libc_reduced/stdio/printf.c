@@ -421,6 +421,24 @@ int snprintf(char * str, size_t size, const char * format, ...) {
 	return out;
 }
 
+static int cb_sxprintf(void * user, char c) {
+	struct CBData * data = user;
+	data->str[data->written] = c;
+	data->written++;
+	return 0;
+}
+
+
+int sprintf(char * str, const char * format, ...) {
+	struct CBData data = {str,0,0};
+	va_list args;
+	va_start(args, format);
+	int out = xvasprintf(cb_sxprintf, &data, format, args);
+	va_end(args);
+	cb_sxprintf(&data, '\0');
+	return out;
+}
+
 static int cb_printf(void * user, char c) {
 	terminalPutchar(c);
 	return 0;

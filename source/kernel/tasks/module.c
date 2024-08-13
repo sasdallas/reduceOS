@@ -242,6 +242,10 @@ void module_parseCFG() {
     kfree(modUser);
 }
 
+hashmap_t *module_getHashmap() {
+    return module_hashmap;
+}
+
 // module_init() - Starts the module handler
 void module_init() {
     module_hashmap = hashmap_create(10);

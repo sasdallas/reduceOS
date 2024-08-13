@@ -14,7 +14,7 @@ reduceOS has switched to a brand new kernel, with cleaner, commented code and mo
 
 ### IMPORTANT NOTE: YOU MUST HAVE A CROSS-COMPILER (i686-elf) READY FOR YOUR SYSTEM. 
 **To build reduceOS, you need these packages:** `i686-elf-gcc`, `nasm`, `make`, `grub`\
-**To run reduceOS, you need these packages:** `qemu-system` (emulation), or `grub-common` and `xorriso`
+**To run reduceOS, you need these packages:** `qemu-system` (emulation), `grub2-common`, and `xorriso`
 
 There are **two targets** available to build reduceOS for - RELEASE and DEBUG.\
 To change the target you want to build, edit the `make.config` file to have BUILD_TARGET set to either release or debug.
@@ -35,8 +35,14 @@ The initial ramdisk and the kernel are placed under `sysroot/boot/`.
 Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesystem.   
 
 
+# Kernel Drivers
+reduceOS operates on a semi-modular design, which allows for drivers/modules to be easily made and loaded.
+
+I've written an excellent README for the `source/kmods` folder, which can be found [here](https://github.com/sasdallas/reduceOS/blob/main/source/kmods/README.txt) - there is also an example module available.
+
+reduceOS will automatically load and handle your modules without needing to modify the parent directory Makefile.
+
 # Known Bugs
-- **Severe:** Systems with >1G break the allocator.
 - **High priority:** ATAPI drives cannot be read
 - **High Priority:** `pciScan` does not work correctly
 - **Medium Priority:** FDC not working correctly
@@ -46,7 +52,7 @@ Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesy
 - **TODO:** ext2 driver deletion functions suck
 - **Likely will never be fixed:** Kernel security is not being upheld with usermode as kernel pages are RW. Not good! (needs to be fixed in allocatePage)
 - **Likely will never be fixed:** A bitmap that is too large will crash the system
-
+- **Likely will never be fixed:** Time will not be entirely returned correctly
 
 
 # Credits
