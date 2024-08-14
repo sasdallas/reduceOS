@@ -63,6 +63,11 @@ void updateProcessTimesOnExit() {
 
 /*********************** SWITCHING ************************/
 
+// process_switchContext(thread_t *thread) - Performs a context switch
+void process_switchContext(thread_t *thread) {
+    start_process(thread->context.sp, thread->context.ip);
+}
+
 // process_switchNext() - Restore the context of the next available process's kernel thread
 void process_switchNext() {
     previousProcess = currentProcess;
@@ -95,9 +100,10 @@ void process_switchNext() {
 
     asm volatile ("" ::: "memory");
     
-    serialPrintf("Leap of faith - setjmp is 0x%x 0x%x 0x%x 0x%x\n", currentProcess->thread.context.saved[0], currentProcess->thread.context.saved[1], currentProcess->thread.context.saved[2], currentProcess->thread.context.saved[3]);
+    serialPrintf("Leap of faith\n");
     // Jump to it
     __builtin_longjmp(currentProcess->thread.context.saved, 1);
+    //process_switchContext(&currentProcess->thread);
 }
 
 
@@ -111,6 +117,7 @@ void process_switchTask(uint8_t reschedule) {
 
     // If a process got to switchTask but was not marked as running, it must be exiting.
     if (!(currentProcess->flags & PROCESS_FLAG_RUNNING) || (currentProcess == idleTask)) {
+        serialPrintf("we are going to just switch to the next process\n");
         process_switchNext();
         return;
     }
@@ -118,19 +125,16 @@ void process_switchTask(uint8_t reschedule) {
     // Save the FPU registers (TODO: move this to fpu.c)
     asm volatile ("fxsave (%0)" :: "r"(&currentProcess->thread.fp_regs));
 
+
     // Save context with a setjmp instruction
-    if (__builtin_setjmp(currentProcess->thread.context.saved) == 1) {
+    if (__builtin_setjmp(&currentProcess->thread.context.saved) == 1) {
         // Restore the FPU registers, we are back from task switch.
         asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
         return;
     } 
 
-    serialPrintf("Save of faith - setjmp is 0x%x 0x%x 0x%x 0x%x\n", currentProcess->thread.context.saved[0], currentProcess->thread.context.saved[1], currentProcess->thread.context.saved[2], currentProcess->thread.context.saved[3]);
-    serialPrintf("The current process's name is %s\n", currentProcess->name);
-
     // If this is a normal yield, we nede to reschedule.
     if (reschedule) {
-        serialPrintf("Normal yield - performing reschedule\n");
         makeProcessReady(currentProcess);
     }
 
@@ -168,14 +172,19 @@ pid_t getNextPID() {
 
 // kidle() - Kernel idle task
 static void kidle() {
-    serialPrintf("Idling...\n");
     while (1) {
-        
+        asm volatile (
+		    "sti\n"
+		    "hlt\n"
+		    "cli\n"
+	    );
+        process_switchNext();
     }
 }
 
 // process_releaseDirectory(thread_t *thread) - Release a process's paging data
 void process_releaseDirectory(thread_t *thread) {
+    serialPrintf("Releasing process directory for thread 0x%x\n", thread);
     spinlock_lock(&thread->pd_lock);
     thread->refcount--;
     if (thread->refcount < 1) {
@@ -450,9 +459,6 @@ void process_delete(process_t *proc) {
 
 // makeProcessReady(volatile process_t *proc) - Place an available process in the ready queue
 void makeProcessReady(volatile process_t *proc) {
-    serialPrintf("Queue of faith - setjmp is 0x%x 0x%x 0x%x 0x%x\n", proc->thread.context.saved[0], proc->thread.context.saved[1], proc->thread.context.saved[2], proc->thread.context.saved[3]);
-
-    serialPrintf("Preparing to make process ready...\n");
     if (proc->sleepNode.owner != NULL) {
         if (proc->sleepNode.owner == sleep_queue) {
             // The sleep queue is a little speical
@@ -462,24 +468,19 @@ void makeProcessReady(volatile process_t *proc) {
                 kfree(proc->timedSleepNode->value);
             }
         } else {
-            // Blocked on a semaphore that we can interrupt
+            // Blocked on a smeaphore that we can interrupt
             __sync_or_and_fetch(&proc->flags, PROCESS_FLAG_SLEEPINT);
             list_delete((list_t*)proc->sleepNode.owner, (node_t*)&proc->sleepNode);
         }
     }
 
-    serialPrintf("Locking process_queue\n");
     
     spinlock_lock(&process_queue_lock);
     if (proc->schedulerNode.owner) {
         // Only one ready queue - process was already ready??
-        serialPrintf("Process is already ready?\n");
         spinlock_release(&process_queue_lock);
         return;
     }
-
-    serialPrintf("Appending to queue (proc name: %s)..\n", proc->name);
-    serialPrintf("Queue of faith - setjmp is 0x%x 0x%x 0x%x 0x%x\n", proc->thread.context.saved[0], proc->thread.context.saved[1], proc->thread.context.saved[2], proc->thread.context.saved[3]);
 
     list_append(process_queue, (node_t*)&proc->schedulerNode);
     spinlock_release(&process_queue_lock);
@@ -495,7 +496,6 @@ volatile process_t *process_getNextReadyProcess() {
         }
 
         spinlock_release(&process_queue_lock);
-        serialPrintf("process_getNextReadyProcess: returning idle process\n");
         return idleTask; // No processes to run
     }
 
@@ -938,7 +938,7 @@ void task_exit(int retval) {
 
 void resume_thread() {
     // Return from a fork/clone.
-    serialPrintf("returning from fork/clone\n");
+    //serialPrintf("returning from fork/clone\n");
     asm volatile (
         "pop %ebp\n"
         "pop %edi\n"
@@ -1093,6 +1093,7 @@ process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name,
     spinlock_release(&tree_lock);
 
     makeProcessReady(proc);
+    serialPrintf("spawn_worker_thread: Successfully spawned '%s'\n", name);
     return proc;
 }
 

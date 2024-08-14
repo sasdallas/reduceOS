@@ -5,7 +5,7 @@
 
 
 #include <kernel/syscall.h> // Main header file
-
+#include <kernel/process.h>
 
 
 
@@ -14,16 +14,18 @@ void *syscalls[4] = {
     &restart_syscall,
     &_exit,
     &read,
-    &write
+    &write,
+    &syscall_fork,
 };
 
-uint32_t syscallAmount = 4;
+uint32_t syscallAmount = 5;
 
 // DECLARATION OF SYSTEM CALLS
 DECLARE_SYSCALL0(restart_syscall, 0);
 DECLARE_SYSCALL1(_exit, 1, int);
 DECLARE_SYSCALL3(read, 2, int, void*, size_t);
 DECLARE_SYSCALL3(write, 3, int, const void*, size_t);
+DECLARE_SYSCALL0(syscall_fork, 4);
 
 // END DECLARATION OF SYSTEM CALLS
 
@@ -91,4 +93,8 @@ long read(int file_desc, void *buf, size_t nbyte) {
 long write(int file_desc, const void *buf, size_t nbyte) {
     serialPrintf("write: system call received for %i bytes on fd %i\n", nbyte, file_desc);
     return nbyte;
+}
+
+pid_t syscall_fork() {
+    return fork();
 }

@@ -827,24 +827,31 @@ int makeProcess(int argc, char *args[]) {
 
     char *path = vfs_canonicalizePath(get_cwd(), args[1]);
 
-    // Fork the kernel's process
-    pid_t pid = fork();
 
-    if (pid) {
-        // Let's setup the stack now
-        currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
-        currentProcess->thread.refcount = 1;
-        currentProcess->thread.pd_lock = spinlock_init();
-        vmm_switchDirectory(currentProcess->thread.page_directory);
-        serialPrintf("Success\n");
-        int ret = createProcess(path);
-    }  else {
-        printf("No PID was given - waiting.\n");
-        int status;
-        waitpid(pid, &status, 0);
-        printf("Exit status %i\n", status);
-    }
+    /*vmm_switchDirectory(NULL);
+    currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
+    currentProcess->thread.refcount = 1;
+    currentProcess->thread.pd_lock = spinlock_init();
+    vmm_switchDirectory(currentProcess->thread.page_directory);*/
+
+    pid_t pid = fork();
+    printf("Hello world\n");
+    for (;;);
+    //int ret = createProcess(path);
     
+    
+}
+
+void thread(void *pargs) {
+    return;
+}
+
+int startThread(int argc, char *args[]) {
+    printf("Spawning thread...\n");
+
+    char *pargs = kmalloc(200);
+    spawn_worker_thread(thread, "worker", pargs);
+    return 0;
 }
 
 int loadELF(int argc, char *args[]) {
@@ -983,4 +990,16 @@ int loadModule(int argc, char *args[]) {
     }
 
     return 0;
+}
+
+int init(int argc, char *args[]) {
+    serialPrintf("init: We are go\n");
+    printf("Starting the process, please wait...\n");
+    currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
+    currentProcess->thread.refcount = 1;
+    currentProcess->thread.pd_lock = spinlock_init();
+    vmm_switchDirectory(currentProcess->thread.page_directory);
+    int ret = createProcess("/test");
+    serialPrintf("Returned when we should not have.\n");
+    for (;;);
 }

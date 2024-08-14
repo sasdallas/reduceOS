@@ -44,5 +44,7 @@ int loadELF(int argc, char *args[]);
 int mountTAR(int argc, char *args[]);
 int loadModule(int argc, char *args[]);
 int makeProcess(int argc, char *args[]);
+int init(int argc, char *args[]);
+int startThread(int argc, char *args[]);
 
 #endif

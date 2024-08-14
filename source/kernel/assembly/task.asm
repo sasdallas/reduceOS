@@ -31,7 +31,3 @@ restore_kernel_selectors:
     sti
     ret
 
-enter_tasklet:
-	pop edi
-	pop esi
-	jmp esi

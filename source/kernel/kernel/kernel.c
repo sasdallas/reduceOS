@@ -373,10 +373,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
 
 
-void thread(void *argp) {
-    while (true);
-    serialPrintf("what's up chat it's thread here\n");
-}
+
 
 void useCommands() {
     serialPrintf("kmain: Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
@@ -390,7 +387,7 @@ void useCommands() {
     initCommandHandler();
 
     // Scan and initialize modules for kernelspace
-    module_parseCFG();
+    // module_parseCFG();
 
 
 
@@ -434,6 +431,8 @@ void useCommands() {
     registerCommand("mount_tar", (command*)mountTAR);
     registerCommand("modload", (command*)loadModule);
     registerCommand("start_process", (command*)makeProcess);
+    registerCommand("init", (command*)init);
+    registerCommand("start_thread", (command*)startThread);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     
@@ -443,17 +442,14 @@ void useCommands() {
     if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
     
     tasking_start();
-    pid_t pid = fork();
-    serialPrintf("Starting kshell thread...\n");
-    spawn_worker_thread(kshell, "kshell", NULL);
-    while (1);
+    kshell();
 }
 
 
 
 void kshell() {
     serialPrintf("kmain: Shell ready\n");
-    
+
 
     char buffer[256]; // We will store keyboard input here.
     enableShell("reduceOS /> "); // Enable a boundary (our prompt)

@@ -6,6 +6,7 @@
 // Includes
 #include <stdint.h> // Integer declarations
 #include <kernel/isr.h> // Interrupt Service Routines
+#include <kernel/process.h>
 
 // Macros
 // See syscall.c for an explanation of why we need these macros.
@@ -116,11 +117,13 @@ long restart_syscall();
 void _exit(int status);
 long read(int file_desc, void *buf, size_t nbyte);
 long write(int file_desc, const void *buf, size_t nbyte);
+pid_t syscall_fork();
 
 // Syscall definitions
 DEFINE_SYSCALL0(restart_syscall);
 DEFINE_SYSCALL1(_exit, int);
 DEFINE_SYSCALL3(read, int, void*, size_t);
 DEFINE_SYSCALL3(write, int, const void*, size_t);
+DEFINE_SYSCALL0(syscall_fork);
 
 #endif
