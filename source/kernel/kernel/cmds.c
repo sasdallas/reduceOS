@@ -12,6 +12,7 @@
 #include <kernel/elf.h>
 #include <kernel/mod.h>
 #include <kernel/module.h>
+#include <kernel/process.h>
 
 extern fsNode_t *fatDriver;
 extern fsNode_t *ext2_root;
@@ -826,17 +827,24 @@ int makeProcess(int argc, char *args[]) {
 
     char *path = vfs_canonicalizePath(get_cwd(), args[1]);
 
-    int ret = createProcess(path);
-    if (ret < 0) {
-        serialPrintf("createProcess returned %i\n", ret);
-        printf("Failed to create the process.\n");
-        return -1;
+    // Fork the kernel's process
+    pid_t pid = fork();
+
+    if (pid) {
+        // Let's setup the stack now
+        currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
+        currentProcess->thread.refcount = 1;
+        currentProcess->thread.pd_lock = spinlock_init();
+        vmm_switchDirectory(currentProcess->thread.page_directory);
+        serialPrintf("Success\n");
+        int ret = createProcess(path);
+    }  else {
+        printf("No PID was given - waiting.\n");
+        int status;
+        waitpid(pid, &status, 0);
+        printf("Exit status %i\n", status);
     }
-
-    printf("Created process successfully.\n");
-    printf("Executing process...\n");
-    executeProcess();
-
+    
 }
 
 int loadELF(int argc, char *args[]) {

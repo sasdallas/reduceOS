@@ -7,6 +7,7 @@
 #include <kernel/kernel.h> // Kernel header file
 #include <kernel/cmds.h>
 #include <time.h>
+#include <kernel/process.h>
 
 
 // ide_ata.c defined variables
@@ -18,6 +19,7 @@ extern fsNode_t *initrdDev;
 multiboot_info *globalInfo;
 
 extern void switchToUserMode(); // User mode switch function
+void kshell();
 
 
 
@@ -50,7 +52,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Update global multiboot info.
 
     multiboot_info *mboot;
-
+    
     globalInfo = (multiboot_info*)addr;
     
     // Some extra stuff
@@ -232,11 +234,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         vesaInit(); // Initialize VBE
     }
 
-
-    
-
-
-
     if (didInitVesa) {
         // Initialize PSF
         psfInit();
@@ -246,8 +243,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         changeTerminalMode(1); // Update terminal mode
     }
 
-
-   
+    // Start the process scheduler
+    scheduler_init();
 
     // Initialize the VFS
     vfsInit();
@@ -362,9 +359,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
 
-    // Initialize the process scheduler
-    processInit();
 
+    
+    
     // Initialize system calls
     initSyscalls();
 
@@ -376,7 +373,10 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
 
 
-
+void thread(void *argp) {
+    while (true);
+    serialPrintf("what's up chat it's thread here\n");
+}
 
 void useCommands() {
     serialPrintf("kmain: Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
@@ -391,6 +391,8 @@ void useCommands() {
 
     // Scan and initialize modules for kernelspace
     module_parseCFG();
+
+
 
     registerCommand("isr", (command*)testISRException);
     registerCommand("system", (command*)getSystemInformation);
@@ -440,8 +442,14 @@ void useCommands() {
     printf("Type 'help' for help.\n");
     if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
     
-    kshell();
+    tasking_start();
+    pid_t pid = fork();
+    serialPrintf("Starting kshell thread...\n");
+    spawn_worker_thread(kshell, "kshell", NULL);
+    while (1);
 }
+
+
 
 void kshell() {
     serialPrintf("kmain: Shell ready\n");

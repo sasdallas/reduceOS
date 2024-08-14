@@ -7,13 +7,18 @@
 
 static volatile uint32_t pitTicks = 0; // Total PIT ticks
 static bool pit_isInit = false; // Is the PIT initialized?
-
+static bool doSwitchTasks = true;
 
 
 // PIT timer interrupt handler
 void pitIRQ() { 
     pitTicks++; // Increment tick count
     if (terminalMode == 1) updateTextCursor_vesa(); // To be replaced with some sort of handler/caller list
+    if (doSwitchTasks) process_switchTask(1);
+}
+
+void pit_shutUp(bool val) {
+    doSwitchTasks = val;
 }
 
 // Waits seconds.
@@ -89,7 +94,7 @@ void pitInit() {
 
 
     int divisor = 1193180 / 1000; // Calculate divisor.
-    outportb(0x43, 0x36); // Command byte (0x36)
+    outportb(PIT_REG_COMMAND, 0x36); // Command byte (0x36)
     outportb(0x40, divisor & 0xFF); // Set the low and high byte of the divisor.
     outportb(0x40, divisor >> 8);
 

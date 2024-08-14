@@ -1,5 +1,6 @@
 global start_process
 global restore_kernel_selectors
+global enter_tasklet
 
 ; start_process - Takes in two arguments, process stack #1 and process entrypoint #2. Switches context to a process & starts it.
 start_process:
@@ -29,3 +30,8 @@ restore_kernel_selectors:
     mov gs, ax 
     sti
     ret
+
+enter_tasklet:
+	pop edi
+	pop esi
+	jmp esi

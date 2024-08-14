@@ -86,11 +86,11 @@ void rtc_getDateTime(uint8_t *second, uint8_t *minute, uint8_t *hour, uint8_t *d
     if (actualYears < RTC_CURRENT_YEAR) actualYears += 100;
     
     // Set the pointers.
-    *second = seconds;
-    *minute = minutes;
-    *hour = hours;
-    *day = days;
-    *month = months;
-    *year = actualYears;
+    if (second) *second = seconds;
+    if (minute) *minute = minutes;
+    if (hour) *hour = hours;
+    if (day) *day = days;
+    if (month) *month = months;
+    if (year) *year = actualYears;
 
 }

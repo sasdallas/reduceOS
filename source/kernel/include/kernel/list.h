@@ -14,7 +14,8 @@
 typedef struct node { 
     struct node *next; // Next node
     struct node *prev; // Previous node
-    void *value;  // Value of this node
+    void *value; // Value of this node
+    void *owner; // Owner of the node
 } node_t;
 
 

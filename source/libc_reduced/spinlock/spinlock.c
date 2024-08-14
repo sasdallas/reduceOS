@@ -7,7 +7,8 @@
 
 // spinlock_init() - Creates a new spinlock
 atomic_flag *spinlock_init() {
-    atomic_flag *lock = ATOMIC_FLAG_INIT;
+    atomic_flag *lock = kmalloc(sizeof(atomic_flag));
+    atomic_flag_clear(lock);
     return lock;
 }
 
@@ -23,3 +24,4 @@ void spinlock_lock(atomic_flag *lock) {
 void spinlock_release(atomic_flag *lock) {
     atomic_flag_clear_explicit(lock, memory_order_release);
 }
+

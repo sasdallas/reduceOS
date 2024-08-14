@@ -27,6 +27,8 @@ void list_free(list_t *list) {
 void list_append(list_t *list, node_t *node) {
     node->next = NULL;
 
+    node->owner = list;
+
     // Insert it onto the end of the list
     if (!list->tail) {
         list->head = node;
@@ -46,12 +48,14 @@ void list_insert(list_t *list, void *item) {
     node->value = item;
     node->next = NULL;
     node->prev = NULL;
+    node->owner = NULL;
     list_append(list, node);
 }
 
 
 // list_append_after(list_t *list, node_t *before, node_t *node) - Append after a node
 void list_append_after(list_t *list, node_t *before, node_t *node) {
+    node->owner = list;
     if (!list->tail) {
         list_append(list, node);
         return;
@@ -83,6 +87,7 @@ void list_insert_after(list_t *list, node_t *before, void *item) {
     node->value = item;
     node->next = NULL;
     node->prev = NULL;
+    node->owner = NULL;
     list_append_after(list, before, node);
 }
 
@@ -113,6 +118,7 @@ void list_delete(list_t *list, node_t *node) {
 
     node->prev = NULL;
     node->next = NULL;
+    node->owner = NULL;
     list->length--;
 }
 
@@ -155,6 +161,10 @@ list_t *list_copy(list_t *original) {
 
 // list_merge(list_t *target, list_t *source) - Merges a list destructively
 void list_merge(list_t *target, list_t *source) {
+    foreach(node, source) {
+        node->owner = target;
+    }
+    
     if (target->tail) {
         target->tail->next = source->head;
     } else {
