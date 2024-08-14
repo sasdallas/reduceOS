@@ -390,7 +390,7 @@ void useCommands() {
     initCommandHandler();
 
     // Scan and initialize modules for kernelspace
-    //module_parseCFG();
+    module_parseCFG();
 
     registerCommand("isr", (command*)testISRException);
     registerCommand("system", (command*)getSystemInformation);
