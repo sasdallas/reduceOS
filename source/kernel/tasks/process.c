@@ -82,7 +82,6 @@ void process_switchNext() {
     currentProcess->time_switch = currentProcess->time_in;
 
 
-    serialPrintf("The next ready process is: %s\n", currentProcess->name);
 
     // Restore paging and task switch context
     spinlock_lock(&switch_lock);
@@ -95,12 +94,11 @@ void process_switchNext() {
         panic("scheduler", "process_switchNext", "Process is marked finished, we should not have this process");
     }
 
-    // Mark the process as running or startedz
+    // Mark the process as running or started
     __sync_or_and_fetch(&currentProcess->flags, PROCESS_FLAG_STARTED);
 
     asm volatile ("" ::: "memory");
     
-    serialPrintf("Leap of faith\n");
     // Jump to it
     restore_context(&currentProcess->thread.context);
     //process_switchContext(&currentProcess->thread);
@@ -597,6 +595,7 @@ void wakeup_sleepers(unsigned long seconds, unsigned long subseconds) {
     spinlock_lock(&sleep_lock);
     if (sleep_queue->length) {
         sleeper_t *proc = ((sleeper_t*)sleep_queue->head->value);
+        serialPrintf("Trying to wake up process '%s' - end_tick = %i, end_subtick = %i, seconds = %i, subseconds = %i\n", proc->process->name, proc->end_tick, proc->end_subtick, seconds, subseconds);
         while (proc && (proc->end_tick < seconds || (proc->end_tick == seconds && proc->end_subtick <= subseconds))) {
             // Timeouts have expired, mark the processes as ready and clear their sleep nodes.
             if (proc->is_fswait) {
@@ -620,6 +619,8 @@ void wakeup_sleepers(unsigned long seconds, unsigned long subseconds) {
             }
         }
     } 
+
+    serialPrintf("Wakeup proceedure finished\n");
 
     // All done, release the spinlock.
     spinlock_release(&sleep_lock);
@@ -938,7 +939,7 @@ void task_exit(int retval) {
 
 void resume_thread() {
     // Return from a fork/clone.
-    //serialPrintf("returning from fork/clone\n");
+    serialPrintf("returning from fork/clone\n");
     asm volatile (
         "pop %ebp\n"
         "pop %edi\n"
@@ -960,7 +961,7 @@ pid_t fork() {
     process_t *parent = currentProcess;
     
     // Clone the page directory and set it up
-    pagedirectory_t *directory = cloneKernelSpace2(vmm_getKernelDirectory());
+    pagedirectory_t *directory = cloneKernelSpace2(parent->thread.page_directory);
 
     // Create a new process and setup its thread page directory
     process_t *new_proc = spawn_process(parent, 0);
@@ -987,7 +988,9 @@ pid_t fork() {
     new_proc->thread.context.sp = sp;
     new_proc->thread.context.bp = bp;
     new_proc->thread.context.tls_base = parent->thread.context.tls_base;
-    new_proc->thread.context.ip = (uintptr_t)&resume_thread; 
+    new_proc->thread.context.ip = read_eip(); 
+
+    serialPrintf("returning to IP 0x%x\n", new_proc->thread.context.ip);
 
     // Save the context to the parent, but ONLY copy the saved part of the context over.
     save_context(&parent->thread.context);
@@ -1136,59 +1139,22 @@ int createProcess(char *filepath) {
     }
 
 
-    // Shut the PIT up
-    pit_shutUp(false); // (doesn't call taskSwitch on tick)
 
     serialPrintf("Locking switch_lock\n");
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
     serialPrintf("Done, moving to kernelspace...\n");
     vmm_switchDirectory(NULL);
     pagedirectory_t *this_directory = currentProcess->thread.page_directory;
-    currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
-    //memset(currentProcess->thread.page_directory, 0, sizeof(pagedirectory_t));
-    //cloneKernelSpace(currentProcess->thread.page_directory, NULL); // null signifies to clone from current directory
+    currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getCurrentDirectory());
     serialPrintf("Cloned successfully. Clearing PD_LOCK and preparing to switch\n");
     currentProcess->thread.refcount = 1;
     atomic_flag_clear(currentProcess->thread.pd_lock);
     vmm_switchDirectory(currentProcess->thread.page_directory);
     serialPrintf("Switch completed\n");
     spinlock_release(&switch_lock);
-    process_releaseDirectory(this_directory);
     serialPrintf("Releasing switch lock\n");
 
-    // Re-enable PIT
-    pit_shutUp(true);
-
-
     pagedirectory_t *addressSpace = currentProcess->thread.page_directory;
-
-
-    /*
-    // Create the process
-    process_t *proc = process_getCurrentProcess();
-    proc->pid = 1;
-    proc->pageDirectory = addressSpace;
-    proc->priority = 1;
-    proc->state = ACTIVE;
-    proc->threadCount = 1;
-
-    // Create the main thread
-    thread_t *mainThread = &proc->threads[0];
-    mainThread->kernel_stack = vmm_createAddressSpace();
-    mainThread->parent = proc;
-    mainThread->priority = 1;
-    mainThread->state = ACTIVE;
-    mainThread->initial_stack = 0;
-    mainThread->stack_limit = (void*)((uint32_t)mainThread->initial_stack + 4096);
-    memset(&mainThread->frame, 0, sizeof(trapFrame_t));
-    mainThread->frame.eip = ehdr->e_entry;
-    mainThread->frame.flags = 0x200;
-
-    mainThread->imageBase = (int)ehdr;
-    mainThread->imageSize = file->length;
-    
-    */
-
 
     // Now, we should start parsing.
     uintptr_t heapBase = 0;
@@ -1211,6 +1177,8 @@ int createProcess(char *filepath) {
     }
 
 
+
+
     // Create a usermode stack
     serialPrintf("createProcess: Creating usermode stack at 0x%x...\n", usermodeBase);
     serialPrintf("createProcess: heapBase = 0x%x\n", heapBase);
@@ -1229,102 +1197,3 @@ int createProcess(char *filepath) {
     setKernelStack(currentProcess->image.stack);
     start_process(usermodeStack, ehdr->e_entry);
 }
-
-/*
-// processInit() - Start up the process scheduler
-void processInit() {
-    // Right now, we should set up the kernel's process
-    currentProcess = kmalloc(sizeof(process_t));
-    currentProcess->pid = PROCESS_INVALID_PID;
-}
-
-// External functions
-extern void start_process(uint32_t stack, uint32_t entry);
-extern void restore_kernel_selectors();
-
-// executeProcess() - Executes the current process
-void executeProcess() {
-    process_t *proc = 0;
-    uint32_t entryPoint = 0;
-    unsigned int procStack = 0;
-
-    // Get the current runnig process
-    proc = process_getCurrentProcess();
-    if (proc->pid == PROCESS_INVALID_PID) {
-        return; // No valid process
-    }
-
-    if (!proc->pageDirectory) {
-        return; // Invalid address space
-    }
-
-    // Get the entrypoint & stack
-    entryPoint = proc->threads[0].frame.eip;
-    procStack = proc->threads[0].frame.esp;
-
-    // Switch to process address space
-    vmm_loadPDBR((physical_address)proc->pageDirectory);
-
-    setKernelStack(2048);
-
-
-    serialPrintf("entrypoint: 0x%x\nprocStack: 0x%x\n", entryPoint, procStack);
-    start_process(procStack, entryPoint);
-
-    // PROCESS SHOULD CALL _EXIT() WHEN FINISHED
-}
-
-
-
-void terminateProcess() {
-    // Terminate the currently running process
-    process_t *current = currentProcess;
-    if (current->pid == PROCESS_INVALID_PID) return; 
-
-    // Release the threads
-    int i = 0;
-    thread_t *pThread = &current->threads[i];
-
-    // Get the physical address of the stack
-    void *stackFrame = vmm_getPhysicalAddress(current->pageDirectory, (uint32_t)pThread->initial_stack);
-
-    // Unmap it and release stack memory
-    vmm_unmapPhysicalAddress(current->pageDirectory, (uint32_t)pThread->initial_stack);
-    pmm_freeBlock(stackFrame);
-
-    serialPrintf("-- Initial stack unmapped (0x%x)\n", pThread->frame.esp);
-
-    // Find all segments that used PT_LOAD and unmap them
-    Elf32_Ehdr *ehdr = (Elf32_Ehdr*)pThread->imageBase;
-    for (int i = 0; i < ehdr->e_phnum; i++) {
-        Elf32_Phdr *phdr = elf_getPHDR(ehdr, i);
-        if (phdr->p_type == PT_LOAD) {
-            // PT_LOAD segments are mapped to their respective vaddrs, we net to get the physical address
-            uint32_t phys = vmm_getPhysicalAddress(current->pageDirectory, phdr->p_vaddr);
-
-            serialPrintf("-- PT_LOAD segment vaddr 0x%x phys 0x%x unmapped\n", phdr->p_vaddr, phys);
-            if (phys == 0x0) continue;
-
-            // Unmap and release the page.
-            vmm_unmapPhysicalAddress(current->pageDirectory, phys);
-            pmm_freeBlock((void*)phys);
-        }
-    }
-
-
-    // To prevent any page faults or GPFs we wait until after kernel selectors are restored to unmap imageBase
-
-    // Restore the kernel selectors
-    restore_kernel_selectors();
-
-    serialPrintf("-- Restored kernel selectors\n");
-
-    // Unmap the memory used by imageBase
-    kfree(pThread->imageBase);
-
-    serialPrintf("-- Freed memory\n");
-    serialPrintf("-- Returning to kernel shell now...\n");
-    kshell();
-}
-
-*/

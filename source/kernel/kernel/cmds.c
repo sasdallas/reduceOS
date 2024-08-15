@@ -839,6 +839,15 @@ int makeProcess(int argc, char *args[]) {
 }
 
 void thread(void *pargs) {
+    while (1) {
+        printf("Hello from the thread!\n");
+        uint8_t seconds;
+        rtc_getDateTime(&seconds, NULL, NULL, NULL, NULL, NULL);
+        printf("Taking a nap for two seconds...\n");
+        seconds += 2;
+        sleep_until(currentProcess, seconds, (seconds - 2) * 1000);
+        process_switchTask(0);
+    }
     return;
 }
 

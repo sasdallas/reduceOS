@@ -446,7 +446,6 @@ void useCommands() {
     if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
     
     tasking_start();
-    printf("Still here\n");
     kshell();
 }
 

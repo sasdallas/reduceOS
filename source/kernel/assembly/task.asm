@@ -3,6 +3,7 @@ global restore_kernel_selectors
 global enter_tasklet
 global restore_context
 global save_context
+global read_eip
 
 ; start_process - Takes in two arguments, process stack #1 and process entrypoint #2. Switches context to a process & starts it.
 start_process:
@@ -19,6 +20,13 @@ start_process:
 	push (4 * 8) | 3
 	push eax
 	pushf
+
+	; As detailed in switch_to_usermode, we should setup interrupts
+	; This is required for our task switching
+	pop eax
+	or eax, 0x200
+	push eax
+
 	push (3 * 8 | 3)
 	push ebx
 	iret
@@ -74,3 +82,7 @@ restore_context:
 	; Jump to IP
 	jmp [ecx + 12]
 
+
+read_eip:
+	pop eax
+	jmp eax

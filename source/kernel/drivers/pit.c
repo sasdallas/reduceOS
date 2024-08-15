@@ -15,6 +15,9 @@ void pitIRQ(registers_t *reg) {
     pitTicks++; // Increment tick count
     if (terminalMode == 1) updateTextCursor_vesa(); // To be replaced with some sort of handler/caller list
 
+    // Wakeup any sleeping processes
+    wakeup_sleepers(pitTicks / 100, pitTicks * 10);
+
     // If we are in kernel mode we should do whatever we need to do to launch the usermode process
     if (reg->cs == 0x08) return;
     
