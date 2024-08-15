@@ -46,5 +46,6 @@ int loadModule(int argc, char *args[]);
 int makeProcess(int argc, char *args[]);
 int init(int argc, char *args[]);
 int startThread(int argc, char *args[]);
+int forkTest(int argc, char *args[]);
 
 #endif

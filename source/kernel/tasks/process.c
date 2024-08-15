@@ -102,7 +102,7 @@ void process_switchNext() {
     
     serialPrintf("Leap of faith\n");
     // Jump to it
-    __builtin_longjmp(currentProcess->thread.context.saved, 1);
+    restore_context(&currentProcess->thread.context);
     //process_switchContext(&currentProcess->thread);
 }
 
@@ -127,8 +127,9 @@ void process_switchTask(uint8_t reschedule) {
 
 
     // Save context with a setjmp instruction
-    if (__builtin_setjmp(&currentProcess->thread.context.saved) == 1) {
-        // Restore the FPU registers, we are back from task switch.
+    if (save_context(&currentProcess->thread.context) == 1) {
+        // THIS CODE WILL NOT BE CALLED.
+        // PLEASE SEE PIT.C FOR THE REAL WAY WE DO THIS
         asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
         return;
     } 
@@ -142,7 +143,6 @@ void process_switchTask(uint8_t reschedule) {
     // switch_next() will not return
     process_switchNext();
 } 
-
 
 
 // scheduler_init() - Initialize the scheduler datastructures
@@ -987,8 +987,10 @@ pid_t fork() {
     new_proc->thread.context.sp = sp;
     new_proc->thread.context.bp = bp;
     new_proc->thread.context.tls_base = parent->thread.context.tls_base;
-    new_proc->thread.context.ip = (uintptr_t)&resume_thread;    
-    __builtin_setjmp(parent->thread.context.saved);
+    new_proc->thread.context.ip = (uintptr_t)&resume_thread; 
+
+    // Save the context to the parent, but ONLY copy the saved part of the context over.
+    save_context(&parent->thread.context);
     memcpy(new_proc->thread.context.saved, parent->thread.context.saved, sizeof(parent->thread.context.saved));
 
     if (parent->flags & PROCESS_FLAG_IS_TASKLET) new_proc->flags |= PROCESS_FLAG_IS_TASKLET;
@@ -996,7 +998,7 @@ pid_t fork() {
     return new_proc->id;
 }
 
-// clone() - create a new thread/process
+// clone() - create a new thread/process (likely bugged and probably will not work)
 pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     uintptr_t sp, bp;
     process_t *parent = (process_t*)currentProcess;
@@ -1023,7 +1025,7 @@ pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     PUSH(new_stack, uintptr_t, (uintptr_t)0);
     PUSH(sp, registers_t, r);
 
-    // Setup RSP, RBP, and RIP
+    // Setup ESP, EBP, and EIP
     new_proc->syscall_registers = (void*)sp;
     new_proc->syscall_registers->esp = new_stack;
     new_proc->syscall_registers->ebp = new_stack;
@@ -1098,14 +1100,7 @@ process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name,
 }
 
 
-/*
-process_t *currentProcess;
 
-
-process_t *process_getCurrentProcess() {
-    return currentProcess;
-}
-*/
 
 
 pagedirectory_t *cloneKernelSpace2(pagedirectory_t *in) {

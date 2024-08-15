@@ -10,15 +10,17 @@
 
 
 // List of system calls
-void *syscalls[4] = {
+void *syscalls[7] = {
     &restart_syscall,
     &_exit,
     &read,
     &write,
     &syscall_fork,
+    &execute_process,
+    &wait_pid
 };
 
-uint32_t syscallAmount = 5;
+uint32_t syscallAmount = 7;
 
 // DECLARATION OF SYSTEM CALLS
 DECLARE_SYSCALL0(restart_syscall, 0);
@@ -26,6 +28,8 @@ DECLARE_SYSCALL1(_exit, 1, int);
 DECLARE_SYSCALL3(read, 2, int, void*, size_t);
 DECLARE_SYSCALL3(write, 3, int, const void*, size_t);
 DECLARE_SYSCALL0(syscall_fork, 4);
+DECLARE_SYSCALL0(execute_process, 5);
+DECLARE_SYSCALL0(wait_pid, 6);
 
 // END DECLARATION OF SYSTEM CALLS
 
@@ -60,6 +64,8 @@ void syscallHandler(registers_t *regs) {
 
     // Call the system call from the table (TODO: >6 parameter system calls)
     returnValue = fn(regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
+
+    serialPrintf("Returning %i\n", returnValue);
 
     // Set EAX to the return value
     asm volatile ("mov %0, %%eax" :: "r"(returnValue));
@@ -96,5 +102,15 @@ long write(int file_desc, const void *buf, size_t nbyte) {
 }
 
 pid_t syscall_fork() {
+    serialPrintf("Forking process\n");
     return fork();
+}
+
+
+int execute_process() {
+    return createProcess("/test_exit");
+}
+
+int wait_pid() {
+    return waitpid(-1, NULL, WNOKERN);   
 }

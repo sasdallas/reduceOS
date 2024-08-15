@@ -63,9 +63,9 @@ typedef struct {
 typedef struct {
     uint32_t sp;                    // Stack
     uint32_t bp;                    
-    uint32_t ip;                    // Entrypoint
     uint32_t tls_base;              
-    void* saved[4];
+    uint32_t ip;                    // Entrypoint
+    void* saved[6];
 } thread_context_t;
 
 /*
@@ -175,12 +175,14 @@ typedef struct {
 extern void start_process(uint32_t stack, uint32_t entry);
 extern void restore_kernel_selectors();
 extern void enter_tasklet();
+extern int save_context(thread_context_t *context);
+extern void restore_context(thread_context_t *context);
+
 extern process_t *currentProcess;
 
 // Other functions
 volatile process_t *process_getNextReadyProcess();
 pagedirectory_t *cloneKernelSpace2(pagedirectory_t *in);
-
 
 
 #endif

@@ -834,11 +834,7 @@ int makeProcess(int argc, char *args[]) {
     currentProcess->thread.pd_lock = spinlock_init();
     vmm_switchDirectory(currentProcess->thread.page_directory);*/
 
-    pid_t pid = fork();
-    printf("Hello world\n");
-    for (;;);
-    //int ret = createProcess(path);
-    
+    int ret = createProcess(path);
     
 }
 
@@ -999,7 +995,11 @@ int init(int argc, char *args[]) {
     currentProcess->thread.refcount = 1;
     currentProcess->thread.pd_lock = spinlock_init();
     vmm_switchDirectory(currentProcess->thread.page_directory);
-    int ret = createProcess("/test");
+    int ret = createProcess("/test2");
     serialPrintf("Returned when we should not have.\n");
     for (;;);
+}
+
+int forkTest(int argc, char *args[]) {
+    printf("Forking process...\n");
 }

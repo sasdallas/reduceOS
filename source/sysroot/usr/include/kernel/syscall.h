@@ -118,6 +118,8 @@ void _exit(int status);
 long read(int file_desc, void *buf, size_t nbyte);
 long write(int file_desc, const void *buf, size_t nbyte);
 pid_t syscall_fork();
+int execute_process();
+int wait_pid();
 
 // Syscall definitions
 DEFINE_SYSCALL0(restart_syscall);
@@ -125,5 +127,7 @@ DEFINE_SYSCALL1(_exit, int);
 DEFINE_SYSCALL3(read, int, void*, size_t);
 DEFINE_SYSCALL3(write, int, const void*, size_t);
 DEFINE_SYSCALL0(syscall_fork);
+DEFINE_SYSCALL0(execute_process);
+DEFINE_SYSCALL0(wait_pid);
 
 #endif

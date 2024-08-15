@@ -26,6 +26,9 @@ void kshell();
 void usermodeMain() {
     printf("Hello, usermode world! printf() is working!\n");
 
+    syscall_fork();
+    printf("Hello!\n");
+
     syscall_write(2, "Hello, system call world!", strlen("Hello, system call world!"));
     for (;;);
 }
@@ -433,6 +436,7 @@ void useCommands() {
     registerCommand("start_process", (command*)makeProcess);
     registerCommand("init", (command*)init);
     registerCommand("start_thread", (command*)startThread);
+    registerCommand("fork", (command*)forkTest);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     
@@ -442,6 +446,7 @@ void useCommands() {
     if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
     
     tasking_start();
+    printf("Still here\n");
     kshell();
 }
 
