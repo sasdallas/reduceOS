@@ -31,3 +31,18 @@ void cmos_writeRegister(uint8_t cmosreg, uint8_t value) {
     enableHardwareInterrupts();
 }
 
+
+// cmos_dump(uint16_t *values) - Dumps the contents of CMOS into values
+void cmos_dump(uint16_t *values) {
+    for (uint16_t index = 0; index < 128; index++) {
+        outportb(CMOS_ADDRESS, index);
+        values[index] = inportb(CMOS_DATA);
+    }
+}
+
+
+// cmos_isUpdateInProgress() - Returns whether an update is in progress
+int cmos_isUpdateInProgress() {
+    outportb(CMOS_ADDRESS, 0x0a);
+    return inportb(CMOS_DATA) & 0x80;
+}

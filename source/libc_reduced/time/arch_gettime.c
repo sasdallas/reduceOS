@@ -2,43 +2,23 @@
 
 #include <time.h>
 #include <kernel/rtc.h>
-
+#include <kernel/clock.h>
 
 // gettimeofday(struct timeval *t, void *z) - Gets the timeval currently (seconds since the Epoch)
 int gettimeofday(struct timeval *t, void *z) {
-    // MOST LIKELY INACCURATE.  
-    uint8_t seconds, minutes, hours, days, months;
-    int rtcyears;
-    rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &rtcyears);
-
-    int years = rtcyears;
-    if (years <= 1970) {
-        serialPrintf("gettimeofday: RTC is set wrong!\n");
-    } else {
-        years -= 1970;
-    }
-
-    long epoch_seconds = 31557600 * years; // 31557600 = seconds a year has
-    if (months > 1) {
-        epoch_seconds += localtime_getSecondsOfMonths(months, rtcyears); 
-    }
-
-    if (days > 1)  {
-        epoch_seconds += (days - 1) * 86400;
-    }
-
-    if (hours > 0) {
-        epoch_seconds += hours * 3600;
-    }
-
-    if (minutes > 0) {
-        epoch_seconds += minutes * 60;
-    }
-
-    epoch_seconds += seconds;
-
-    // BUG: I think the time is a little bit off with the hours, but it works well enough.
-    t->tv_sec = epoch_seconds;
-    t->tv_usec = epoch_seconds * 1000000;
-    return 0;
+    // We just forward this request to the kernel's clock
+    return clock_gettimeofday(t, z);
 }
+
+// now() - Returns the current time of day for things that want a Unix timestamp.
+uint64_t now() {
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    return t.tv_sec;
+}
+
+// settimeofday(struct timeval *t, void *z) - Set the clock time
+int settimeofday(struct timeval *t, void *z) {
+    // Again, forward this to the kernel's clock
+    return clock_settimeofday(t, z);
+} 

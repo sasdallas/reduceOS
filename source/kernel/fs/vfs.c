@@ -192,7 +192,6 @@ int vfs_mountType(const char *type, const char *arg, const char *mountpoint) {
     }
 
     serialPrintf("vfs_mountType: Mounted %s[%s] to %s: %p\n", type, arg, mountpoint, (void*)n);
-    debug_print_vfs_tree(false);
 
     return 0;
 }

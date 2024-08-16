@@ -5,27 +5,28 @@
 
 #include <kernel/pit.h> // Main header file
 
-static volatile uint32_t pitTicks = 0; // Total PIT ticks
+static volatile uint64_t pitTicks = 0; // Total PIT ticks
 static bool pit_isInit = false; // Is the PIT initialized?
-static bool doSwitchTasks = true;
-
 
 // PIT timer interrupt handler
 void pitIRQ(registers_t *reg) { 
     pitTicks++; // Increment tick count
     if (terminalMode == 1) updateTextCursor_vesa(); // To be replaced with some sort of handler/caller list
 
-    // Wakeup any sleeping processes
-    wakeup_sleepers(pitTicks / 100, pitTicks * 10);
+    // Update the clock
+    clock_update();
 
     // If we are in kernel mode we should do whatever we need to do to launch the usermode process
     if (reg->cs == 0x08) return;
     
+    // process_switchTask() will not return, so get the interrupt completed
+    interruptCompleted(reg->int_no);
     process_switchTask(1);
+    panic("pit", "IRQ", "process_switchTask returned");
 }
 
 void pit_shutUp(bool val) {
-    doSwitchTasks = val;
+    // Do nothing
 }
 
 // Waits seconds.
@@ -37,15 +38,15 @@ void pitWaitSeconds(int seconds) {
 }
 
 
-// uint32_t pitSetTickCount(uint32_t i) - Sets a new tick count and returns the previous one.
-uint32_t pitSetTickCount(uint32_t i) {
-    uint32_t ret = pitTicks;
+// uint64_t pitSetTickCount(uint64_t i) - Sets a new tick count and returns the previous one.
+uint64_t pitSetTickCount(uint64_t i) {
+    uint64_t ret = pitTicks;
     pitTicks = i;
     return ret;
 }
 
-// uint32_t pitGetTickCount() - Returns tick count
-uint32_t pitGetTickCount() { return pitTicks; }
+// uint64_t pitGetTickCount() - Returns tick count
+uint64_t pitGetTickCount() { return pitTicks; }
 
 // void pitSendCommand(uint8_t cmd) - Sends a command to PIT
 void pitSendCommand(uint8_t cmd) {
@@ -106,4 +107,5 @@ void pitInit() {
     outportb(0x40, divisor >> 8);
 
     printf("Programmable Interval Timer initialized.\n");
+    serialPrintf("pit: Initialized successfully.\n");
 }

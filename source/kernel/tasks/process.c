@@ -23,7 +23,6 @@ list_t *reap_queue;                         // Processes that couldn't be cleane
 
 process_t *idleTask;                        // The kernel's idling task
 
-void *jmp_buf[4];
 
 
 // Spinlocks
@@ -39,7 +38,7 @@ static atomic_flag switch_lock = ATOMIC_FLAG_INIT; // Controls who gets to switc
 
 // updateProcessTimes() - Updates the total time and the system time when switching to a new thread or exiting the current one.
 void updateProcessTimes() {
-    uint64_t pTime = pitGetTickCount();
+    uint64_t pTime = clock_getTimer();
     if (currentProcess->time_in && currentProcess->time_in < pTime) {
         currentProcess->time_total += pTime - currentProcess->time_in;
     }
@@ -54,7 +53,7 @@ void updateProcessTimes() {
 
 // updateProcessTimesOnExit() - Add time spent in kernel to time_sys when returning to userspace
 void updateProcessTimesOnExit() {
-    uint64_t pTime = pitGetTickCount();
+    uint64_t pTime = clock_getTimer();
     if (currentProcess->time_switch && currentProcess->time_switch < pTime) {
         currentProcess->time_sys += pTime - currentProcess->time_switch;
     }
@@ -78,7 +77,8 @@ void process_switchNext() {
         currentProcess = process_getNextReadyProcess();
     } while (currentProcess->flags & PROCESS_FLAG_FINISHED);
 
-    currentProcess->time_in = pitGetTickCount();
+
+    currentProcess->time_in = clock_getTimer();
     currentProcess->time_switch = currentProcess->time_in;
 
 
@@ -101,7 +101,6 @@ void process_switchNext() {
     
     // Jump to it
     restore_context(&currentProcess->thread.context);
-    //process_switchContext(&currentProcess->thread);
 }
 
 
@@ -123,7 +122,7 @@ void process_switchTask(uint8_t reschedule) {
     // Save the FPU registers (TODO: move this to fpu.c)
     asm volatile ("fxsave (%0)" :: "r"(&currentProcess->thread.fp_regs));
 
-
+    
     // Save context with a setjmp instruction
     if (save_context(&currentProcess->thread.context) == 1) {
         // THIS CODE WILL NOT BE CALLED.
@@ -131,6 +130,7 @@ void process_switchTask(uint8_t reschedule) {
         asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
         return;
     } 
+
 
     // If this is a normal yield, we nede to reschedule.
     if (reschedule) {
@@ -481,6 +481,8 @@ void makeProcessReady(volatile process_t *proc) {
     }
 
     list_append(process_queue, (node_t*)&proc->schedulerNode);
+    
+
     spinlock_release(&process_queue_lock);
 }
 
@@ -492,6 +494,7 @@ volatile process_t *process_getNextReadyProcess() {
         if (process_queue->length) {
             panic("scheduler", "get_next_ready", "Process queue has length but the head is NULL");
         }
+
 
         spinlock_release(&process_queue_lock);
         return idleTask; // No processes to run
@@ -595,7 +598,7 @@ void wakeup_sleepers(unsigned long seconds, unsigned long subseconds) {
     spinlock_lock(&sleep_lock);
     if (sleep_queue->length) {
         sleeper_t *proc = ((sleeper_t*)sleep_queue->head->value);
-        serialPrintf("Trying to wake up process '%s' - end_tick = %i, end_subtick = %i, seconds = %i, subseconds = %i\n", proc->process->name, proc->end_tick, proc->end_subtick, seconds, subseconds);
+        serialPrintf("Trying to wake up process '%s' - end_tick = %016llX, end_subtick = %016llX, seconds = %lu, subseconds = %016llX\n", proc->process->name, proc->end_tick, proc->end_subtick, seconds, subseconds);
         while (proc && (proc->end_tick < seconds || (proc->end_tick == seconds && proc->end_subtick <= subseconds))) {
             // Timeouts have expired, mark the processes as ready and clear their sleep nodes.
             if (proc->is_fswait) {
@@ -620,7 +623,6 @@ void wakeup_sleepers(unsigned long seconds, unsigned long subseconds) {
         }
     } 
 
-    serialPrintf("Wakeup proceedure finished\n");
 
     // All done, release the spinlock.
     spinlock_release(&sleep_lock);
@@ -1140,19 +1142,14 @@ int createProcess(char *filepath) {
 
 
 
-    serialPrintf("Locking switch_lock\n");
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
-    serialPrintf("Done, moving to kernelspace...\n");
     vmm_switchDirectory(NULL);
     pagedirectory_t *this_directory = currentProcess->thread.page_directory;
     currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getCurrentDirectory());
-    serialPrintf("Cloned successfully. Clearing PD_LOCK and preparing to switch\n");
     currentProcess->thread.refcount = 1;
     atomic_flag_clear(currentProcess->thread.pd_lock);
     vmm_switchDirectory(currentProcess->thread.page_directory);
-    serialPrintf("Switch completed\n");
     spinlock_release(&switch_lock);
-    serialPrintf("Releasing switch lock\n");
 
     pagedirectory_t *addressSpace = currentProcess->thread.page_directory;
 

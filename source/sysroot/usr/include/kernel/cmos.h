@@ -23,8 +23,19 @@
 #define CMOS_ADDRESS            0x70
 #define CMOS_DATA               0x71
 
+// Enums
+enum {
+    CMOS_SECOND = 0,
+    CMOS_MINUTE = 2,
+    CMOS_HOUR = 4,
+    CMOS_DAY = 7,
+    CMOS_MONTH = 8,
+    CMOS_YEAR = 9
+};
+
 // Functions
 uint8_t cmos_readRegister(uint8_t cmosreg);
 void cmos_writeRegister(uint8_t cmosreg, uint8_t value);
-
+void cmos_dump(uint16_t *values);
+int cmos_isUpdateInProgress();
 #endif

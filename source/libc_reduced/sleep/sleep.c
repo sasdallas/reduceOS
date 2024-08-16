@@ -2,13 +2,15 @@
 // Note that while I try my best to adhere to C standards, none of the libc function for the kernel will ever be used by an application, it's to make the code more easier to read.
 
 #include <sleep.h> // Main header file
-
+#include <time.h>
 
 void sleep(int ms) {
-    // Originally, the default for a PIT timer is around 18.222Hz.
-    // Luckily, our pitInit function intializes the PIT with 100Hz.
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    uint64_t end_ticks = t.tv_usec + (ms * 1000);
 
-    int startTickCount = pitGetTickCount();
-    while (pitGetTickCount() - startTickCount < ms);
-    return;
+    // Wait until we reach the target
+    do {
+        gettimeofday(&t, NULL);
+    } while (t.tv_usec < end_ticks);
 }

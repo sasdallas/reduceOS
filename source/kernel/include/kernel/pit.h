@@ -60,8 +60,8 @@
 
 void pitSendCommand(uint8_t cmd); // Send operational command to PIT.
 void pitSendData(uint16_t data, uint8_t counter); // Write data byte to a counter.
-uint32_t pitSetTickCount(uint32_t i); // Sets new PIT tick count and returns prev. value.
-uint32_t pitGetTickCount(); // Returns current tick count.
+uint64_t pitSetTickCount(uint64_t i); // Sets new PIT tick count and returns prev. value.
+uint64_t pitGetTickCount(); // Returns current tick count.
 void pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode); // Starts a counter (counter continues until another call)
 void pitInit(); // Initialize PIT
 bool pitIsInitialized(); // Check if the PIT is initialized.

@@ -105,18 +105,18 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     }
 
     
-    serialPrintf("kmain: CPU has long mode support: %i\n", isCPULongModeCapable());
+    // Before CPU initialization can even take place, we should start the clock.
+    clock_init();
 
-    
+
+
 
     // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
     // Now that initial ramdisk has loaded, we can initialize memory management
-    serialPrintf("Starting physical memory manager...\n");
     pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
 
 
     // Initialize the memory map
-    serialPrintf("Preparing memory map...\n");
     pmm_initializeMemoryMap(globalInfo);
     
 
@@ -143,6 +143,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     acpiInit();
 
     // Initialize VMM
+    updateBottomText("Initializing virtual memory management...");
     vmmInit();
     serialPrintf("Initialized memory management successfully.\n");
 
@@ -154,30 +155,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     }
     
 
-    // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit?
-    
-    /*
-    ASSERT(globalInfo->m_modsCount > 0, "kmain", "Initial ramdisk not found (modsCount is 0)");
-    uint32_t initrdLocation = *((uint32_t*)(globalInfo->m_modsAddr));
-    uint32_t initrdEnd = *(uint32_t*)(globalInfo->m_modsAddr + 4);
-    serialPrintf("GRUB did pass an initial ramdisk at 0x%x.\n", globalInfo->m_modsAddr);
-    */
-
-
-    // Deinitialize the ramdisk's region to prevent anything from using it.
-    //pmm_deinitRegion(initrdLocation,  initrdEnd - initrdLocation + 8); // Adding 8 because some file contents get overwritten
-
-
-    // Start the initial ramdisk
-    // Due to the new build system, the initial ramdisk should work using GRUB.
-    // IT DOES NOT WORK ON QEMU.
-    /*
-    serialPrintf("kmain: Loading initial ramdisk...\n");
-    fsNode_t *initrd = initrdInit(initrdLocation);    
-    printf("Initrd image initialized!\n");
-    serialPrintf("kmain: Initial ramdisk loaded - location is 0x%x and end address is 0x%x\n", initrdLocation, initrdEnd);
-    */
-
+    // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit
 
     // Installs the GDT and IDT entries for BIOS32
     bios32_init();
@@ -193,10 +171,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // PIT timer
     updateBottomText("Initializing PIT...");
     pitInit();
-    serialPrintf("PIT started at 1000hz\n");
     
-
-
     // Setup the DMA pool
     // I can hear the page fault ready to happen because DMA wasn't properly allocated.
     dma_initPool(256 * 1024); // 256 KB of DMA pool
