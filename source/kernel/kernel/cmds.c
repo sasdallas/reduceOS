@@ -838,6 +838,8 @@ int makeProcess(int argc, char *args[]) {
     
 }
 
+process_t *thr_proc;;
+
 void thread(void *pargs) {
     while (1) {
         printf("Hello from the thread!\n");
@@ -856,7 +858,7 @@ int startThread(int argc, char *args[]) {
     printf("Spawning thread...\n");
 
     char *pargs = kmalloc(200);
-    spawn_worker_thread(thread, "worker", pargs);
+    thr_proc = spawn_worker_thread(thread, "worker", pargs);
     return 0;
 }
 

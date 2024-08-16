@@ -4,9 +4,12 @@
 // =====================================================================
 
 #include <kernel/pit.h> // Main header file
+#include <kernel/process.h>
 
 static volatile uint64_t pitTicks = 0; // Total PIT ticks
 static bool pit_isInit = false; // Is the PIT initialized?
+
+extern process_t *thr_proc;
 
 // PIT timer interrupt handler
 void pitIRQ(registers_t *reg) { 

@@ -4,6 +4,7 @@ global enter_tasklet
 global restore_context
 global save_context
 global read_eip
+global resume_usermode
 
 ; start_process - Takes in two arguments, process stack #1 and process entrypoint #2. Switches context to a process & starts it.
 start_process:
@@ -86,3 +87,16 @@ restore_context:
 read_eip:
 	pop eax
 	jmp eax
+
+resume_usermode:
+	; Resume into usermode from a thread (stored in thread EIP)
+	; restore_context kindly gave us the stack we needed, so let's just pop whatever's in registers
+    ; We're just basically doing what isrCommonStub does after an interrupt
+	pop ebx
+    mov ds, bx
+    mov es, bx
+    mov fs, bx
+    mov gs, bx
+    popa
+    add esp, 8
+	iret

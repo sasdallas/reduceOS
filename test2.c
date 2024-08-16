@@ -1,7 +1,10 @@
 
 int main(int argc, char **argv) {
-	// Syscall to exit
+	// Syscall to sleep for 4 seconds
 	int ret;
-	asm volatile ("int $0x80" : "=a"(ret) : "a"(1), "b"(0));
+	while (1) {
+		asm volatile ("int $0x80" : "=a"(ret) : "a"(5));
+		asm volatile ("int $0x80" : "=a"(ret) : "a"(0));
+	}
 }
 

@@ -178,6 +178,7 @@ extern void enter_tasklet();
 extern int save_context(thread_context_t *context);
 extern void restore_context(thread_context_t *context);
 extern uint32_t read_eip();
+extern void resume_usermode();
 
 extern process_t *currentProcess;
 

@@ -1,3 +1,6 @@
+; Dear god this needs a rework with macros.
+; This is disgusting. Do not do this.
+
 [bits 32]
 [extern isrExceptionHandler]
 [extern isrIRQHandler]
@@ -54,29 +57,29 @@ global irq_15
 
 
 isrCommonStub:
-    pusha
+    pusha                           ; Push all generic regisers
 
     mov ax, ds
     push eax
 
-    mov ax, 0x10
+    mov ax, 0x10                    ; Setup kernel data segments
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
 
-    push esp
+    push esp                        ; Push stack pointer
     call isrExceptionHandler
-    pop eax
+    pop eax                         ; EAX = ESP
 
-    pop ebx
+    pop ebx                         ; Restore DS code selectors
     mov ds, bx
     mov es, bx
     mov fs, bx
     mov gs, bx
-    popa
-    add esp, 8
-    iret
+    popa                            ; Restore generic registers
+    add esp, 8                      ; Skip over int_no and err_code
+    iret                            ; Jump to EIP
 
 irqCommonStub:
     pusha
@@ -308,7 +311,6 @@ isr31:
 
 ; isr128 - Reserved
 isr128:
-    cli                     ; Disable interrupts
     push byte 0
     push 128
     jmp isrCommonStub
@@ -394,3 +396,4 @@ irq_15:
 	push byte 15
 	push byte 47
 	jmp irqCommonStub
+

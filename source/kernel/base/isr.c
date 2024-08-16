@@ -4,6 +4,7 @@
 
 
 #include <kernel/isr.h> // Main header file
+#include <kernel/process.h>
 
 ISR interruptHandlers[256]; // A list of all interrupt handlers
  
@@ -33,14 +34,26 @@ void isrIRQHandler(registers_t *reg) {
     // Some debug code I left in in case anyone is modifying reduceOS.
     //if (reg->int_no != 32) serialPrintf("isrIRQHandler received IRQ. IRQ: %i. Valid handler present: %s. INT NO: %i. Valid handler present (for INT_NO): %s", reg->err_code, (interruptHandlers[reg->err_code]) ? "YES" : "NO", reg->int_no, (interruptHandlers[reg->int_no]) ? "YES" : "NO");
     
+    // First, check if the call is from userspace.
+    int from_userspace = reg->cs != 0x08;
+
+    if (from_userspace && currentProcess) {
+        currentProcess->time_switch = clock_getTimer();
+    }
+
+
     if (interruptHandlers[reg->int_no] != NULL) {
         // We now know there is a valid handler present. Execute it.
         ISR handler = interruptHandlers[reg->int_no];
         handler(reg);
     }
+
+    // If the call is from userspace, we need to update the process times on eixt
+    if (from_userspace) {
+        updateProcessTimesOnExit();
+    }
     
-    // Send EOI to PIC (this function is present in hal.h)
-    
+    // Send EOI to PIC (this function is present in hal.h - TODO: should we move this to be done in handlers?)
     interruptCompleted(reg->int_no);
 }
 
@@ -100,7 +113,7 @@ void isrInstall() {
     setVector(46, (uint32_t)irq_14);
     setVector(47, (uint32_t)irq_15);
     
+
     // Register exception 128 (SYSCALLS)
-    //setVector(128, (uint32_t)isr128);
     setVector_flags(128, (uint32_t)isr128, I86_IDT_DESC_RING3);
 }

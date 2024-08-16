@@ -25,8 +25,6 @@ void kshell();
 
 void usermodeMain() {
     printf("Hello, usermode world! printf() is working!\n");
-
-    syscall_fork();
     printf("Hello!\n");
 
     syscall_write(2, "Hello, system call world!", strlen("Hello, system call world!"));

@@ -122,7 +122,7 @@ void process_switchTask(uint8_t reschedule) {
     // Save the FPU registers (TODO: move this to fpu.c)
     asm volatile ("fxsave (%0)" :: "r"(&currentProcess->thread.fp_regs));
 
-    
+
     // Save context with a setjmp instruction
     if (save_context(&currentProcess->thread.context) == 1) {
         // THIS CODE WILL NOT BE CALLED.
@@ -130,7 +130,6 @@ void process_switchTask(uint8_t reschedule) {
         asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
         return;
     } 
-
 
     // If this is a normal yield, we nede to reschedule.
     if (reschedule) {
@@ -458,6 +457,7 @@ void process_delete(process_t *proc) {
 // makeProcessReady(volatile process_t *proc) - Place an available process in the ready queue
 void makeProcessReady(volatile process_t *proc) {
     if (proc->sleepNode.owner != NULL) {
+        serialPrintf("a mimir\n");
         if (proc->sleepNode.owner == sleep_queue) {
             // The sleep queue is a little speical
             if (proc->timedSleepNode) {
@@ -938,25 +938,6 @@ void task_exit(int retval) {
 							*((volatile type *) stack) = item
 
 
-
-void resume_thread() {
-    // Return from a fork/clone.
-    serialPrintf("returning from fork/clone\n");
-    asm volatile (
-        "pop %ebp\n"
-        "pop %edi\n"
-        "pop %esi\n"
-        "pop %edx\n"
-        "pop %ecx\n"
-        "pop %ebx\n"
-        "pop %eax\n"
-        "add $16, %esp\n"
-        "iret");
-    __builtin_unreachable();
-}
-
-
-
 // fork() - Fork the kernel's thread into a new process
 pid_t fork() {
     uintptr_t sp, bp;
@@ -990,9 +971,8 @@ pid_t fork() {
     new_proc->thread.context.sp = sp;
     new_proc->thread.context.bp = bp;
     new_proc->thread.context.tls_base = parent->thread.context.tls_base;
-    new_proc->thread.context.ip = read_eip(); 
 
-    serialPrintf("returning to IP 0x%x\n", new_proc->thread.context.ip);
+    new_proc->thread.context.ip = (uint32_t)&resume_usermode;
 
     // Save the context to the parent, but ONLY copy the saved part of the context over.
     save_context(&parent->thread.context);
@@ -1039,7 +1019,7 @@ pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     new_proc->thread.context.sp = sp;
     new_proc->thread.context.bp = bp;
     new_proc->thread.context.tls_base = currentProcess->thread.context.tls_base;
-    new_proc->thread.context.ip = (uintptr_t)&resume_thread;
+    new_proc->thread.context.ip = (uintptr_t)&resume_usermode;
 
     if (parent->flags & PROCESS_FLAG_IS_TASKLET) new_proc->flags |= PROCESS_FLAG_IS_TASKLET;
     makeProcessReady(new_proc);
@@ -1164,6 +1144,7 @@ int createProcess(char *filepath) {
             void *mem = pmm_allocateBlock();
             vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr, (uint32_t)mem, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
             memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
+            serialPrintf("createProcess: vaddr 0x%x loaded\n", phdr->p_vaddr);
         }
 
 
@@ -1180,6 +1161,7 @@ int createProcess(char *filepath) {
     serialPrintf("createProcess: Creating usermode stack at 0x%x...\n", usermodeBase);
     serialPrintf("createProcess: heapBase = 0x%x\n", heapBase);
     serialPrintf("createProcess: execBase = 0x%x\n", execBase);
+    serialPrintf("createProcess: buffer = 0x%x\n", buffer);
     void *usermodeStack = usermodeBase;
     void *stackPhysical = pmm_allocateBlock(); // Allocate a physical block for the stack
 

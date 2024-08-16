@@ -50,6 +50,9 @@ void initSyscalls() {
 
 
 void syscallHandler(registers_t *regs) {
+    // Set the current process's syscall_registers to the registers here
+    currentProcess->syscall_registers = regs;
+
     int syscallNumber = regs->eax;
 
     // Check if system call number is valid.
@@ -108,7 +111,7 @@ pid_t syscall_fork() {
 
 
 int execute_process() {
-    return createProcess("/test_exit");
+    return execute_process("/test_exit");
 }
 
 int wait_pid() {
