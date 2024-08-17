@@ -117,6 +117,7 @@ typedef struct process {
     char *name;                     // Process name
     char *description;              // Process description
     char **cmdline;                 // Command line used to call the process
+    int isChild;
 
     // Context variables
     registers_t *syscall_registers; // Registers for the process's system calls

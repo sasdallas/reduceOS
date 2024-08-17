@@ -51,7 +51,7 @@ void initSyscalls() {
 
 void syscallHandler(registers_t *regs) {
     // Set the current process's syscall_registers to the registers here
-    currentProcess->syscall_registers = regs;
+    memcpy(currentProcess->syscall_registers, regs, sizeof(registers_t));
 
     int syscallNumber = regs->eax;
 
@@ -100,7 +100,8 @@ long read(int file_desc, void *buf, size_t nbyte) {
 
 // SYSCALL 3 (https://man7.org/linux/man-pages/man2/write.2.html)
 long write(int file_desc, const void *buf, size_t nbyte) {
-    serialPrintf("write: system call received for %i bytes on fd %i\n", nbyte, file_desc);
+    if (!nbyte) return 0;
+    serialPrintf("%s", buf);
     return nbyte;
 }
 
@@ -111,7 +112,8 @@ pid_t syscall_fork() {
 
 
 int execute_process() {
-    return execute_process("/test_exit");
+    serialPrintf("EXECUTION HALTED - MAJOR SUCCESS!\n");
+    for (;;);
 }
 
 int wait_pid() {

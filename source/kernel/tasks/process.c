@@ -99,8 +99,24 @@ void process_switchNext() {
 
     asm volatile ("" ::: "memory");
     
-    // Jump to it
-    restore_context(&currentProcess->thread.context);
+    uint32_t esp = currentProcess->thread.context.sp;
+    uint32_t eip = currentProcess->thread.context.ip;
+    uint32_t ebp = currentProcess->thread.context.bp;
+
+    serialPrintf("-- ESP=0x%x EIP=0x%x EBP=0x%x isChild=%i\n", esp, eip, ebp, currentProcess->isChild);
+
+    // Jump to it!
+    asm volatile (
+        "mov %0, %%ebx\n"
+        "mov %1, %%esp\n"
+        "mov %2, %%ebp\n"
+        "jmp %%ebx"
+        :: "r"(eip), "r"(esp), "r"(ebp) : "%ebx", "%esp", "%eax"
+    );
+
+
+    // restore_context() does not work
+    //restore_context(&currentProcess->thread.context);
 }
 
 
@@ -121,20 +137,24 @@ void process_switchTask(uint8_t reschedule) {
 
     // Save the FPU registers (TODO: move this to fpu.c)
     asm volatile ("fxsave (%0)" :: "r"(&currentProcess->thread.fp_regs));
-
-
-    // Save context with a setjmp instruction
+    
     if (save_context(&currentProcess->thread.context) == 1) {
         // THIS CODE WILL NOT BE CALLED.
         // PLEASE SEE PIT.C FOR THE REAL WAY WE DO THIS
+        panic("??", "??", "how the actual hell");
         asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
         return;
     } 
+
+
+    serialPrintf("process_switchTask(%i) called - SP=0x%x BP=0x%x TLSBASE=0x%x IP=0x%x isChild=%i\n", reschedule, currentProcess->thread.context.sp, currentProcess->thread.context.bp, currentProcess->thread.context.tls_base, currentProcess->thread.context.ip, currentProcess->isChild);
+    
 
     // If this is a normal yield, we nede to reschedule.
     if (reschedule) {
         makeProcessReady(currentProcess);
     }
+
 
 
     // switch_next() will not return
@@ -263,6 +283,7 @@ process_t *spawn_init() {
     strcpy(init->name, "init");
     init->cmdline = NULL;
     init->status = 0;
+    init->isChild = false;
 
     init->description = kmalloc(strlen("initial process"));
     strcpy(init->description, "initial process");
@@ -888,6 +909,7 @@ process_t *process_get_parent(process_t *process) {
 
     tree_node_t *entry = process->tree_entry;
     if (entry->parent) result = entry->parent->value;
+    else serialPrintf("process_get_parent: No parent for this process was found.\n");
 
     spinlock_release(&tree_lock);
     return result;
@@ -895,9 +917,6 @@ process_t *process_get_parent(process_t *process) {
 
 // task_exit(int retval) - Exit a task
 void task_exit(int retval) {
-    // again, shut up the pit
-    pit_shutUp(false);
-
     currentProcess->status = retval;
 
     // Free whatever we can
@@ -927,19 +946,20 @@ void task_exit(int retval) {
         spinlock_release(&parent->wait_lock);
     }
 
-    // PIT can go now
-    pit_shutUp(true);
     process_switchNext();
-
-
 }
 
 #define PUSH(stack, type, item) stack -= sizeof(type); \
-							*((volatile type *) stack) = item
+							*((type *) stack) = item
 
 
-// fork() - Fork the kernel's thread into a new process
+// fork() - Fork the current process and creates a child process. Will return the PID of the child to the parent, and 0 to the child.
 pid_t fork() {
+    // We don't need any interruptions
+    disableHardwareInterrupts();
+
+    serialPrintf("Beginning fork\n");
+
     uintptr_t sp, bp;
     process_t *parent = currentProcess;
     
@@ -960,26 +980,41 @@ pid_t fork() {
     sp = new_proc->image.stack;
     bp = sp;
 
+    serialPrintf("fork() pushing system call registers to address 0x%x\n", sp);
+
     // Setup return value in syscall registers
     r.eax = 0;
 
-    // Push it onto the stack
-    PUSH(sp, registers_t, r);
+    // Push it onto the stack, manually because PUSH() doesn't seem to work right now.
+    sp -= sizeof(registers_t); // Stack grows downwards
+    memcpy(sp, &r, sizeof(registers_t));
+    
 
     // Setup registers and context
-    new_proc->syscall_registers = (void*)sp;
+    new_proc->syscall_registers = &r;
     new_proc->thread.context.sp = sp;
     new_proc->thread.context.bp = bp;
     new_proc->thread.context.tls_base = parent->thread.context.tls_base;
 
     new_proc->thread.context.ip = (uint32_t)&resume_usermode;
 
+    // Validate syscall registers because this code is stupid
+
+    new_proc->isChild = true;
+    parent->isChild = false;
+
+    serialPrintf("fork: Thread forked. IP=0x%x.\n", new_proc->thread.context.ip);
+
     // Save the context to the parent, but ONLY copy the saved part of the context over.
     save_context(&parent->thread.context);
     memcpy(new_proc->thread.context.saved, parent->thread.context.saved, sizeof(parent->thread.context.saved));
 
+    serialPrintf("parent SP=0x%x BP=0x%x IP=0x%x\n", parent->thread.context.sp, parent->thread.context.bp, parent->thread.context.ip);
+
     if (parent->flags & PROCESS_FLAG_IS_TASKLET) new_proc->flags |= PROCESS_FLAG_IS_TASKLET;
     makeProcessReady(new_proc);
+
+    enableHardwareInterrupts();
     return new_proc->id;
 }
 
@@ -1023,6 +1058,8 @@ pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
 
     if (parent->flags & PROCESS_FLAG_IS_TASKLET) new_proc->flags |= PROCESS_FLAG_IS_TASKLET;
     makeProcessReady(new_proc);
+
+    enableHardwareInterrupts();
 
     return new_proc->id;
 }
@@ -1162,6 +1199,7 @@ int createProcess(char *filepath) {
     serialPrintf("createProcess: heapBase = 0x%x\n", heapBase);
     serialPrintf("createProcess: execBase = 0x%x\n", execBase);
     serialPrintf("createProcess: buffer = 0x%x\n", buffer);
+    serialPrintf("createProcess: stack = 0x%x (object is at 0x%x)\n", currentProcess->image.stack, currentProcess);
     void *usermodeStack = usermodeBase;
     void *stackPhysical = pmm_allocateBlock(); // Allocate a physical block for the stack
 
@@ -1176,3 +1214,5 @@ int createProcess(char *filepath) {
     setKernelStack(currentProcess->image.stack);
     start_process(usermodeStack, ehdr->e_entry);
 }
+
+

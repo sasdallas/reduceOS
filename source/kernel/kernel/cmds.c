@@ -859,6 +859,7 @@ int startThread(int argc, char *args[]) {
 
     char *pargs = kmalloc(200);
     thr_proc = spawn_worker_thread(thread, "worker", pargs);
+    spawn_worker_thread(thread, "worker2", pargs);
     return 0;
 }
 

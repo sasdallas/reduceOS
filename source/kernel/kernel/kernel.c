@@ -24,10 +24,9 @@ void kshell();
 
 
 void usermodeMain() {
-    printf("Hello, usermode world! printf() is working!\n");
     printf("Hello!\n");
-
     syscall_write(2, "Hello, system call world!", strlen("Hello, system call world!"));
+
     for (;;);
 }
 
@@ -418,6 +417,7 @@ void useCommands() {
     printf("Type 'help' for help.\n");
     if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
     
+
     tasking_start();
     kshell();
 }
