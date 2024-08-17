@@ -51,7 +51,8 @@ void initSyscalls() {
 
 void syscallHandler(registers_t *regs) {
     // Set the current process's syscall_registers to the registers here
-    memcpy(currentProcess->syscall_registers, regs, sizeof(registers_t));
+    currentProcess->syscall_registers = regs;
+    
 
     int syscallNumber = regs->eax;
 

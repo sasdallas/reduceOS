@@ -104,6 +104,7 @@ void process_switchNext() {
     uint32_t ebp = currentProcess->thread.context.bp;
 
     serialPrintf("-- ESP=0x%x EIP=0x%x EBP=0x%x isChild=%i\n", esp, eip, ebp, currentProcess->isChild);
+    serialPrintf("syscall registers is a pointer to 0x%x\n", currentProcess->syscall_registers);
 
     // Jump to it!
     asm volatile (
@@ -1036,8 +1037,8 @@ pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     // Setup system call registers and BP/SP
     registers_t r;
     memcpy(&r, parent->syscall_registers, sizeof(registers_t));
-    bp = new_proc->image.stack;
-    sp = bp;
+    sp = new_proc->image.stack;
+    bp = sp;
     r.edi = arg; // Different calling conventions
 
 
