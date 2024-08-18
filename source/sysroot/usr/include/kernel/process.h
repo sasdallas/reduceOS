@@ -183,9 +183,20 @@ extern void resume_usermode();
 
 extern process_t *currentProcess;
 
-// Other functions
-volatile process_t *process_getNextReadyProcess();
-pagedirectory_t *cloneKernelSpace2(pagedirectory_t *in);
+// Exposed functions
+volatile process_t *process_getNextReadyProcess(); // Returns the next ready process
+process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name, void *argp); // Spawn a worker thread
+pagedirectory_t *cloneDirectory(pagedirectory_t *in); // Clone directory (NULL = current directory)
+int createProcess(char *filepath); // Creates a process from filepath
+void task_exit(int retval); // Exit the current task
+int process_alert_node(process_t *process, void *value); // Alert the process
+void process_awaken_signal(process_t *process);
+int process_timeout_sleep(process_t *process, int timeout); // Put a process to sleep
+int waitpid(int pid, int *status, int options); // Wait for a process to finish/suspend
+void sleep_until(process_t *process, unsigned long seconds, unsigned long subseconds);
+void wakeup_sleepers(unsigned long seconds, unsigned long subseconds);
+process_t *spawn_process(volatile process_t *parent, int flags); // Spawn a process
+
 
 
 #endif

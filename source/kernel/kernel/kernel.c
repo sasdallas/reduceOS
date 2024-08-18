@@ -136,8 +136,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     printf("HAL initialization completed.\n");
 
     // Initialize ACPI (has to be done before VMM initializes)
-    updateBottomText("Initializing ACPI...");
-    acpiInit();
+    // ACPI IS BROKEN
+    //updateBottomText("Initializing ACPI...");
+    //acpiInit();
 
     // Initialize VMM
     updateBottomText("Initializing virtual memory management...");
@@ -168,7 +169,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // PIT timer
     updateBottomText("Initializing PIT...");
     pitInit();
-    
+
+
     // Setup the DMA pool
     // I can hear the page fault ready to happen because DMA wasn't properly allocated.
     dma_initPool(256 * 1024); // 256 KB of DMA pool
@@ -362,7 +364,7 @@ void useCommands() {
     initCommandHandler();
 
     // Scan and initialize modules for kernelspace
-    // module_parseCFG();
+    module_parseCFG();
 
 
 
@@ -406,12 +408,11 @@ void useCommands() {
     registerCommand("mount_tar", (command*)mountTAR);
     registerCommand("modload", (command*)loadModule);
     registerCommand("start_process", (command*)makeProcess);
-    registerCommand("init", (command*)init);
     registerCommand("start_thread", (command*)startThread);
-    registerCommand("fork", (command*)forkTest);
 
     serialPrintf("kmain: All commands registered successfully.\n");
     
+
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");

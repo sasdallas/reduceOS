@@ -552,11 +552,6 @@ void floppy_init() {
         return;
     }
 
-    serialPrintf("WARNING: Disabling floppy driver due to instability.\n");
-    secondaryFloppy = false;
-    primaryFloppy = false;
-    enableFDC = false;
-    return;
 
     // First, install the IRQ handler.
     isrRegisterInterruptHandler(FLOPPY_IRQ + 32, floppy_IRQ);

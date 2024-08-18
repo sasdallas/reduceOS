@@ -1000,19 +1000,3 @@ int loadModule(int argc, char *args[]) {
 
     return 0;
 }
-
-int init(int argc, char *args[]) {
-    serialPrintf("init: We are go\n");
-    printf("Starting the process, please wait...\n");
-    currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
-    currentProcess->thread.refcount = 1;
-    currentProcess->thread.pd_lock = spinlock_init();
-    vmm_switchDirectory(currentProcess->thread.page_directory);
-    int ret = createProcess("/test2");
-    serialPrintf("Returned when we should not have.\n");
-    for (;;);
-}
-
-int forkTest(int argc, char *args[]) {
-    printf("Forking process...\n");
-}

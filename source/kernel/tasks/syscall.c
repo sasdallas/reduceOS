@@ -7,20 +7,21 @@
 #include <kernel/syscall.h> // Main header file
 #include <kernel/process.h>
 
-
+void syscall_sleep();
 
 // List of system calls
-void *syscalls[7] = {
+void *syscalls[8] = {
     &restart_syscall,
     &_exit,
     &read,
     &write,
     &syscall_fork,
     &execute_process,
-    &wait_pid
+    &wait_pid,
+    &syscall_sleep
 };
 
-uint32_t syscallAmount = 7;
+uint32_t syscallAmount = 8;
 
 // DECLARATION OF SYSTEM CALLS
 DECLARE_SYSCALL0(restart_syscall, 0);
@@ -30,6 +31,7 @@ DECLARE_SYSCALL3(write, 3, int, const void*, size_t);
 DECLARE_SYSCALL0(syscall_fork, 4);
 DECLARE_SYSCALL0(execute_process, 5);
 DECLARE_SYSCALL0(wait_pid, 6);
+DECLARE_SYSCALL0(syscall_sleep, 7);
 
 // END DECLARATION OF SYSTEM CALLS
 
@@ -123,4 +125,12 @@ int execute_process() {
 
 int wait_pid() {
     return waitpid(-1, NULL, WNOKERN);   
+}
+
+void syscall_sleep() {
+    // a mimir
+    unsigned long s, ss;
+    clock_relative(2, 0, &s, &ss);
+    sleep_until(currentProcess, s, ss);
+    process_switchTask(0);
 }

@@ -43,8 +43,10 @@ I've written an excellent README for the `source/kmods` folder, which can be fou
 reduceOS will automatically load and handle your modules without needing to modify the parent directory Makefile.
 
 # Known Bugs
+- **Highest priority:** `waitpid()` is not working, process scheduling requires bugfixes
+- **High priority:** ACPI not working anymore
 - **High priority:** ATAPI drives cannot be read
-- **High Priority:** `pciScan` does not work correctly
+- **Medium priority:** VMM needs a cleanup and removal of kspace shenanigans
 - **Medium Priority:** FDC not working correctly
 - **TODO:** dev/ directory is not present when running `ls`
 - **TODO:** DMA in IDE/ATA driver
@@ -52,7 +54,6 @@ reduceOS will automatically load and handle your modules without needing to modi
 - **TODO:** ext2 driver deletion functions suck
 - **Likely will never be fixed:** Kernel security is not being upheld with usermode as kernel pages are RW. Not good! (needs to be fixed in allocatePage)
 - **Likely will never be fixed:** A bitmap that is too large will crash the system
-- **Likely will never be fixed:** Time will not be entirely returned correctly
 
 
 # Credits

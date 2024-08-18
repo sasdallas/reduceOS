@@ -9,7 +9,6 @@
 static volatile uint64_t pitTicks = 0; // Total PIT ticks
 static bool pit_isInit = false; // Is the PIT initialized?
 
-extern process_t *thr_proc;
 
 // PIT timer interrupt handler
 void pitIRQ(registers_t *reg) { 
@@ -20,7 +19,7 @@ void pitIRQ(registers_t *reg) {
     clock_update();
 
     // Acknowledge the IRQ (ISR has hardcoded values to not acknowledge specifically PIT IRQ)
-    interruptCompleted(reg->int_no);
+    interruptCompleted(reg->int_no); // XXX: Stop hardcoding
 
     // If we are in kernel mode we should do whatever we need to do to launch the usermode process
     if (reg->cs == 0x08) return;
@@ -28,9 +27,7 @@ void pitIRQ(registers_t *reg) {
     process_switchTask(1);
 }
 
-void pit_shutUp(bool val) {
-    // Do nothing
-}
+
 
 // Waits seconds.
 void pitWaitSeconds(int seconds) {
@@ -50,42 +47,6 @@ uint64_t pitSetTickCount(uint64_t i) {
 
 // uint64_t pitGetTickCount() - Returns tick count
 uint64_t pitGetTickCount() { return pitTicks; }
-
-// void pitSendCommand(uint8_t cmd) - Sends a command to PIT
-void pitSendCommand(uint8_t cmd) {
-    outportb(PIT_REG_COMMAND, cmd);
-}
-
-// void pitSendData(uint16_t data, uint8_t counter) - Send data to a counter
-void pitSendData(uint16_t data, uint8_t counter) {
-    uint8_t port = (counter == PIT_OCW_COUNTER_0) ? PIT_REG_COUNTER0:
-        ((counter==PIT_OCW_COUNTER_1) ? PIT_REG_COUNTER1 : PIT_REG_COUNTER2);
-    
-    outportb(port, (uint8_t) data); // Write the data.
-}
-
-
-
-// void pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) - Starts a counter from the provided parameters.
-void pitStartCounter(uint32_t freq, uint8_t counter, uint8_t mode) {
-    if (freq == 0) return; // If the frequency is 0, return.
-
-    uint16_t divisor = (uint16_t) (1193181 / (uint16_t)freq);
-
-    // Sending the operational command
-    uint8_t ocw = 0;
-    ocw = (ocw & ~PIT_OCW_MASK_MODE) | mode;
-    ocw = (ocw & ~PIT_OCW_MASK_RL) | PIT_OCW_RL_DATA;
-    ocw = (ocw & ~PIT_OCW_MASK_COUNTER) | counter;
-    pitSendCommand(ocw);
-
-    // Set frequency rate
-    pitSendData(divisor & 0xff, 0);
-    pitSendData((divisor >> 8) & 0xff, 0);
-
-    // Reset tick count
-    pitTicks = 0;
-}
 
 // void pitInit() - Initialize PIT
 void pitInit() {
@@ -107,7 +68,7 @@ void pitInit() {
     int divisor = 1193180 / 1000; // Calculate divisor.
     outportb(PIT_REG_COMMAND, 0x36); // Command byte (0x36)
     outportb(0x40, divisor & 0xFF); // Set the low and high byte of the divisor.
-    outportb(0x40, divisor >> 8);
+    outportb(0x40, (divisor >> 8) & 0xFF);
 
     printf("Programmable Interval Timer initialized.\n");
     serialPrintf("pit: Initialized successfully.\n");

@@ -117,7 +117,6 @@ void process_switchTask(uint8_t reschedule) {
 
     // If a process got to switchTask but was not marked as running, it must be exiting.
     if (!(currentProcess->flags & PROCESS_FLAG_RUNNING) || (currentProcess == idleTask)) {
-        serialPrintf("we are going to just switch to the next process\n");
         process_switchNext();
         return;
     }
@@ -130,10 +129,6 @@ void process_switchTask(uint8_t reschedule) {
         asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
         return;
     } 
-
-
-    serialPrintf("process_switchTask(%i) called - SP=0x%x BP=0x%x TLSBASE=0x%x IP=0x%x isChild=%i\n", reschedule, currentProcess->thread.context.sp, currentProcess->thread.context.bp, currentProcess->thread.context.tls_base, currentProcess->thread.context.ip, currentProcess->isChild);
-    
 
     // If this is a normal yield, we nede to reschedule.
     if (reschedule) {
@@ -197,22 +192,7 @@ void process_releaseDirectory(thread_t *thread) {
 }
 
 
-// cloneKernelSpace(pagedirectory_t *out, pagedirectory_t *in) - Clones in/whatever the current directory is into out
-void cloneKernelSpace(pagedirectory_t *out, pagedirectory_t *in) {
-    if (!out) return;
 
-    pagedirectory_t *dir;
-    if (in) dir = in;
-    else {
-        serialPrintf("Using current directory for clone\n");
-        dir = vmm_getCurrentDirectory();
-    }
-
-
-    for (int i = 0; i < 1024; i++) {
-        out->entries[i] = dir->entries[i];
-    }
-}
 
 // spawn_kidle(int bsp) - Spawns the kernel's idle process
 process_t *spawn_kidle(int bsp) {
@@ -239,7 +219,7 @@ process_t *spawn_kidle(int bsp) {
     gettimeofday(&idle->start, NULL);
 
     // Setup the page directory and clone it from kspace
-    idle->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
+    idle->thread.page_directory = cloneDirectory(vmm_getKernelDirectory());
     idle->thread.refcount = 1;
     idle->thread.pd_lock = spinlock_init(); // bug?
 
@@ -268,7 +248,6 @@ process_t *spawn_init() {
     strcpy(init->name, "init");
     init->cmdline = NULL;
     init->status = 0;
-    init->isChild = false;
 
     init->description = kmalloc(strlen("initial process"));
     strcpy(init->description, "initial process");
@@ -512,7 +491,9 @@ volatile process_t *process_getNextReadyProcess() {
     
     spinlock_release(&process_queue_lock);
     
-    if (!(next->flags & PROCESS_FLAG_FINISHED)) __sync_or_and_fetch(&next->flags, PROCESS_FLAG_RUNNING);
+    if (!(next->flags & PROCESS_FLAG_FINISHED)) {
+        __sync_or_and_fetch(&next->flags, PROCESS_FLAG_RUNNING);
+    }
 
     return next;
 }
@@ -723,6 +704,7 @@ int waitpid(int pid, int *status, int options) {
     serialPrintf("waitpid: Call received.\n");
 
     do {
+        serialPrintf("waitpid: Looping...\n");
         volatile process_t *candidate = NULL;
         int has_children = 0;
         int is_parent = 0;
@@ -759,6 +741,7 @@ int waitpid(int pid, int *status, int options) {
 
         if (candidate) {
             spinlock_release(&proc->wait_lock);
+            serialPrintf("waitpid: Candidate '%s' found.\n", candidate->name);
             if (status) *status = candidate->status;
 
             candidate->status &= ~0xFF;
@@ -775,6 +758,8 @@ int waitpid(int pid, int *status, int options) {
                 spinlock_release(&proc->wait_lock);
                 return 0;
             }
+
+            serialPrintf("No candidate was found.\n");
 
             // Wait
             if (sleep_on_unlocking(proc->waitQueue, &proc->wait_lock) != 0) {
@@ -915,19 +900,15 @@ void task_exit(int retval) {
         currentProcess->nodeWaits = NULL;
     }
 
-    serialPrintf("All freed\n");
-
     updateProcessTimes();
 
     process_t *parent = process_get_parent((process_t*)currentProcess);
     __sync_or_and_fetch(&currentProcess->flags, PROCESS_FLAG_FINISHED);
 
-    serialPrintf("parent: %s\n", parent->name);
 
     if (parent && !(parent->flags & PROCESS_FLAG_FINISHED)) {
         spinlock_lock(&parent->wait_lock);
         // send_signal(parent->group, SIGCHLD, 1)
-        serialPrintf("Waking up the parent's wait queue...\n");
         wakeup_queue(parent->waitQueue);
         spinlock_release(&parent->wait_lock);
     }
@@ -946,7 +927,7 @@ pid_t fork() {
     process_t *parent = currentProcess;
     
     // Clone the page directory and set it up
-    pagedirectory_t *directory = cloneKernelSpace2(parent->thread.page_directory);
+    pagedirectory_t *directory = cloneDirectory(parent->thread.page_directory);
 
     // Create a new process and setup its thread page directory
     process_t *new_proc = spawn_process(parent, 0);
@@ -977,11 +958,7 @@ pid_t fork() {
 
     new_proc->thread.context.ip = (uint32_t)&resume_usermode;
 
-    new_proc->isChild = 3;
-    parent->isChild = 0;
-
-    serialPrintf("fork: Thread forked. SP=0x%x IP=0x%x.\n", &sp, new_proc->thread.context.ip);
-
+    
     // Save the context to the parent, but ONLY copy the saved part of the context over.
     save_context(&parent->thread.context);
     memcpy(new_proc->thread.context.saved, parent->thread.context.saved, sizeof(parent->thread.context.saved));
@@ -1058,7 +1035,7 @@ process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name,
     proc->session = proc->id;
 
     // Setup page directory
-    proc->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
+    proc->thread.page_directory = cloneDirectory(vmm_getKernelDirectory());
     proc->thread.refcount = 1;
     proc->thread.pd_lock = spinlock_init();
 
@@ -1099,7 +1076,7 @@ process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name,
 
 
 
-pagedirectory_t *cloneKernelSpace2(pagedirectory_t *in) {
+pagedirectory_t *cloneDirectory(pagedirectory_t *in) {
     pagedirectory_t *out = pmm_allocateBlock();
     memcpy(out, in, sizeof(pagedirectory_t));
     return out;
@@ -1136,7 +1113,7 @@ int createProcess(char *filepath) {
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
     vmm_switchDirectory(NULL);
     pagedirectory_t *this_directory = currentProcess->thread.page_directory;
-    currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getCurrentDirectory());
+    currentProcess->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
     currentProcess->thread.refcount = 1;
     atomic_flag_clear(currentProcess->thread.pd_lock);
     vmm_switchDirectory(currentProcess->thread.page_directory);
@@ -1155,7 +1132,6 @@ int createProcess(char *filepath) {
             void *mem = pmm_allocateBlock();
             vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr, (uint32_t)mem, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
             memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
-            serialPrintf("createProcess: vaddr 0x%x loaded\n", phdr->p_vaddr);
         }
 
 
@@ -1169,11 +1145,6 @@ int createProcess(char *filepath) {
 
 
     // Create a usermode stack
-    serialPrintf("createProcess: Creating usermode stack at 0x%x...\n", usermodeBase);
-    serialPrintf("createProcess: heapBase = 0x%x\n", heapBase);
-    serialPrintf("createProcess: execBase = 0x%x\n", execBase);
-    serialPrintf("createProcess: buffer = 0x%x\n", buffer);
-    serialPrintf("createProcess: stack = 0x%x (object is at 0x%x)\n", currentProcess->image.stack, currentProcess);
     void *usermodeStack = usermodeBase;
     void *stackPhysical = pmm_allocateBlock(); // Allocate a physical block for the stack
 
