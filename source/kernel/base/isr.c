@@ -54,7 +54,7 @@ void isrIRQHandler(registers_t *reg) {
     }
     
     // Send EOI to PIC (this function is present in hal.h - TODO: should we move this to be done in handlers?)
-    interruptCompleted(reg->int_no);
+    if (reg->int_no != 32) interruptCompleted(reg->int_no);
 }
 
 void isrInstall() {

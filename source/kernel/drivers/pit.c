@@ -19,13 +19,13 @@ void pitIRQ(registers_t *reg) {
     // Update the clock
     clock_update();
 
+    // Acknowledge the IRQ (ISR has hardcoded values to not acknowledge specifically PIT IRQ)
+    interruptCompleted(reg->int_no);
+
     // If we are in kernel mode we should do whatever we need to do to launch the usermode process
     if (reg->cs == 0x08) return;
     
-    // process_switchTask() will not return, so get the interrupt completed
-    interruptCompleted(reg->int_no);
     process_switchTask(1);
-    panic("pit", "IRQ", "process_switchTask returned");
 }
 
 void pit_shutUp(bool val) {

@@ -103,21 +103,7 @@ void process_switchNext() {
     uint32_t eip = currentProcess->thread.context.ip;
     uint32_t ebp = currentProcess->thread.context.bp;
 
-    serialPrintf("-- ESP=0x%x EIP=0x%x EBP=0x%x isChild=%i\n", esp, eip, ebp, currentProcess->isChild);
-    serialPrintf("syscall registers is a pointer to 0x%x\n", currentProcess->syscall_registers);
-
-    // Jump to it!
-    asm volatile (
-        "mov %0, %%ebx\n"
-        "mov %1, %%esp\n"
-        "mov %2, %%ebp\n"
-        "jmp %%ebx"
-        :: "r"(eip), "r"(esp), "r"(ebp) : "%ebx", "%esp", "%eax"
-    );
-
-
-    // restore_context() does not work
-    //restore_context(&currentProcess->thread.context);
+    load_context(&currentProcess->thread.context);
 }
 
 
@@ -140,9 +126,7 @@ void process_switchTask(uint8_t reschedule) {
     asm volatile ("fxsave (%0)" :: "r"(&currentProcess->thread.fp_regs));
     
     if (save_context(&currentProcess->thread.context) == 1) {
-        // THIS CODE WILL NOT BE CALLED.
-        // PLEASE SEE PIT.C FOR THE REAL WAY WE DO THIS
-        panic("??", "??", "how the actual hell");
+        // Returning from a task switch.
         asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
         return;
     } 
@@ -356,7 +340,7 @@ process_t *spawn_process(volatile process_t *parent, int flags) {
     // Entry is only stored for reference
     proc->image.entrypoint = parent->image.entrypoint;
     proc->image.heap = parent->image.heap;
-    proc->image.stack = kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
+    proc->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
     vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
                                 proc->image.stack, 
                                 vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
@@ -736,6 +720,7 @@ static int wait_candidate(volatile process_t *parent, int pid, int options, vola
 // waitpid(int pid, int *status, int options) - Waits for a process to finish/suspend
 int waitpid(int pid, int *status, int options) {
     volatile process_t * volatile proc = (process_t*)currentProcess;
+    serialPrintf("waitpid: Call received.\n");
 
     do {
         volatile process_t *candidate = NULL;
@@ -956,12 +941,8 @@ void task_exit(int retval) {
 
 // fork() - Fork the current process and creates a child process. Will return the PID of the child to the parent, and 0 to the child.
 pid_t fork() {
-    // We don't need any interruptions
-    disableHardwareInterrupts();
 
-    serialPrintf("Beginning fork\n");
-
-    uintptr_t sp, bp;
+    uint32_t *sp, bp;
     process_t *parent = currentProcess;
     
     // Clone the page directory and set it up
@@ -976,12 +957,10 @@ pid_t fork() {
     // Create system call registers
     registers_t r;
     memcpy(&r, parent->syscall_registers, sizeof(registers_t));
-
+    
     // Setup SP and BP
-    sp = new_proc->image.stack;
+    sp = &(new_proc->image.stack);
     bp = sp;
-
-    serialPrintf("fork() pushing system call registers to address 0x%x\n", sp);
 
     // Setup return value in syscall registers
     r.eax = 0;
@@ -989,33 +968,27 @@ pid_t fork() {
     // Push it onto the stack, manually because PUSH() doesn't seem to work right now.
     sp -= sizeof(registers_t); // Stack grows downwards
     memcpy(sp, &r, sizeof(registers_t));
-    
 
     // Setup registers and context
-    new_proc->syscall_registers = &r;
+    new_proc->syscall_registers = (void*)sp;
     new_proc->thread.context.sp = sp;
     new_proc->thread.context.bp = bp;
     new_proc->thread.context.tls_base = parent->thread.context.tls_base;
 
     new_proc->thread.context.ip = (uint32_t)&resume_usermode;
 
-    // Validate syscall registers because this code is stupid
+    new_proc->isChild = 3;
+    parent->isChild = 0;
 
-    new_proc->isChild = true;
-    parent->isChild = false;
-
-    serialPrintf("fork: Thread forked. IP=0x%x.\n", new_proc->thread.context.ip);
+    serialPrintf("fork: Thread forked. SP=0x%x IP=0x%x.\n", &sp, new_proc->thread.context.ip);
 
     // Save the context to the parent, but ONLY copy the saved part of the context over.
     save_context(&parent->thread.context);
     memcpy(new_proc->thread.context.saved, parent->thread.context.saved, sizeof(parent->thread.context.saved));
 
-    serialPrintf("parent SP=0x%x BP=0x%x IP=0x%x\n", parent->thread.context.sp, parent->thread.context.bp, parent->thread.context.ip);
-
     if (parent->flags & PROCESS_FLAG_IS_TASKLET) new_proc->flags |= PROCESS_FLAG_IS_TASKLET;
     makeProcessReady(new_proc);
 
-    enableHardwareInterrupts();
     return new_proc->id;
 }
 

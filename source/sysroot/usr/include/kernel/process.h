@@ -177,7 +177,7 @@ extern void start_process(uint32_t stack, uint32_t entry);
 extern void restore_kernel_selectors();
 extern void enter_tasklet();
 extern int save_context(thread_context_t *context);
-extern void restore_context(thread_context_t *context);
+extern void load_context(thread_context_t *context);
 extern uint32_t read_eip();
 extern void resume_usermode();
 
