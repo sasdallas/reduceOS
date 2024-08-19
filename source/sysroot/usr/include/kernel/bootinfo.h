@@ -1,5 +1,4 @@
 // bootinfo.h - header file defining multiboot_info, the structure passed by loadkernel and kernel assembly files.
-// All credit from this file goes to BrokenThorn Entertainment.
 
 #ifndef BOOTINFO_H
 #define BOOTINFO_H

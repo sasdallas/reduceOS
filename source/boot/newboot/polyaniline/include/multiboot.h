@@ -4,6 +4,7 @@
 #define BOOTINFO_H
 
 #include <stdint.h> // Definitions of integer types, like uint8_t
+#include <efi.h>
 
 #define MULTIBOOT_MAGIC 0x1BADB002
 
@@ -61,6 +62,28 @@ typedef struct {
 	uint32_t padding;
 } multiboot_mod_t;
 
+typedef struct {
+	uint32_t	size;
+	uint64_t	address;
+	uint64_t    length;
+	uint32_t 	type;
+} memoryRegion_t;
+
+
+// NOT MULTIBOOT BUT USED FOR GDT/IDT
+typedef struct {
+	uint16_t limitLow; // Lower 16-bits of the limit
+    uint16_t baseLow; // Lower 16 bits of the base.
+    uint8_t baseMiddle; // Next 8 bits of the base
+    uint8_t access; // Access flags (determine what ring the segment can be used in)
+    uint8_t granularity;
+    uint8_t baseHigh; // Last 8 bits of the base.
+} gdtEntry_t;
+
+typedef struct {
+	uint16_t limit;
+	uint32_t base;
+} gdtPtr_t;
 
 #endif
 

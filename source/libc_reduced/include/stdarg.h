@@ -21,13 +21,6 @@
 
 
 
-
-// va_arg(AP, TYPE) - Retrieve the next argument of type 'TYPE' in va_list 'AP'
-/*#define va_arg(AP, TYPE)	\
-	(AP += VA_SIZE(TYPE), *((TYPE *)(AP - VA_SIZE(TYPE))))*/
-
-
-
 #define va_start(x, y) __builtin_va_start(x, y)
 #define va_arg(x, y) __builtin_va_arg(x, y)
 #define va_end(x) __builtin_va_end(x)
