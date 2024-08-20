@@ -450,28 +450,7 @@ int efi_finish() {
     }
     
 
-    // Now, we have to get back to protetced mode. This is easier said than done.
-    // We'll start with a GDT
-    gdtEntry_t gdt[8];
     
-    gdtPtr.limit = sizeof(gdt)-1;
-    gdtPtr.base = (uint32_t)&gdt;
-
-    // Setup a null segment first
-    gdt[0].access = gdt[0].baseLow = gdt[0].baseMiddle = gdt[0].baseHigh = gdt[0].limitLow = gdt[0].granularity = gdt[0].access = 0;
-
-    // Now, we'll manually initialize the code segment
-    gdt[1].access = 0x9A;
-    gdt[1].granularity = 0xCF;
-    gdt[1].baseHigh = gdt[1].baseLow = gdt[1].baseMiddle = 0;
-    gdt[1].limitLow = 0xFFFF;
-
-    // Then we should initialize the data segment
-    gdt[2].access = 0x92;
-    gdt[2].granularity = 0xCF;
-    gdt[2].baseHigh = gdt[2].baseLow = gdt[2].baseMiddle = 0;
-    gdt[2].limitLow = 0xFFFF;
-
 }
 
 

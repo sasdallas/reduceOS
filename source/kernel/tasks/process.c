@@ -585,7 +585,6 @@ void wakeup_sleepers(unsigned long seconds, unsigned long subseconds) {
     spinlock_lock(&sleep_lock);
     if (sleep_queue->length) {
         sleeper_t *proc = ((sleeper_t*)sleep_queue->head->value);
-        serialPrintf("Trying to wake up process '%s' - end_tick = %016llX, end_subtick = %016llX, seconds = %lu, subseconds = %016llX\n", proc->process->name, proc->end_tick, proc->end_subtick, seconds, subseconds);
         while (proc && (proc->end_tick < seconds || (proc->end_tick == seconds && proc->end_subtick <= subseconds))) {
             // Timeouts have expired, mark the processes as ready and clear their sleep nodes.
             if (proc->is_fswait) {

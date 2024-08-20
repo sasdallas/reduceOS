@@ -16,12 +16,23 @@ OUT_OBJ = $(PROJECT_ROOT)/obj
 OUT_ASMOBJ = $(OUT_OBJ)/assembly
 OUT_KERNEL = .
 
-ASM_SOURCE_DIR = assembly
+ASM_SOURCE_DIRECTORIES = assembly
+
 
 # Directories (EDIT ME)
-SOURCE_DIRECTORIES = kernel drivers base gfx fs mem tasks misc
+SOURCE_DIRECTORIES = kernel drivers gfx fs mem tasks misc
 SOURCE_SUBDIRECTORIES = mem/liballoc # We do this because shell find will pick up anything in subdirectories twice
+
+
+# Before object files and other things are done, we need to include our architecture-specific Makefile.
+BUILD_ARCH ?= $(shell $(BUILDSCRIPTS_ROOT)/target_triplet_to_arch.sh $(shell $(BUILDSCRIPTS_ROOT)/default_host.sh))
+include build/$(BUILD_ARCH).mk
+
+
 DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES)) $(addprefix $(OUT_OBJ)/,$(SOURCE_SUBDIRECTORIES))
+
+
+
 
 
 
@@ -30,11 +41,11 @@ DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES)) $(addprefix $(OUT_O
 C_SRCS = $(shell find $(SOURCE_DIRECTORIES) -name "*.c")
 C_OBJS = $(patsubst %.c, $(OUT_OBJ)/%.o, $(C_SRCS))
 
-ASM_SRCS = $(wildcard $(ASM_SOURCE_DIR)/*.asm)
-ASM_SRCS2 = $(wildcard $(ASM_SOURCE_DIR)/*.S)
-ASM_OBJS = $(patsubst $(ASM_SOURCE_DIR)/%.asm, $(OUT_ASMOBJ)/%.o, $(ASM_SRCS)) $(patsubst $(ASM_SOURCE_DIR)/%.S, $(OUT_ASMOBJ)/%.o, $(ASM_SRCS2)) $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o
+ASM_SRCS = $(shell find $(ASM_SOURCE_DIRECTORIES) -name "*.asm")
+ASM_SRCS2 = $(shell find $(ASM_SOURCE_DIRECTORIES) -name "*.S")
+ASM_OBJS = $(patsubst %.asm, $(OUT_OBJ)/%.o, $(ASM_SRCS)) $(patsubst %.S, $(OUT_OBJ)/%.o, $(ASM_SRCS2)) $(OUT_ASMOBJ)/crtbegin.o $(OUT_ASMOBJ)/crtend.o
 
-
+DIRECTORIES += $(addprefix $(OUT_OBJ)/,$(ASM_SOURCE_DIRECTORIES))
 
 
 # Targets
@@ -64,7 +75,7 @@ $(OUT_KERNEL)/kernel_release.elf:  MAKE_OUTPUT_DIRS DELETE_OLD_KERNEL_OBJ BUILDS
 # Other targets for the Makefile
 
 MAKE_OUTPUT_DIRS:
-	@-$(MKDIR) $(DIRECTORIES)
+	@-$(MKDIR) -pv $(DIRECTORIES)
 
 
 # Fixes a CONFIG.h not updating bug
@@ -95,10 +106,10 @@ PRINT_ASM_HEADER:
 
 # Actual compilation functions
 
-$(OUT_ASMOBJ)/%.o: $(ASM_SOURCE_DIR)/%.asm | $(OUT_ASMOBJ)
+$(OUT_OBJ)/%.o: %.asm Makefile
 	$(NASM) -f elf32 -F dwarf -g $< -o $@
 
-$(OUT_ASMOBJ)/%.o: $(ASM_SOURCE_DIR)/%.S | $(OUT_ASMOBJ)
+$(OUT_OBJ)/%.o: %.S Makefile
 	$(CC) -m32 -c $< -o $@
 
 $(OUT_OBJ)/%.o: %.c Makefile
