@@ -48,6 +48,7 @@ reduceOS will automatically load and handle your modules without needing to modi
 - **High priority:** ATAPI drives cannot be read
 - **Medium priority:** VMM needs a cleanup and removal of kspace shenanigans
 - **Medium Priority:** FDC not working correctly
+- **Medium Priority:** Memory dumping doesn't entirely work
 - **TODO:** dev/ directory is not present when running `ls`
 - **TODO:** DMA in IDE/ATA driver
 - **TODO:** System calls need a better interface(?)

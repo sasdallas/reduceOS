@@ -52,5 +52,4 @@ void gdtInit() {
     
     // Flush TSS.
     tssFlush();
-
 }

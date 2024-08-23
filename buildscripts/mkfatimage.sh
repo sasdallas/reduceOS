@@ -5,14 +5,11 @@
 set -e
 
 BUILDSCRIPTS_ROOT=${BUILDSCRIPTS_ROOT:-"$(cd `dirname $0` && pwd)"}
-PROJECT_ROOT=${PROJECT_ROOT:"${BUILDSCRIPTS_ROOT}/.."}
 
 
 # Change the working directory to a known path
-. $BUILDSCRIPTS_ROOT/build.sh
-
-
-cd $PROJECT_ROOT
+. $BUILDSCRIPTS_ROOT/config.sh
+cd $BUILDSCRIPTS_ROOT/..
 
 # Create these in context to the root directory
 echo "-- Creating image output directory..."
@@ -33,7 +30,7 @@ mmd -i out/fatimg/fat_boot.img ::/EFI
 mmd -i out/fatimg/fat_boot.img ::/EFI/BOOT
 
 echo "-- Copying EFI file..."
-mcopy -i out/fatimg/fat_boot.img obj/polyaniline/efildr/BOOTX64.EFI ::/EFI/BOOT
+mcopy -i out/fatimg/fat_boot.img obj/polyaniline/efi/BOOTX64.EFI ::/EFI/BOOT
 
 echo "-- Copying kernel files..."
 mcopy -i out/fatimg/fat_boot.img source/sysroot/boot/kernel.elf ::/KERNEL.ELF

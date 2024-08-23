@@ -4,7 +4,10 @@
 #define BOOTINFO_H
 
 #include <stdint.h> // Definitions of integer types, like uint8_t
+
+#ifdef PLATFORM_EFI
 #include <efi.h>
+#endif
 
 #define MULTIBOOT_MAGIC 0x1BADB002
 

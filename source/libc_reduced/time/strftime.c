@@ -214,6 +214,6 @@ size_t strftime(char *s, size_t max, const char *fmt, const struct tm *tm) {
 
 static char output[26];
 char * asctime(const struct tm *tm) {
-	strftime(output, 26, "%a %b %d %T %Y\n", tm);
+	strftime(output, 26, "%a %b %d %T %Y", tm);
 	return output;
 }

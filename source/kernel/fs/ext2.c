@@ -34,7 +34,7 @@ int ext2_writeBlock(ext2_t *fs, uint32_t block, uint8_t *buf) {
 int ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, uint8_t *buffer) {
     if (inodeBlock >= inode->disk_sectors / (fs->block_size / 512)) {
         memset(buffer, 0x0, fs->block_size);
-        serialPrintf("ext2_readInodeBlock: Tried to read an invalid block. Asked for %i (0-indexed) but inode only has %i\n", inodeBlock, inode->disk_sectors / (fs->block_size / 512));
+        //serialPrintf("ext2_readInodeBlock: Tried to read an invalid block. Asked for %i (0-indexed) but inode only has %i\n", inodeBlock, inode->disk_sectors / (fs->block_size / 512));
         return -1;
     }
     
@@ -48,8 +48,7 @@ int ext2_readInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, ui
 // ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeBlock, uint8_t *buffer) - Writes a block in the specified inode
 uint32_t ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNumber, uint32_t block, uint8_t *buffer) {
     if (block >= (inode->disk_sectors / (fs->block_size / 512))) {
-        serialPrintf("ext2_writeInodeBlock: Attempting to write beyond existing allocated blocks for this inode\n");
-        serialPrintf("ext2_writeInodeBlock: inode %i, block %i\n", inodeNumber, block);
+        // (debugme)
     }
 
     
@@ -68,7 +67,7 @@ uint32_t ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNum
     if (empty) kfree(empty); // ???
 
     uint32_t realBlock = ext2_getDiskBlockNumber(fs, inode, block);
-    serialPrintf("ext2_writeInodeBlock: Writing virtual block %i for inode %i maps to real block %i\n", block, inodeNumber, realBlock);
+    // serialPrintf("ext2_writeInodeBlock: Writing virtual block %i for inode %i maps to real block %i\n", block, inodeNumber, realBlock);
 
     ext2_writeBlock(fs, realBlock, buffer);
     
@@ -504,7 +503,6 @@ void ext2_allocateInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t index, ui
     ext2_setDiskBlockNumber(fs, inode, index, block, ret);
     uint32_t t = (block + 1) * (fs->block_size / 512);
     if (inode->disk_sectors < t) {
-        serialPrintf("ext2_allocateInodeBlock: Setting inode->disk_sectors to %i = (%i fs blocks)\n", t, t / (fs->block_size / 512));
         inode->disk_sectors = t;
     }
 
