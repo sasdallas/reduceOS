@@ -2,50 +2,58 @@
 // syscall.c - handles reduceOS system call interface
 // ====================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
+// TODO: Better naming conventions, cleaning up code, and fixing an awful definition system.
 
 
 #include <kernel/syscall.h> // Main header file
 #include <kernel/process.h>
 
-void syscall_sleep();
 
 // List of system calls
-void *syscalls[8] = {
-    &restart_syscall,
+void *syscalls[18] = {
+    &sys_restart_syscall,
     &_exit,
-    &read,
-    &write,
-    &syscall_fork,
-    &execute_process,
-    &wait_pid,
-    &syscall_sleep
+    &sys_read,
+    &sys_write,
+    &sys_close,
+    &sys_execve,
+    &sys_fork,
+    &sys_fstat,
+    &sys_getpid,
+    &sys_isatty,
+    &sys_kill,
+    &sys_link,
+    &sys_lseek,
+    &sys_open,
+    &sys_sbrk,
+    &sys_stat,
+    &sys_times,
+    &sys_wait
 };
 
-uint32_t syscallAmount = 8;
+uint32_t syscallAmount = 18;
 
-// DECLARATION OF SYSTEM CALLS
-DECLARE_SYSCALL0(restart_syscall, 0);
+// DECLARATION OF TESTSYSTEM CALLS
+DECLARE_SYSCALL0(sys_restart_syscall, 0);
 DECLARE_SYSCALL1(_exit, 1, int);
-DECLARE_SYSCALL3(read, 2, int, void*, size_t);
-DECLARE_SYSCALL3(write, 3, int, const void*, size_t);
-DECLARE_SYSCALL0(syscall_fork, 4);
-DECLARE_SYSCALL0(execute_process, 5);
-DECLARE_SYSCALL0(wait_pid, 6);
-DECLARE_SYSCALL0(syscall_sleep, 7);
+DECLARE_SYSCALL3(sys_read, 2, int, void*, size_t);
+DECLARE_SYSCALL3(sys_write, 3, int, const void*, size_t);
+// END DECLARATION OF TEST SYSTEM CALLS
 
-// END DECLARATION OF SYSTEM CALLS
-
+// Environment variable (exposed)
+char *__env[1] = { 0 };
+char **environ = __env; // Sneaky
 
 
 // reduceOS uses interrupt 0x80, and on call of this interrupt, syscallHandler() is called.
 // A normal system call would be pretty long for the kernel to call every time, so macros in syscall.h are created.
 // These macros declare a function - syscall_<function> - that can automate this process.
 
+
 // Function prototypes
 void syscallHandler();
 
-
-// initSyscalls() - Registers interrupt handler 0x80 to allow system calls to happen.
+// initSyscalls() - Registers interrupt handler 0x80 to allow system calls to happen (interrupt marked as usermode in IDT init).
 void initSyscalls() {
     isrRegisterInterruptHandler(0x80, syscallHandler);
 }
@@ -84,12 +92,13 @@ void syscallHandler(registers_t *regs) {
 /* ACTUAL SYSTEM CALLS */
 
 // SYSCALL 0 (https://man7.org/linux/man-pages/man2/restart_syscall.2.html)
-long restart_syscall() {
+long sys_restart_syscall() {
     serialPrintf("restart_syscall: doing things lol\n");
     return 0; // This is supposed to return the system call number being restarted
 }
 
 // SYSCALL 1 (https://linux.die.net/man/2/exit)
+// This is the only function that doesn't call have a "sys_" prefix
 void _exit(int status) {
     serialPrintf("_exit: Terminating process\n");
     task_exit((status & 0xFF) << 8);
@@ -98,39 +107,102 @@ void _exit(int status) {
 
 // SYSCALL 2 (https://man7.org/linux/man-pages/man2/read.2.html)
 // NOTE: Should return a ssize_t but long works I think
-long read(int file_desc, void *buf, size_t nbyte) {
+long sys_read(int file_desc, void *buf, size_t nbyte) {
     // ssize_t really should be a type though ;)
     serialPrintf("read: system call received for %i bytes on fd %i\n", nbyte, file_desc);
     return nbyte;
 }
 
 // SYSCALL 3 (https://man7.org/linux/man-pages/man2/write.2.html)
-long write(int file_desc, const void *buf, size_t nbyte) {
+long sys_write(int file_desc, const void *buf, size_t nbyte) {
     if (!nbyte) return 0;
     serialPrintf("%s", buf);
     return nbyte;
 }
 
-pid_t syscall_fork() {
-    serialPrintf("Forking process\n");
-    return fork();
-}
+/*
+    Starting from here, the system calls are NOT declared.
+    This is because that the above system calls shouldn't be declared in the first place,
+    but they are used to test usermode (this codebase I swear)
+    We will not declare the below system calls besides in the list.
+ */
 
 
-int execute_process() {
-    serialPrintf("Starting process 'test_exit'...\n");
-    return createProcess("/test_exit");
-    for (;;);
+// SYSCALL 4 
+int sys_close(int fd) {
+    return -1; // lmao
 }
 
-int wait_pid() {
-    return waitpid(-1, NULL, WNOKERN);   
+// SYSCALL 5
+int sys_execve(char *name, char **argv, char **env) {
+    return -1;
 }
 
-void syscall_sleep() {
-    // a mimir
-    unsigned long s, ss;
-    clock_relative(2, 0, &s, &ss);
-    sleep_until(currentProcess, s, ss);
-    process_switchTask(0);
+// SYSCALL 6
+int sys_fork(void) {
+    return -1;
 }
+
+// SYSCALL 7
+int sys_fstat(int file, void *st) {
+    return -1;
+}
+
+// SYSCALL 8
+int sys_getpid(void) {
+    return 1;
+}
+
+// SYSCALL 9
+int sys_isatty(int file) {
+    return 1;
+}
+
+// SYSCALL 10
+int sys_kill(int pid, int sig) {
+    return -1;
+}
+
+// SYSCALL 11
+int sys_link(char *old, char *new) {
+    return -1;
+}
+
+// SYSCALL 12
+int sys_lseek(int file, int ptr, int dir) {
+    return 0;
+}
+
+// SYSCALL 13
+int sys_open(const char *name, int flags, int mode) {
+    return -1;
+}
+
+// SYSCALL 14
+// TODO: uint32_t is not the correct type for this, it's arch-specific I believe
+uint32_t sys_sbrk(int incr) {
+    // newlib handler will do this for us, so we'll panic if this is called.
+    panic("syscall", "sbrk", "stub");
+    __builtin_unreachable();
+}
+
+// SYSCALL 15
+int sys_stat(char *file, void *st) {
+    return 0; // Not implemented.
+}
+
+// SYSCALL 16
+int sys_times(void *buf) {
+    return -1;
+}
+
+// SYSCALL 17
+int sys_unlink(char *name) {
+    return -1;
+}
+
+// SYSCALL 18
+int sys_wait(int *status) {
+    return -1;
+}
+

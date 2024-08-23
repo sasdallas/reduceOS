@@ -25,7 +25,7 @@ void kshell();
 
 void usermodeMain() {
     printf("Hello!\n");
-    syscall_write(2, "Hello, system call world!", strlen("Hello, system call world!"));
+    syscall_sys_write(2, "Hello, system call world!", strlen("Hello, system call world!"));
 
     for (;;);
 }

@@ -113,23 +113,31 @@ typedef int syscall_func(int p1, int p2, int p3, int p4, int p5, int p6);
 void initSyscalls();
 
 // Syscall prototypes
-long restart_syscall();
+long sys_restart_syscall();
 void _exit(int status);
-long read(int file_desc, void *buf, size_t nbyte);
-long write(int file_desc, const void *buf, size_t nbyte);
-pid_t syscall_fork();
-int execute_process();
-int wait_pid();
-void syscall_wait();
+long sys_read(int file_desc, void *buf, size_t nbyte);
+long sys_write(int file_desc, const void *buf, size_t nbyte);
+int sys_close(int fd);
+int sys_execve(char *name, char **argv, char **env);
+int sys_fork(void);
+int sys_fstat(int file, void *st);
+int sys_getpid(void);
+int sys_isatty(int file);
+int sys_kill(int pid, int sig);
+int sys_link(char *old, char *new);
+int sys_lseek(int file, int ptr, int dir);
+int sys_open(const char *name, int flags, int mode);
+uint32_t sys_sbrk(int incr);
+int sys_stat(char *file, void *st);
+int sys_times(void *buf);
+int sys_unlink(char *name);
+int sys_wait(int *status);
 
-// Syscall definitions
-DEFINE_SYSCALL0(restart_syscall);
+// Syscall definitions (only test system calls)
+DEFINE_SYSCALL0(sys_restart_syscall);
 DEFINE_SYSCALL1(_exit, int);
-DEFINE_SYSCALL3(read, int, void*, size_t);
-DEFINE_SYSCALL3(write, int, const void*, size_t);
-DEFINE_SYSCALL0(syscall_fork);
-DEFINE_SYSCALL0(execute_process);
-DEFINE_SYSCALL0(wait_pid);
-DEFINE_SYSCALL0(syscall_wait);
+DEFINE_SYSCALL3(sys_read, int, void*, size_t);
+DEFINE_SYSCALL3(sys_write, int, const void*, size_t);
+
 
 #endif
