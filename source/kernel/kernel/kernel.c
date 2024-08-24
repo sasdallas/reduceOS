@@ -64,15 +64,38 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     extern uint32_t bss_end;
 
 
-    extern uint32_t modeWidth;
-    extern uint32_t modeHeight;
-    extern uint32_t modeBpp;
-    extern uint32_t *vbeBuffer;
+    // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
+    // This has to be done before ANYTHING else, because lack of PMM will break a lot of stuff.
+    pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
 
-    // Perform some basic setup
+
+    // Initialize the memory map
+    pmm_initializeMemoryMap(globalInfo);
+    
+
+    // Deallocate the kernel's region.
+    uint32_t kernelStart = (uint32_t)&text_start;
+    uint32_t kernelEnd = (uint32_t)&bss_end;
+    pmm_deinitRegion(0x100000, (kernelEnd - kernelStart));
+
+    // Before anything else is allocated, we need to deinitialize a few other regions.
+    // Here is the list:
+    /*
+        - ACPI (0x000E0000 - 0x000FFFFF)
+    */
+
+    pmm_deinitRegion(0x000E0000, 0x000FFFFF-0x000E0000);
+
+    // Even though paging hasn't been initialized, liballoc can use PMM blocks.
+    enable_liballoc();
+
+    // It's time to start the terminal
     initTerminal(); // Initialize the terminal and clear the screen
-    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
 
+    // Initialize PC Screen Font for later
+    psfInit();
+
+    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
 
     // First, setup the top bar.
     printf("reduceOS v%s %s (created by @sasdallas)", VERSION, CODENAME);
@@ -105,39 +128,10 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Before CPU initialization can even take place, we should start the clock.
     clock_init();
 
-
-
-
-    // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
-    // Now that initial ramdisk has loaded, we can initialize memory management
-    pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
-
-
-    // Initialize the memory map
-    pmm_initializeMemoryMap(globalInfo);
-    
-
-    // Deallocate the kernel's region.
-    uint32_t kernelStart = (uint32_t)&text_start;
-    uint32_t kernelEnd = (uint32_t)&bss_end;
-    pmm_deinitRegion(0x100000, (kernelEnd - kernelStart));
-
-    // Before anything else is allocated, we need to deinitialize a few other regions.
-    // Here is the list:
-    /*
-        - ACPI (0x000E0000 - 0x000FFFFF)
-    */
-
-    pmm_deinitRegion(0x000E0000, 0x000FFFFF-0x000E0000);
-
-
+    // Initialize all the basic CPU features
     updateBottomText("Initializing HAL...");
     cpuInit();
     printf("HAL initialization completed.\n");
-
-    // Initialize ACPI (has to be done before VMM initializes - why?)
-    //updateBottomText("Initializing ACPI...");
-    //acpiInit();
 
     // Initialize VMM
     updateBottomText("Initializing virtual memory management...");
@@ -176,26 +170,18 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Initialize the floppy drive (will do IRQ waiting loop occasionally - NEED to fix)
     floppy_init();
     serialPrintf("Initialized floppy drive successfully.\n");
-    
-    // DEFINITELY sketchy! What's going on with this system? Why can't I turn on liballoc earlier?
-    serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
-    enable_liballoc();
-
 
     // Probe for PCI devices
     updateBottomText("Probing PCI...");
     initPCI();
     serialPrintf("initPCI: PCI probe completed\n");
 
-
-
-    // Initialize debug symbols
+    // Initialize debug symbols (note that this just allocates memory for the structures)
     ksym_init();
 
     // Initialize the IDE controller.
     updateBottomText("Initializing IDE controller...");
     ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
-    
 
     /* VESA initialization */
     bool didInitVesa = true;
@@ -207,8 +193,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     }
 
     if (didInitVesa) {
-        // Initialize PSF
-        psfInit();
+        
 
         vbeSwitchBuffers();
     
@@ -274,13 +259,19 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     for (int i = 0; i < 4; i++) {
         fsNode_t *ideNode = ideGetVFSNode(i);
 
+        if (ideNode->impl == -1) {
+            // Drive does not exist, but memory for the fsNode was still allocated
+            kfree(ideNode);
+            continue;
+        }
+
         // First, we'll mount this device to /device/idex
         char *name = kmalloc(sizeof(char) * (strlen("/device/ide")  + 1));
         strcpy(name, "/device/ide");
         itoa(i, name + strlen("/device/ide"), 10);
     
         
-        vfsMount(name, ideGetVFSNode(i));
+        vfsMount(name, ideNode);
 
         if ((ideDevices[i].reserved == 1) && (ideDevices[i].size > 1)) {
             // The EXT2 driver needs to be mounted first on /

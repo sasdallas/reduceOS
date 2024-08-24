@@ -151,15 +151,15 @@ void vmm_disablePaging() {
 }
 
 
-// vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address, size_t size, int present, int writable, int user) - Identity map a region
-void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address, size_t size, int present, int writable, int user) {
+// vmm_allocateRegionFlags(uintptr_t physical_address, uintptr_t virtual_address, size_t size, int present, int writable, int user) - Identity map a region
+void vmm_allocateRegionFlags(uintptr_t physical_address, uintptr_t virtual_address, size_t size, int present, int writable, int user) {
     if (size < 1) return; // Size 0. I hate users.
 
 
     pagedirectory_t *pageDirectory = currentDirectory;
 
     // Get the page table
-    pde_t *entry = &(pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)]);
+    pde_t *entry = &(pageDirectory->entries[PAGEDIR_INDEX(virtual_address)]);
     if ((*entry & PTE_PRESENT) != PTE_PRESENT) {
         // Entry is not present, so we'll have to create a new one
         pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
@@ -169,7 +169,7 @@ void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address
         memset(table, 0, sizeof(pagetable_t));
 
         // Create a new entry to hold it
-        pde_t *e = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)];
+        pde_t *e = &pageDirectory->entries[PAGEDIR_INDEX(virtual_address)];
 
         // Map it in the table
         if (present) pde_addattrib(e, PDE_PRESENT);
@@ -199,8 +199,8 @@ void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address
     }
 }
 
-// vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) - Identity map a region
-void vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) {
+// vmm_allocateRegion(uintptr_t physical_address, uintptr_t virtual_address, size_t size) - Identity map a region
+void vmm_allocateRegion(uintptr_t physical_address, uintptr_t virtual_address, size_t size) {
     if (size < 1) return; // Size 0. I hate users.
 
     vmm_allocateRegionFlags(physical_address, virtual_address, size, 1, 1, 1);

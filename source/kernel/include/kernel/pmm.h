@@ -47,7 +47,7 @@ void pmm_printMemoryMap(multiboot_info *info); // Print the memory map
 void pmm_initializeMemoryMap(multiboot_info *info); // Initialize the memory map
 void pmmInit(uint32_t physMemorySize); // Initialize PMM
 void pmm_initRegion(uint32_t base, size_t size); // Initialize a region as available memory
-void pmm_deinitRegion(uint32_t base, size_t size); // Deinitialize a region as unusable memory.
+void pmm_deinitRegion(uintptr_t base, size_t size); // Deinitialize a region as unusable memory.
 void *pmm_allocateBlock(); // Allocates a block
 void pmm_freeBlock(void *block); // Frees a block
 void *pmm_allocateBlocks(size_t size); // Allocates size amount of blocks

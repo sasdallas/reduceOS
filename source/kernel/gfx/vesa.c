@@ -15,12 +15,15 @@
 vbeInfoBlock_t vbeInfo;
 bool isVBESupported = false;
 
-uint32_t *vbeBuffer; // This is the buffer we will be drawing in
+uint8_t *vbeBuffer; // This is the buffer we will be drawing in
 int selectedMode = -1; // The current mode selected.
-uint32_t modeWidth, modeHeight, modeBpp = 0; // The height and width of the mode
+uint32_t modeWidth, modeHeight, modeBpp, modePitch = 0; // The height and width of the mode
 
 uint32_t *framebuffer; // A seperate framebuffer.
-bool framebuffer_initialized = false;
+
+
+bool VESA_Initialized = false;
+
 
 // Double buffering is utilized in this VBE driver. Basically, that means that instead of drawing directly to video memory, you draw to a framebuffer (the one above).
 // For now we use manual swapping, but potentially later PIT will swap each tick.
@@ -190,8 +193,38 @@ uint32_t VGA_TO_VBE(uint8_t vgaColor) {
 }
 
 
+
+// vesa_initGOP(multiboot_info *info) - Initialize VESA using a GOP framebuffer
+int vesa_initGOP(multiboot_info *info) {
+    if (VESA_Initialized) return -2; // Already done for us.
+    if (!info->framebuffer_addr) {
+        return -1; // Nope
+    }
+
+    // Identity map framebuffer!
+    //serialPrintf("Framebuffer address: %p\n", (uintptr_t)info->framebuffer_addr);
+    pmm_deinitRegion((uintptr_t)info->framebuffer_addr, 1024*768);
+    vmm_allocateRegion((uintptr_t)info->framebuffer_addr, (uintptr_t)info->framebuffer_addr, 1024*768*4);
+
+    vbeBuffer = (void*)info->framebuffer_addr;
+    modeWidth = info->framebuffer_width;
+    modeHeight = info->framebuffer_height;
+    modeBpp = info->framebuffer_bpp;
+    modePitch = info->framebuffer_pitch;
+
+    
+
+    framebuffer = kmalloc(1024*768*4);
+
+    VESA_Initialized = true;
+
+    return 0;
+}
+
+
 // vesaInit() - Initializes VESA VBE.
 void vesaInit() {
+    if (VESA_Initialized) return; // Already done for us
 
     // First, get VBE info and check if supported.
     vbeGetInfo();
@@ -225,40 +258,35 @@ void vesaInit() {
     modeWidth = modeInfo.width;
     modeHeight = modeInfo.height;
     modeBpp = modeInfo.bpp;
-    vbeBuffer = (uint32_t*)modeInfo.framebuffer;
-
+    modePitch = modeInfo.pitch;
+    vbeBuffer = (uint8_t*)modeInfo.framebuffer;
     
     // Now, switch the mode.
     vbeSetMode(mode);
 
-    extern uint32_t bss_end;
-    extern uint32_t text_start;
-    
-    framebuffer = kmalloc(1024*768*4);
+    framebuffer = kmalloc(1024*768*4); // BUG: Why *4?
+
     serialPrintf("vesaInit: Allocated framebuffer to 0x%x - 0x%x\n", framebuffer, (int)framebuffer + (1024*768*4));
-    
+    serialPrintf("vesaInit: vbeBuffer is from 0x%x - 0x%x\n", vbeBuffer, (int)vbeBuffer + (1024*768*4));
+
     // Because framebuffer is big and stupid pmm will get confused and try to still allocate memory INSIDE of it
     // So we need to fix that by telling PMM to go pound sand and deinitialize the region
     pmm_deinitRegion(framebuffer, 1024*768*4);
 
-    /* This code is to stop liballoc from screwing absolutely everything up. It is not required! */
-    ASSERT(!(framebuffer < &bss_end), "vesaInit", "Invalid framebuffer (in kernelspace)");
-    ASSERT(!(framebuffer <= &text_start), "vesaInit", "Invalid framebuffer (before kernelspace)");
-    
-    /* This is also not required. */
-    framebuffer_initialized = true;
+    // This will stop other functions from trying to initialize VESA.
+    VESA_Initialized = true;
 }
 
 
 
 // vbeSwitchBuffers() - Switches the framebuffers
 int vbeSwitchBuffers() {
-    if (!isVBESupported) return -1; // Either VBE is not enabled or not supported.
-    if (!framebuffer_initialized) return -1; // Framebuffer not initialized.
+    if (!isVBESupported) return -1; // Not supported - TODO: Move me into VESA_Initialized.
+    if (!VESA_Initialized) return -1; // Framebuffer not initialized.
     
     // Switch the framebuffers
     for (int i = 0; i < 1024*768; i++) {
-        vbeBuffer[i] = framebuffer[i];
+        ((uint32_t*)vbeBuffer)[i] = framebuffer[i]; // Is this is a bug? I don't like the typecast.
     }
 
     return 0; // Updated buffers successfully.
@@ -270,14 +298,11 @@ int vbeSwitchBuffers() {
 // vbePutPixel(int x, int y, uint32_t color) - Puts a pixel on the screen.
 void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
-    uint32_t p = y * modeWidth + x;
+    uint32_t p = y * (modePitch/4) + x;
     *(framebuffer + p) = color;
-
-    
 }
 
 uint32_t vbeGetPixel(int x, int y) {
-    if (framebuffer_initialized) return *(framebuffer + (y * modeWidth + x));
-    else return *(vbeBuffer + (y * modeWidth + x));
+    return *(framebuffer + (y * (modePitch/4) + x));
 }
 
