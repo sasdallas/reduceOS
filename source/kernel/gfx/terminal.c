@@ -12,10 +12,12 @@ static char *shell = "\0"; // This will be used if we're handling typing - mainl
 int vbeTerminalForeground, vbeTerminalBackground;
 int terminalMode; // 0 signifies VGA mode, 1 signifies VESA VBE.
 int vbeWidth, vbeHeight;
-
+int terminalEnabled = 0;
 
 // initTerminal() - Load the terminal, setup the buffers, reset the values, etc.
 void initTerminal(void) {
+    terminalEnabled = 1; // Required because functions will return if terminalEnabled = 0.
+
     if (!terminalMode) {
         // We're initializing the terminal for the first time
         // Check to see if there's actually a monitor to display this to.
@@ -42,6 +44,7 @@ void initTerminal(void) {
         vbeTerminalBackground = COLOR_CYAN;
         vbeWidth = modeWidth;
         vbeHeight = modeHeight;
+        clearScreen_VESA(vbeTerminalForeground, vbeTerminalBackground);
     }
 }
 
@@ -62,6 +65,7 @@ void updateTerminalColor_gfx(uint8_t fg, uint8_t bg) {
 
 // terminalPutcharXY(unsigned char c, uint8_t color, size_t x, size_t y) - Specific function to place a vgaEntry() at a specific point on the screen.
 void terminalPutcharXY(unsigned char c, uint8_t color, size_t x, size_t y) {
+    if (!terminalEnabled) return;
     const size_t index = y * SCREEN_WIDTH + x; // Same code as in initTerminal(). Calculate index to place char at and copy it.
     terminalBuffer[index] = vgaEntry(c, color);
 }
@@ -79,6 +83,7 @@ extern int psfGetFontHeight();
 
 // scrollTerminal_vesa() - I wonder what this function does.
 void scrollTerminal_vesa() {
+    if (!terminalEnabled) return;
     if (terminalY >= modeHeight) {
 
         // Reading directly from vmem is very slow, but reading from our secondary buffer is not
@@ -105,6 +110,8 @@ void scrollTerminal_vesa() {
 // Unlike the alpha, this one has terminal scrolling!
 // scrollTerminal() - Scrolls the terminal
 void scrollTerminal() {
+    if (!terminalEnabled) return;
+    
     if (terminalMode == 1) {
         scrollTerminal_vesa();
         return;
@@ -129,6 +136,7 @@ void scrollTerminal() {
 
 // terminalDeleteLastLine() - delete the last line of the terminal. Useful for scrolling.
 void terminalDeleteLastLine() {
+    if (!terminalEnabled) return;
     int x, *ptr;
 
     for (x = 0; x < SCREEN_WIDTH * 2; x++) {
@@ -138,6 +146,7 @@ void terminalDeleteLastLine() {
 }
 
 void clearScreen_VESA(uint8_t fg, uint8_t bg) {
+    if (!terminalEnabled) return;
     updateTerminalColor_gfx(fg, bg);
 
     terminalX = 0;
@@ -158,7 +167,7 @@ void clearScreen_VESA(uint8_t fg, uint8_t bg) {
 
 // clearScreen(uint8_t fg, uint8_t bg) - clears the screen 
 void clearScreen(uint8_t fg, uint8_t bg) {
-
+    if (!terminalEnabled) return;
     if (terminalMode) {
         clearScreen_VESA(fg, bg);
         return;
@@ -179,6 +188,7 @@ void clearScreen(uint8_t fg, uint8_t bg) {
 
 // updateTextCursor() - Updates the text mode cursor to whatever terminalX and terminalY are.
 void updateTextCursor() {
+    if (!terminalEnabled) return;
     uint16_t pos = terminalY * SCREEN_WIDTH + terminalX;
 
     outportb(0x3D4, 14);
@@ -195,7 +205,7 @@ static bool cursorEnabled = true;
 static int blinkTime = 0; // Time since last blink (~500ms)
 static int blinkedLast = 0; // Did it blink last time? Do we need to clear/draw it?
 void updateTextCursor_vesa() {
-
+    if (!terminalEnabled) return;
     if (!cursorEnabled) return;
 
     // This function is called by pitTicks on a reasonable level
@@ -223,7 +233,7 @@ void updateTextCursor_vesa() {
 
 // When a character is typed, we want the cursor to follow it.
 static void redrawTextCursor_vesa() {
-    
+    if (!terminalEnabled) return;
     if (!cursorEnabled) return;
 
     if (blinkedLast) {
@@ -236,7 +246,7 @@ static void redrawTextCursor_vesa() {
 
 // If a newline is typed, remove the text cursor if it existed.
 static void clearTextCursor_vesa() {
-    
+    if (!terminalEnabled) return;
     if (!cursorEnabled) return;
 
     if (blinkedLast) {
@@ -262,6 +272,7 @@ void terminalMoveArrowKeys(int arrowKey) {
 
 // terminalPutchar(char c) - This is the recommended function to use (besides printf, that'll be later) as it incorporates scrollTerminal and terminalDeleteLastLine.
 void terminalPutchar(char c) {
+    if (!terminalEnabled) return;
     if (terminalMode == 1) {
         terminalPutcharVESA(c);
         return;
@@ -309,6 +320,7 @@ void terminalPutchar(char c) {
 // terminalPutcharVESA(char c) - VESA VBE putchar method (using PSF as of now)
 // Note: Don't call this directly! vbeSwitchBuffers is not called, could result in issues and annoyances later.
 void terminalPutcharVESA(char c) {
+    if (!terminalEnabled) return;
     int line;
     unsigned char uc = c;
 
@@ -357,6 +369,8 @@ void terminalWriteString(const char *data) { terminalWrite(data, strlen(data)); 
 
 // terminalBackspace() - Removes the last character outputted.
 void terminalBackspace() {
+    if (!terminalEnabled) return;
+    if (terminalMode == 1) terminalBackspaceVESA();
     if (terminalX == 0) return; // terminalX being 0 would cause a lot of problems.
     if (terminalX <= strlen(shell) && shell != "\0") return; // Cannot overwrite the shell.
     // First, go back one character.
@@ -371,6 +385,7 @@ void terminalBackspace() {
 
 // terminalBackspaceVESA() - Removes the last character outputted (VBE mode)
 void terminalBackspaceVESA() {
+    if (!terminalEnabled) return;
     if (terminalX < psfGetFontWidth()) return;
     if (terminalX <= strlen(shell)*psfGetFontWidth() && shell != "\0") return; // Cannot overwrite shell
 
@@ -400,11 +415,13 @@ void terminalWriteStringXY(const char *data, size_t x, size_t y) {
 
 // updateBottomText() - A kernel function to make handling the beginning graphics easier.
 void updateBottomText(char *bottomText) {
+    if (terminalMode != 0) return;
     if (strlen(bottomText) > INT_MAX) return -1; // Overflow
     
     updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY));
 
     for (int i = 0; i < SCREEN_WIDTH; i++) terminalPutcharXY(' ', vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY), i, SCREEN_HEIGHT - 1);
+    
     terminalWriteStringXY(bottomText, 0, SCREEN_HEIGHT - 1);
 
 
@@ -465,6 +482,31 @@ void terminalSetUpdateScreen(bool state) {
 
 // terminalUpdateScreen() - Update the buffers on the screen
 void terminalUpdateScreen() {
+    if (!terminalEnabled) return;
     if (terminalMode == 1 && updateScreen) vbeSwitchBuffers();
 }
 
+// terminalUpdateTopBar(char *text) - Update the top bar on the screen with exact text
+void terminalUpdateTopBar(char *text) {
+    if (!terminalEnabled) return;
+
+    terminalSetUpdateScreen(false);
+
+    printf("%s", text);
+    if (terminalMode == 0) {
+        for (int i = 0; i < (SCREEN_WIDTH - strlen(text)); i++) printf(" "); 
+    } else {
+        for (int i = 0; i < ((modeWidth - ((strlen(text)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
+    }
+    
+    terminalSetUpdateScreen(true);
+    terminalUpdateScreen();
+}
+
+
+// terminalUpdateTopBarKernel(char *text) - Prints out kernel version and codename too 
+void terminalUpdateTopBarKernel(char *text) {
+    char buffer[strlen(text) + strlen(VERSION) + strlen(CODENAME)]; // mm situation might be bad, you never know
+    sprintf(&buffer, "reduceOS v%s %s - %s", VERSION, CODENAME, text);
+    terminalUpdateTopBar((char*)buffer);
+}

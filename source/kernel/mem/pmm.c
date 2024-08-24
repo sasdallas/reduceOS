@@ -157,8 +157,8 @@ uint32_t pmm_firstFrames(size_t n) {
 
 
 
-// pmm_initRegion(uint32_t base, size_t size) - Initialize a region as available memory
-void pmm_initRegion(uint32_t base, size_t size) {
+// pmm_initRegion(uintptr_t base, size_t size) - Initialize a region as available memory
+void pmm_initRegion(uintptr_t base, size_t size) {
     int align = base / 4096;
     int blocks = size / 4096;
 

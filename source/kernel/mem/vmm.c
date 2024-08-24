@@ -155,7 +155,6 @@ void vmm_disablePaging() {
 void vmm_allocateRegionFlags(uintptr_t physical_address, uintptr_t virtual_address, size_t size, int present, int writable, int user) {
     if (size < 1) return; // Size 0. I hate users.
 
-
     pagedirectory_t *pageDirectory = currentDirectory;
 
     // Get the page table
