@@ -50,5 +50,6 @@ void updateTextCursor_vesa(); // Updating the text cursor in VESA VBE.
 void terminalUpdateScreen(); // Update the screen buffers
 void instantUpdateTerminalColor(uint8_t fg, uint8_t bg); // Instantly update the terminal color (VESA only)
 void terminalSetUpdateScreen(bool state); // Toggles whether the screen should update when terminalUpdateScreen() is called
-
+void terminalUpdateTopBar(char *text); // Update the top bar on the screen
+void terminalUpdateTopBarKernel(char *text); // Updates the top bar and prints out kernel version info
 #endif

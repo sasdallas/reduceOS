@@ -7,9 +7,17 @@
 #include <kernel/process.h>
 
 ISR interruptHandlers[256]; // A list of all interrupt handlers
- 
+uint32_t interruptToBeAcknowledged = -1; // When an interrupt is fired, the interrupt number will be logged here. 
+
+
 #pragma GCC diagnostic ignored "-Wint-conversion" // Lots of warnings about setvector() not taking an unsigned int. Ignore them all.
 
+
+// isrAcknowledge(uint32_t interruptNumber) - Acknowledge the current interrupt
+void isrAcknowledge(uint32_t interruptNumber) {
+    interruptCompleted(interruptNumber);
+    interruptToBeAcknowledged = -1;
+}
 
 // isrRegisterInterruptHandler(int num, ISR handler) - Registers an interrupt handler.
 void isrRegisterInterruptHandler(int num, ISR handler) {
@@ -31,8 +39,10 @@ void isrExceptionHandler(registers_t *reg) {
 }
 
 void isrIRQHandler(registers_t *reg) {
+    interruptToBeAcknowledged = reg->int_no;
+
     // Some debug code I left in in case anyone is modifying reduceOS.
-    //if (reg->int_no != 32) serialPrintf("isrIRQHandler received IRQ. IRQ: %i. Valid handler present: %s. INT NO: %i. Valid handler present (for INT_NO): %s", reg->err_code, (interruptHandlers[reg->err_code]) ? "YES" : "NO", reg->int_no, (interruptHandlers[reg->int_no]) ? "YES" : "NO");
+    //if (true) serialPrintf("isrIRQHandler received IRQ. IRQ: %i. Valid handler present: %s. INT NO: %i. Valid handler present (for INT_NO): %s\n", reg->err_code, (interruptHandlers[reg->err_code]) ? "YES" : "NO", reg->int_no, (interruptHandlers[reg->int_no]) ? "YES" : "NO");
     
     // First, check if the call is from userspace.
     int from_userspace = reg->cs != 0x08;
@@ -53,8 +63,10 @@ void isrIRQHandler(registers_t *reg) {
         updateProcessTimesOnExit();
     }
     
-    // Send EOI to PIC (this function is present in hal.h - TODO: should we move this to be done in handlers?)
-    if (reg->int_no != 32) interruptCompleted(reg->int_no);
+    // Send EOI to PIC if the handler didn't already
+    if (interruptToBeAcknowledged != -1) {
+        isrAcknowledge(reg->int_no);
+    }
 }
 
 void isrInstall() {

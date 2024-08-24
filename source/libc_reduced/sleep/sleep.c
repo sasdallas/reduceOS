@@ -7,10 +7,11 @@
 void sleep(int ms) {
     struct timeval t;
     gettimeofday(&t, NULL);
-    uint64_t end_ticks = t.tv_usec + (ms * 1000);
+    uint64_t end_ticks = (t.tv_sec * 1000 * 1000) + t.tv_usec + (ms * 1000);
 
     // Wait until we reach the target
     do {
+        //serialPrintf("SLEEPING - %016llX vs %016llX\n", (t.tv_sec * 1000 * 1000) + t.tv_usec, end_ticks);
         gettimeofday(&t, NULL);
-    } while (t.tv_usec < end_ticks);
+    } while (((t.tv_sec * 1000 * 1000) + t.tv_usec) < end_ticks);
 }

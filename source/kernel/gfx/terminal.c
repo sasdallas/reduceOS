@@ -490,6 +490,12 @@ void terminalUpdateScreen() {
 void terminalUpdateTopBar(char *text) {
     if (!terminalEnabled) return;
 
+    int oldfg = vbeTerminalForeground;
+    int oldbg = vbeTerminalBackground;
+
+    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
+    
+
     terminalSetUpdateScreen(false);
 
     printf("%s", text);
@@ -501,12 +507,14 @@ void terminalUpdateTopBar(char *text) {
     
     terminalSetUpdateScreen(true);
     terminalUpdateScreen();
+
+    updateTerminalColor_gfx(oldfg, oldbg);
 }
 
 
 // terminalUpdateTopBarKernel(char *text) - Prints out kernel version and codename too 
 void terminalUpdateTopBarKernel(char *text) {
-    char buffer[strlen(text) + strlen(VERSION) + strlen(CODENAME)]; // mm situation might be bad, you never know
-    sprintf(&buffer, "reduceOS v%s %s - %s", VERSION, CODENAME, text);
-    terminalUpdateTopBar((char*)buffer);
+    char *buffer = kmalloc(strlen(text) + strlen(VERSION) + strlen(CODENAME));
+    sprintf(buffer, "reduceOS v%s %s - %s", VERSION, CODENAME, text);
+    terminalUpdateTopBar(buffer);
 }

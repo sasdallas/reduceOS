@@ -42,7 +42,7 @@ clock: sync=none, time0=local, rtc_sync=0
 # no cmosimage
 log: -
 logprefix: %t%e%d
-debug: action=ignore, dma=report, floppy=report, pit=report, harddrv=ignore, serial=ignore, pit82c54=ignore
+debug: action=ignore, dma=report, floppy=report, pit=ignore, harddrv=ignore, serial=ignore, pit82c54=ignore, pic=report
 info: action=report
 error: action=report
 panic: action=ask

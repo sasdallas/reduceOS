@@ -18,8 +18,8 @@ void pitIRQ(registers_t *reg) {
     // Update the clock
     clock_update();
 
-    // Acknowledge the IRQ (ISR has hardcoded values to not acknowledge specifically PIT IRQ)
-    interruptCompleted(reg->int_no); // XXX: Stop hardcoding
+    // Acknowledge the IRQ, ISR is smart enough to know this was acknowledged
+    isrAcknowledge(reg->int_no);
 
     // If we are in kernel mode we should do whatever we need to do to launch the usermode process
     if (reg->cs == 0x08) return;

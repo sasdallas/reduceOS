@@ -15,7 +15,7 @@ PSF2_Header *font; // TODO: PSF1 support
 // External variables
 extern char _binary_font_psf_start;
 extern char _binary_font_psf_end;
-extern uint32_t *vbeBuffer;
+extern uint8_t *vbeBuffer;
 extern uint32_t font_data[127][20];
 
 uint32_t currentFont[127][20];

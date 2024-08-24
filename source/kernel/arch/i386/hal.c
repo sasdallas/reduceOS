@@ -31,13 +31,13 @@ void setVector_flags(int intNo, uint32_t vect, int flags) {
 
 // void enableHardwareInterrupts() - Enable hardware interrupts
 void enableHardwareInterrupts() {
-    asm volatile ("sti");
+    asm ("sti");
 }
 
 
 // void disableHardwareInterrupts() - Disable hardware interrupts
 void disableHardwareInterrupts() {
-    asm volatile ("cli");
+    asm ("cli");
 }
 
 // uint8_t inportb(uint16_t port) - Read data from device through port mapped IO

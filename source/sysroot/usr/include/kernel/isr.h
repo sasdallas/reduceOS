@@ -136,5 +136,6 @@ extern void irq_15();
 void isrRegisterInterruptHandler(int num, ISR handler); // Registers an interrupt handler
 void isrEndInterrupt(int num); // Ends an interrupt.
 void isrInstall(); // Installs ISR
+void isrAcknowledge(uint32_t interruptNumber); // Acknowledge an interrupt
 
 #endif

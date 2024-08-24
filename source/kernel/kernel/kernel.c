@@ -89,23 +89,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Even though paging hasn't been initialized, liballoc can use PMM blocks.
     enable_liballoc();
 
-    // It's time to start the terminal
-    initTerminal(); // Initialize the terminal and clear the screen
-
     // Initialize PC Screen Font for later
     psfInit();
-
-    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY)); // Update terminal color
-
-    // First, setup the top bar.
-    printf("reduceOS v%s %s (created by @sasdallas)", VERSION, CODENAME);
-    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v (created by @sasdallas) ") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" "); // tbf
-    // Next, update terminal color to the proper color.
-    updateTerminalColor(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
-    printf("reduceOS is loading, please wait...\n");
-
-    // Change the bottom text of the terminal (updateBottomText)
-    updateBottomText("Loading reduceOS...");
 
     // Initialize serial logging
     serialInit();
@@ -151,13 +136,31 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Installs the GDT and IDT entries for BIOS32
     bios32_init();
     serialPrintf("bios32 initialized successfully!\n");
+
+    // ==== TERMINAL INITIALIZATION ====
+    vesaInit(); // Initialize VBE
     
+    vbeSwitchBuffers();
+    changeTerminalMode(1); // Update terminal mode
+    
+    // Startup the terminal driver
+    initTerminal();
+
+
+    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
+    terminalUpdateTopBarKernel("created by @sasdallas");
+    
+    // Next, update terminal color to the proper color and print loading text.
+    updateTerminalColor_gfx(COLOR_WHITE, COLOR_CYAN);
+    printf("reduceOS is loading, please wait...\n");
+
+    // ==== PERIPHERAL/DRIVER INITIALIZATION ====
+
     // Initialize Keyboard 
     updateBottomText("Initializing keyboard...");
     keyboardInitialize();
     setKBHandler(true);
     serialPrintf("Keyboard handler initialized.\n");
-    
 
     // PIT timer
     updateBottomText("Initializing PIT...");
@@ -183,25 +186,10 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     updateBottomText("Initializing IDE controller...");
     ideInit(0x1F0, 0x3F6, 0x170, 0x376, 0x000); // Initialize parallel IDE
 
-    /* VESA initialization */
-    bool didInitVesa = true;
-    char c = isKeyPressed();
-    if (c == 'c') { 
-        didInitVesa = false;
-    } else {
-        vesaInit(); // Initialize VBE
-    }
-
-    if (didInitVesa) {
-        
-
-        vbeSwitchBuffers();
-    
-        changeTerminalMode(1); // Update terminal mode
-    }
-
     // Start the process scheduler
     scheduler_init();
+
+    // ==== FILESYSTEM INITIALIZATION ====
 
     // Initialize the VFS
     vfsInit();
@@ -315,6 +303,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         panic("kernel", "kmain", "Failed to get kernel symbols!");
     }
 
+
+    // ==== FINAL INITIALIZATION ====
 
 
     uint8_t seconds, minutes, hours, days, months;

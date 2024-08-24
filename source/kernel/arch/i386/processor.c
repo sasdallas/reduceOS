@@ -17,6 +17,7 @@ void cpuInit() {
     // Load GDT and IDT (IDT method sets up ISR as well as PIC)
     gdtInit();
     idtInit();
+	
     serialPrintf("GDT, IDT, and ISR have initialized successfully.\n");
 
     // Enable interrupts.
@@ -77,6 +78,7 @@ void cpuInit() {
 
 	printf("CPU initialization completed.\n");
 	serialPrintf("CPU initialization completed\n");
+
 
 	return;
 	

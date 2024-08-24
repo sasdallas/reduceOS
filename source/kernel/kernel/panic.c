@@ -5,6 +5,11 @@
 // This file is apart of the reduceOS C kernel. Please credit me if you use this code.
 
 
+/*
+    And the prize for number one most used file in reduceOS goes to...
+*/
+
+
 #include <kernel/panic.h> // Main panic include file
 #include <kernel/ksym.h>
 #include <time.h>
@@ -17,6 +22,24 @@ extern char ch;
 
 // This static function will dump physical memory to disk
 static void dumpPMM() {
+    // Do not dump PMM if we're using a RELEASE build.
+    if (!strcmp(BUILD_CONFIGURATION, "RELEASE")) {
+        printf("\nThis is a RELEASE build of reduceOS - therefore, to retain the security of your disks, memory dumps have been disabled.\n");
+        return;
+    }
+
+
+    // BUG: We can't dump memory unless the system has around 512MB of RAM, else EXT2 driver hits an OOM.
+    // I'm not entirely sure whether this is because the system is scuffed and not designed for this, or what.
+    // But, if I'm being honest, I don't care.
+    // This whole dumpPMM function is pretty much COMPLETELY scuffed because if the EXT2 driver crashes (due to an OOM or even a divbyzero bye bye data)
+    // Therefore, RELEASE configurations of reduceOS have this turned off.
+    if (pmm_getPhysicalMemorySize() < 510000) {
+        printf("\nCannot dump physical memory: Your system does not have enough RAM to write the data correctly.\n");
+        printf("If this is an emulator such as QEMU, you can dump the contents of RAM using the inbuilt debugger.\n");
+        return;
+    }
+
     // Check if we have a way to dump memory to drive.
     if (strcmp(fs_root->name, "initrd") && fs_root->create != NULL) {
         // We are not mounted to initial ramdisk, try to dump.
@@ -80,6 +103,8 @@ static void dumpPMM() {
                 dumpfile->write(dumpfile, (i+j)*PAGE_SIZE, PAGE_SIZE, pbuffer);
                 addr += PAGE_SIZE;
             }
+
+            serialPrintf("dumpPMM: %i%% completed.\n", (pages / i));
 
             printf(".");
         }

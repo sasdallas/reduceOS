@@ -43,19 +43,23 @@ void idtInit() {
     // Clear IDT entries table.
     memset(&idtEntries, 0, sizeof(idtEntries));
 
-    // Enable PIC manually, pic.c DOES NOT WORK.
-    outportb(0x20, 0x11);
-    outportb(0xA0, 0x11);
-    outportb(0x21, 0x20);
-    outportb(0xA1, 0x28);
-    outportb(0x21, 0x04);
-    outportb(0xA1, 0x02);
-    outportb(0x21, 0x01);
-    outportb(0xA1, 0x01);
-    outportb(0x21, 0x0);
-    outportb(0xA1, 0x0);
+    uint8_t a1, a2;
+    a1 = inportb(PIC1_REG_DATA);
+    a2 = inportb(PIC2_REG_DATA);
 
+    outportb(PIC1_REG_COMMAND, 0x11);
+    outportb(PIC2_REG_COMMAND, 0x11);
 
+    outportb(PIC1_REG_DATA, 0x20);
+    outportb(PIC2_REG_DATA, 0x28);
+
+    outportb(PIC1_REG_DATA, 4);
+    outportb(PIC2_REG_DATA, 2);
+
+    outportb(PIC1_REG_DATA, 0x01);
+    outportb(PIC2_REG_DATA, 0x01);
+    outportb(PIC1_REG_DATA, a1);
+    outportb(PIC2_REG_DATA, a2);
 
     isrInstall(); // Install handlers
 
