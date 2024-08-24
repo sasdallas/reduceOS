@@ -135,8 +135,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     cpuInit();
     printf("HAL initialization completed.\n");
 
-    // Initialize ACPI (has to be done before VMM initializes)
-    // ACPI IS BROKEN
+    // Initialize ACPI (has to be done before VMM initializes - why?)
     //updateBottomText("Initializing ACPI...");
     //acpiInit();
 
@@ -146,12 +145,12 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("Initialized memory management successfully.\n");
 
 
+    // Deinitialize multiboot modules
     multiboot_mod_t *mod;
     int i2;
     for (i2 = 0, mod = (multiboot_mod_t*)globalInfo->m_modsAddr; i2 < globalInfo->m_modsCount; i2++, mod++) {
         pmm_deinitRegion(mod->mod_start, mod->mod_end - mod->mod_start);
     }
-    
 
     // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit
 
@@ -170,19 +169,15 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     updateBottomText("Initializing PIT...");
     pitInit();
 
-
     // Setup the DMA pool
     // I can hear the page fault ready to happen because DMA wasn't properly allocated.
-    dma_initPool(256 * 1024); // 256 KB of DMA pool
-    
+    dma_initPool(256 * 1024); // 256 KB of DMA pool    
 
-    // Initialize the floppy drive
+    // Initialize the floppy drive (will do IRQ waiting loop occasionally - NEED to fix)
     floppy_init();
     serialPrintf("Initialized floppy drive successfully.\n");
-
-
     
-    // DEFINITELY sketchy! What's going on with this system? 
+    // DEFINITELY sketchy! What's going on with this system? Why can't I turn on liballoc earlier?
     serialPrintf("WARNING: Enabling liballoc! Stand away from the flames!\n");
     enable_liballoc();
 
@@ -321,6 +316,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         debugsymbols = open_file("/device/initrd/kernel.map", 0);
     }
 
+
+    // Bind debug symbols. REQUIRED for ELF loading.
     if (debugsymbols) {
         ksym_bind_symbols(debugsymbols);
     } else {
@@ -335,9 +332,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     rtc_getDateTime(&seconds, &minutes, &hours, &days, &months, &years);
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
-
-
-    
     
     // Initialize system calls
     initSyscalls();

@@ -40,9 +40,6 @@ DECLARE_SYSCALL3(sys_read, 2, int, void*, size_t);
 DECLARE_SYSCALL3(sys_write, 3, int, const void*, size_t);
 // END DECLARATION OF TEST SYSTEM CALLS
 
-// Environment variable (exposed)
-char *__env[1] = { 0 };
-char **environ = __env; // Sneaky
 
 
 // reduceOS uses interrupt 0x80, and on call of this interrupt, syscallHandler() is called.

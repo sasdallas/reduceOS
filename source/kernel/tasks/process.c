@@ -219,7 +219,7 @@ process_t *spawn_kidle(int bsp) {
     gettimeofday(&idle->start, NULL);
 
     // Setup the page directory and clone it from kspace
-    idle->thread.page_directory = cloneDirectory(vmm_getKernelDirectory());
+    idle->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
     idle->thread.refcount = 1;
     idle->thread.pd_lock = spinlock_init(); // bug?
 
@@ -1034,7 +1034,7 @@ process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name,
     proc->session = proc->id;
 
     // Setup page directory
-    proc->thread.page_directory = cloneDirectory(vmm_getKernelDirectory());
+    proc->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory()); // Is this possibly bugged?
     proc->thread.refcount = 1;
     proc->thread.pd_lock = spinlock_init();
 

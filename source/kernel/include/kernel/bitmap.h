@@ -37,6 +37,8 @@ typedef struct {
     char *buffer;
     uint32_t totalSize;
     uint32_t bpp;
+    size_t bufferSize; 
+    size_t offset;
 } bitmap_t;
 
 typedef struct {

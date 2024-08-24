@@ -98,7 +98,7 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
                 } else {
                     continue; // Unknown type.
                 }
-
+                
                 ideWrite(i, ATA_REG_COMMAND, ATA_IDENTIFY_PACKET);
                 sleep(1);
             }
@@ -152,12 +152,8 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
     }
 
     isrRegisterInterruptHandler(15, ideIRQHandler);
-    
-    
 
     printf("IDE driver initialized - found %i drives.\n", drives);
-
-    
 
 }
 

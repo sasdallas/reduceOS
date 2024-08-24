@@ -502,10 +502,12 @@ void floppy_disableFDC() {
 // floppy_reset() - Resets the floppy drive
 void floppy_reset() {
     uint32_t st0, cyl;
+
     
     // Reset controller
     floppy_disableFDC();
     floppy_enableFDC();
+
     floppy_waitIRQ(); // Potentially can cause IRQ6 waiting loop.
 
     // Send a VERSION command to the floppy drive to verify it works.

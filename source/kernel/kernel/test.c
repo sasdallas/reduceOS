@@ -1129,9 +1129,8 @@ int bitmap_test() {
 }
 
 int badapple_test() {
-    // no audio (yet)
-
-    printf("\tbroken sorry\n");
+    // broken :(
+    printf("Broken, sorry.\n");
     return -1;
 
     printf("\tTo run this test, please attach an EXT2 disk to the system.\n");
@@ -1158,79 +1157,24 @@ int badapple_test() {
     serialPrintf("bad_apple: Loaded directory\n");
     
 
-    // Frame latency test, using this to calculate how many frames we should load per second
-    /*printf("\tPerforming 2 frame load time test...");
-    uint8_t *b = kmalloc(1024 * 40); // Allocate 60 KB for each frame
-    uint8_t *b2 = kmalloc(1024 * 40);
-    int start_ticks = pitGetTickCount();
-    fsNode_t *frame = dir->finddir(dir, "24.bmp");
-    if (frame) {
-        int ret = frame->read(frame, 0, frame->length, b);
-
-        if (ret == frame->length) {
-            // Nothing to do 
-        } else {
-            printf("FAIL - could not read '24.bmp'!\n");
-            return -1;
-        }
-    } else {
-        printf("FAIL - could not open '24.bmp'!\n");
-        return -1;
-    }
-
-    fsNode_t *frame2 = dir->finddir(dir, "26.bmp");
-    if (frame) {
-        int ret = frame2->read(frame, 0, frame->length, b);
-
-        if (ret == frame2->length) {
-            // We're done!
-        } else {
-            printf("FAIL - could not read '26.bmp'!\n");
-            return -1;
-        }
-    } else {
-        printf("FAIL - could not open '26.bmp'!\n");
-        return -1;
-    }
-
-    kfree(b);
-    kfree(b2);
-    
-    int frametime = pitGetTickCount() - start_ticks; // Frametime is for loading two frames, not just one
-    printf("%i ms/frame\n", frametime / 2);
-
-    serialPrintf("bad_apple: Load time test completed - %i ms/frame\n", frametime / 2);
-
-    int target_fps = 60;
-
-    if (frametime * target_fps > 1000) {
-        // 60 fps is not possible on this hardware
-        target_fps = 2000 / frametime ;
-        serialPrintf("bad_apple: Load time results in %i FPS\n", target_fps);
-        printf("\tWARNING: FPS may be reduced.\n");
-    }
-
-    printf("\tLoad Time FPS: %i FPS\n", target_fps);*/
-
-
     // Let's do this. First, we need to allocate 2 bitmaps for our frame data to be stored in.
     bitmap_t *fb1;
     bitmap_t *fb2;
+    int currentFrame = 1;
 
     // Now, let's get into a while loop and start displaying frames
-    int currentFrame = 1;
     while (true) {
         int tickCount = pitGetTickCount(); // Used for timing our frames
 
         
 
         // The way this will work is we'll start the loop by displaying whatever's in fb2
-        if (currentFrame != 1) {
-            kfree(fb1->buffer);
-            kfree(fb1);
+        if (currentFrame > 1) {
+            serialPrintf("Displaying next frame...\n");
             displayBitmap(fb2, 0, 0);
+            kfree(fb1->buffer);
             kfree(fb2->buffer);
-            kfree(fb2);
+            currentFrame++;
         }        
 
         // First, we need to get the names of the frames.
@@ -1246,6 +1190,8 @@ int badapple_test() {
         itoa(currentFrame, fn2, 10);
         strcpy(fn2 + strlen(fn2), ".bmp");
 
+
+        serialPrintf("Reading frame '%s'...\n", fn1);
 
         // Now, we can read in the frames
         fsNode_t *f1 = dir->finddir(dir, fn1);
@@ -1266,15 +1212,17 @@ int badapple_test() {
         fb1 = bitmap_loadBitmap(f1);
         if (!breakAfterDisplayOne) fb2 = bitmap_loadBitmap(f2);
 
+        serialPrintf("fb1 loaded to 0x%x buf 0x%x fb2 loaded to 0x%x buf 0x%x\n", fb1,fb1->buffer, fb2, fb2->buffer);
         // NOTE: The system could bug out if an invalid bitmap is passed
         displayBitmap(fb1, 0, 0);
-        
+        serialPrintf("Displayed\n");
+
         if (breakAfterDisplayOne) break; // We have no more bitmaps left to display
 
 
         kfree(fn1);
         kfree(fn2);
-        
+
         // Time ourselves
         // while (pitGetTickCount() - tickCount < 1000);
     }
@@ -1289,8 +1237,10 @@ int cpu_tests() {
 
     if (cpu.fpuEnabled == 1) {
         float f = 2.430;
-        printf("\tFPU test (should be 2.43): %f", f);
+        printf("\tFPU test (should be 2.43): %f\n", f);
     }
+
+    printf("\tPIT tick count: %016llX ticks\n", pitGetTickCount());
 
     return 0;
 }

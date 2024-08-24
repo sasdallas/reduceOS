@@ -11,18 +11,10 @@
 
 // Variables
 pagedirectory_t *currentDirectory = 0; // Current page directory 
-pagedirectory_t *kernelDirectory = 0; // Kernel page directory
-bool isOnKernelDirectory = false;
 uint32_t currentPDBR = 0; // Current page directory base register address
 bool pagingEnabled = false;
 
-// vmm_reflectKernelDirectoryChanges() - hack that copies currentDirectory to kernelDirectory
-void vmm_reflectKernelDirectoryChanges() {
-    // I HATE THIS HACK
-    if (!isOnKernelDirectory) return;
 
-    memcpy(kernelDirectory, currentDirectory, sizeof(pagedirectory_t));
-}
 
 // vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr) - Look up an entry within the page table.
 pte_t *vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr) {
@@ -46,17 +38,8 @@ void vmm_loadPDBR(uint32_t pdbr_addr) {
 // vmm_switchDirectory(pagedirectory_t *directory) - Changes the current page directory.
 bool vmm_switchDirectory(pagedirectory_t *directory) {
     if (directory == NULL) {
-        // Switch back to kernel directory
-        currentDirectory = kernelDirectory;
-        vmm_loadPDBR(kernelDirectory);
-        isOnKernelDirectory = true;
-        serialPrintf("Switched back to kernel directory.\n");
-        return;
-    }
-
-    if (currentDirectory != directory && isOnKernelDirectory) {
-        isOnKernelDirectory = false;
-        serialPrintf("vmm_switchDirectory: Moving away from kernelspace\n");
+        serialPrintf("vmm_switchDirectory: Unknown directory.\n");
+        return false;
     }
 
     currentDirectory = directory;
@@ -70,8 +53,6 @@ void vmm_flushTLBEntry(uint32_t addr) {
     asm volatile ("cli");
     asm volatile ("invlpg (%0)" :: "r"(addr));
     asm volatile ("sti");
-
-    if (isOnKernelDirectory) vmm_reflectKernelDirectoryChanges();
 }
 
 // vmm_getCurrentDirectory() - Returns the current page directory
@@ -90,8 +71,6 @@ bool vmm_allocatePage(pte_t *entry) {
     pte_addattrib(entry, PTE_PRESENT);
 
 
-    if (isOnKernelDirectory) vmm_reflectKernelDirectoryChanges();
-
     return true;
 }
 
@@ -102,9 +81,6 @@ void vmm_freePage(pte_t *entry) {
     if (ptr) pmm_freeBlock(ptr);
 
     pte_delattrib(entry, PTE_PRESENT);
-
-
-    if (isOnKernelDirectory) vmm_reflectKernelDirectoryChanges();
 }
 
 // vmm_getPageTable(void *virtual_address) - Returns the page table
@@ -145,9 +121,6 @@ void vmm_mapPage(void *physical_addr, void *virtual_addr) {
     // Map it in
     pte_setframe(page, (uint32_t)physical_addr);
     pte_addattrib(page, PTE_PRESENT);
-
-
-    if (isOnKernelDirectory) vmm_reflectKernelDirectoryChanges();
 }
 
 // vmm_enablePaging() - Turns on paging
@@ -224,8 +197,6 @@ void vmm_allocateRegionFlags(uint32_t physical_address, uint32_t virtual_address
         else pte_delattrib(page, PTE_USER);
         pte_setframe(page, frame);
     }
-
-    if (isOnKernelDirectory) vmm_reflectKernelDirectoryChanges();
 }
 
 // vmm_allocateRegion(uint32_t physical_address, uint32_t virtual_address, size_t size) - Identity map a region
@@ -250,8 +221,6 @@ void vmm_mapPhysicalAddress(pagedirectory_t *dir, uint32_t virt, uint32_t phys, 
     }
 
     ((uint32_t*)(pagedir[virt >> 22] & ~0xFFF))[virt << 10 >> 10 >> 12] = phys | flags;
-
-    if (isOnKernelDirectory) vmm_reflectKernelDirectoryChanges();
 }
 
 // vmm_createPageTable(pagedirectory_t *dir, uint32_t virt, uint32_t flags) - Creates a page table
@@ -299,8 +268,6 @@ void vmm_unmapPageTable(pagedirectory_t *dir, uint32_t virt) {
         pmm_freeBlock(frame);
         pagedir[virt >> 22] = 0;
     }
-
-    if (isOnKernelDirectory) vmm_reflectKernelDirectoryChanges();
 }
 
 // vmm_unmapPhysicalAddress(pagedirectory_t *dir, uint32_t virt) - Unmaps a physical address
@@ -308,14 +275,9 @@ void vmm_unmapPhysicalAddress(pagedirectory_t *dir, uint32_t virt) {
     // Caller should free the memory
     pde_t *pagedir = dir->entries;
     if (pagedir[virt >> 22] != 0) vmm_unmapPageTable(dir, virt);
-
-    if (isOnKernelDirectory) vmm_reflectKernelDirectoryChanges();
 }
 
 
-pagedirectory_t *vmm_getKernelDirectory() {
-    return kernelDirectory;
-}
 
 // vmmInit() - Initialize the VMM.
 void vmmInit() {
@@ -440,11 +402,7 @@ void vmmInit() {
     // Switch to the page directory.
     vmm_switchDirectory(dir);
 
-    // Setup kernelDirectory
-    kernelDirectory = pmm_allocateBlock();
-    memcpy(kernelDirectory, dir, sizeof(pagedirectory_t));
-
-    isOnKernelDirectory = true;
+    
 
 
     // Enable paging!

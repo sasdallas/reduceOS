@@ -50,20 +50,17 @@ uint64_t pitGetTickCount() { return pitTicks; }
 
 // void pitInit() - Initialize PIT
 void pitInit() {
+    // Update the isInitialized variable.
+    pit_isInit = true;
 
     // Install our interrupt handler (IRQ 0 uses INT 32)
     isrRegisterInterruptHandler(32, pitIRQ);
-
-    // Update the isInitialized variable.
-    pit_isInit = true;
 
     // We want to add some extra code to fully initialize the PIT properly.
     // The default what we want to is to enable the PIT with a square wave generator and 100hz frequencey.
     // If the user wants they can use one of the above functions to do so, but we're going to do it here.
     // Setup the PIT for 100 hz.
     // TODO: Remove above functions.
-
-
 
     int divisor = 1193180 / 1000; // Calculate divisor.
     outportb(PIT_REG_COMMAND, 0x36); // Command byte (0x36)

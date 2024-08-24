@@ -50,7 +50,8 @@
 			"module.h": "c",
 			"pci_vendors.h": "c",
 			"stdio.h": "c",
-			"process.h": "c"
+			"process.h": "c",
+			"bitmap.h": "c"
 		}
 	}
 }

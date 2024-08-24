@@ -17,7 +17,8 @@ bitmap_t *bitmap_loadBitmap(fsNode_t *node) {
     // Allocate memory for where the bitmap data will go
     
     uint8_t *image_data = kmalloc(node->length + 1024 * 3); // extra 3 KB to be safe
-    memset(image_data, 0, sizeof(image_data));
+    memset(image_data, 0, node->length + 1024 * 3);
+    serialPrintf("image_data allocated to 0x%x\n", image_data);
 
     // Read in the image data
     int ret = node->read(node, 0, node->length, image_data); 
@@ -46,53 +47,19 @@ bitmap_t *bitmap_loadBitmap(fsNode_t *node) {
     bmp->width = info->width;
     bmp->height = info->height;
     bmp->imageBytes = (void*)((unsigned int)image_data + offset);
+    bmp->offset = offset;
     bmp->buffer = image_data;
     bmp->totalSize = h->size;
     bmp->bpp = info->bitcount;
-
-    
+    bmp->bufferSize = node->length;
 
     addr = image_data;
     return bmp;
 }
 
+// OBSOLETE
 bitmap_t *createBitmap() {
-    // The image we attempt to display is burned into the code by the linker (thankfully, initrd's interface sucks and that's totally not my fault)
-    bitmap_t *ret = kmalloc(sizeof(bitmap_t));
-    char *start_addr;
-    if (addr != NULL) start_addr = addr;
-    else return NULL;
-
-    bitmap_fileHeader_t *h = start_addr;
-
-    // Validate signature
-    if (h->type != 0x4D42) {
-        serialPrintf("createBitmap: Signature is not 0x4D42 (BM)! Signature is: 0x%x\n", h->type);
-        kfree(ret);
-        return NULL;
-    } else {
-        serialPrintf("createBitmap: Signature OK on bitmap\n");
-    }
-
-
-    uint32_t offset = h->offbits;
-    serialPrintf("createBitmap: Bitmap offset = %u\n", offset);
-    serialPrintf("createBitmap: Bitmap size = %u\n", h->size);
-
-    // Setup infoheader
-    bitmap_infoHeader_t *info = start_addr + sizeof(bitmap_fileHeader_t);
-
-    ret->width = info->width;
-    ret->height = info->height;
-    ret->imageBytes = (void*)((unsigned int)start_addr + offset);
-    ret->buffer = start_addr;
-    ret->totalSize = h->size;
-    ret->bpp = info->bitcount;
-
-    serialPrintf("createBitmap: Bitmap dimensions are %u x %u\n", ret->width, ret->height);
-    serialPrintf("createBitmap: Image is located at 0x%x\n", ret->imageBytes);
-    serialPrintf("createBitmap: Successfully loaded bitmap.\n");
-    return ret;
+    panic("bitmap", "createBitmap", "Obsolete function was called.");
 }
 
 
@@ -107,7 +74,7 @@ void displayBitmap(bitmap_t *bmp, int x, int y) {
     int j = 0;
     
     uint32_t height = 0;
-    if (bmp->height > 764) height = 764; // BUG BUG BUG BUG BUG
+    if (bmp->height > 764) height = 764; // BUG: This isn't even used.
     else height = bmp->height;
 
 

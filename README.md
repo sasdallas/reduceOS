@@ -44,12 +44,12 @@ reduceOS will automatically load and handle your modules without needing to modi
 
 # Known Bugs
 - **Highest priority:** `waitpid()` is not working, process scheduling requires bugfixes
-- **High priority:** ACPI not working anymore
+- **High priority:** PIT timer will cause an issue where it may fail to initialize correctly.
 - **High priority:** ATAPI drives cannot be read
-- **Medium priority:** VMM needs a cleanup and removal of kspace shenanigans
-- **Medium Priority:** FDC not working correctly
+- **Requires further debugging:** Loading bitmaps cause more memory leaks than the Titanic had, and if you try to free buffers they crash. 
+- **Unknown if true:** The OS appears to be very unstable with the heavy use of `uint32_t` and not arch-independent types.
 - **Medium Priority:** Memory dumping doesn't entirely work
-- **TODO:** dev/ directory is not present when running `ls`
+- **TODO:** device/ directory is not present when running `ls`
 - **TODO:** DMA in IDE/ATA driver
 - **TODO:** System calls need a better interface(?)
 - **TODO:** ext2 driver deletion functions suck

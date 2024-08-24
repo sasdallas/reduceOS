@@ -2,20 +2,22 @@ Serial logging started on COM1.
 ============================================================================================================================
 	reduceOS v1.3-prerelease2 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 5291-DEBUG, compiled on 08/14/24, 15:34:12
+	Build 6741-DEBUG, compiled on 08/24/24, 08:11:33
 ============================================================================================================================
 
-Kernel location: 0x100000 - 0x172d8c
-Text section: 0x100000 - 0x125000; Data section: 0x167000 - 0x16d380; BSS section: 0x16e000 - 0x172d8c
+Kernel location: 0x100000 - 0x172dfc
+Text section: 0x100000 - 0x125000; Data section: 0x167000 - 0x16d420; BSS section: 0x16e000 - 0x172dfc
 Loader magic: 0x43d8c305
 
 Serial logging initialized!
-kmain: CPU has long mode support: 0
-Starting physical memory manager...
-Preparing memory map...
+clock: Initializing clock system...
+clock_init: oh no
+clock: TSC calculated speed is 2000 MHz
+clock: Boot time is 1721809066s (UNIX timestamp).
+clock: Initial TSC timestamp was 67349us
 pmm_initRegion: Region at 0x0 (size 0x9f000) initialized. Blocks used: 0. Free blocks: 159
 pmm_initRegion: Region at 0x100000 (size 0x1ef0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x72d8c) deinitialized. Blocks used: -204. Free blocks: 7965
+pmm_deinitRegion: Region at 0x100000 (size 0x72dfc) deinitialized. Blocks used: -204. Free blocks: 7965
 pmm_deinitRegion: Region at 0xe0000 (size 0x1ffff) deinitialized. Blocks used: -173. Free blocks: 7934
 GDT, IDT, and ISR have initialized successfully.
 Interrupts successfully enabled.
@@ -41,6 +43,7 @@ SSE5 support data summary:
 == End SSE Data Collection Summary ==
 ======== End CPU Data Collection Summary ========
 CPU initialization completed
+pit: Initialized successfully.
 acpiInit: Found RSDP signature at 0xfa330
 acpiParseRSDP: (dbg) OEM is BOCHS 
 acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
@@ -57,109 +60,7 @@ Found interrupt override: 0 0 2 0x0
 acpiInit: Successfully enabled ACPI.
 vmmInit: Successfully initialized paging.
 Initialized memory management successfully.
-pmm_deinitRegion: Region at 0x1c2000 (size 0x11800) deinitialized. Blocks used: -145. Free blocks: 7906
+pmm_deinitRegion: Region at 0x1c6000 (size 0x11800) deinitialized. Blocks used: -145. Free blocks: 7906
 bios32 initialized successfully!
 Keyboard handler initialized.
-PIT started at 1000hz
 floppy_init: Found primary FDC
-Initialized floppy drive successfully.
-WARNING: Enabling liballoc! Stand away from the flames!
-pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x1237)
-pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x7000)
-pciProbeForDevices: Found PCI device (function = 0x1, vendor ID = 0x8086, device ID = 0x7010)
-pciProbeForDevices: Found PCI device (function = 0x3, vendor ID = 0x8086, device ID = 0x7113)
-pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x1234, device ID = 0x1111)
-initPCI: PCI probe completed
-IDE driver completed initialization.
-Found ATA drive - EXT2 Disk                               
-	Capacity: 2 GB 0 MB 2097152 KB
-Found ATAPI drive - ISO bootdrive                           
-	Capacity: 0 GB 0 MB 0 KB
-pmm_deinitRegion: Region at 0xc0000000 (size 0xc0000) deinitialized. Blocks used: 129. Free blocks: 7632
-vesaInit: Allocated framebuffer to 0x1e0040 - 0x4e0040
-pmm_deinitRegion: Region at 0x1e0040 (size 0x300000) deinitialized. Blocks used: 1667. Free blocks: 6094
-==== PORT COM1 IDENTIFIED ====
-PORT MOUNTED AT /device/serial/COM1
-®Serial logging started on COM1.
-============================================================================================================================
-	reduceOS v1.3-prerelease2 Apricity - written by sasdallas
-	New kernel, same trash.
-	Build 5291-DEBUG, compiled on 08/14/24, 15:34:12
-============================================================================================================================
-
-Kernel location: 0x100000 - 0x172d8c
-Text section: 0x100000 - 0x125000; Data section: 0x167000 - 0x16d380; BSS section: 0x16e000 - 0x172d8c
-Loader magic: 0x43d8c305
-
-Serial logging initialized!
-kmain: CPU has long mode support: 0
-Starting physical memory manager...
-Preparing memory map...
-pmm_initRegion: Region at 0x0 (size 0x9f000) initialized. Blocks used: 0. Free blocks: 159
-pmm_initRegion: Region at 0x100000 (size 0x1ef0000) initialized. Blocks used: 0. Free blocks: 8079
-pmm_deinitRegion: Region at 0x100000 (size 0x72d8c) deinitialized. Blocks used: -204. Free blocks: 7965
-pmm_deinitRegion: Region at 0xe0000 (size 0x1ffff) deinitialized. Blocks used: -173. Free blocks: 7934
-GDT, IDT, and ISR have initialized successfully.
-Interrupts successfully enabled.
-fpu_init: FPU initialized
-======== CPU Data Collection Summary ========
-- CPU VENDOR ID: AuthenticAMD
-- Long Mode (x64) support: 0
-- FPU support: YES
-
-== SSE Data Collection Summary ==
-SSE support: YES
-SSE2 support: YES
-SSE3 support: NO
-SSSE3 support: NO
-SSE4 support: NO
-SSE5 support data summary:
-	XOP support: NO
-	FMA4 support: NO
-	CVT16 support: NO
-	AVX support: NO
-	XSAVE support: NO
-	AVX2 support: NO
-== End SSE Data Collection Summary ==
-======== End CPU Data Collection Summary ========
-CPU initialization completed
-acpiInit: Found RSDP signature at 0xfa330
-acpiParseRSDP: (dbg) OEM is BOCHS 
-acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
-ACPI table signatures (RSDT):
-	FACP 0x1ff0000
-acpiParseFacp: ACPI enabled succesfully.
-	APIC 0x1ff0f00
-acpiParseApic: local APIC address is 0x1ff0f94
-Found CPU: 0 0 1
-Found I/O APIC: 1 0x1ff0fa8 0
-Found interrupt override: 0 0 2 0x0
-	SSDT 0x1ff0f00
-	HPET 0x1ff0f00
-acpiInit: Successfully enabled ACPI.
-vmmInit: Successfully initialized paging.
-Initialized memory management successfully.
-pmm_deinitRegion: Region at 0x1c2000 (size 0x11800) deinitialized. Blocks used: -145. Free blocks: 7906
-bios32 initialized successfully!
-Keyboard handler initialized.
-PIT started at 1000hz
-floppy_init: Found primary FDC
-Initialized floppy drive successfully.
-WARNING: Enabling liballoc! Stand away from the flames!
-pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x1237)
-pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x8086, device ID = 0x7000)
-pciProbeForDevices: Found PCI device (function = 0x1, vendor ID = 0x8086, device ID = 0x7010)
-pciProbeForDevices: Found PCI device (function = 0x3, vendor ID = 0x8086, device ID = 0x7113)
-pciProbeForDevices: Found PCI device (function = 0x0, vendor ID = 0x1234, device ID = 0x1111)
-initPCI: PCI probe completed
-IDE driver completed initialization.
-Found ATA drive - EXT2 Disk                               
-	Capacity: 2 GB 0 MB 2097152 KB
-Found ATAPI drive - ISO bootdrive                           
-	Capacity: 0 GB 0 MB 0 KB
-pmm_deinitRegion: Region at 0xc0000000 (size 0xc0000) deinitialized. Blocks used: 129. Free blocks: 7632
-vesaInit: Allocated framebuffer to 0x1e0040 - 0x4e0040
-pmm_deinitRegion: Region at 0x1e0040 (size 0x300000) deinitialized. Blocks used: 1667. Free blocks: 6094
-==== PORT COM1 IDENTIFIED ====
-PORT MOUNTED AT /device/serial/COM1
-®

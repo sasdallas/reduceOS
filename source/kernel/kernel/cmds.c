@@ -827,13 +827,6 @@ int makeProcess(int argc, char *args[]) {
 
     char *path = vfs_canonicalizePath(get_cwd(), args[1]);
 
-
-    /*vmm_switchDirectory(NULL);
-    currentProcess->thread.page_directory = cloneKernelSpace2(vmm_getKernelDirectory());
-    currentProcess->thread.refcount = 1;
-    currentProcess->thread.pd_lock = spinlock_init();
-    vmm_switchDirectory(currentProcess->thread.page_directory);*/
-
     int ret = createProcess(path);
     
 }

@@ -397,9 +397,7 @@ void *pageFault(registers_t *reg) {
     dumpPMM();
     serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");
 
-    // Perform stack trace
-    // NOTE: I've noticed a bug where SS gets corrupted and this just hangs on stack trace.
-    // This only happens with REALLY corrupted processes, and as such, I'll fix that by hardcoding (yeahhhh) 
+    // Perform stack trace (note: this might hang) 
     stackTrace(7);
 
     printf("\nThe system has been halted. Attach debugger now to view context.\n");
