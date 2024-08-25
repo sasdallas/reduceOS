@@ -156,15 +156,15 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // ==== PERIPHERAL/DRIVER INITIALIZATION ====
 
+    // PIT timer
+    updateBottomText("Initializing PIT...");
+    pitInit();
+
     // Initialize Keyboard 
     updateBottomText("Initializing keyboard...");
     keyboardInitialize();
     setKBHandler(true);
     serialPrintf("Keyboard handler initialized.\n");
-
-    // PIT timer
-    updateBottomText("Initializing PIT...");
-    pitInit();
 
     // Setup the DMA pool
     // I can hear the page fault ready to happen because DMA wasn't properly allocated.

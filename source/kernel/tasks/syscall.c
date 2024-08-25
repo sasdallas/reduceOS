@@ -137,7 +137,7 @@ int sys_execve(char *name, char **argv, char **env) {
 
 // SYSCALL 6
 int sys_fork(void) {
-    return -1;
+    return fork();
 }
 
 // SYSCALL 7
@@ -178,9 +178,21 @@ int sys_open(const char *name, int flags, int mode) {
 // SYSCALL 14
 // TODO: uint32_t is not the correct type for this, it's arch-specific I believe
 uint32_t sys_sbrk(int incr) {
-    // newlib handler will do this for us, so we'll panic if this is called.
-    panic("syscall", "sbrk", "stub");
-    __builtin_unreachable();
+    if (incr & 0xFFF) return -1;
+    process_t *proc = currentProcess;
+    if (proc->group != 0) proc = process_from_pid(proc->group);
+
+    if (!proc) return -1;
+
+    spinlock_lock(&proc->image.spinlock);
+    uintptr_t out = proc->image.heap;
+    for (uintptr_t i = out; i < out + incr; i += 4096) {
+        vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER); 
+    }
+
+    proc->image.heap += incr;
+    spinlock_release(&proc->image.spinlock);
+    return (uint32_t)out;
 }
 
 // SYSCALL 15

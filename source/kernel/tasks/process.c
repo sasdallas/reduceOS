@@ -582,8 +582,7 @@ int process_alert_node_locked(process_t *process, void *value);
 
 // wakeup_sleepers(unsigned long seconds, unsigned long subseconds) - Reschedule all processes whose timed waits have expired
 void wakeup_sleepers(unsigned long seconds, unsigned long subseconds) {
-    if (!seconds && !subseconds) return;
-
+    if (!currentProcess) return; // Process scheduler not online
     spinlock_lock(&sleep_lock);
     if (sleep_queue->length) {
         sleeper_t *proc = ((sleeper_t*)sleep_queue->head->value);

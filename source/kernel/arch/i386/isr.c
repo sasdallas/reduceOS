@@ -42,7 +42,7 @@ void isrIRQHandler(registers_t *reg) {
     interruptToBeAcknowledged = reg->int_no;
 
     // Some debug code I left in in case anyone is modifying reduceOS.
-    //if (true) serialPrintf("isrIRQHandler received IRQ. IRQ: %i. Valid handler present: %s. INT NO: %i. Valid handler present (for INT_NO): %s\n", reg->err_code, (interruptHandlers[reg->err_code]) ? "YES" : "NO", reg->int_no, (interruptHandlers[reg->int_no]) ? "YES" : "NO");
+    // if (true) serialPrintf("isrIRQHandler received IRQ. IRQ: %i. Valid handler present: %s. INT NO: %i. Valid handler present (for INT_NO): %s\n", reg->err_code, (interruptHandlers[reg->err_code]) ? "YES" : "NO", reg->int_no, (interruptHandlers[reg->int_no]) ? "YES" : "NO");
     
     // First, check if the call is from userspace.
     int from_userspace = reg->cs != 0x08;
