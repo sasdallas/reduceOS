@@ -1,0 +1,2366 @@
+Breakpoint 5 at 0x80480d0: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/crt0.c, line 6.
+void _start();
+Breakpoint 6 at 0x8048520: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 19.
+void _exit();
+Breakpoint 7 at 0x8048530: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 27.
+int close(int);
+Breakpoint 8 at 0x8048540: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 30.
+int execve(char *, char **, char **);
+Breakpoint 9 at 0x8048550: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 36.
+int fork();
+Breakpoint 10 at 0x8048570: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 47.
+int getpid();
+Breakpoint 11 at 0x8048580: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 53.
+int isatty(int);
+Breakpoint 12 at 0x8048590: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 58.
+int kill(int, int);
+Breakpoint 13 at 0x80485a0: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 63.
+int link(char *, char *);
+Breakpoint 14 at 0x80485b0: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 69.
+int lseek(int, int, int);
+Breakpoint 15 at 0x80485d0: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 77.
+int read(int, char *, int);
+Breakpoint 16 at 0x8048600: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 86.
+caddr_t sbrk(int);
+Breakpoint 17 at 0x8048630: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 103.
+int unlink(char *);
+Breakpoint 18 at 0x8048640: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 109.
+int wait(int *);
+Breakpoint 19 at 0x80485e0: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 80.
+int write(int, char *, int);
+Breakpoint 20 at 0x804cd90: file ../../../../../newlib-3.0.0.20180226/newlib/libc/locale/localeconv.c, line 8.
+struct lconv *__localeconv_l(struct __locale_t *);
+Breakpoint 21 at 0x804e950: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/reent.c, line 35.
+void cleanup_glue(struct _reent *, struct _glue *);
+Breakpoint 22 at 0x8048420: file ../../../../../newlib-3.0.0.20180226/newlib/libc/signal/signal.c, line 217.
+int __sigtramp(int);
+Breakpoint 23 at 0x8048310: file ../../../../../newlib-3.0.0.20180226/newlib/libc/signal/signal.c, line 168.
+int __sigtramp_r(struct _reent *, int);
+Breakpoint 24 at 0x80483f0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/signal/signal.c, line 212.
+int _init_signal(void);
+Breakpoint 25 at 0x8048190: /home/samuel/Desktop/newlib-3.0.0.20180226/newlib/libc/signal/signal.c:_init_signal_r. (2 locations)
+int _init_signal_r(struct _reent *);
+Breakpoint 26 at 0x804c220: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fflush.c, line 105.
+int __sflush_r(struct _reent *, FILE *);
+Breakpoint 27 at 0x804c860: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c, line 347.
+void __fp_lock_all(void);
+Breakpoint 28 at 0x804c880: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c, line 355.
+void __fp_unlock_all(void);
+Breakpoint 29 at 0x804c690: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c, line 128.
+struct _glue *__sfmoreglue(struct _reent *, int);
+Breakpoint 30 at 0x804c6e0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c, line 148.
+FILE *__sfp(struct _reent *);
+Breakpoint 31 at 0x804c820: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c, line 305.
+void __sfp_lock_acquire(void);
+Breakpoint 32 at 0x804c510: /home/samuel/Desktop/newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c:__sinit. (2 locations)
+void __sinit(struct _reent *);
+Breakpoint 33 at 0x804c7e0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c, line 235.
+void _cleanup(void);
+Breakpoint 34 at 0x804c4f0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c, line 205.
+void _cleanup_r(struct _reent *);
+Breakpoint 35 at 0x804c4e0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/findfp.c, line 333.
+static int __fp_lock(FILE *);
+Breakpoint 36 at 0x8050430: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fputwc.c, line 134.
+wint_t __fputwc(struct _reent *, wchar_t, FILE *);
+Breakpoint 37 at 0x8050610: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fvwrite.c, line 51.
+int __sfvwrite_r(struct _reent *, FILE *, struct __suio *);
+Breakpoint 38 at 0x804ccb0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fwalk.c, line 33.
+int _fwalk(struct _reent *, int (*)(FILE *));
+Breakpoint 39 at 0x804cd20: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fwalk.c, line 59.
+int _fwalk_reent(struct _reent *, int (*)(struct _reent *, FILE *));
+Breakpoint 40 at 0x804cf60: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/makebuf.c, line 40.
+void __smakebuf_r(struct _reent *, FILE *);
+Breakpoint 41 at 0x804ceb0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/makebuf.c, line 82.
+int __swhatbuf_r(struct _reent *, FILE *, size_t *, int *);
+Breakpoint 42 at 0x804ebd0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/stdio.c, line 130.
+int __sclose(struct _reent *, void *);
+Breakpoint 43 at 0x804eb10: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/stdio.c, line 71.
+int __seofread(struct _reent *, void *, char *, int);
+Breakpoint 44 at 0x804ead0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/stdio.c, line 37.
+int __sread(struct _reent *, void *, char *, int);
+Breakpoint 45 at 0x804eb80: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/stdio.c, line 109.
+_fpos_t __sseek(struct _reent *, void *, _fpos_t, int);
+Breakpoint 46 at 0x804eb20: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/stdio.c, line 78.
+int __swrite(struct _reent *, void *, const char *, int);
+Breakpoint 47 at 0x804ec80: /home/samuel/Desktop/newlib-3.0.0.20180226/newlib/libc/stdio/vfprintf.c:__sprint_r. (2 locations)
+int __sprint_r(struct _reent *, FILE *, struct __suio *);
+Breakpoint 48 at 0x804a8f0: /home/samuel/Desktop/newlib-3.0.0.20180226/newlib/libc/stdio/vfprintf.c:__sbprintf. (2 locations)
+static int __sbprintf(struct _reent *, FILE *, const char *, va_list);
+Breakpoint 49 at 0x80512d0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/wbuf.c, line 92.
+int __swbuf(int, FILE *);
+Breakpoint 50 at 0x804a9a0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/wsetup.c, line 35.
+int __swsetup_r(struct _reent *, FILE *);
+Breakpoint 51 at 0x804aaf0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/__call_atexit.c, line 69.
+void __call_exitprocs(int, void *);
+Breakpoint 52 at 0x804ac40: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/dtoa.c, line 37.
+static int quorem(_Bigint *, _Bigint *);
+Breakpoint 53 at 0x8050200: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mallocr.c, line 3188.
+void *_calloc_r(struct _reent *, size_t, size_t);
+Breakpoint 54 at 0x804c990: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mallocr.c, line 2626.
+void _free_r(struct _reent *, void *);
+Breakpoint 55 at 0x804d040: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mallocr.c, line 2328.
+void *_malloc_r(struct _reent *, size_t);
+Breakpoint 56 at 0x804c8a0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mallocr.c, line 3309.
+int _malloc_trim_r(struct _reent *, size_t);
+Breakpoint 57 at 0x8050c50: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mallocr.c, line 2772.
+void *_realloc_r(struct _reent *, void *, size_t);
+Breakpoint 58 at 0x804d840: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mbtowc_r.c, line 26.
+int __ascii_mbtowc(struct _reent *, wchar_t *, const char *, size_t, mbstate_t *);
+Breakpoint 59 at 0x804da20: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 98.
+_Bigint *_Balloc(struct _reent *, int);
+Breakpoint 60 at 0x804dab0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 137.
+void _Bfree(struct _reent *, _Bigint *);
+Breakpoint 61 at 0x804e8b0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 1016.
+__ULong __any_on(_Bigint *, int);
+Breakpoint 62 at 0x804e4f0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 679.
+double __b2d(_Bigint *, int *);
+Breakpoint 63 at 0x804e840: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 989.
+void __copybits(__ULong *, int, _Bigint *);
+Breakpoint 64 at 0x804e610: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 759.
+_Bigint *__d2b(struct _reent *, double, int *, int *);
+Breakpoint 65 at 0x804dcf0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 233.
+int __hi0bits(__ULong);
+Breakpoint 66 at 0x804dde0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 317.
+_Bigint *__i2b(struct _reent *, int);
+Breakpoint 67 at 0x804dd50: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 267.
+int __lo0bits(__ULong *);
+Breakpoint 68 at 0x804e120: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 459.
+_Bigint *__lshift(struct _reent *, _Bigint *, int);
+Breakpoint 69 at 0x804e230: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 519.
+int __mcmp(_Bigint *, _Bigint *);
+Breakpoint 70 at 0x804e280: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 550.
+_Bigint *__mdiff(struct _reent *, _Bigint *, _Bigint *);
+Breakpoint 71 at 0x804dad0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 151.
+_Bigint *__multadd(struct _reent *, _Bigint *, int, int);
+Breakpoint 72 at 0x804de00: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 328.
+_Bigint *__multiply(struct _reent *, _Bigint *, _Bigint *);
+Breakpoint 73 at 0x804e000: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 420.
+_Bigint *__pow5mult(struct _reent *, _Bigint *, int);
+Breakpoint 74 at 0x804e750: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 909.
+double __ratio(_Bigint *, _Bigint *);
+Breakpoint 75 at 0x804dbe0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 198.
+_Bigint *__s2b(struct _reent *, const char *, int, int, __ULong);
+Breakpoint 76 at 0x804e460: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 633.
+double __ulp(double);
+Breakpoint 77 at 0x804e810: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mprec.c, line 973.
+double _mprec_log10(int);
+Breakpoint 78 at 0x8050180: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/wctomb_r.c, line 23.
+int __ascii_wctomb(struct _reent *, char *, wchar_t, mbstate_t *);
+Breakpoint 79 at 0x121be0: file ../../../gcc-7.1.0/libgcc/libgcc2.c, line 1318.
+UDItype __udivdi3(UDItype, UDItype);
+Breakpoint 80 at 0x121d10: file ../../../gcc-7.1.0/libgcc/libgcc2.c, line 1306.
+UDItype __umoddi3(UDItype, UDItype);
+Breakpoint 81 at 0x804ce70: file ../../../../../newlib-3.0.0.20180226/newlib/libc/locale/setlocale.h, line 230.
+const char *__locale_ctype_ptr(void);
+Breakpoint 82 at 0x804ce60: file ../../../../../newlib-3.0.0.20180226/newlib/libc/locale/locale.c, line 980.
+const char *__locale_ctype_ptr_l(struct __locale_t *);
+Breakpoint 83 at 0x804cda0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/locale/setlocale.h, line 230.
+struct lconv *_localeconv_r(struct _reent *);
+Breakpoint 84 at 0x804cde0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/locale/locale.c, line 295.
+char *_setlocale_r(struct _reent *, int, const char *);
+Breakpoint 85 at 0x804cdc0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/locale/setlocale.h, line 230.
+struct lconv *localeconv(void);
+Breakpoint 86 at 0x804ce90: file ../../../../../newlib-3.0.0.20180226/newlib/libc/locale/locale.c, line 994.
+char *setlocale(int, const char *);
+Breakpoint 87 at 0x804da00: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/mlock.c, line 46.
+void __malloc_lock(struct _reent *);
+Breakpoint 88 at 0x80502c0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/closer.c, line 43.
+int _close_r(struct _reent *, int);
+Breakpoint 89 at 0x80505c0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/fstatr.c, line 51.
+int _fstat_r(struct _reent *, int, struct stat *);
+Breakpoint 90 at 0x8048490: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/signalr.c, line 83.
+int _getpid_r(struct _reent *);
+Breakpoint 91 at 0x8050ad0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/isattyr.c, line 48.
+int _isatty_r(struct _reent *, int);
+Breakpoint 92 at 0x8048440: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/signalr.c, line 49.
+int _kill_r(struct _reent *, int, int);
+Breakpoint 93 at 0x8050b20: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/lseekr.c, line 45.
+_off_t _lseek_r(struct _reent *, int, _off_t, int);
+Breakpoint 94 at 0x8050c00: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/readr.c, line 45.
+_ssize_t _read_r(struct _reent *, int, void *, size_t);
+Breakpoint 95 at 0x804ea80: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/sbrkr.c, line 46.
+void *_sbrk_r(struct _reent *, ptrdiff_t);
+Breakpoint 96 at 0x80501b0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/writer.c, line 45.
+_ssize_t _write_r(struct _reent *, int, const void *, size_t);
+Breakpoint 97 at 0x8048280: file ../../../../../newlib-3.0.0.20180226/newlib/libc/signal/signal.c, line 134.
+int _raise_r(struct _reent *, int);
+Breakpoint 98 at 0x8048210: file ../../../../../newlib-3.0.0.20180226/newlib/libc/signal/signal.c, line 113.
+_sig_func_ptr _signal_r(struct _reent *, int, _sig_func_ptr);
+Breakpoint 99 at 0x80483b0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/signal/signal.c, line 198.
+int raise(int);
+Breakpoint 100 at 0x80483d0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/signal/signal.c, line 205.
+_sig_func_ptr signal(int, _sig_func_ptr);
+Breakpoint 101 at 0x80511a0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/wbuf.c, line 39.
+int __swbuf_r(struct _reent *, int, FILE *);
+Breakpoint 102 at 0x8050310: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fclose.c, line 61.
+int _fclose_r(struct _reent *, FILE *);
+Breakpoint 103 at 0x804c430: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fflush.c, line 253.
+int _fflush_r(struct _reent *, FILE *);
+Breakpoint 104 at 0x8048150: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/printf.c, line 28.
+int _printf_r(struct _reent *, const char * restrict, ...);
+Breakpoint 105 at 0x804ed90: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/vfprintf.c, line 661.
+int _vfiprintf_r(struct _reent *, FILE *, const char *, va_list);
+Note: breakpoint 3 also set at pc 0x8048650.
+Breakpoint 106 at 0x8048650: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/vfprintf.c, line 661.
+int _vfprintf_r(struct _reent *, FILE *, const char *, va_list);
+Breakpoint 107 at 0x8050410: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fclose.c, line 124.
+int fclose(FILE *);
+Breakpoint 108 at 0x804c490: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fflush.c, line 287.
+int fflush(FILE *);
+Note: breakpoint 1 also set at pc 0x8048170.
+Breakpoint 109 at 0x8048170: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/printf.c, line 49.
+int printf(const char * restrict, ...);
+Breakpoint 110 at 0x8050090: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/vfprintf.c, line 649.
+int vfiprintf(FILE *, const char *, va_list);
+Breakpoint 111 at 0x804a8d0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/vfprintf.c, line 649.
+int vfprintf(FILE *, const char *, va_list);
+Breakpoint 112 at 0x804ce40: file ../../../../../newlib-3.0.0.20180226/newlib/libc/locale/setlocale.h, line 230.
+int __locale_mb_cur_max(void);
+Breakpoint 113 at 0x804ae60: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/dtoa.c, line 185.
+char *_dtoa_r(struct _reent *, double, int, int, int *, int *, char **);
+Breakpoint 114 at 0x804d820: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/../locale/setlocale.h, line 230.
+int _mbtowc_r(struct _reent *, wchar_t * restrict, const char * restrict, size_t, mbstate_t *);
+Breakpoint 115 at 0x8050160: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/../locale/setlocale.h, line 230.
+int _wctomb_r(struct _reent *, char *, wchar_t, mbstate_t *);
+Breakpoint 116 at 0x8048110: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/exit.c, line 54.
+void exit(int);
+Breakpoint 117 at 0x804ebf0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/string/strcmp.c, line 57.
+int strcmp(const char *, const char *);
+Breakpoint 118 at 0x80485c0: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 73.
+int open(const char *, int, ...);
+Breakpoint 119 at 0x804e990: file ../../../../../newlib-3.0.0.20180226/newlib/libc/reent/reent.c, line 45.
+void _reclaim_reent(struct _reent *);
+Breakpoint 120 at 0x8048560: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 41.
+int fstat(int, struct stat *);
+Breakpoint 121 at 0x8048610: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 94.
+int stat(const char * restrict, struct stat * restrict);
+Breakpoint 122 at 0x8048620: file ../../../../../../newlib-3.0.0.20180226/newlib/libc/sys/reduceOS/syscalls.c, line 100.
+clock_t times(struct tms *);
+Breakpoint 123 at 0x8050520: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fputwc.c, line 168.
+wint_t _fputwc_r(struct _reent *, wchar_t, FILE *);
+Breakpoint 124 at 0x80512f0: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/wcrtomb.c, line 14.
+size_t _wcrtomb_r(struct _reent *, char *, wchar_t, mbstate_t *);
+Breakpoint 125 at 0x8050560: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdio/fputwc.c, line 181.
+wint_t fputwc(wchar_t, FILE *);
+Breakpoint 126 at 0x8051380: file ../../../../../newlib-3.0.0.20180226/newlib/libc/stdlib/wcrtomb.c, line 46.
+size_t wcrtomb(char * restrict, wchar_t, mbstate_t * restrict);
+Breakpoint 127 at 0x1205ce: file arch/i386/bios32.c, line 30.
+void bios32_call(uint8_t, REGISTERS_16 *, REGISTERS_16 *);
+Breakpoint 128 at 0x120569: file arch/i386/bios32.c, line 16.
+void bios32_init();
+Breakpoint 129 at 0x10cf4e: file gfx/bitmap.c, line 15.
+bitmap_t *bitmap_loadBitmap(fsNode_t *);
+Breakpoint 130 at 0x10c92c: file drivers/clock.c, line 100.
+size_t clock_getTSCSpeed();
+Breakpoint 131 at 0x10c922: file drivers/clock.c, line 94.
+uint64_t clock_getTimer();
+Breakpoint 132 at 0x10cb58: file drivers/clock.c, line 209.
+int clock_gettimeofday(struct timeval *, void *);
+Breakpoint 133 at 0x10c942: file drivers/clock.c, line 105.
+void clock_init();
+Breakpoint 134 at 0x10cc6b: file drivers/clock.c, line 233.
+void clock_relative(unsigned long, unsigned long, unsigned long *, unsigned long *);
+Breakpoint 135 at 0x10cbce: file drivers/clock.c, line 219.
+int clock_settimeofday(struct timeval *, void *);
+Breakpoint 136 at 0x10cd92: file drivers/clock.c, line 255.
+void clock_update();
+Breakpoint 137 at 0x103b35: file kernel/cmds.c, line 193.
+int about(int, char **);
+Breakpoint 138 at 0x103aff: file kernel/cmds.c, line 180.
+int ataPoll(int, char **);
+Breakpoint 139 at 0x104329: file kernel/cmds.c, line 450.
+int cat(int, char **);
+Breakpoint 140 at 0x10425f: file kernel/cmds.c, line 426.
+int cd(int, char **);
+Breakpoint 141 at 0x103b84: file kernel/cmds.c, line 199.
+int color(int, char **);
+Breakpoint 142 at 0x103915: file kernel/cmds.c, line 121.
+int crash(int, char **);
+Breakpoint 143 at 0x10472e: file kernel/cmds.c, line 567.
+int create(int, char **);
+Breakpoint 144 at 0x104022: file kernel/cmds.c, line 346.
+int doPageFault(int, char **);
+Breakpoint 145 at 0x103466: file kernel/cmds.c, line 52.
+int dump(int, char **);
+Breakpoint 146 at 0x1038bb: file kernel/cmds.c, line 110.
+int echo(int, char **);
+Breakpoint 147 at 0x104a74: file kernel/cmds.c, line 666.
+int edit(int, char **);
+Breakpoint 148 at 0x1039c5: file kernel/cmds.c, line 150.
+int getInitrdFiles(int, char **);
+Breakpoint 149 at 0x103321: file kernel/cmds.c, line 27.
+int getSystemInformation(int, char **);
+Breakpoint 150 at 0x1051d1: file kernel/cmds.c, line 860.
+int loadELF(int, char **);
+Breakpoint 151 at 0x1054e1: file kernel/cmds.c, line 944.
+int loadModule(int, char **);
+Breakpoint 152 at 0x104117: file kernel/cmds.c, line 380.
+int ls(int, char **);
+Breakpoint 153 at 0x10508a: file kernel/cmds.c, line 821.
+int makeProcess(int, char **);
+Breakpoint 154 at 0x1040e5: file kernel/cmds.c, line 368.
+int memoryInfo(int, char **);
+Breakpoint 155 at 0x1044ca: file kernel/cmds.c, line 494.
+int mkdir(int, char **);
+Breakpoint 156 at 0x104cee: file kernel/cmds.c, line 736.
+int mountFAT(int, char **);
+Breakpoint 157 at 0x1053b5: file kernel/cmds.c, line 911.
+int mountTAR(int, char **);
+Breakpoint 158 at 0x103c91: file kernel/cmds.c, line 234.
+int panicTest(int, char **);
+Breakpoint 159 at 0x103985: file kernel/cmds.c, line 133.
+int pciInfo(int, char **);
+Breakpoint 160 at 0x104fd4: file kernel/cmds.c, line 803.
+int pmm(int, char **);
+Breakpoint 161 at 0x104997: file kernel/cmds.c, line 638.
+int pwd(int, char **);
+Breakpoint 162 at 0x103ef7: file kernel/cmds.c, line 311.
+int readSectorTest(int, char **);
+Breakpoint 163 at 0x103dd7: file kernel/cmds.c, line 275.
+int read_floppy(int, char **);
+Breakpoint 164 at 0x104da7: file kernel/cmds.c, line 757.
+int rm(int, char **);
+Breakpoint 165 at 0x1049ba: file kernel/cmds.c, line 644.
+int show_bitmap(int, char **);
+Breakpoint 166 at 0x1039a7: file kernel/cmds.c, line 141.
+int shutdown(int, char **);
+Breakpoint 167 at 0x10516b: file kernel/cmds.c, line 851.
+int startThread(int, char **);
+Breakpoint 168 at 0x104de1: file kernel/cmds.c, line 766.
+int strace(int, char **);
+Breakpoint 169 at 0x103b11: file kernel/cmds.c, line 186.
+int testISRException(int, char **);
+Breakpoint 170 at 0x10505f: file kernel/cmds.c, line 813.
+int vfs(int, char **);
+Breakpoint 171 at 0x108621: file drivers/cmos.c, line 37.
+void cmos_dump(uint16_t *);
+Breakpoint 172 at 0x10867a: file drivers/cmos.c, line 46.
+int cmos_isUpdateInProgress();
+Breakpoint 173 at 0x1085ad: file drivers/cmos.c, line 21.
+uint8_t cmos_readRegister(uint8_t);
+Breakpoint 174 at 0x1085ec: file drivers/cmos.c, line 28.
+void cmos_writeRegister(uint8_t, uint8_t);
+Breakpoint 175 at 0x107a99: file kernel/command.c, line 127.
+void initCommandHandler();
+Breakpoint 176 at 0x1078ae: file kernel/command.c, line 68.
+int parseCommand(char *);
+Breakpoint 177 at 0x107a51: file kernel/command.c, line 112.
+void registerCommand(char *, command *);
+Breakpoint 178 at 0x110af1: file fs/debug_dev.c, line 78.
+void debugdev_init(fsNode_t *);
+Breakpoint 179 at 0x119771: file mem/dma.c, line 164.
+void *dma_allocPool(size_t);
+Breakpoint 180 at 0x11957e: file mem/dma.c, line 88.
+void dma_disableDMAC(int, bool);
+Breakpoint 181 at 0x11972a: file mem/dma.c, line 156.
+void dma_initPool(int);
+Breakpoint 182 at 0x1195a4: file mem/dma.c, line 93.
+void dma_maskChannel(uint8_t);
+Breakpoint 183 at 0x11963e: file mem/dma.c, line 110.
+void dma_resetDMA(int);
+Breakpoint 184 at 0x119623: file mem/dma.c, line 105.
+void dma_resetFlipFlop(int);
+Breakpoint 185 at 0x119659: file mem/dma.c, line 115.
+void dma_resetMask(int);
+Breakpoint 186 at 0x119469: file mem/dma.c, line 42.
+void dma_setCount(uint8_t, uint8_t, uint8_t);
+Breakpoint 187 at 0x119504: file mem/dma.c, line 66.
+void dma_setPageAccess(uint8_t, uint8_t);
+Breakpoint 188 at 0x1196ee: file mem/dma.c, line 134.
+void dma_setRead(uint8_t);
+Breakpoint 189 at 0x1193c8: file mem/dma.c, line 18.
+void dma_setStartAddress(uint8_t, uint8_t, uint8_t);
+Breakpoint 190 at 0x11970f: file mem/dma.c, line 139.
+void dma_setWrite(uint8_t);
+Breakpoint 191 at 0x1195ee: file mem/dma.c, line 99.
+void dma_unmaskChannel(uint8_t);
+Breakpoint 192 at 0x11e9b8: file tasks/elf.c, line 507.
+void elf_cleanupFile(char *);
+Breakpoint 193 at 0x11e095: file tasks/elf.c, line 187.
+void *elf_findSymbol(Elf32_Ehdr *, char *);
+Breakpoint 194 at 0x11eadd: file tasks/elf.c, line 557.
+void *elf_loadFile(fsNode_t *);
+Breakpoint 195 at 0x11ea40: file tasks/elf.c, line 531.
+void *elf_loadFileFromBuffer(void *);
+Breakpoint 196 at 0x114210: file fs/ext2.c, line 203.
+uint32_t ext2_allocateBlock(ext2_t *);
+Breakpoint 197 at 0x114d94: file fs/ext2.c, line 523.
+uint32_t ext2_allocateInode(ext2_t *);
+Breakpoint 198 at 0x114cc4: file fs/ext2.c, line 502.
+void ext2_allocateInodeBlock(ext2_t *, ext2_inode_t *, uint32_t, uint32_t);
+Breakpoint 199 at 0x116d0a: file fs/ext2.c, line 1361.
+int ext2_fileToNode(ext2_t *, ext2_dirent_t *, ext2_inode_t *, fsNode_t *);
+Breakpoint 200 at 0x1161b6: file fs/ext2.c, line 1045.
+fsNode_t *ext2_finddir(fsNode_t *, char *);
+Breakpoint 201 at 0x1145c0: file fs/ext2.c, line 288.
+void ext2_freeBlock(ext2_t *, uint32_t);
+Breakpoint 202 at 0x115093: file fs/ext2.c, line 606.
+void ext2_freeInode(ext2_t *, uint32_t);
+Breakpoint 203 at 0x114d35: file fs/ext2.c, line 515.
+void ext2_freeInodeBlock(ext2_t *, ext2_inode_t *, uint32_t, uint32_t);
+Breakpoint 204 at 0x113c12: file fs/ext2.c, line 83.
+uint32_t ext2_getDiskBlockNumber(ext2_t *, ext2_inode_t *, uint32_t);
+Breakpoint 205 at 0x117256: file fs/ext2.c, line 1526.
+int ext2_install(int, char **);
+Breakpoint 206 at 0x1139fe: file fs/ext2.c, line 22.
+int ext2_readBlock(ext2_t *, uint32_t, uint8_t *);
+Breakpoint 207 at 0x113add: file fs/ext2.c, line 35.
+int ext2_readInodeBlock(ext2_t *, ext2_inode_t *, uint32_t, uint8_t *);
+Breakpoint 208 at 0x114b1f: file fs/ext2.c, line 448.
+uint32_t ext2_readInodeFiledata(ext2_t *, ext2_inode_t *, uint32_t, uint32_t, uint8_t *);
+Breakpoint 209 at 0x114985: file fs/ext2.c, line 406.
+ext2_inode_t *ext2_readInodeMetadata(ext2_t *, uint32_t);
+Breakpoint 210 at 0x1146b9: file fs/ext2.c, line 319.
+ext2_superblock_t *ext2_readSuperblock(fsNode_t *);
+Breakpoint 211 at 0x114790: file fs/ext2.c, line 353.
+void ext2_rewriteBGDs(ext2_t *);
+Breakpoint 212 at 0x116857: file fs/ext2.c, line 1240.
+int ext2_unlink(fsNode_t *, char *);
+Breakpoint 213 at 0x113a72: file fs/ext2.c, line 29.
+int ext2_writeBlock(ext2_t *, uint32_t, uint8_t *);
+Breakpoint 214 at 0x113b50: file fs/ext2.c, line 55.
+uint32_t ext2_writeInodeBlock(ext2_t *, ext2_inode_t *, uint32_t, uint32_t, uint8_t *);
+Breakpoint 215 at 0x1149c0: file fs/ext2.c, line 414.
+int ext2_writeInodeMetadata(ext2_t *, ext2_inode_t *, uint32_t);
+Breakpoint 216 at 0x11475b: file fs/ext2.c, line 344.
+int ext2_writeSuperBlock(ext2_t *);
+Breakpoint 217 at 0x112da4: file fs/fat.c, line 626.
+uint32_t fatClose(struct fsNode *);
+Breakpoint 218 at 0x112fae: file fs/fat.c, line 683.
+fsNode_t *fatInit(fsNode_t *, int);
+Breakpoint 219 at 0x112cdf: file fs/fat.c, line 599.
+uint32_t fatOpen(struct fsNode *);
+Breakpoint 220 at 0x112920: file fs/fat.c, line 449.
+fsNode_t *fatOpenInternal(fsNode_t *, char *);
+Breakpoint 221 at 0x112b21: file fs/fat.c, line 547.
+uint32_t fatRead(struct fsNode *, uint32_t, uint32_t, uint8_t *);
+Breakpoint 222 at 0x1123b8: file fs/fat.c, line 287.
+int fatReadInternal(fsNode_t *, uint8_t *, uint32_t);
+Breakpoint 223 at 0x112cd2: file fs/fat.c, line 590.
+uint32_t fatWrite(struct fsNode *, uint32_t, uint32_t, uint8_t *);
+Breakpoint 224 at 0x113795: file fs/fat.c, line 868.
+int fat_install(int, char **);
+Breakpoint 225 at 0x10b250: file drivers/floppy.c, line 36.
+void floppy_IRQ();
+Breakpoint 226 at 0x10b27d: file drivers/floppy.c, line 47.
+void floppy_acknowledgeIRQ(uint32_t *, uint32_t *);
+Breakpoint 227 at 0x10bd8c: file drivers/floppy.c, line 447.
+int floppy_calibrateDrive(uint32_t);
+Breakpoint 228 at 0x10beba: file drivers/floppy.c, line 499.
+void floppy_disableFDC();
+Breakpoint 229 at 0x10b440: file drivers/floppy.c, line 123.
+void floppy_dmaInit(uint8_t *, size_t);
+Breakpoint 230 at 0x10bcb7: file drivers/floppy.c, line 418.
+void floppy_driveData(uint32_t, uint32_t, uint32_t, bool);
+Breakpoint 231 at 0x10be9f: file drivers/floppy.c, line 494.
+void floppy_enableFDC();
+Breakpoint 232 at 0x10bf84: file drivers/floppy.c, line 540.
+void floppy_init();
+Breakpoint 233 at 0x10bb50: file drivers/floppy.c, line 365.
+int floppy_readSector(int, uint8_t *);
+Breakpoint 234 at 0x10b5b7: file drivers/floppy.c, line 159.
+int floppy_readSectorInternal(uint8_t, uint8_t, uint8_t);
+Breakpoint 235 at 0x10bed5: file drivers/floppy.c, line 508.
+void floppy_reset();
+Breakpoint 236 at 0x10be10: file drivers/floppy.c, line 473.
+int floppy_seek(uint32_t, uint32_t);
+Breakpoint 237 at 0x10bd1e: file drivers/floppy.c, line 432.
+void floppy_setDrive(uint8_t);
+Breakpoint 238 at 0x10b377: file drivers/floppy.c, line 93.
+void floppy_startMotor(uint8_t);
+Breakpoint 239 at 0x10b416: file drivers/floppy.c, line 116.
+void floppy_stopMotor();
+Breakpoint 240 at 0x10b260: file drivers/floppy.c, line 41.
+void floppy_waitIRQ();
+Breakpoint 241 at 0x10f0fc: file gfx/font.c, line 41.
+void bitmapFontDrawChar(char, int, int, int);
+Breakpoint 242 at 0x10f17e: file gfx/font.c, line 61.
+void bitmapFontDrawString(char *, int, int, int);
+Breakpoint 243 at 0x10f0b2: file gfx/font.c, line 28.
+void bitmapFontInit();
+Breakpoint 244 at 0x10f0d5: file gfx/font.c, line 33.
+void bitmapLoadFont(uint32_t *);
+Breakpoint 245 at 0x10f380: file gfx/font.c, line 134.
+void psfDrawChar(unsigned short, int, int, uint32_t, uint32_t);
+Breakpoint 246 at 0x10f369: file gfx/font.c, line 129.
+int psfGetFontHeight();
+Breakpoint 247 at 0x10f35c: file gfx/font.c, line 128.
+int psfGetFontWidth();
+Breakpoint 248 at 0x10f304: file gfx/font.c, line 109.
+void psfInit();
+Breakpoint 249 at 0x120a8c: file arch/i386/fpu.c, line 62.
+void fpu_ftoa(char *, float);
+Breakpoint 250 at 0x120a22: file arch/i386/fpu.c, line 38.
+int fpu_init();
+Breakpoint 251 at 0x1209e4: file arch/i386/fpu.c, line 14.
+bool fpu_isSupportedCPUID();
+Breakpoint 252 at 0x120920: file arch/i386/gdt.c, line 39.
+void gdtInit();
+Breakpoint 253 at 0x12086e: file arch/i386/gdt.c, line 21.
+void gdtSetGate(int32_t, uint32_t, uint32_t, uint8_t, uint8_t);
+Breakpoint 254 at 0x10dcfe: file gfx/gfx.c, line 71.
+void gfxDrawLine(int, int, int, int, uint32_t);
+Breakpoint 255 at 0x10dac2: file gfx/gfx.c, line 13.
+void gfxDrawRect(int, int, int, int, uint32_t, bool);
+Breakpoint 256 at 0x10deae: file /home/samuel/Desktop/reduceOS/source/sysroot/usr/include/kernel/graphics.h, line 43.
+static uint8_t vgaColorEntry(enum gfxColor, enum gfxColor);
+Breakpoint 257 at 0x10de9c: file /home/samuel/Desktop/reduceOS/source/sysroot/usr/include/kernel/graphics.h, line 39.
+static uint16_t vgaEntry(unsigned char, uint8_t);
+Breakpoint 258 at 0x1214e2: file arch/i386/hal.c, line 69.
+void __cpuid(uint32_t, uint32_t *, uint32_t *, uint32_t *, uint32_t *);
+Breakpoint 259 at 0x12145e: file arch/i386/hal.c, line 40.
+void disableHardwareInterrupts();
+Breakpoint 260 at 0x121457: file arch/i386/hal.c, line 34.
+void enableHardwareInterrupts();
+Breakpoint 261 at 0x121562: file arch/i386/hal.c, line 102.
+unsigned short hal_getBIOSArea(unsigned short);
+Breakpoint 262 at 0x12146f: file arch/i386/hal.c, line 46.
+uint8_t inportb(uint16_t);
+Breakpoint 263 at 0x12150d: file arch/i386/hal.c, line 77.
+uint32_t inportl(uint16_t);
+Breakpoint 264 at 0x1214ab: file arch/i386/hal.c, line 58.
+uint16_t inportw(uint16_t);
+Breakpoint 265 at 0x1213e1: file arch/i386/hal.c, line 14.
+void interruptCompleted(uint32_t);
+Breakpoint 266 at 0x12153a: file arch/i386/hal.c, line 92.
+size_t msb(size_t);
+Breakpoint 267 at 0x121492: file arch/i386/hal.c, line 52.
+void outportb(uint16_t, uint8_t);
+Breakpoint 268 at 0x121529: file arch/i386/hal.c, line 83.
+void outportl(uint16_t, uint32_t);
+Breakpoint 269 at 0x1214d1: file arch/i386/hal.c, line 64.
+void outportw(uint16_t, uint16_t);
+Breakpoint 270 at 0x121411: file arch/i386/hal.c, line 24.
+void setVector(int, uint32_t);
+Breakpoint 271 at 0x121433: file arch/i386/hal.c, line 29.
+void setVector_flags(int, uint32_t, int);
+Breakpoint 272 at 0x11ec88: file misc/hashmap.c, line 61.
+hashmap_t *hashmap_create(int);
+Breakpoint 273 at 0x11ed16: file misc/hashmap.c, line 77.
+hashmap_t *hashmap_create_int(int);
+Breakpoint 274 at 0x11f1dd: file misc/hashmap.c, line 221.
+void hashmap_free(hashmap_t *);
+Breakpoint 275 at 0x11eed8: file misc/hashmap.c, line 126.
+void *hashmap_get(hashmap_t *, const void *);
+Breakpoint 276 at 0x11f094: file misc/hashmap.c, line 175.
+int hashmap_has(hashmap_t *, const void *);
+Breakpoint 277 at 0x11f25f: file misc/hashmap.c, line 234.
+int hashmap_is_empty(hashmap_t *);
+Breakpoint 278 at 0x11f116: file misc/hashmap.c, line 193.
+list_t *hashmap_keys(hashmap_t *);
+Breakpoint 279 at 0x11ef5b: file misc/hashmap.c, line 143.
+void *hashmap_remove(hashmap_t *, const void *);
+Breakpoint 280 at 0x11eda4: file misc/hashmap.c, line 93.
+void *hashmap_set(hashmap_t *, const void *, void *);
+Breakpoint 281 at 0x11ebf0: file misc/hashmap.c, line 33.
+int hashmap_string_comp(const void *, const void *);
+Breakpoint 282 at 0x11ec11: file misc/hashmap.c, line 37.
+void *hashmap_string_dupe(const void *);
+Breakpoint 283 at 0x11eba3: file misc/hashmap.c, line 21.
+unsigned int hashmap_string_hash(const void *);
+Breakpoint 284 at 0x11f179: file misc/hashmap.c, line 207.
+list_t *hashmap_values(hashmap_t *);
+Breakpoint 285 at 0x1097bc: file drivers/ide_ata.c, line 433.
+uint8_t ideAccessATA(uint8_t, uint8_t, uint64_t, uint8_t, uint32_t);
+Breakpoint 286 at 0x10a27b: file drivers/ide_ata.c, line 714.
+int ideGetDriveCapacity(uint8_t);
+Breakpoint 287 at 0x1086cc: file drivers/ide_ata.c, line 51.
+void ideInit(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+Breakpoint 288 at 0x10942c: file drivers/ide_ata.c, line 367.
+uint8_t idePolling(uint8_t, uint32_t);
+Breakpoint 289 at 0x1094cc: file drivers/ide_ata.c, line 394.
+uint8_t idePrintErrors(uint32_t, uint8_t);
+Breakpoint 290 at 0x108fe8: file drivers/ide_ata.c, line 276.
+uint8_t ideRead(uint8_t, uint8_t);
+Breakpoint 291 at 0x109d76: file drivers/ide_ata.c, line 574.
+uint8_t ideReadATAPI(uint8_t, uint32_t, uint8_t, uint32_t);
+Breakpoint 292 at 0x109255: file drivers/ide_ata.c, line 322.
+void ideReadBuffer(uint8_t, uint8_t, uint32_t *, uint32_t);
+Breakpoint 293 at 0x109fe6: file drivers/ide_ata.c, line 650.
+int ideReadSectors(uint8_t, uint8_t, uint64_t, uint32_t);
+Breakpoint 294 at 0x108d3a: file drivers/ide_ata.c, line 215.
+uint32_t ideRead_vfs(struct fsNode *, off_t, uint32_t, uint8_t *);
+Breakpoint 295 at 0x10911f: file drivers/ide_ata.c, line 299.
+void ideWrite(uint8_t, uint8_t, uint8_t);
+Breakpoint 296 at 0x10a161: file drivers/ide_ata.c, line 685.
+int ideWriteSectors(uint8_t, uint8_t, uint32_t, uint32_t);
+Breakpoint 297 at 0x108e06: file drivers/ide_ata.c, line 235.
+uint32_t ideWrite_vfs(struct fsNode *, off_t, uint32_t, uint8_t *);
+Breakpoint 298 at 0x10939c: file drivers/ide_ata.c, line 350.
+void insl(uint16_t, uint32_t *, int);
+Breakpoint 299 at 0x1093e6: file drivers/ide_ata.c, line 357.
+void outsl(uint16_t, uint32_t *, int);
+Breakpoint 300 at 0x108f01: file drivers/ide_ata.c, line 261.
+void printIDESummary();
+Breakpoint 301 at 0x1212ca: file arch/i386/idt.c, line 40.
+void idtInit();
+Breakpoint 302 at 0x12126f: file arch/i386/idt.c, line 24.
+int idtInstallIR(uint8_t, uint8_t, uint16_t, uint32_t);
+Breakpoint 303 at 0x117c53: file fs/initrd.c, line 84.
+fsNode_t *initrdInit(uint32_t);
+Breakpoint 304 at 0x10cebd: file drivers/io_apic.c, line 45.
+void ioAPIC_init();
+Breakpoint 305 at 0x10ce69: file drivers/io_apic.c, line 38.
+void ioAPIC_setEntry(uint8_t *, uint8_t, uint64_t);
+Breakpoint 306 at 0x120d65: file arch/i386/isr.c, line 18.
+void isrAcknowledge(uint32_t);
+Breakpoint 307 at 0x120eab: file arch/i386/isr.c, line 74.
+void isrInstall();
+Breakpoint 308 at 0x120d83: file arch/i386/isr.c, line 24.
+void isrRegisterInterruptHandler(int, ISR);
+Breakpoint 309 at 0x10c07f: file drivers/keyboard.c, line 38.
+bool getControl();
+Breakpoint 310 at 0x10c48d: file drivers/keyboard.c, line 223.
+char isKeyPressed();
+Breakpoint 311 at 0x10c42f: file drivers/keyboard.c, line 194.
+char keyboardGetChar();
+Breakpoint 312 at 0x10c4cc: file drivers/keyboard.c, line 237.
+void keyboardGetKey(char, bool);
+Breakpoint 313 at 0x10c55f: file drivers/keyboard.c, line 272.
+void keyboardGetLine(char *);
+Breakpoint 314 at 0x10c58f: file drivers/keyboard.c, line 283.
+void keyboardInitialize();
+Breakpoint 315 at 0x10c063: file drivers/keyboard.c, line 32.
+void setKBHandler(bool);
+Breakpoint 316 at 0x10c1d7: file drivers/keyboard.c, line 94.
+static void keyboardHandler(registers_t *);
+Breakpoint 317 at 0x11fd6c: file misc/ksym.c, line 29.
+int ksym_bind_symbols(fsNode_t *);
+Breakpoint 318 at 0x11ff57: file misc/ksym.c, line 87.
+int ksym_find_best_symbol(long, ksym_symbol_t *);
+Breakpoint 319 at 0x11fd28: file misc/ksym.c, line 14.
+void ksym_init();
+Breakpoint 320 at 0x11ff2b: file misc/ksym.c, line 78.
+void *ksym_lookup_addr(const char *);
+Breakpoint 321 at 0x11f88c: file misc/list.c, line 28.
+void list_append(list_t *, node_t *);
+Breakpoint 322 at 0x11f941: file misc/list.c, line 58.
+void list_append_after(list_t *, node_t *, node_t *);
+Breakpoint 323 at 0x11fbea: file misc/list.c, line 156.
+list_t *list_copy(list_t *);
+Breakpoint 324 at 0x11fa3e: file misc/list.c, line 96.
+list_t *list_create();
+Breakpoint 325 at 0x11faa8: file misc/list.c, line 114.
+void list_delete(list_t *, node_t *);
+Breakpoint 326 at 0x11fbb6: file misc/list.c, line 148.
+node_t *list_dequeue(list_t *);
+Breakpoint 327 at 0x11f827: file misc/list.c, line 8.
+void list_destroy(list_t *);
+Breakpoint 328 at 0x11fa76: file misc/list.c, line 105.
+node_t *list_find(list_t *, void *);
+Breakpoint 329 at 0x11f85a: file misc/list.c, line 18.
+void list_free(list_t *);
+Breakpoint 330 at 0x11f8f4: file misc/list.c, line 47.
+void list_insert(list_t *, void *);
+Breakpoint 331 at 0x11f9eb: file misc/list.c, line 86.
+void list_insert_after(list_t *, node_t *, void *);
+Breakpoint 332 at 0x11fc22: file misc/list.c, line 164.
+void list_merge(list_t *, list_t *);
+Breakpoint 333 at 0x11fb7f: file misc/list.c, line 140.
+node_t *list_pop(list_t *);
+Breakpoint 334 at 0x11fb36: file misc/list.c, line 127.
+void list_remove(list_t *, size_t);
+Breakpoint 335 at 0x108178: file drivers/local_apic.c, line 57.
+uint8_t localAPIC_getID();
+Breakpoint 336 at 0x10810a: file drivers/local_apic.c, line 38.
+void localAPIC_init();
+Breakpoint 337 at 0x108193: file drivers/local_apic.c, line 62.
+void localAPIC_sendInit(uint8_t);
+Breakpoint 338 at 0x1081e6: file drivers/local_apic.c, line 72.
+void localAPIC_sendStartup(uint8_t, uint8_t);
+Breakpoint 339 at 0x11747e: file fs/modfs.c, line 75.
+void modfs_init(multiboot_info *);
+Breakpoint 340 at 0x1173dc: file fs/modfs.c, line 54.
+void mountModfs(multiboot_mod_t *, char *);
+Breakpoint 341 at 0x11b4dc: file tasks/module.c, line 246.
+hashmap_t *module_getHashmap();
+Breakpoint 342 at 0x11aacc: file tasks/module.c, line 20.
+int module_load(fsNode_t *, int, char **, struct Metadata *);
+Breakpoint 343 at 0x11aec2: file tasks/module.c, line 113.
+void module_parseCFG();
+Breakpoint 344 at 0x1139bd: file fs/null.c, line 80.
+void nulldev_init();
+Breakpoint 345 at 0x1139dc: file fs/null.c, line 84.
+void zerodev_init();
+Breakpoint 346 at 0x1065d7: file kernel/panic.c, line 357.
+void *pageFault(registers_t *);
+Breakpoint 347 at 0x105ec2: file kernel/panic.c, line 209.
+void *panic(char *, char *, char *);
+Breakpoint 348 at 0x106235: file kernel/panic.c, line 290.
+void *panicReg(char *, char *, char *, registers_t *);
+Breakpoint 349 at 0x10ad9f: file drivers/pci.c, line 206.
+void initPCI();
+Breakpoint 350 at 0x10a7e4: file drivers/pci.c, line 56.
+uint32_t pciConfigReadField(uint32_t, int, int);
+Breakpoint 351 at 0x10b1c5: file drivers/pci.c, line 282.
+int pciGetInterrupt(uint32_t);
+Breakpoint 352 at 0x10aab3: file drivers/pci.c, line 133.
+void pciScan(pciFunction_t, int, void *);
+Breakpoint 353 at 0x10aec6: file drivers/pci.c, line 246.
+void printPCIInfo();
+Breakpoint 354 at 0x1207aa: file arch/i386/pic.c, line 42.
+void picInit(uint8_t, uint8_t);
+Breakpoint 355 at 0x120767: file arch/i386/pic.c, line 34.
+uint8_t picReadData(uint8_t);
+Breakpoint 356 at 0x1206df: file arch/i386/pic.c, line 18.
+void picSendCommand(uint8_t, uint8_t);
+Breakpoint 357 at 0x120726: file arch/i386/pic.c, line 26.
+void picSendData(uint8_t, uint8_t);
+Breakpoint 358 at 0x120ccc: file arch/i386/pit.c, line 49.
+uint64_t pitGetTickCount();
+Breakpoint 359 at 0x120cdf: file arch/i386/pit.c, line 54.
+void pitInit();
+Breakpoint 360 at 0x120c9f: file arch/i386/pit.c, line 43.
+uint64_t pitSetTickCount(uint64_t);
+Breakpoint 361 at 0x1180e2: file mem/pmm.c, line 52.
+void pmmInit(uint32_t);
+Breakpoint 362 at 0x1185aa: file mem/pmm.c, line 193.
+void *pmm_allocateBlock();
+Breakpoint 363 at 0x118654: file mem/pmm.c, line 224.
+void *pmm_allocateBlocks(size_t);
+Breakpoint 364 at 0x118530: file mem/pmm.c, line 178.
+void pmm_deinitRegion(uintptr_t, size_t);
+Breakpoint 365 at 0x118624: file mem/pmm.c, line 214.
+void pmm_freeBlock(void *);
+Breakpoint 366 at 0x1186ea: file mem/pmm.c, line 242.
+void pmm_freeBlocks(void *, size_t);
+Breakpoint 367 at 0x118751: file mem/pmm.c, line 265.
+uint32_t pmm_getFreeBlocks();
+Breakpoint 368 at 0x11873c: file mem/pmm.c, line 257.
+uint32_t pmm_getMaxBlocks();
+Breakpoint 369 at 0x118732: file mem/pmm.c, line 253.
+uint32_t pmm_getPhysicalMemorySize();
+Breakpoint 370 at 0x118746: file mem/pmm.c, line 261.
+uint32_t pmm_getUsedBlocks();
+Breakpoint 371 at 0x1184b7: file mem/pmm.c, line 162.
+void pmm_initRegion(uintptr_t, size_t);
+Breakpoint 372 at 0x11808f: file mem/pmm.c, line 44.
+void pmm_initializeMemoryMap(multiboot_info *);
+Breakpoint 373 at 0x117f8f: file mem/pmm.c, line 32.
+void pmm_printMemoryMap(multiboot_info *);
+Breakpoint 374 at 0x11d97d: file tasks/process.c, line 1080.
+pagedirectory_t *cloneDirectory(pagedirectory_t *);
+Breakpoint 375 at 0x11d9a7: file tasks/process.c, line 1089.
+int createProcess(char *);
+Breakpoint 376 at 0x11d261: file tasks/process.c, line 870.
+int process_alert_node(process_t *, void *);
+Breakpoint 377 at 0x11d125: file tasks/process.c, line 830.
+void process_awaken_signal(process_t *);
+Breakpoint 378 at 0x11c4a4: file tasks/process.c, line 476.
+volatile process_t *process_getNextReadyProcess();
+Breakpoint 379 at 0x11cec5: file tasks/process.c, line 776.
+int process_timeout_sleep(process_t *, int);
+Breakpoint 380 at 0x11c930: file tasks/process.c, line 621.
+void sleep_until(process_t *, unsigned long, unsigned long);
+Breakpoint 381 at 0x11be72: file tasks/process.c, line 300.
+process_t *spawn_process(volatile process_t *, int);
+Breakpoint 382 at 0x11d739: file tasks/process.c, line 1022.
+process_t *spawn_worker_thread(void (*)(void *), const char *, void *);
+Breakpoint 383 at 0x11d302: file tasks/process.c, line 891.
+void task_exit(int);
+Breakpoint 384 at 0x11cbfc: file tasks/process.c, line 703.
+int waitpid(int, int *, int);
+Breakpoint 385 at 0x11c7a2: file tasks/process.c, line 585.
+void wakeup_sleepers(unsigned long, unsigned long);
+Breakpoint 386 at 0x12003f: file arch/i386/processor.c, line 18.
+void cpuInit();
+Breakpoint 387 at 0x120509: file arch/i386/processor.c, line 162.
+uint32_t getCPUFrequency();
+Breakpoint 388 at 0x120542: file arch/i386/processor.c, line 180.
+cpuInfo_t getCPUProcessorData();
+Breakpoint 389 at 0x120523: file arch/i386/processor.c, line 172.
+char *getCPUVendorData();
+Breakpoint 390 at 0x12052d: file arch/i386/processor.c, line 176.
+bool isCPULongModeCapable();
+Breakpoint 391 at 0x10a30e: file drivers/rtc.c, line 34.
+void rtc_getDateTime(uint8_t *, uint8_t *, uint8_t *, uint8_t *, uint8_t *, int *);
+Breakpoint 392 at 0x108414: file drivers/serial.c, line 92.
+void serialInit();
+Breakpoint 393 at 0x1082dd: file drivers/serial.c, line 46.
+void serialPrintf(const char *, ...);
+Breakpoint 394 at 0x108257: file drivers/serial.c, line 24.
+char serialRead();
+Breakpoint 395 at 0x10830d: file drivers/serial.c, line 56.
+void serialReadLine(bool, char *);
+Breakpoint 396 at 0x1082ac: file drivers/serial.c, line 35.
+void serialWrite(void *, char);
+Breakpoint 397 at 0x1178c6: file fs/serial_dev.c, line 97.
+void serialdev_init();
+Breakpoint 398 at 0x11a8f1: file tasks/syscall.c, line 100.
+void _exit(int);
+Breakpoint 399 at 0x11a7e2: file tasks/syscall.c, line 55.
+void initSyscalls();
+Breakpoint 400 at 0x11a965: file tasks/syscall.c, line 130.
+int sys_close(int);
+Breakpoint 401 at 0x11a96f: file tasks/syscall.c, line 135.
+int sys_execve(char *, char **, char **);
+Breakpoint 402 at 0x11a97c: file tasks/syscall.c, line 140.
+int sys_fork(void);
+Breakpoint 403 at 0x11a986: file tasks/syscall.c, line 145.
+int sys_fstat(int, void *);
+Breakpoint 404 at 0x11a990: file tasks/syscall.c, line 150.
+int sys_getpid(void);
+Breakpoint 405 at 0x11a99a: file tasks/syscall.c, line 155.
+int sys_isatty(int);
+Breakpoint 406 at 0x11a9a4: file tasks/syscall.c, line 160.
+int sys_kill(int, int);
+Breakpoint 407 at 0x11a9ae: file tasks/syscall.c, line 165.
+int sys_link(char *, char *);
+Breakpoint 408 at 0x11a9b8: file tasks/syscall.c, line 170.
+int sys_lseek(int, int, int);
+Breakpoint 409 at 0x11a9c2: file tasks/syscall.c, line 175.
+int sys_open(const char *, int, int);
+Breakpoint 410 at 0x11a91c: file tasks/syscall.c, line 109.
+long sys_read(int, void *, size_t);
+Breakpoint 411 at 0x11a8d4: file tasks/syscall.c, line 93.
+long sys_restart_syscall();
+Breakpoint 412 at 0x11a9cf: file tasks/syscall.c, line 181.
+uint32_t sys_sbrk(int);
+Breakpoint 413 at 0x11aaa1: file tasks/syscall.c, line 200.
+int sys_stat(char *, void *);
+Breakpoint 414 at 0x11aaab: file tasks/syscall.c, line 205.
+int sys_times(void *);
+Breakpoint 415 at 0x11aab5: file tasks/syscall.c, line 210.
+int sys_unlink(char *);
+Breakpoint 416 at 0x11aabf: file tasks/syscall.c, line 215.
+int sys_wait(int *);
+Breakpoint 417 at 0x11a93d: file tasks/syscall.c, line 115.
+long sys_write(int, const void *, size_t);
+Breakpoint 418 at 0x10dfed: file gfx/terminal.c, line 52.
+void changeTerminalMode(int);
+Breakpoint 419 at 0x10e3e3: file gfx/terminal.c, line 170.
+void clearScreen(uint8_t, uint8_t);
+Breakpoint 420 at 0x10ecbf: file gfx/terminal.c, line 433.
+void enableShell(char *);
+Breakpoint 421 at 0x10edbb: file gfx/terminal.c, line 449.
+void instantUpdateTerminalColor(uint8_t, uint8_t);
+Breakpoint 422 at 0x10e1d3: file gfx/terminal.c, line 113.
+void scrollTerminal();
+Breakpoint 423 at 0x10ea71: file gfx/terminal.c, line 372.
+void terminalBackspace();
+Breakpoint 424 at 0x10e2bf: file gfx/terminal.c, line 139.
+void terminalDeleteLastLine();
+Breakpoint 425 at 0x10e0af: file gfx/terminal.c, line 75.
+void terminalGotoXY(size_t, size_t);
+Breakpoint 426 at 0x10e75e: file gfx/terminal.c, line 265.
+void terminalMoveArrowKeys(int);
+Breakpoint 427 at 0x10e7c4: file gfx/terminal.c, line 275.
+void terminalPutchar(char);
+Breakpoint 428 at 0x10e066: file gfx/terminal.c, line 68.
+void terminalPutcharXY(unsigned char, uint8_t, size_t, size_t);
+Breakpoint 429 at 0x10eee3: file gfx/terminal.c, line 480.
+void terminalSetUpdateScreen(bool);
+Breakpoint 430 at 0x10eef4: file gfx/terminal.c, line 485.
+void terminalUpdateScreen();
+Breakpoint 431 at 0x10ef22: file gfx/terminal.c, line 491.
+void terminalUpdateTopBar(char *);
+Breakpoint 432 at 0x10f035: file gfx/terminal.c, line 517.
+void terminalUpdateTopBarKernel(char *);
+Breakpoint 433 at 0x10ea13: file gfx/terminal.c, line 359.
+void terminalWrite(const char *, size_t);
+Breakpoint 434 at 0x10ea4b: file gfx/terminal.c, line 368.
+void terminalWriteString(const char *);
+Breakpoint 435 at 0x10eba7: file gfx/terminal.c, line 404.
+void terminalWriteStringXY(const char *, size_t, size_t);
+Breakpoint 436 at 0x10ebf0: file gfx/terminal.c, line 418.
+void updateBottomText(char *);
+Breakpoint 437 at 0x10e009: file gfx/terminal.c, line 56.
+void updateTerminalColor(uint8_t);
+Breakpoint 438 at 0x10e51b: file gfx/terminal.c, line 208.
+void updateTextCursor_vesa();
+Breakpoint 439 at 0x102ea9: file kernel/test.c, line 1253.
+int test(int, char **);
+Breakpoint 440 at 0x11fca7: file misc/tokenize.c, line 18.
+int tokenize(char *, const char *, char **);
+Breakpoint 441 at 0x11f758: file misc/tree.c, line 156.
+void tree_break_off(tree_t *, tree_node_t *);
+Breakpoint 442 at 0x11f4f6: file misc/tree.c, line 93.
+size_t tree_count_children(tree_node_t *);
+Breakpoint 443 at 0x11f29f: file misc/tree.c, line 7.
+tree_t *tree_create();
+Breakpoint 444 at 0x11f340: file misc/tree.c, line 31.
+void tree_destroy(tree_t *);
+Breakpoint 445 at 0x11f807: file misc/tree.c, line 175.
+tree_node_t *tree_find(tree_t *, void *, tree_comparator_t);
+Breakpoint 446 at 0x11f4c8: file misc/tree.c, line 87.
+tree_node_t *tree_find_parent(tree_t *, tree_node_t *);
+Breakpoint 447 at 0x11f3b1: file misc/tree.c, line 46.
+void tree_free(tree_t *);
+Breakpoint 448 at 0x11f3cc: file misc/tree.c, line 51.
+tree_node_t *tree_node_create(void *);
+Breakpoint 449 at 0x11f2f9: file misc/tree.c, line 22.
+void tree_node_destroy(tree_node_t *);
+Breakpoint 450 at 0x11f46a: file misc/tree.c, line 75.
+tree_node_t *tree_node_find_parent(tree_node_t *, tree_node_t *);
+Breakpoint 451 at 0x11f43a: file misc/tree.c, line 68.
+tree_node_t *tree_node_insert_child(tree_t *, tree_node_t *, void *);
+Breakpoint 452 at 0x11f406: file misc/tree.c, line 60.
+void tree_node_insert_child_node(tree_t *, tree_node_t *, tree_node_t *);
+Breakpoint 453 at 0x11f554: file misc/tree.c, line 103.
+void tree_node_parent_remove(tree_t *, tree_node_t *, tree_node_t *);
+Breakpoint 454 at 0x11f5b4: file misc/tree.c, line 110.
+void tree_node_remove(tree_t *, tree_node_t *);
+Breakpoint 455 at 0x11f60c: file misc/tree.c, line 124.
+void tree_remove(tree_t *, tree_node_t *);
+Breakpoint 456 at 0x11f6af: file misc/tree.c, line 141.
+void tree_remove_reparent_root(tree_t *, tree_node_t *);
+Breakpoint 457 at 0x11f2cd: file misc/tree.c, line 15.
+void tree_set_root(tree_t *, void *);
+Breakpoint 458 at 0x11a757: file tasks/tss.c, line 35.
+void setKernelStack(uint32_t);
+Breakpoint 459 at 0x11a6c5: file tasks/tss.c, line 13.
+void tssWrite(int32_t, uint16_t, uint32_t);
+Breakpoint 460 at 0x10d5f3: file gfx/vesa.c, line 147.
+uint32_t RGB_VBE(uint8_t, uint8_t, uint8_t);
+Breakpoint 461 at 0x10da68: file gfx/vesa.c, line 301.
+void vbePutPixel(int, int, uint32_t);
+Breakpoint 462 at 0x10d8a0: file gfx/vesa.c, line 227.
+void vesaInit();
+Breakpoint 463 at 0x11079a: file fs/vfs.c, line 649.
+void change_cwd(const char *);
+Breakpoint 464 at 0x10f558: file fs/vfs.c, line 58.
+void closeFilesystem(fsNode_t *);
+Breakpoint 465 at 0x10f5c5: file fs/vfs.c, line 78.
+fsNode_t *findDirectoryFilesystem(fsNode_t *, char *);
+Breakpoint 466 at 0x10f78c: file fs/vfs.c, line 136.
+fsNode_t *getRootFilesystem();
+Breakpoint 467 at 0x110869: file fs/vfs.c, line 682.
+char *get_cwd();
+Breakpoint 468 at 0x10f52f: file fs/vfs.c, line 51.
+void openFilesystem(fsNode_t *, uint8_t, uint8_t);
+Breakpoint 469 at 0x110771: file fs/vfs.c, line 643.
+fsNode_t *open_file(const char *, unsigned int);
+Breakpoint 470 at 0x110523: file fs/vfs.c, line 547.
+fsNode_t *open_file_recursive(const char *, uint64_t, uint64_t, char *);
+Breakpoint 471 at 0x10f581: file fs/vfs.c, line 69.
+struct dirent *readDirectoryFilesystem(fsNode_t *, uint32_t);
+Breakpoint 472 at 0x10f49f: file fs/vfs.c, line 33.
+uint32_t readFilesystem(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 473 at 0x10f799: file fs/vfs.c, line 141.
+void vfsInit();
+Breakpoint 474 at 0x10fd61: file fs/vfs.c, line 298.
+void *vfsMount(char *, fsNode_t *);
+Breakpoint 475 at 0x110047: file fs/vfs.c, line 392.
+char *vfs_canonicalizePath(const char *, const char *);
+Breakpoint 476 at 0x1103ba: file fs/vfs.c, line 489.
+fsNode_t *vfs_getMountpoint(char *, unsigned int, char **, unsigned int *);
+Breakpoint 477 at 0x10fb76: file fs/vfs.c, line 250.
+void vfs_mapDirectory(const char *);
+Breakpoint 478 at 0x10f877: file fs/vfs.c, line 171.
+int vfs_mountType(const char *, const char *, const char *);
+Breakpoint 479 at 0x10f834: file fs/vfs.c, line 164.
+int vfs_registerFilesystem(const char *, vfs_mountCallback);
+Breakpoint 480 at 0x10f4e7: file fs/vfs.c, line 42.
+uint32_t writeFilesystem(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 481 at 0x10cf36: file gfx/monitor.c, line 11.
+enum monitor_video_type monitor_getVideoType();
+Breakpoint 482 at 0x118f1a: file mem/vmm.c, line 284.
+void vmmInit();
+Breakpoint 483 at 0x1188ad: file mem/vmm.c, line 66.
+bool vmm_allocatePage(pte_t *);
+Breakpoint 484 at 0x118c94: file mem/vmm.c, line 203.
+void vmm_allocateRegion(uintptr_t, uintptr_t, size_t);
+Breakpoint 485 at 0x118a9b: file mem/vmm.c, line 156.
+void vmm_allocateRegionFlags(uintptr_t, uintptr_t, size_t, int, int, int);
+Breakpoint 486 at 0x118e34: file mem/vmm.c, line 247.
+pagedirectory_t *vmm_createAddressSpace();
+Breakpoint 487 at 0x118d8d: file mem/vmm.c, line 227.
+int vmm_createPageTable(pagedirectory_t *, uint32_t, uint32_t);
+Breakpoint 488 at 0x11880f: file mem/vmm.c, line 28.
+pde_t *vmm_directoryLookupEntry(pagedirectory_t *, uint32_t);
+Breakpoint 489 at 0x118a75: file mem/vmm.c, line 146.
+void vmm_disablePaging();
+Breakpoint 490 at 0x118a3f: file mem/vmm.c, line 130.
+void vmm_enablePaging();
+Breakpoint 491 at 0x118892: file mem/vmm.c, line 53.
+void vmm_flushTLBEntry(uint32_t);
+Breakpoint 492 at 0x1188f1: file mem/vmm.c, line 80.
+void vmm_freePage(pte_t *);
+Breakpoint 493 at 0x1188a0: file mem/vmm.c, line 60.
+pagedirectory_t *vmm_getCurrentDirectory();
+Breakpoint 494 at 0x118932: file mem/vmm.c, line 88.
+pde_t *vmm_getPageTable(void *);
+Breakpoint 495 at 0x118cbf: file mem/vmm.c, line 210.
+void *vmm_getPhysicalAddress(pagedirectory_t *, uint32_t);
+Breakpoint 496 at 0x118843: file mem/vmm.c, line 35.
+void vmm_loadPDBR(uint32_t);
+Breakpoint 497 at 0x118954: file mem/vmm.c, line 95.
+void vmm_mapPage(void *, void *);
+Breakpoint 498 at 0x118d1b: file mem/vmm.c, line 217.
+void vmm_mapPhysicalAddress(pagedirectory_t *, uint32_t, uint32_t, uint32_t);
+Breakpoint 499 at 0x118852: file mem/vmm.c, line 40.
+bool vmm_switchDirectory(pagedirectory_t *);
+Breakpoint 500 at 0x1187d3: file mem/vmm.c, line 21.
+pte_t *vmm_tableLookupEntry(pagetable_t *, uint32_t);
+Breakpoint 501 at 0x118e79: file mem/vmm.c, line 259.
+void vmm_unmapPageTable(pagedirectory_t *, uint32_t);
+Breakpoint 502 at 0x118ee2: file mem/vmm.c, line 275.
+void vmm_unmapPhysicalAddress(pagedirectory_t *, uint32_t);
+Breakpoint 503 at 0x11a63a: file mem/vmm_pde.c, line 13.
+void pde_addattrib(pde_t *, uint32_t);
+Breakpoint 504 at 0x11a64f: file mem/vmm_pde.c, line 18.
+void pde_delattrib(pde_t *, uint32_t);
+Breakpoint 505 at 0x11a696: file mem/vmm_pde.c, line 38.
+uint32_t pde_getframe(pde_t);
+Breakpoint 506 at 0x11a6ae: file mem/vmm_pde.c, line 48.
+bool pde_is4mb(pde_t);
+Breakpoint 507 at 0x11a680: file mem/vmm_pde.c, line 28.
+bool pde_ispresent(pde_t);
+Breakpoint 508 at 0x11a6a3: file mem/vmm_pde.c, line 43.
+bool pde_isuser(pde_t);
+Breakpoint 509 at 0x11a68b: file mem/vmm_pde.c, line 33.
+bool pde_iswritable(pde_t);
+Breakpoint 510 at 0x11a666: file mem/vmm_pde.c, line 23.
+void pde_setframe(pde_t *, uint32_t);
+Breakpoint 511 at 0x118767: file mem/vmm_pte.c, line 13.
+void pte_addattrib(pte_t *, uint32_t);
+Breakpoint 512 at 0x11877c: file mem/vmm_pte.c, line 18.
+void pte_delattrib(pte_t *, uint32_t);
+Breakpoint 513 at 0x1187c3: file mem/vmm_pte.c, line 38.
+uint32_t pte_getframe(pte_t);
+Breakpoint 514 at 0x1187ad: file mem/vmm_pte.c, line 28.
+bool pte_ispresent(pte_t);
+Breakpoint 515 at 0x1187b8: file mem/vmm_pte.c, line 33.
+bool pte_iswritable(pte_t);
+Breakpoint 516 at 0x118793: file mem/vmm_pte.c, line 23.
+void pte_setframe(pte_t *, uint32_t);
+Breakpoint 517 at 0x120a16: file arch/i386/fpu.c, line 26.
+static void fpu_write(uint32_t);
+Breakpoint 518 at 0x120da2: file arch/i386/isr.c, line 31.
+void isrExceptionHandler(registers_t *);
+Breakpoint 519 at 0x120e08: file arch/i386/isr.c, line 42.
+void isrIRQHandler(registers_t *);
+Breakpoint 520 at 0x120bdc: file arch/i386/pit.c, line 15.
+void pitIRQ(registers_t *);
+Breakpoint 521 at 0x120c43: file arch/i386/pit.c, line 34.
+void pitWaitSeconds(int);
+Breakpoint 522 at 0x120353: file arch/i386/processor.c, line 102.
+void cpuCheckSSE();
+Breakpoint 523 at 0x12042f: file arch/i386/processor.c, line 140.
+uint32_t detectCPUFrequency();
+Breakpoint 524 at 0x10802b: file drivers/acpi.c, line 213.
+void acpiInit();
+Breakpoint 525 at 0x107b74: file drivers/acpi.c, line 41.
+void acpiParseApic(ACPI_MADT *);
+Breakpoint 526 at 0x107b3e: file drivers/acpi.c, line 29.
+void acpiParseFacp(ACPI_FADT *);
+Breakpoint 527 at 0x107ea5: file drivers/acpi.c, line 149.
+bool acpiParseRSDP(uint8_t *);
+Breakpoint 528 at 0x107d05: file drivers/acpi.c, line 82.
+void acpiParseRSDT(ACPIHeader *);
+Breakpoint 529 at 0x107de2: file drivers/acpi.c, line 117.
+void acpiParseXSDT(ACPIHeader *);
+Breakpoint 530 at 0x107aff: file drivers/acpi.c, line 18.
+static bool acpiRSDPChecksum(uint8_t *);
+Breakpoint 531 at 0x10c689: file drivers/clock.c, line 53.
+uint64_t clock_convertCMOSToUnix();
+Breakpoint 532 at 0x10c8e3: file drivers/clock.c, line 87.
+static uint64_t clock_readTSC();
+Breakpoint 533 at 0x10cae8: file drivers/clock.c, line 202.
+static void clock_updateTicks(uint64_t, uint64_t *, uint64_t *);
+Breakpoint 534 at 0x10c632: file drivers/clock.c, line 36.
+static uint64_t monthsToSeconds(int, int);
+Breakpoint 535 at 0x10c5ba: file drivers/clock.c, line 23.
+static uint64_t yearsToSeconds(int);
+Breakpoint 536 at 0x10858c: file drivers/cmos.c, line 17.
+static void cmos_selectRegister(uint8_t);
+Breakpoint 537 at 0x10b1dc: file drivers/floppy.c, line 19.
+void floppy_LBAtoCHS(uint32_t, int *, int *, int *);
+Breakpoint 538 at 0x10bbfa: file drivers/floppy.c, line 390.
+int floppy_writeSector(int, uint8_t *);
+Breakpoint 539 at 0x10b87b: file drivers/floppy.c, line 258.
+int floppy_writeSectorInternal(uint8_t, uint8_t, uint8_t);
+Breakpoint 540 at 0x10b2ad: file drivers/floppy.c, line 58.
+static uint8_t floppy_getMSR();
+Breakpoint 541 at 0x10b31d: file drivers/floppy.c, line 78.
+static uint8_t floppy_readDataRegister();
+Breakpoint 542 at 0x10b2d2: file drivers/floppy.c, line 69.
+static void floppy_sendCommand(uint8_t);
+Breakpoint 543 at 0x108b75: file drivers/ide_ata.c, line 163.
+fsNode_t *ideGetVFSNode(int);
+Breakpoint 544 at 0x1086bc: file drivers/ide_ata.c, line 38.
+void ideIRQHandler();
+Breakpoint 545 at 0x1086a3: file drivers/ide_ata.c, line 33.
+void ideWaitIRQ();
+Breakpoint 546 at 0x108ca4: file drivers/ide_ata.c, line 188.
+fsNode_t *ide_fs_mount(const char *, const char *);
+Breakpoint 547 at 0x108d0a: file drivers/ide_ata.c, line 207.
+int ide_install(int, char **);
+Breakpoint 548 at 0x10ce3d: file drivers/io_apic.c, line 30.
+static uint32_t ioAPIC_read(uint8_t *, uint8_t);
+Breakpoint 549 at 0x10ce1a: file drivers/io_apic.c, line 24.
+static void ioAPIC_write(uint8_t *, uint8_t, uint32_t);
+Breakpoint 550 at 0x10c092: file drivers/keyboard.c, line 42.
+char altChars(char);
+Breakpoint 551 at 0x10c49c: file drivers/keyboard.c, line 229.
+void clearBuffer();
+Breakpoint 552 at 0x10c552: file drivers/keyboard.c, line 267.
+char *getKeyboardBuffer();
+Breakpoint 553 at 0x10c458: file drivers/keyboard.c, line 209.
+char keyboardGetChar_ctrl();
+Breakpoint 554 at 0x10c159: file drivers/keyboard.c, line 73.
+void keyboardRegisterKeyPress(char);
+Breakpoint 555 at 0x10c1ba: file drivers/keyboard.c, line 86.
+void keyboardWaitForNewline();
+Breakpoint 556 at 0x10c071: file drivers/keyboard.c, line 35.
+void setKBPrintChars(bool);
+Breakpoint 557 at 0x1080df: file drivers/local_apic.c, line 24.
+static uint32_t localAPIC_read(uint32_t);
+Breakpoint 558 at 0x1080f1: file drivers/local_apic.c, line 29.
+static void localAPIC_write(uint32_t, uint32_t);
+Breakpoint 559 at 0x10ae5e: file drivers/pci.c, line 232.
+int getClassIdType(uint16_t, uint16_t);
+Breakpoint 560 at 0x10ade7: file drivers/pci.c, line 220.
+int getDevTableId(uint32_t, uint32_t);
+Breakpoint 561 at 0x10a631: file drivers/pci.c, line 28.
+uint32_t pciConfigRead(uint16_t, uint16_t, uint16_t, uint16_t);
+Breakpoint 562 at 0x10a749: file drivers/pci.c, line 42.
+void pciConfigWrite(uint32_t, uint32_t, uint32_t, uint32_t);
+Breakpoint 563 at 0x10ac0e: file drivers/pci.c, line 170.
+uint16_t pciGetClassID(uint16_t, uint16_t, uint16_t);
+Breakpoint 564 at 0x10abd8: file drivers/pci.c, line 166.
+uint16_t pciGetDeviceID(uint16_t, uint16_t, uint16_t);
+Breakpoint 565 at 0x10ac4d: file drivers/pci.c, line 174.
+uint16_t pciGetSubClassID(uint16_t, uint16_t, uint16_t);
+Breakpoint 566 at 0x10aba2: file drivers/pci.c, line 160.
+uint16_t pciGetVendorID(uint16_t, uint16_t, uint16_t);
+Breakpoint 567 at 0x10ac71: file drivers/pci.c, line 178.
+void pciProbeForDevices();
+Breakpoint 568 at 0x10aa7d: file drivers/pci.c, line 125.
+void pciScanBus(pciFunction_t, int, int, void *);
+Breakpoint 569 at 0x10a927: file drivers/pci.c, line 90.
+void pciScanFunc(pciFunction_t, int, int, int, int, void *);
+Breakpoint 570 at 0x10a9ae: file drivers/pci.c, line 105.
+void pciScanSlot(pciFunction_t, int, int, int, void *);
+Breakpoint 571 at 0x10a8a2: file drivers/pci.c, line 77.
+uint16_t pci_find_type(uint32_t);
+Breakpoint 572 at 0x10a8d8: file drivers/pci.c, line 83.
+static void pciScanHit(pciFunction_t, uint32_t, void *);
+Breakpoint 573 at 0x10a2e5: file drivers/rtc.c, line 23.
+uint8_t rtc_getRegister(int);
+Breakpoint 574 at 0x10a2b9: file drivers/rtc.c, line 16.
+int rtc_getUpdateInProgress();
+Breakpoint 575 at 0x10853d: file drivers/serial.c, line 116.
+int serial_changeCOM(uint16_t);
+Breakpoint 576 at 0x108577: file drivers/serial.c, line 132.
+uint16_t serial_getCOM();
+Breakpoint 577 at 0x108395: file drivers/serial.c, line 72.
+int testSerial();
+Breakpoint 578 at 0x108230: file drivers/serial.c, line 19.
+static int serialHasReceived();
+Breakpoint 579 at 0x10827f: file drivers/serial.c, line 30.
+static int serialIsTransmitEmpty();
+Breakpoint 580 at 0x110a0e: file fs/debug_dev.c, line 55.
+void debug_close(fsNode_t *);
+Breakpoint 581 at 0x110a08: file fs/debug_dev.c, line 51.
+void debug_open(fsNode_t *);
+Breakpoint 582 at 0x110882: file fs/debug_dev.c, line 13.
+uint32_t debug_read(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 583 at 0x1108a7: file fs/debug_dev.c, line 23.
+uint32_t debug_write(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 584 at 0x110a17: file fs/debug_dev.c, line 62.
+static fsNode_t *get_debug_device();
+Breakpoint 585 at 0x1143e0: file fs/ext2.c, line 245.
+int allocate_block(ext2_t *);
+Breakpoint 586 at 0x114c51: file fs/ext2.c, line 484.
+int ext2_allocateInodeMetadataBlock(ext2_t *, uint32_t *, ext2_inode_t *, uint32_t, uint8_t *, uint32_t);
+Breakpoint 587 at 0x116798: file fs/ext2.c, line 1204.
+int ext2_close(fsNode_t *);
+Breakpoint 588 at 0x115ef2: file fs/ext2.c, line 953.
+int ext2_create(fsNode_t *, char *, uint32_t);
+Breakpoint 589 at 0x1167a5: file fs/ext2.c, line 1213.
+void ext2_deleteInode(ext2_t *, ext2_inode_t *, uint32_t);
+Breakpoint 590 at 0x115aad: file fs/ext2.c, line 819.
+ext2_dirent_t *ext2_direntry(ext2_t *, ext2_inode_t *, uint32_t, uint32_t);
+Breakpoint 591 at 0x1171b6: file fs/ext2.c, line 1505.
+fsNode_t *ext2_fs_mount(const char *, const char *);
+Breakpoint 592 at 0x116af2: file fs/ext2.c, line 1312.
+fsNode_t *ext2_getRoot(ext2_t *, ext2_inode_t *);
+Breakpoint 593 at 0x116f3a: file fs/ext2.c, line 1414.
+fsNode_t *ext2_init(fsNode_t *, int);
+Breakpoint 594 at 0x115bf6: file fs/ext2.c, line 858.
+int ext2_mkdir(fsNode_t *, char *, uint32_t);
+Breakpoint 595 at 0x11678e: file fs/ext2.c, line 1199.
+int ext2_open(fsNode_t *);
+Breakpoint 596 at 0x116454: file fs/ext2.c, line 1129.
+int ext2_read(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 597 at 0x116086: file fs/ext2.c, line 1012.
+struct dirent *ext2_readdir(fsNode_t *, uint32_t);
+Breakpoint 598 at 0x1147dd: file fs/ext2.c, line 362.
+void ext2_refreshInode(ext2_t *, ext2_inode_t *, uint32_t);
+Breakpoint 599 at 0x113e97: file fs/ext2.c, line 143.
+void ext2_setDiskBlockNumber(ext2_t *, ext2_inode_t *, uint32_t, uint32_t, uint32_t);
+Breakpoint 600 at 0x116727: file fs/ext2.c, line 1188.
+int ext2_write(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 601 at 0x1155e1: file fs/ext2.c, line 703.
+static int ext2_createEntry(fsNode_t *, char *, uint32_t);
+Breakpoint 602 at 0x1152e2: file fs/ext2.c, line 647.
+static int ext2_writeInodeBuffer(ext2_t *, ext2_inode_t *, uint32_t, off_t, uint32_t, uint8_t *);
+Breakpoint 603 at 0x112db2: file fs/fat.c, line 632.
+fsNode_t *fatFindDirectory(struct fsNode *, char *);
+Breakpoint 604 at 0x1120b7: file fs/fat.c, line 169.
+fsNode_t *fatParseRootDirectory(fat_t *, char *);
+Breakpoint 605 at 0x111dc8: file fs/fat.c, line 78.
+int fatParseRootDirectory32(fat_t *, char *, fsNode_t *);
+Breakpoint 606 at 0x1126c6: file fs/fat.c, line 364.
+fsNode_t *fatParseSubdirectory(fsNode_t *, const char *);
+Breakpoint 607 at 0x111c77: file fs/fat.c, line 34.
+int fatToDOSName(char *, char *, int);
+Breakpoint 608 at 0x1136db: file fs/fat.c, line 845.
+fsNode_t *fat_fs_mount(const char *, const char *);
+Breakpoint 609 at 0x113676: file fs/fat.c, line 834.
+struct dirent *fat_readdir(fsNode_t *, uint32_t);
+Breakpoint 610 at 0x117bce: file fs/initrd.c, line 66.
+static fsNode_t *initrdFinddir(fsNode_t *, char *);
+Breakpoint 611 at 0x117a8b: file fs/initrd.c, line 38.
+static uint32_t initrdRead(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 612 at 0x117b28: file fs/initrd.c, line 50.
+static struct dirent *initrdReaddir(fsNode_t *, uint32_t);
+Breakpoint 613 at 0x1173cf: file fs/modfs.c, line 48.
+static uint32_t modfs_close(fsNode_t *);
+Breakpoint 614 at 0x1173c5: file fs/modfs.c, line 44.
+static uint32_t modfs_open(fsNode_t *);
+Breakpoint 615 at 0x117284: file fs/modfs.c, line 12.
+static uint32_t modfs_read(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 616 at 0x117310: file fs/modfs.c, line 30.
+static uint32_t modfs_write(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 617 at 0x11383c: file fs/null.c, line 37.
+void close_null(fsNode_t *);
+Breakpoint 618 at 0x113848: file fs/null.c, line 45.
+void close_zero(fsNode_t *);
+Breakpoint 619 at 0x113836: file fs/null.c, line 33.
+void open_null(fsNode_t *);
+Breakpoint 620 at 0x113842: file fs/null.c, line 41.
+void open_zero(fsNode_t *);
+Breakpoint 621 at 0x1137c3: file fs/null.c, line 11.
+uint32_t read_null(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 622 at 0x1137ed: file fs/null.c, line 16.
+uint32_t read_zero(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 623 at 0x113817: file fs/null.c, line 23.
+uint32_t write_null(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 624 at 0x11382e: file fs/null.c, line 27.
+uint32_t write_zero(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 625 at 0x113851: file fs/null.c, line 50.
+static fsNode_t *get_null_device();
+Breakpoint 626 at 0x113907: file fs/null.c, line 64.
+static fsNode_t *get_zero_device();
+Breakpoint 627 at 0x117809: file fs/serial_dev.c, line 75.
+void serialdev_close(fsNode_t *);
+Breakpoint 628 at 0x117803: file fs/serial_dev.c, line 71.
+void serialdev_open(fsNode_t *);
+Breakpoint 629 at 0x117579: file fs/serial_dev.c, line 15.
+uint32_t serialdev_read(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 630 at 0x1176b1: file fs/serial_dev.c, line 41.
+uint32_t serialdev_write(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 631 at 0x117812: file fs/serial_dev.c, line 82.
+static fsNode_t *get_serial_device(char *);
+Breakpoint 632 at 0x111787: file fs/tarfs.c, line 319.
+fsNode_t *finddir_tar_root(fsNode_t *, char *);
+Breakpoint 633 at 0x11153e: file fs/tarfs.c, line 267.
+fsNode_t *finddir_tarfs(fsNode_t *, char *);
+Breakpoint 634 at 0x1111d0: file fs/tarfs.c, line 194.
+struct dirent *readdir_tarfs(fsNode_t *, unsigned long);
+Breakpoint 635 at 0x111c58: file fs/tarfs.c, line 438.
+int tar_install();
+Breakpoint 636 at 0x111ab7: file fs/tarfs.c, line 395.
+fsNode_t *tar_mount(const char *, const char *);
+Breakpoint 637 at 0x110df2: file fs/tarfs.c, line 86.
+static int countSlashes(char *);
+Breakpoint 638 at 0x110b95: file fs/tarfs.c, line 32.
+static unsigned int interpret_gid(ustar_t *);
+Breakpoint 639 at 0x110c15: file fs/tarfs.c, line 43.
+static unsigned int interpret_mode(ustar_t *);
+Breakpoint 640 at 0x110c95: file fs/tarfs.c, line 54.
+static unsigned int interpret_size(ustar_t *);
+Breakpoint 641 at 0x110b15: file fs/tarfs.c, line 21.
+static unsigned int interpret_uid(ustar_t *);
+Breakpoint 642 at 0x1110ec: file fs/tarfs.c, line 177.
+static uint32_t read_tarfs(fsNode_t *, off_t, uint32_t, uint8_t *);
+Breakpoint 643 at 0x110e7e: file fs/tarfs.c, line 112.
+static struct dirent *readdir_tar_root(fsNode_t *, unsigned long);
+Breakpoint 644 at 0x110e52: file fs/tarfs.c, line 99.
+static unsigned int round_to_512(unsigned int);
+Breakpoint 645 at 0x110d75: file fs/tarfs.c, line 72.
+static int tarfs_ustarFromOffset(tarfs_t *, unsigned int, ustar_t *);
+Breakpoint 646 at 0x1118f4: file fs/tarfs.c, line 356.
+static fsNode_t *tarfs_ustarToFile(tarfs_t *, ustar_t *, unsigned int);
+Breakpoint 647 at 0x10fd1f: file fs/vfs.c, line 291.
+void debug_print_vfs_tree(bool);
+Breakpoint 648 at 0x10fbd2: file fs/vfs.c, line 261.
+void debug_print_vfs_tree_node(tree_node_t *, size_t, bool);
+Breakpoint 649 at 0x10f619: file fs/vfs.c, line 89.
+int unlinkFilesystem(char *);
+Breakpoint 650 at 0x10fb08: file fs/vfs.c, line 239.
+static fsNode_t *vfs_mapper();
+Breakpoint 651 at 0x10f9b1: file fs/vfs.c, line 201.
+static struct dirent *vfs_readdirMapper(fsNode_t *, unsigned long);
+Breakpoint 652 at 0x10d0e3: file gfx/bitmap.c, line 62.
+bitmap_t *createBitmap();
+Breakpoint 653 at 0x10d106: file gfx/bitmap.c, line 71.
+void displayBitmap(bitmap_t *, int, int);
+Breakpoint 654 at 0x10f1dd: file gfx/font.c, line 85.
+void psfGetPSFInfo();
+Breakpoint 655 at 0x10e32b: file gfx/terminal.c, line 149.
+void clearScreen_VESA(uint8_t, uint8_t);
+Breakpoint 656 at 0x10eda1: file gfx/terminal.c, line 445.
+char *getShell();
+Breakpoint 657 at 0x10dec4: file gfx/terminal.c, line 19.
+void initTerminal(void);
+Breakpoint 658 at 0x10e0c9: file gfx/terminal.c, line 86.
+void scrollTerminal_vesa();
+Breakpoint 659 at 0x10e750: file gfx/terminal.c, line 260.
+void setCursorEnabled(bool);
+Breakpoint 660 at 0x10eb13: file gfx/terminal.c, line 388.
+void terminalBackspaceVESA();
+Breakpoint 661 at 0x10e8df: file gfx/terminal.c, line 323.
+void terminalPutcharVESA(char);
+Breakpoint 662 at 0x10eccf: file gfx/terminal.c, line 437.
+void updateShell();
+Breakpoint 663 at 0x10e027: file gfx/terminal.c, line 60.
+void updateTerminalColor_gfx(uint8_t, uint8_t);
+Breakpoint 664 at 0x10e493: file gfx/terminal.c, line 191.
+void updateTextCursor();
+Breakpoint 665 at 0x10e6d0: file gfx/terminal.c, line 249.
+static void clearTextCursor_vesa();
+Breakpoint 666 at 0x10e642: file gfx/terminal.c, line 236.
+static void redrawTextCursor_vesa();
+Breakpoint 667 at 0x10d620: file gfx/vesa.c, line 155.
+uint32_t VGA_TO_VBE(uint8_t);
+Breakpoint 668 at 0x10d559: file gfx/vesa.c, line 123.
+uint32_t vbeGetMode(uint32_t, uint32_t, uint32_t);
+Breakpoint 669 at 0x10da98: file gfx/vesa.c, line 306.
+uint32_t vbeGetPixel(int, int);
+Breakpoint 670 at 0x10d4c9: file gfx/vesa.c, line 106.
+void vbeSetMode(uint32_t);
+Breakpoint 671 at 0x10da06: file gfx/vesa.c, line 284.
+int vbeSwitchBuffers();
+Breakpoint 672 at 0x10d42e: file gfx/vesa.c, line 83.
+void vesaPrintModes();
+Breakpoint 673 at 0x10d7b5: file gfx/vesa.c, line 199.
+int vesa_initGOP(multiboot_info *);
+Breakpoint 674 at 0x10d275: file gfx/vesa.c, line 37.
+static void vbeGetInfo();
+Breakpoint 675 at 0x10d31c: file gfx/vesa.c, line 62.
+static vbeModeInfo_t vbeGetModeInfo(uint16_t);
+Breakpoint 676 at 0x103cb4: file kernel/cmds.c, line 239.
+int readFloppyTest(int);
+Breakpoint 677 at 0x10404f: file kernel/cmds.c, line 355.
+int serviceBIOS32(int, char **);
+Breakpoint 678 at 0x1050f9: file kernel/cmds.c, line 838.
+void thread(void *);
+Breakpoint 679 at 0x1079e4: file kernel/command.c, line 98.
+int help(int, char **);
+Breakpoint 680 at 0x1076b5: file kernel/command.c, line 21.
+static int parseArguments(char *, char ***);
+Breakpoint 681 at 0x106ac0: file kernel/kernel.c, line 37.
+int enterUsermode(int, char **);
+Breakpoint 682 at 0x106af5: file kernel/kernel.c, line 56.
+void kmain(unsigned long, unsigned long);
+Breakpoint 683 at 0x107658: file kernel/kernel.c, line 402.
+void kshell();
+Breakpoint 684 at 0x1072aa: file kernel/kernel.c, line 331.
+void useCommands();
+Breakpoint 685 at 0x106a85: file kernel/kernel.c, line 27.
+void usermodeMain();
+Breakpoint 686 at 0x1059ef: file kernel/panic.c, line 124.
+void stackTrace(uint32_t, registers_t *);
+Breakpoint 687 at 0x105c1f: file kernel/panic.c, line 165.
+void vgaTextMode_Panic(char *, char *, char *, registers_t *, uint32_t);
+Breakpoint 688 at 0x10568a: file kernel/panic.c, line 26.
+static void dumpPMM();
+Breakpoint 689 at 0x102dee: file kernel/test.c, line 1133.
+int badapple_test();
+Breakpoint 690 at 0x10049b: file kernel/test.c, line 132.
+int bios32_tests();
+Breakpoint 691 at 0x102c92: file kernel/test.c, line 1099.
+int bitmap_test();
+Breakpoint 692 at 0x102e0b: file kernel/test.c, line 1233.
+int cpu_tests();
+Breakpoint 693 at 0x102149: file kernel/test.c, line 843.
+int ext2_tests();
+Breakpoint 694 at 0x1011f7: file kernel/test.c, line 412.
+int fat_tests();
+Breakpoint 695 at 0x100535: file kernel/test.c, line 145.
+int floppy_tests();
+Breakpoint 696 at 0x100621: file kernel/test.c, line 178.
+int ide_tests();
+Breakpoint 697 at 0x100166: file kernel/test.c, line 58.
+int liballoc_tests();
+Breakpoint 698 at 0x100036: file kernel/test.c, line 25.
+int pmm_tests();
+Breakpoint 699 at 0x101f88: file kernel/test.c, line 776.
+int vfs_tests();
+Breakpoint 700 at 0x119680: file mem/dma.c, line 121.
+static void dma_setMode(uint8_t, uint8_t);
+Breakpoint 701 at 0x11a25b: file mem/liballoc/liballoc.c, line 728.
+void *liballoc_kcalloc(size_t, size_t);
+Breakpoint 702 at 0x119fff: file mem/liballoc/liballoc.c, line 598.
+void liballoc_kfree(void *);
+Breakpoint 703 at 0x119961: file mem/liballoc/liballoc.c, line 242.
+void *liballoc_kmalloc(size_t);
+Breakpoint 704 at 0x11a296: file mem/liballoc/liballoc.c, line 746.
+void *liballoc_krealloc(void *, size_t);
+Breakpoint 705 at 0x119850: file mem/liballoc/liballoc.c, line 190.
+static struct liballoc_major *allocate_new_page(unsigned int);
+Breakpoint 706 at 0x1197e7: file mem/liballoc/liballoc.c, line 118.
+static void *liballoc_memcpy(void *, const void *, size_t);
+Breakpoint 707 at 0x1197ba: file mem/liballoc/liballoc.c, line 109.
+static void *liballoc_memset(void *, int, size_t);
+Breakpoint 708 at 0x11a3e6: file mem/liballoc/liballoc_forwarder.c, line 21.
+void enable_liballoc();
+Breakpoint 709 at 0x11a486: file mem/liballoc/liballoc_forwarder.c, line 50.
+void *kcalloc(void *, size_t);
+Breakpoint 710 at 0x11a4ba: file mem/liballoc/liballoc_forwarder.c, line 58.
+void kfree(void *);
+Breakpoint 711 at 0x11a3f9: file mem/liballoc/liballoc_forwarder.c, line 26.
+uint32_t kmalloc(uint32_t);
+Breakpoint 712 at 0x11a452: file mem/liballoc/liballoc_forwarder.c, line 42.
+void *krealloc(void *, size_t);
+Breakpoint 713 at 0x11a525: file mem/liballoc/liballoc_wrapper.c, line 30.
+void *liballoc_alloc(size_t);
+Breakpoint 714 at 0x11a5bf: file mem/liballoc/liballoc_wrapper.c, line 50.
+int liballoc_free(void *, size_t);
+Breakpoint 715 at 0x11a4eb: file mem/liballoc/liballoc_wrapper.c, line 17.
+int liballoc_lock();
+Breakpoint 716 at 0x11a508: file mem/liballoc/liballoc_wrapper.c, line 23.
+int liballoc_unlock();
+Breakpoint 717 at 0x118290: file mem/pmm.c, line 92.
+void clearFrame(uint32_t);
+Breakpoint 718 at 0x1181a0: file mem/pmm.c, line 71.
+void pmm_clearFrame(int);
+Breakpoint 719 at 0x118331: file mem/pmm.c, line 114.
+uint32_t pmm_firstFrame();
+Breakpoint 720 at 0x1183b1: file mem/pmm.c, line 131.
+uint32_t pmm_firstFrames(size_t);
+Breakpoint 721 at 0x11814a: file mem/pmm.c, line 66.
+void pmm_setFrame(int);
+Breakpoint 722 at 0x1181f7: file mem/pmm.c, line 75.
+bool pmm_testFrame(int);
+Breakpoint 723 at 0x118237: file mem/pmm.c, line 81.
+void setFrame(uint32_t);
+Breakpoint 724 at 0x1182eb: file mem/pmm.c, line 103.
+uint32_t testFrame(uint32_t);
+Breakpoint 725 at 0x11ec64: file misc/hashmap.c, line 47.
+int hashmap_int_comp(const void *, const void *);
+Breakpoint 726 at 0x11ec77: file misc/hashmap.c, line 51.
+void *hashmap_int_dupe(const void *);
+Breakpoint 727 at 0x11ec5c: file misc/hashmap.c, line 43.
+unsigned int hashmap_int_hash(const void *);
+Breakpoint 728 at 0x11ec7f: file misc/hashmap.c, line 56.
+static void hashmap_int_free(void *);
+Breakpoint 729 at 0x11fd43: file misc/ksym.c, line 20.
+static void ksym_bind_symbol(const char *, void *);
+Breakpoint 730 at 0x11f79c: file misc/tree.c, line 163.
+tree_node_t *tree_node_find(tree_node_t *, void *, tree_comparator_t);
+Breakpoint 731 at 0x11f365: file misc/tree.c, line 36.
+void tree_node_free(tree_node_t *);
+Breakpoint 732 at 0x121e30: file sleep/sleep.c, line 9.
+void sleep(int);
+Breakpoint 733 at 0x121ecd: file spinlock/spinlock.c, line 10.
+struct {
+    _Bool __val;
+} *spinlock_init();
+Breakpoint 734 at 0x121eef: file spinlock/spinlock.c, line 18.
+void spinlock_lock(struct {...} *);
+Breakpoint 735 at 0x121f07: file spinlock/spinlock.c, line 25.
+void spinlock_release(struct {...} *);
+Breakpoint 736 at 0x123470: file stdio/printf.c, line 449.
+int printf(const char *, ...);
+Breakpoint 737 at 0x123371: file stdio/printf.c, line 415.
+int snprintf(char *, size_t, const char *, ...);
+Breakpoint 738 at 0x1233fc: file stdio/printf.c, line 433.
+int sprintf(char *, const char *, ...);
+Breakpoint 739 at 0x123328: file stdio/printf.c, line 408.
+int vsnprintf(char *, size_t, const char *, va_list);
+Breakpoint 740 at 0x1224fa: file stdio/printf.c, line 154.
+size_t xvasprintf(int (*)(void *, char), void *, const char *, va_list);
+Breakpoint 741 at 0x123453: file stdio/printf.c, line 443.
+static int cb_printf(void *, char);
+Breakpoint 742 at 0x1232c0: file stdio/printf.c, line 396.
+static int cb_sprintf(void *, char);
+Breakpoint 743 at 0x1233c7: file stdio/printf.c, line 425.
+static int cb_sxprintf(void *, char);
+Breakpoint 744 at 0x121f32: file stdio/printf.c, line 37.
+static size_t print_dec(unsigned long long, unsigned int, int (*)(void *, char), void *, int, int, int);
+Breakpoint 745 at 0x1222a5: file stdio/printf.c, line 102.
+static size_t print_hex(unsigned long long, unsigned int, int (*)(void *, char), void *, int, int, int, int);
+Breakpoint 746 at 0x12349c: file stdlib/stdlib.c, line 10.
+int abs(int);
+Breakpoint 747 at 0x1234fc: file stdlib/stdlib.c, line 22.
+double max(double, double);
+Breakpoint 748 at 0x1234c8: file stdlib/stdlib.c, line 16.
+double min(double, double);
+Breakpoint 749 at 0x123524: file stdlib/stdlib.c, line 29.
+double sqrt(double);
+Breakpoint 750 at 0x123a9f: file string/string.c, line 216.
+int atoi(char *);
+Breakpoint 751 at 0x1239d7: file string/string.c, line 186.
+int isalpha(char);
+Breakpoint 752 at 0x123788: file string/string.c, line 95.
+void itoa(void *, char *, int);
+Breakpoint 753 at 0x123864: file string/string.c, line 129.
+void itoa_long(uint64_t, char *, int);
+Breakpoint 754 at 0x1248ca: file string/string.c, line 600.
+void *memchr(const void *, int, size_t);
+Breakpoint 755 at 0x123618: file string/string.c, line 21.
+int memcmp(const void *, const void *, size_t);
+Breakpoint 756 at 0x12367b: file string/string.c, line 38.
+void *memcpy(void * restrict, const void * restrict, size_t);
+Breakpoint 757 at 0x1236ba: file string/string.c, line 52.
+void *memmove(void *, const void *, size_t);
+Breakpoint 758 at 0x123732: file string/string.c, line 74.
+void *memset(void *, char, size_t);
+Breakpoint 759 at 0x123df9: file string/string.c, line 339.
+char *strchr(char *, int);
+Breakpoint 760 at 0x123e29: file string/string.c, line 352.
+char *strchrnul(const char *, int);
+Breakpoint 761 at 0x123a03: file string/string.c, line 192.
+int strcmp(const char *, char *);
+Breakpoint 762 at 0x123953: file string/string.c, line 162.
+char *strcpy(char *, const char *);
+Breakpoint 763 at 0x123f06: file string/string.c, line 369.
+size_t strcspn(const char *, const char *);
+Breakpoint 764 at 0x123760: file string/string.c, line 82.
+int strlen(char *);
+Breakpoint 765 at 0x1241be: file string/string.c, line 430.
+char *strncat(char *, const char *, size_t);
+Breakpoint 766 at 0x123a51: file string/string.c, line 204.
+int strncmp(const char *, char *, int);
+Breakpoint 767 at 0x12410a: file string/string.c, line 400.
+char *strpbrk(const char *, const char *);
+Breakpoint 768 at 0x124008: file string/string.c, line 382.
+size_t strspn(const char *, const char *);
+Breakpoint 769 at 0x124996: file string/string.c, line 614.
+char *strstr(const char *, const char *);
+Breakpoint 770 at 0x123af2: file string/string.c, line 228.
+char *strtok(char *, const char *);
+Breakpoint 771 at 0x124137: file string/string.c, line 407.
+char *strtok_r(char *, const char *, char **);
+Breakpoint 772 at 0x123bc9: file string/string.c, line 261.
+long strtol(const char *, char **, int);
+Breakpoint 773 at 0x1239b0: file string/string.c, line 179.
+char tolower(char);
+Breakpoint 774 at 0x123989: file string/string.c, line 170.
+char toupper(char);
+Breakpoint 775 at 0x124217: file string/string.c, line 448.
+static char *strstr_2b(const unsigned char *, const unsigned char *);
+Breakpoint 776 at 0x1242ac: file string/string.c, line 455.
+static char *strstr_3b(const unsigned char *, const unsigned char *);
+Breakpoint 777 at 0x12435f: file string/string.c, line 462.
+static char *strstr_4b(const unsigned char *, const unsigned char *);
+Breakpoint 778 at 0x124436: file string/string.c, line 471.
+static char *strstr_twoway(const unsigned char *, const unsigned char *);
+Breakpoint 779 at 0x11dcd7: file tasks/elf.c, line 17.
+int elf_checkFile(Elf32_Ehdr *);
+Breakpoint 780 at 0x11e27f: file tasks/elf.c, line 252.
+Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *, int);
+Breakpoint 781 at 0x11ddb1: file tasks/elf.c, line 46.
+int elf_isCompatible(Elf32_Ehdr *);
+Breakpoint 782 at 0x11df13: file tasks/elf.c, line 118.
+void *elf_lookupSymbol(const char *);
+Breakpoint 783 at 0x11e826: file tasks/elf.c, line 464.
+static void elf_cleanExecutable(char *);
+Breakpoint 784 at 0x11e91d: file tasks/elf.c, line 488.
+static void elf_cleanRelocatable(Elf32_Ehdr *);
+Breakpoint 785 at 0x11df3c: file tasks/elf.c, line 132.
+static int elf_getSymbolValue(Elf32_Ehdr *, int, uint32_t);
+Breakpoint 786 at 0x11e7d1: file tasks/elf.c, line 445.
+static void *elf_loadExecutable(char *);
+Breakpoint 787 at 0x11e750: file tasks/elf.c, line 417.
+static void *elf_loadRelocatable(Elf32_Ehdr *);
+Breakpoint 788 at 0x11e411: file tasks/elf.c, line 293.
+static int elf_loadStage1(Elf32_Ehdr *);
+Breakpoint 789 at 0x11e667: file tasks/elf.c, line 378.
+static int elf_loadStage2(Elf32_Ehdr *);
+Breakpoint 790 at 0x11e2a4: file tasks/elf.c, line 257.
+static int elf_parsePHDR(Elf32_Ehdr *, char *);
+Breakpoint 791 at 0x11e585: file tasks/elf.c, line 341.
+static int elf_relocate(Elf32_Ehdr *, Elf32_Rel *, Elf32_Shdr *);
+Breakpoint 792 at 0x11deef: file tasks/elf.c, line 89.
+static Elf32_Shdr *elf_section(Elf32_Ehdr *, int);
+Breakpoint 793 at 0x11dedf: file tasks/elf.c, line 84.
+static Elf32_Shdr *elf_sheader(Elf32_Ehdr *);
+Breakpoint 794 at 0x11b4e9: file tasks/module.c, line 251.
+void module_init();
+Breakpoint 795 at 0x11ad59: file tasks/module.c, line 90.
+static void module_handleFaultPriority(char *, char *);
+Breakpoint 796 at 0x11d558: file tasks/process.c, line 975.
+pid_t clone(uintptr_t, uintptr_t, uintptr_t);
+Breakpoint 797 at 0x11d405: file tasks/process.c, line 927.
+pid_t fork();
+Breakpoint 798 at 0x11b9b6: file tasks/process.c, line 166.
+pid_t getNextPID();
+Breakpoint 799 at 0x11b980: file tasks/process.c, line 156.
+int isValidProcess(process_t *);
+Breakpoint 800 at 0x11c3b5: file tasks/process.c, line 444.
+void makeProcessReady(volatile process_t *);
+Breakpoint 801 at 0x11d18e: file tasks/process.c, line 843.
+int process_alert_node_locked(process_t *, void *);
+Breakpoint 802 at 0x11d032: file tasks/process.c, line 806.
+int process_awaken_from_fswait(process_t *, int);
+Breakpoint 803 at 0x11cab3: file tasks/process.c, line 657.
+uint8_t process_compare(void *, void *);
+Breakpoint 804 at 0x11c26a: file tasks/process.c, line 402.
+void process_delete(process_t *);
+Breakpoint 805 at 0x11cad4: file tasks/process.c, line 664.
+process_t *process_from_pid(pid_t);
+Breakpoint 806 at 0x11d2a0: file tasks/process.c, line 878.
+process_t *process_get_parent(process_t *);
+Breakpoint 807 at 0x11c774: file tasks/process.c, line 577.
+int process_isReady(process_t *);
+Breakpoint 808 at 0x11c100: file tasks/process.c, line 363.
+void process_reap(process_t *);
+Breakpoint 809 at 0x11c1d3: file tasks/process.c, line 383.
+void process_reapLater(process_t *);
+Breakpoint 810 at 0x11b9db: file tasks/process.c, line 184.
+void process_releaseDirectory(thread_t *);
+Breakpoint 811 at 0x11b73a: file tasks/process.c, line 67.
+void process_switchContext(thread_t *);
+Breakpoint 812 at 0x11b75b: file tasks/process.c, line 72.
+void process_switchNext();
+Breakpoint 813 at 0x11b88e: file tasks/process.c, line 112.
+void process_switchTask(uint8_t);
+Breakpoint 814 at 0x11b945: file tasks/process.c, line 147.
+void scheduler_init();
+Breakpoint 815 at 0x11c673: file tasks/process.c, line 545.
+int sleep_on(list_t *);
+Breakpoint 816 at 0x11c6fe: file tasks/process.c, line 563.
+int sleep_on_unlocking(list_t *, struct {...} *);
+Breakpoint 817 at 0x11bbfc: file tasks/process.c, line 238.
+process_t *spawn_init();
+Breakpoint 818 at 0x11ba5a: file tasks/process.c, line 199.
+process_t *spawn_kidle(int);
+Breakpoint 819 at 0x11cb39: file tasks/process.c, line 675.
+void tasking_start();
+Breakpoint 820 at 0x11b507: file tasks/process.c, line 41.
+void updateProcessTimes();
+Breakpoint 821 at 0x11b679: file tasks/process.c, line 56.
+void updateProcessTimesOnExit();
+Breakpoint 822 at 0x11c54b: file tasks/process.c, line 503.
+int wakeup_queue(list_t *);
+Breakpoint 823 at 0x11c5e0: file tasks/process.c, line 525.
+int wakeup_queue_one(list_t *);
+Breakpoint 824 at 0x11b9cb: file tasks/process.c, line 173.
+static void kidle();
+Breakpoint 825 at 0x11c1ab: file tasks/process.c, line 377.
+static int process_isOwned(process_t *);
+Breakpoint 826 at 0x11cb5b: file tasks/process.c, line 680.
+static int wait_candidate(volatile process_t *, int, int, volatile process_t *);
+Breakpoint 827 at 0x11a803: file tasks/syscall.c, line 61.
+void syscallHandler(registers_t *);
+Breakpoint 828 at 0x11a77e: file tasks/syscall.c, line 38.
+int syscall__exit(int);
+Breakpoint 829 at 0x11a79d: file tasks/syscall.c, line 39.
+int syscall_sys_read(int, void *, size_t);
+Breakpoint 830 at 0x11a768: file tasks/syscall.c, line 37.
+int syscall_sys_restart_syscall();
+Breakpoint 831 at 0x11a7c0: file tasks/syscall.c, line 40.
+int syscall_sys_write(int, const void *, size_t);
+Breakpoint 832 at 0x8048091: file test.c, line 5.
+int main();
+Breakpoint 833 at 0x125061: file time/arch_gettime.c, line 10.
+int gettimeofday(struct timeval *, void *);
+Breakpoint 834 at 0x12507a: file time/arch_gettime.c, line 16.
+uint64_t now();
+Breakpoint 835 at 0x125099: file time/arch_gettime.c, line 23.
+int settimeofday(struct timeval *, void *);
+Breakpoint 836 at 0x124fbc: file time/localtime.c, line 163.
+struct tm *gmtime(const time_t *);
+Breakpoint 837 at 0x124f80: file time/localtime.c, line 153.
+struct tm *gmtime_r(const time_t *, struct tm *);
+Breakpoint 838 at 0x124f9d: file time/localtime.c, line 158.
+struct tm *localtime(const time_t *);
+Breakpoint 839 at 0x124cc5: file time/localtime.c, line 78.
+struct tm *localtime_fillTime(const time_t *, struct tm *, const char *, int);
+Breakpoint 840 at 0x124bf1: file time/localtime.c, line 47.
+int localtime_getDayOfWeek(long);
+Breakpoint 841 at 0x124b65: file time/localtime.c, line 15.
+long localtime_getDaysInMonth(int, int);
+Breakpoint 842 at 0x124c45: file time/localtime.c, line 54.
+long localtime_getSecondsOfMonths(int, int);
+Breakpoint 843 at 0x124c83: file time/localtime.c, line 67.
+unsigned int localtime_getSecondsOfYears(int);
+Breakpoint 844 at 0x124b01: file time/localtime.c, line 10.
+bool localtime_isYearLeap(int);
+Breakpoint 845 at 0x124f63: file time/localtime.c, line 148.
+struct tm *localtime_r(const time_t *, struct tm *);
+Breakpoint 846 at 0x124fdc: file time/localtime.c, line 169.
+time_t mktime(struct tm *);
+Breakpoint 847 at 0x124ad5: file time/time.c, line 17.
+double difftime(time_t, time_t);
+Breakpoint 848 at 0x124a8a: file time/time.c, line 8.
+time_t time(time_t *);
+Breakpoint 849 at 0x100000
+<function, no debug info> multiboot_header;
+Note: breakpoint 849 also set at pc 0x100000.
+Breakpoint 850 at 0x100000
+<function, no debug info> start;
+Breakpoint 851 at 0x121724
+<function, no debug info> BIOS32_END;
+Breakpoint 852 at 0x1219e4
+<function, no debug info> enter_tasklet;
+Breakpoint 853 at 0x1219e8
+<function, no debug info> save_context;
+Breakpoint 854 at 0x121a12
+<function, no debug info> load_context;
+Breakpoint 855 at 0x121a40
+<function, no debug info> deregister_tm_clones;
+Breakpoint 856 at 0x121a80
+<function, no debug info> register_tm_clones;
+Breakpoint 857 at 0x121ad0
+<function, no debug info> __do_global_dtors_aux;
+Breakpoint 858 at 0x121b50
+<function, no debug info> frame_dummy;
+Breakpoint 859 at 0x121b90
+<function, no debug info> __do_global_ctors_aux;
+Breakpoint 860 at 0x126000
+<function, no debug info> text_end;
+Breakpoint 861 at 0x126005
+<function, no debug info> _init;
+Breakpoint 862 at 0x126014
+<function, no debug info> _fini;
+Continuing.
+
+Breakpoint 396, serialWrite (user=0x0, c=100 'd') at drivers/serial.c:35
+Continuing.
+
+Breakpoint 579, serialIsTransmitEmpty () at drivers/serial.c:30
+Continuing.
+
+Breakpoint 262, inportb (port=1021) at arch/i386/hal.c:46
+Continuing.
+
+Breakpoint 267, outportb (port=1016, value=100 'd') at arch/i386/hal.c:52
+Continuing.
+
+Breakpoint 396, serialWrite (user=0x0, c=10 '\n') at drivers/serial.c:35
+Continuing.
+
+Breakpoint 579, serialIsTransmitEmpty () at drivers/serial.c:30
+Continuing.
+
+Breakpoint 262, inportb (port=1021) at arch/i386/hal.c:46
+Continuing.
+
+Breakpoint 267, outportb (port=1016, value=10 '\n') at arch/i386/hal.c:52
+Continuing.
+
+Breakpoint 519, isrIRQHandler (reg=0x65e9000) at arch/i386/isr.c:42
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 520, pitIRQ (reg=0x65e9000) at arch/i386/pit.c:15
+Continuing.
+
+Breakpoint 438, updateTextCursor_vesa () at gfx/terminal.c:208
+Continuing.
+
+Breakpoint 136, clock_update () at drivers/clock.c:255
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x20080) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=31135883224, d=3797) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 533, clock_updateTicks (ticks=8200127, timer_ticks=0x65e8f9c, timer_subticks=0x65e8f94) at drivers/clock.c:202
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=7444383, d=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 80, __umoddi3 (u=7444383, v=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1306
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x20080) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 385, wakeup_sleepers (seconds=7, subseconds=0) at tasks/process.c:585
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 306, isrAcknowledge (interruptNumber=32) at arch/i386/isr.c:18
+Continuing.
+
+Breakpoint 265, interruptCompleted (intNo=32) at arch/i386/hal.c:14
+Continuing.
+
+Breakpoint 267, outportb (port=32, value=32 ' ') at arch/i386/hal.c:52
+Continuing.
+
+Breakpoint 813, process_switchTask (reschedule=1 '\001') at tasks/process.c:112
+Continuing.
+
+Breakpoint 853, 0x001219e8 in save_context ()
+Continuing.
+
+Breakpoint 800, makeProcessReady (proc=0x1a9090) at tasks/process.c:444
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 321, list_append (list=0x20810, node=0x1a90d0) at misc/list.c:28
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 812, process_switchNext () at tasks/process.c:72
+Continuing.
+
+Breakpoint 820, updateProcessTimes () at tasks/process.c:41
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 378, process_getNextReadyProcess () at tasks/process.c:476
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 326, list_dequeue (list=0x20810) at misc/list.c:148
+Continuing.
+
+Breakpoint 325, list_delete (list=0x20810, node=0x1a90d0) at misc/list.c:114
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbad <switch_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 499, vmm_switchDirectory (directory=0x9000) at mem/vmm.c:40
+Continuing.
+
+Breakpoint 496, vmm_loadPDBR (pdbr_addr=36864) at mem/vmm.c:35
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbad <switch_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 458, setKernelStack (stack=106860608) at tasks/tss.c:35
+Continuing.
+
+Breakpoint 854, 0x00121a12 in load_context ()
+Continuing.
+
+Breakpoint 821, updateProcessTimesOnExit () at tasks/process.c:56
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 519, isrIRQHandler (reg=0x65e9000) at arch/i386/isr.c:42
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 520, pitIRQ (reg=0x65e9000) at arch/i386/pit.c:15
+Continuing.
+
+Breakpoint 438, updateTextCursor_vesa () at gfx/terminal.c:208
+Continuing.
+
+Breakpoint 136, clock_update () at drivers/clock.c:255
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x20080) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=31197818018, d=3797) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 533, clock_updateTicks (ticks=8216438, timer_ticks=0x65e8f9c, timer_subticks=0x65e8f94) at drivers/clock.c:202
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=7460694, d=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 80, __umoddi3 (u=7460694, v=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1306
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x20080) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 385, wakeup_sleepers (seconds=7, subseconds=0) at tasks/process.c:585
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 306, isrAcknowledge (interruptNumber=32) at arch/i386/isr.c:18
+Continuing.
+
+Breakpoint 265, interruptCompleted (intNo=32) at arch/i386/hal.c:14
+Continuing.
+
+Breakpoint 267, outportb (port=32, value=32 ' ') at arch/i386/hal.c:52
+Continuing.
+
+Breakpoint 813, process_switchTask (reschedule=1 '\001') at tasks/process.c:112
+Continuing.
+
+Breakpoint 853, 0x001219e8 in save_context ()
+Continuing.
+
+Breakpoint 800, makeProcessReady (proc=0x1a9090) at tasks/process.c:444
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 321, list_append (list=0x20810, node=0x1a90d0) at misc/list.c:28
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 812, process_switchNext () at tasks/process.c:72
+Continuing.
+
+Breakpoint 820, updateProcessTimes () at tasks/process.c:41
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 378, process_getNextReadyProcess () at tasks/process.c:476
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 326, list_dequeue (list=0x20810) at misc/list.c:148
+Continuing.
+
+Breakpoint 325, list_delete (list=0x20810, node=0x1a90d0) at misc/list.c:114
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbad <switch_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 499, vmm_switchDirectory (directory=0x9000) at mem/vmm.c:40
+Continuing.
+
+Breakpoint 496, vmm_loadPDBR (pdbr_addr=36864) at mem/vmm.c:35
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbad <switch_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 458, setKernelStack (stack=106860608) at tasks/tss.c:35
+Continuing.
+
+Breakpoint 854, 0x00121a12 in load_context ()
+Continuing.
+
+Breakpoint 821, updateProcessTimesOnExit () at tasks/process.c:56
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 519, isrIRQHandler (reg=0x65e9000) at arch/i386/isr.c:42
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 520, pitIRQ (reg=0x65e9000) at arch/i386/pit.c:15
+Continuing.
+
+Breakpoint 438, updateTextCursor_vesa () at gfx/terminal.c:208
+Continuing.
+
+Breakpoint 136, clock_update () at drivers/clock.c:255
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x20080) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=31255014592, d=3797) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 533, clock_updateTicks (ticks=8231502, timer_ticks=0x65e8f9c, timer_subticks=0x65e8f94) at drivers/clock.c:202
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=7475758, d=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 80, __umoddi3 (u=7475758, v=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1306
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x20080) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 385, wakeup_sleepers (seconds=7, subseconds=0) at tasks/process.c:585
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 306, isrAcknowledge (interruptNumber=32) at arch/i386/isr.c:18
+Continuing.
+
+Breakpoint 265, interruptCompleted (intNo=32) at arch/i386/hal.c:14
+Continuing.
+
+Breakpoint 267, outportb (port=32, value=32 ' ') at arch/i386/hal.c:52
+Continuing.
+
+Breakpoint 813, process_switchTask (reschedule=1 '\001') at tasks/process.c:112
+Continuing.
+
+Breakpoint 853, 0x001219e8 in save_context ()
+Continuing.
+
+Breakpoint 800, makeProcessReady (proc=0x1a9090) at tasks/process.c:444
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 321, list_append (list=0x20810, node=0x1a90d0) at misc/list.c:28
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 812, process_switchNext () at tasks/process.c:72
+Continuing.
+
+Breakpoint 820, updateProcessTimes () at tasks/process.c:41
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 378, process_getNextReadyProcess () at tasks/process.c:476
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 326, list_dequeue (list=0x20810) at misc/list.c:148
+Continuing.
+
+Breakpoint 325, list_delete (list=0x20810, node=0x1a90d0) at misc/list.c:114
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbad <switch_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 499, vmm_switchDirectory (directory=0x9000) at mem/vmm.c:40
+Continuing.
+
+Breakpoint 496, vmm_loadPDBR (pdbr_addr=36864) at mem/vmm.c:35
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbad <switch_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 458, setKernelStack (stack=106860608) at tasks/tss.c:35
+Continuing.
+
+Breakpoint 854, 0x00121a12 in load_context ()
+Continuing.
+
+Breakpoint 821, updateProcessTimesOnExit () at tasks/process.c:56
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 519, isrIRQHandler (reg=0x65e9000) at arch/i386/isr.c:42
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 520, pitIRQ (reg=0x65e9000) at arch/i386/pit.c:15
+Continuing.
+
+Breakpoint 438, updateTextCursor_vesa () at gfx/terminal.c:208
+Continuing.
+
+Breakpoint 136, clock_update () at drivers/clock.c:255
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x20080) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=31314247396, d=3797) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 533, clock_updateTicks (ticks=8247102, timer_ticks=0x65e8f9c, timer_subticks=0x65e8f94) at drivers/clock.c:202
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=7491358, d=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 80, __umoddi3 (u=7491358, v=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1306
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x20080) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 385, wakeup_sleepers (seconds=7, subseconds=0) at tasks/process.c:585
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 306, isrAcknowledge (interruptNumber=32) at arch/i386/isr.c:18
+Continuing.
+
+Breakpoint 265, interruptCompleted (intNo=32) at arch/i386/hal.c:14
+Continuing.
+
+Breakpoint 267, outportb (port=32, value=32 ' ') at arch/i386/hal.c:52
+Continuing.
+
+Breakpoint 813, process_switchTask (reschedule=1 '\001') at tasks/process.c:112
+Continuing.
+
+Breakpoint 853, 0x001219e8 in save_context ()
+Continuing.
+
+Breakpoint 800, makeProcessReady (proc=0x1a9090) at tasks/process.c:444
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 321, list_append (list=0x20810, node=0x1a90d0) at misc/list.c:28
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 812, process_switchNext () at tasks/process.c:72
+Continuing.
+
+Breakpoint 820, updateProcessTimes () at tasks/process.c:41
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 378, process_getNextReadyProcess () at tasks/process.c:476
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 326, list_dequeue (list=0x20810) at misc/list.c:148
+Continuing.
+
+Breakpoint 325, list_delete (list=0x20810, node=0x1a90d0) at misc/list.c:114
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbad <switch_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 499, vmm_switchDirectory (directory=0x9000) at mem/vmm.c:40
+Continuing.
+
+Breakpoint 496, vmm_loadPDBR (pdbr_addr=36864) at mem/vmm.c:35
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbad <switch_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 458, setKernelStack (stack=106860608) at tasks/tss.c:35
+Continuing.
+
+Breakpoint 854, 0x00121a12 in load_context ()
+Continuing.
+
+Breakpoint 821, updateProcessTimesOnExit () at tasks/process.c:56
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 519, isrIRQHandler (reg=0x65e9000) at arch/i386/isr.c:42
+Continuing.
+
+Breakpoint 131, clock_getTimer () at drivers/clock.c:94
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 520, pitIRQ (reg=0x65e9000) at arch/i386/pit.c:15
+Continuing.
+
+Breakpoint 438, updateTextCursor_vesa () at gfx/terminal.c:208
+Continuing.
+
+Breakpoint 136, clock_update () at drivers/clock.c:255
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x20080) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 532, clock_readTSC () at drivers/clock.c:87
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=31376951994, d=3797) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 533, clock_updateTicks (ticks=8263616, timer_ticks=0x65e8f9c, timer_subticks=0x65e8f94) at drivers/clock.c:202
+Continuing.
+
+Breakpoint 79, __udivdi3 (n=7507872, d=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1318
+Continuing.
+
+Breakpoint 80, __umoddi3 (u=7507872, v=1000000) at ../../../gcc-7.1.0/libgcc/libgcc2.c:1306
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x20080) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 385, wakeup_sleepers (seconds=7, subseconds=0) at tasks/process.c:585
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fbab <sleep_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 306, isrAcknowledge (interruptNumber=32) at arch/i386/isr.c:18
+Continuing.
+
+Breakpoint 265, interruptCompleted (intNo=32) at arch/i386/hal.c:14
+Continuing.
+
+Breakpoint 267, outportb (port=32, value=32 ' ') at arch/i386/hal.c:52
+Continuing.
+
+Breakpoint 813, process_switchTask (reschedule=1 '\001') at tasks/process.c:112
+Continuing.
+
+Breakpoint 853, 0x001219e8 in save_context ()
+Continuing.
+
+Breakpoint 800, makeProcessReady (proc=0x1a9090) at tasks/process.c:444
+Continuing.
+
+Breakpoint 734, spinlock_lock (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:18
+Continuing.
+
+Breakpoint 321, list_append (list=0x20810, node=0x1a90d0) at misc/list.c:28
+Continuing.
+
+Breakpoint 735, spinlock_release (lock=0x16fba9 <process_queue_lock>) at spinlock/spinlock.c:25
+Continuing.
+
+Breakpoint 812, process_switchNext () at tasks/process.c:72
+Bad breakpoint number '*'
+Continuing.
+[Inferior 1 (process 1) exited normally]

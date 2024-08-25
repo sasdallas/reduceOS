@@ -116,7 +116,7 @@ void initSyscalls();
 long sys_restart_syscall();
 void _exit(int status);
 long sys_read(int file_desc, void *buf, size_t nbyte);
-long sys_write(int file_desc, const void *buf, size_t nbyte);
+long sys_write(int file_desc, char *buf, size_t nbyte);
 int sys_close(int fd);
 int sys_execve(char *name, char **argv, char **env);
 int sys_fork(void);
@@ -137,7 +137,7 @@ int sys_wait(int *status);
 DEFINE_SYSCALL0(sys_restart_syscall);
 DEFINE_SYSCALL1(_exit, int);
 DEFINE_SYSCALL3(sys_read, int, void*, size_t);
-DEFINE_SYSCALL3(sys_write, int, const void*, size_t);
+DEFINE_SYSCALL3(sys_write, int, char*, size_t);
 
 
 #endif

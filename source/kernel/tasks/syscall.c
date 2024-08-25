@@ -37,7 +37,7 @@ uint32_t syscallAmount = 18;
 DECLARE_SYSCALL0(sys_restart_syscall, 0);
 DECLARE_SYSCALL1(_exit, 1, int);
 DECLARE_SYSCALL3(sys_read, 2, int, void*, size_t);
-DECLARE_SYSCALL3(sys_write, 3, int, const void*, size_t);
+DECLARE_SYSCALL3(sys_write, 3, int, char*, size_t);
 // END DECLARATION OF TEST SYSTEM CALLS
 
 
@@ -111,7 +111,7 @@ long sys_read(int file_desc, void *buf, size_t nbyte) {
 }
 
 // SYSCALL 3 (https://man7.org/linux/man-pages/man2/write.2.html)
-long sys_write(int file_desc, const void *buf, size_t nbyte) {
+long sys_write(int file_desc, char *buf, size_t nbyte) {
     if (!nbyte) return 0;
     serialPrintf("%s", buf);
     return nbyte;
@@ -180,15 +180,19 @@ int sys_open(const char *name, int flags, int mode) {
 uint32_t sys_sbrk(int incr) {
     if (incr & 0xFFF) return -1;
     process_t *proc = currentProcess;
-    if (proc->group != 0) proc = process_from_pid(proc->group);
+    //if (proc->group != 0) proc = process_from_pid(proc->group);
 
     if (!proc) return -1;
 
     spinlock_lock(&proc->image.spinlock);
     uintptr_t out = proc->image.heap;
+    serialPrintf("Starting mapping at 0x%x...\n", out);
     for (uintptr_t i = out; i < out + incr; i += 4096) {
-        vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER); 
+        vmm_mapPhysicalAddress(proc->thread.page_directory, i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER); 
+        serialPrintf("Mapping to 0x%x...\n", i);
     }
+
+    serialPrintf("Finished mapping! Sending out 0x%x\n", out);
 
     proc->image.heap += incr;
     spinlock_release(&proc->image.spinlock);

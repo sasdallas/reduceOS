@@ -52,7 +52,8 @@
 			"stdio.h": "c",
 			"process.h": "c",
 			"bitmap.h": "c",
-			"vesa.h": "c"
+			"vesa.h": "c",
+			"assert.h": "c"
 		}
 	}
 }

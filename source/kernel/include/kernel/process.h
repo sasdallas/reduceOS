@@ -196,6 +196,8 @@ int waitpid(int pid, int *status, int options); // Wait for a process to finish/
 void sleep_until(process_t *process, unsigned long seconds, unsigned long subseconds);
 void wakeup_sleepers(unsigned long seconds, unsigned long subseconds);
 process_t *spawn_process(volatile process_t *parent, int flags); // Spawn a process
+int sleep_on_unlocking(list_t *queue, atomic_flag *release); // Wait for a binary semaphore
+
 
 
 
