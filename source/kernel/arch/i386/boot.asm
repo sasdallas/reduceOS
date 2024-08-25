@@ -34,6 +34,7 @@ multiboot_header:
     dd _start
 
     ; Request a framebuffer for 1024x768 with colordepth 32 BPP
+    ; As I'm writing this we don't actually even use this lmao.
     dd 0x0000000
     dd 1024
     dd 768

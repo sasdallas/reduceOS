@@ -119,19 +119,20 @@ static void dumpPMM() {
 }
 
 // This static function performes a stack trace to get the callers of panic.
-static void stackTrace(uint32_t maximumFrames) {
+void stackTrace(uint32_t maximumFrames, registers_t *reg) {
     stack_frame *stk;
-    asm volatile ("movl %%ebp, %0" : "=r"(stk));
+    stk->ebp = reg->ebp;
+    stk->eip = reg->eip;
     
     printf("\nStack trace:\n");
     serialPrintf("\nSTACK TRACE (EBP based):\n");
     
     for (uint32_t frame = 0; stk && frame < maximumFrames; frame++) {
         // Make sure the code is in kernelspace, else the symbol finder might crash
-        if (stk->eip < &text_start || stk->eip > &bss_end) {
-            printf("Frame %i: IP 0x%x (outside of kspace)\n", frame, stk->eip);
+        if (stk->eip && stk->eip < &text_start || stk->eip > &bss_end) {
+            printf("Frame %i: 0x%x (outside of kspace)\n", frame, stk->eip);
             serialPrintf("FRAME %i: IP 0x%x (outside of kspace)\n", frame, stk->eip);
-            stk = stk->eip;
+            stk = stk->ebp;
             continue;
         }
 
@@ -270,7 +271,7 @@ void *panic(char *caller, char *code, char *reason) {
     serialPrintf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
 
 
-    stackTrace(7); // Get a stack trace.
+    stackTrace(7, reg); // Get a stack trace.
 
     // Dump memory
     serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
@@ -333,7 +334,7 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
     // Perform stack trace
-    stackTrace(7);
+    stackTrace(7, reg);
 
 
     // Dump memory
@@ -413,7 +414,7 @@ void *pageFault(registers_t *reg) {
     serialPrintf("REGISTER DUMP:\n");
     serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
     serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
-    serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
+    serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->cs, reg->ss, reg->eflags, reg->useresp);
 
 
     // DUMP PMM FIRST
@@ -423,7 +424,7 @@ void *pageFault(registers_t *reg) {
     serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");
 
     // Perform stack trace (note: this might hang) 
-    stackTrace(7);
+    stackTrace(7, reg);
 
     printf("\nThe system has been halted. Attach debugger now to view context.\n");
 

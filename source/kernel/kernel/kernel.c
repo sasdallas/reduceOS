@@ -330,10 +330,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 void useCommands() {
     serialPrintf("kmain: Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
 
-
-    clearScreen(COLOR_WHITE, COLOR_CYAN);
-    
-    clearBuffer();
+    // Make sure the keyboard buffer is clear
+    clearBuffer(); 
 
     // Modules may want to use registerCommand
     initCommandHandler();
