@@ -30,7 +30,16 @@
 #include <stdarg.h>
 
 
-size_t (*printf_output)(size_t, uint8_t *) = NULL;
+size_t printf_out(size_t size, uint8_t *buffer) {
+	size_t sizeToWrite = size;
+	if (size > strlen(buffer)) sizeToWrite = strlen(buffer);
+	for (int i = 0; i < sizeToWrite; i++) {
+		terminalPutchar(buffer[i]);
+	}
+	return sizeToWrite;
+}
+
+size_t (*printf_output)(size_t, uint8_t *) = printf_out;
 
 #define OUT(c) do { callback(userData, (c)); written++; } while (0)
 static size_t print_dec(unsigned long long value, unsigned int width, int (*callback)(void*,char), void * userData, int fill_zero, int align_right, int precision) {

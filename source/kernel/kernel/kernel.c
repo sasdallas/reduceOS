@@ -8,6 +8,7 @@
 #include <kernel/cmds.h>
 #include <time.h>
 #include <kernel/process.h>
+#include <kernel/console.h>
 
 
 // ide_ata.c defined variables
@@ -209,9 +210,13 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     zerodev_init();             // /device/zero
     serialdev_init();           // /device/serial/COMx           
     modfs_init(globalInfo);     // /device/modules/modx
+    console_init();             // /device/console
 
     fsNode_t *comPort = open_file("/device/serial/COM1", 0);
     debugdev_init(comPort);     // /device/debug
+
+
+    console_setOutput(printf_output);
 
     // Try to find the initial ramdisk (sorry about the messy code)
     int i = 0;

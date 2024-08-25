@@ -42,5 +42,8 @@ static inline uint16_t vgaEntry(unsigned char uc, uint8_t color) { return (uint1
 // Parameters: Two gfxColor enums, foreground color and background color
 static inline uint8_t vgaColorEntry(enum gfxColor foreground, enum gfxColor background) { return foreground | background << 4; }
 
+void gfxDrawRect(int x1, int y1, int x2, int y2, uint32_t color, bool fill); // Draws a rectangle
+void gfxDrawLine(int x1, int y1, int x2, int y2, uint32_t color); // Draw a line.
+
 
 #endif

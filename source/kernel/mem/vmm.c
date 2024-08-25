@@ -123,6 +123,24 @@ void vmm_mapPage(void *physical_addr, void *virtual_addr) {
     pte_addattrib(page, PTE_PRESENT);
 }
 
+// vmm_getPage(void *virtual_address) - Returns a page for a virtual address
+pte_t *vmm_getPage(void *virtual_address) {
+    // Get the page directory
+    pagedirectory_t *pageDirectory = vmm_getCurrentDirectory();
+
+    // Get th epage table
+    pde_t *entry = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)];
+    if ((*entry & PTE_PRESENT) != PTE_PRESENT) return NULL; // Table does not exist
+
+    // Get the table
+    pagetable_t *table = (pagetable_t*)VIRTUAL_TO_PHYS(entry);
+
+    // Get the page
+    pte_t *page = &table->entries[PAGETBL_INDEX((uint32_t)virtual_address)];
+
+    return page;
+}
+
 // vmm_enablePaging() - Turns on paging
 void vmm_enablePaging() {
     uint32_t cr0, cr4;

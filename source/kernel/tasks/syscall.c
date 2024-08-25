@@ -50,6 +50,7 @@ DECLARE_SYSCALL3(sys_write, 3, int, char*, size_t);
 // Function prototypes
 void syscallHandler();
 
+
 // initSyscalls() - Registers interrupt handler 0x80 to allow system calls to happen (interrupt marked as usermode in IDT init).
 void initSyscalls() {
     isrRegisterInterruptHandler(0x80, syscallHandler);
@@ -86,6 +87,25 @@ void syscallHandler(registers_t *regs) {
 }
 
 
+/* SYSTEM CALL HELPERS */
+
+// syscall_validatePointer(void *ptr, const char *syscall) - Validate that a pointer is within range of the program's address space
+int syscall_validatePointer(void *ptr, const char *syscall) {
+    if (ptr) {
+        if (!PTR_INRANGE(ptr)) { 
+            // Normally we could send a SIGSEGV to the process to say "that aint your memory son" but we don't have that.
+            // So just crash! I'm sure nothing could go wrong!
+            panic("syscall", "pointer vaildation", "Current process attempted to access memory outside of its address space.");
+        }
+
+        pte_t *page = vmm_getPage(ptr);
+        if (!page) return 1;
+        if (!pte_ispresent(*page) || !pte_iswritable(*page) || (*page & PTE_USER) == PTE_USER) return 1;
+    }
+
+    return 0; // Valid
+}
+
 /* ACTUAL SYSTEM CALLS */
 
 // SYSCALL 0 (https://man7.org/linux/man-pages/man2/restart_syscall.2.html)
@@ -113,8 +133,17 @@ long sys_read(int file_desc, void *buf, size_t nbyte) {
 // SYSCALL 3 (https://man7.org/linux/man-pages/man2/write.2.html)
 long sys_write(int file_desc, char *buf, size_t nbyte) {
     if (!nbyte) return 0;
-    serialPrintf("%s", buf);
-    return nbyte;
+
+    if (file_desc == 2) {
+        // stderr
+        return printf_out(nbyte, buf);
+    }
+
+    fsNode_t *node = open_file("/device/console", 0);
+
+    int64_t retval = node->write(node, 0, nbyte, buf);
+
+    return retval;
 }
 
 /*
@@ -178,23 +207,26 @@ int sys_open(const char *name, int flags, int mode) {
 // SYSCALL 14
 // TODO: uint32_t is not the correct type for this, it's arch-specific I believe
 uint32_t sys_sbrk(int incr) {
-    if (incr & 0xFFF) return -1;
+    /*if (incr & 0xFFF) {
+        serialPrintf("INCR is not valid.\n");
+        return -1;
+    }*/
     process_t *proc = currentProcess;
     //if (proc->group != 0) proc = process_from_pid(proc->group);
 
     if (!proc) return -1;
 
     spinlock_lock(&proc->image.spinlock);
-    uintptr_t out = proc->image.heap;
+    uintptr_t out = proc->image.stack;
     serialPrintf("Starting mapping at 0x%x...\n", out);
     for (uintptr_t i = out; i < out + incr; i += 4096) {
-        vmm_mapPhysicalAddress(proc->thread.page_directory, i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER); 
+        vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER); 
         serialPrintf("Mapping to 0x%x...\n", i);
     }
 
     serialPrintf("Finished mapping! Sending out 0x%x\n", out);
 
-    proc->image.heap += incr;
+    proc->image.stack += incr;
     spinlock_release(&proc->image.spinlock);
     return (uint32_t)out;
 }

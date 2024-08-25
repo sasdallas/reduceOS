@@ -55,8 +55,11 @@ pde_t *vmm_getPageTable(void *virtual_address); // Returns the page table for a 
 void vmm_mapPage(void *physical_addr, void *virtual_addr); // Maps a page from the physical address to its virtual address
 void vmm_enablePaging(); // Enables paging
 void vmm_disablePaging(); // Disables paging
-void vmm_allocateRegion(uintptr_t physical_address, uintptr_t virtual_address, size_t size); // Identity map a region
+pte_t *vmm_getPage(void *virtual_address); // Returns a page from an address
 void vmmInit(); // Initialize the VMM
+
+
+void vmm_allocateRegion(uintptr_t physical_address, uintptr_t virtual_address, size_t size); // Identity map a region
 void vmm_allocateRegionFlags(uintptr_t physical_address, uintptr_t virtual_address, size_t size, int present, int writable, int user); // Identity map region with flags
 int vmm_createPageTable(pagedirectory_t *dir, uint32_t virt, uint32_t flags);
 void *vmm_getPhysicalAddress(pagedirectory_t *dir, uint32_t virt);
@@ -64,6 +67,5 @@ void vmm_mapPhysicalAddress(pagedirectory_t *dir, uint32_t virt, uint32_t phys, 
 pagedirectory_t *vmm_createAddressSpace();
 void vmm_unmapPageTable(pagedirectory_t *dir, uint32_t virt);
 void vmm_unmapPhysicalAddress(pagedirectory_t *dir, uint32_t virt);
-
 
 #endif

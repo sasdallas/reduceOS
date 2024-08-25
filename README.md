@@ -46,6 +46,7 @@ reduceOS will automatically load and handle your modules without needing to modi
 - **Highest priority:** `waitpid()` is not working, process scheduling requires bugfixes
 - **High priority:** EXT2 driver crashes during memory dumping.
 - **High priority:** ATAPI drives cannot be read
+- **High priority:** >3 modules crashes the system *instantly*
 - **Requires further debugging:** Loading bitmaps cause more memory leaks than the Titanic had, and if you try to free buffers they crash. 
 - **Unknown if true:** The OS appears to be very unstable with the heavy use of `uint32_t` and not arch-independent types.
 - **Medium Priority:** Memory dumping doesn't entirely work

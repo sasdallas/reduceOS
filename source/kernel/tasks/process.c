@@ -1155,6 +1155,8 @@ int createProcess(char *filepath) {
     // Map the user process stack space
     vmm_mapPhysicalAddress(addressSpace, (uint32_t)usermodeStack, (uint32_t)stackPhysical, PTE_PRESENT|PTE_WRITABLE|PTE_USER);
 
+    currentProcess->image.userstack = usermodeStack;
+
     // Setup values
     currentProcess->image.heap = (heapBase + 0xFFF) & (~0xFFF);
     currentProcess->image.entrypoint = ehdr->e_entry;

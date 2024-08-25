@@ -11,6 +11,10 @@
 // Macros
 // See syscall.c for an explanation of why we need these macros.
 
+// Validating userspace pointers
+#define PTR_INRANGE(PTR) ((uintptr_t)PTR > currentProcess->image.entrypoint) // TODO: Check for over-access as well.
+
+
 // 5 DEFINE_SYSCALL macros (just function prototypes)
 #define DEFINE_SYSCALL0(func) int syscall_##func();
 #define DEFINE_SYSCALL1(func, p1) int syscall_##func(p1);
@@ -111,6 +115,8 @@ typedef int syscall_func(int p1, int p2, int p3, int p4, int p5, int p6);
 
 // Functions
 void initSyscalls();
+int syscall_validatePointer(void *ptr, const char *syscall);
+
 
 // Syscall prototypes
 long sys_restart_syscall();

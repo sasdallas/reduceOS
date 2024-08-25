@@ -9,7 +9,7 @@
 #include <kernel/elf.h>
 
 // Modules are NEVER unloaded, and we always will have them start at MODULE_ADDR_START (default is 0xA0000000)
-uint32_t *last_load_address = MODULE_ADDR_START; // Incremented when a module is loaded
+uint32_t last_load_address = MODULE_ADDR_START; // Incremented when a module is loaded
 hashmap_t *module_hashmap = NULL;
 char *moduser_buf = NULL;
 
@@ -26,10 +26,10 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     // A bit hacky, but it works lol
     // We'll allocate physical memory using our PMM, then map it into the last_load_address
     // Round the length to the nearest 4096
-    uint32_t length = modfile->length + (4096 - (modfile->length % 4096));
+    uint64_t length = (modfile->length + 4096) - ((modfile->length + 4096) % 4096);
     void *mem = pmm_allocateBlocks(length);
     for (uint32_t i = 0, paddr=mem, vaddr=last_load_address; i < length / 0x1000; i++, paddr += 0x1000, vaddr += 0x1000) {
-        vmm_mapPage(paddr, vaddr);
+        vmm_allocateRegionFlags(paddr, vaddr, 0x1000, 1, 1, 1);
     }
 
     // Read in the module
@@ -220,6 +220,7 @@ void module_parseCFG() {
 
             // Parse the module
             ret = module_load(module, 1, NULL, NULL);
+            kfree(module);
             if (ret != MODULE_OK) {
                 serialPrintf("module_parseCFG: module_load did not succeed, returned %i\n", ret);
                 module_handleFaultPriority(filename, priority);
