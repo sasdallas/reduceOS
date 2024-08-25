@@ -1112,7 +1112,7 @@ int createProcess(char *filepath) {
 
 
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
-    vmm_switchDirectory(NULL);
+    //vmm_switchDirectory(NULL);
     pagedirectory_t *this_directory = currentProcess->thread.page_directory;
     currentProcess->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
     currentProcess->thread.refcount = 1;
@@ -1130,8 +1130,12 @@ int createProcess(char *filepath) {
         Elf32_Phdr *phdr = elf_getPHDR(ehdr, i);
         if (phdr->p_type == PT_LOAD) {
             // We have to load it into memory
-            void *mem = pmm_allocateBlock();
-            vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr, (uint32_t)mem, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
+            uint32_t memory_blocks = (phdr->p_memsize + 4096) - ((phdr->p_memsize + 4096) % 4096); // Round up, else page fault will occur.
+            void *mem = pmm_allocateBlocks(memory_blocks / 4096);
+            for (int blk = 0; blk < memory_blocks; blk += 4096) {
+                vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr +  blk, (uint32_t)mem + blk, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
+                
+            }
             memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
         }
 
