@@ -53,9 +53,11 @@ void changeTerminalMode(int mode) { terminalMode = mode; initTerminal(); }
 
 // updateTerminalColor(uint8_t color) - Update the terminal color. Simple function.
 // ! OBSOLETE AND TO BE REMOVED !
-void updateTerminalColor(uint8_t color) { terminalColor = color; }
+void updateTerminalColor(uint8_t color) { 
+    panic("deprecated", "updateTerminalColor", "This function is deprecated. Remove it!");
+}
 
-// updateTerminalColor_gfx(uint8_t fg, uint8_t bg)
+// updateTerminalColor_gfx(uint8_t fg, uint8_t bg) - Better version of updateTerminalColor
 void updateTerminalColor_gfx(uint8_t fg, uint8_t bg) {
     vbeTerminalForeground = fg;
     vbeTerminalBackground = bg;
@@ -418,14 +420,14 @@ void updateBottomText(char *bottomText) {
     if (terminalMode != 0) return;
     if (strlen(bottomText) > INT_MAX) return -1; // Overflow
     
-    updateTerminalColor(vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY));
+    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY);
 
     for (int i = 0; i < SCREEN_WIDTH; i++) terminalPutcharXY(' ', vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY), i, SCREEN_HEIGHT - 1);
     
     terminalWriteStringXY(bottomText, 0, SCREEN_HEIGHT - 1);
 
 
-    updateTerminalColor(vgaColorEntry(COLOR_WHITE, COLOR_CYAN));
+    updateTerminalColor_gfx(COLOR_WHITE, COLOR_CYAN);
     return;
 }
 
@@ -500,9 +502,9 @@ void terminalUpdateTopBar(char *text) {
 
     printf("%s", text);
     if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen(text)); i++) printf(" "); 
+        for (uint32_t i = 0; i < (SCREEN_WIDTH - strlen(text)); i++) printf(" "); 
     } else {
-        for (int i = 0; i < ((modeWidth - ((strlen(text)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
+        for (uint32_t i = 0; i < ((modeWidth - ((strlen(text)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
     }
     
     terminalSetUpdateScreen(true);

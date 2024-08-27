@@ -4,6 +4,9 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/acpi.h> // Main header file
+#include <stdio.h>
+
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast" // THIS IS BAD AND TO BE REMOVED
 
 // Variables
 int ACPI_cpuCount = 0;
@@ -213,8 +216,6 @@ void acpiInit() {
     uint8_t *i = (uint8_t*)0x000E0000;
     uint8_t *endArea = (uint8_t *)0x000FFFFF;
 
-    bool foundRSDP = false;
-
     while (i < endArea) {
         // Find the signature of whatever BIOS area we are in.
         // The signature is actually characters that say 'RSD PTR ' (not null terminated).
@@ -224,13 +225,11 @@ void acpiInit() {
         if (signature == 0x2052545020445352) {
             serialPrintf("acpiInit: Found RSDP signature at 0x%x\n", i);
             // We (might've) found the RSDP. Parse it.
-            foundRSDP = true;
             if (acpiParseRSDP(i)) {
                 serialPrintf("acpiInit: Successfully enabled ACPI.\n");
                 printf("ACPI enabled successfully.\n");
                 break;
             }
-            foundRSDP = false;
         }
 
         // We didn't find it, continue searching.

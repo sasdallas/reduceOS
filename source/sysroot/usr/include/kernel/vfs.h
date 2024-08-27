@@ -51,7 +51,7 @@ typedef int (*unlink_t) (struct fsNode *, char *name);
 
 
 // Actual typedef structures.
-typedef struct {
+typedef struct fsNode {
     char name[128];     // FS Name (max of 128)
     uint32_t mask;      // Permissions mask
     uint32_t uid;       // Owning user
@@ -116,4 +116,5 @@ int vfs_mountType(const char *type, const char *arg, const char *mountpoint); //
 int vfs_registerFilesystem(const char *name, vfs_mountCallback callback); // Registers a filesystem mount callback that will be called when needed
 void vfs_mapDirectory(const char *c); // Maps a directory in the virtual filesystem
 char *vfs_canonicalizePath(const char *cwd, const char *input); // Canonicalizes a path
+void debug_print_vfs_tree(bool printout);
 #endif

@@ -53,7 +53,9 @@
 			"process.h": "c",
 			"bitmap.h": "c",
 			"vesa.h": "c",
-			"assert.h": "c"
+			"assert.h": "c",
+			"keyboard.h": "c",
+			"clock.h": "c"
 		}
 	}
 }

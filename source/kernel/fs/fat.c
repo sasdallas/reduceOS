@@ -686,7 +686,7 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
     uint32_t *buffer = kmalloc(512);
     int ret = driveNode->read(driveNode, 0, 512, buffer); // Read in the 1st sector
 
-    if (ret != IDE_OK) {
+    if (ret != 0) {
         kfree(buffer);
         return NULL;
     }
@@ -758,7 +758,7 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
             // FSInfo is a structure that is required for FAT32 drivers. The sector number can be found in the extended BPB for FAT32.
             fat_fsInfo_t *fsInfo = kmalloc(512);
             int ret = driveNode->read(driveNode, 512 * driver->drive->extended32->fatInfo, 512, (uint8_t*)fsInfo);
-            if (ret != IDE_OK) {
+            if (ret != 0) {
                 serialPrintf("fatInit: Failed to read the FSInfo structure.\n");
                 kfree(fsInfo);
                 kfree(driver->drive->bpb);

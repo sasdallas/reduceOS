@@ -4,6 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
 
 #include <kernel/command.h> // Main header file
+#include <stdio.h>
 
 // Commands in reduceOS must follow this structure:
 // The command function is stored in an array of a type called cmdData (this typedef is present in command.h, note that it is different from command)
@@ -90,7 +91,7 @@ int parseCommand(char *cmd) {
 
 
     printf("Unknown command - %s\n", cmd);
-    
+    return 0;
 }
 
 // Help command - prints all available commands.

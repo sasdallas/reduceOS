@@ -12,6 +12,10 @@
 
 #include <kernel/panic.h> // Main panic include file
 #include <kernel/ksym.h>
+#include <kernel/keyboard.h>
+#include <kernel/terminal.h>
+#include <stdio.h>
+
 #include <time.h>
 
 extern uint32_t text_start;
@@ -58,10 +62,8 @@ static void dumpPMM() {
         // Create the dump file using timestamps.
         char buffer[1024];
         time_t rawtime;
-        struct tm *t;
 
         time(&rawtime);
-        t = localtime(&rawtime);
 
         sprintf(buffer, "crashdump-%i.log", rawtime);
 
@@ -80,7 +82,7 @@ static void dumpPMM() {
         printf("Cancellation is not possible.\n"); // yeahhh keyboard driver sucks
 
         uint8_t pbuffer[PAGE_SIZE];
-        uint32_t addr = &text_start; // Better dumps
+        uint32_t addr = (uint32_t)&text_start; // Better dumps
         for (int i = 0; i < pages; i += pages_per_loop) {
             
             pagedirectory_t *pageDirectory = vmm_getCurrentDirectory();
@@ -99,7 +101,7 @@ static void dumpPMM() {
             // Let's dump this entry. We'll have to iterate through all pages per dot
             for (int j = 0; j < pages_per_loop; j++) {
                 memset(pbuffer, 0, PAGE_SIZE);
-                memcpy(pbuffer, addr, PAGE_SIZE);
+                memcpy(pbuffer, (void*)addr, PAGE_SIZE);
                 dumpfile->write(dumpfile, (i+j)*PAGE_SIZE, PAGE_SIZE, pbuffer);
                 addr += PAGE_SIZE;
             }
@@ -119,9 +121,10 @@ static void dumpPMM() {
 }
 
 // This static function performes a stack trace to get the callers of panic.
+#pragma GCC diagnostic ignored "-Wuninitialized" // Stack frame is technically uninitialized as NULL but stk itself is never used, only EBP
 void stackTrace(uint32_t maximumFrames, registers_t *reg) {
     stack_frame *stk;
-    stk->ebp = reg->ebp;
+    stk->ebp = (stack_frame*)reg->ebp;
     stk->eip = reg->eip;
     
     printf("\nStack trace:\n");
@@ -129,7 +132,7 @@ void stackTrace(uint32_t maximumFrames, registers_t *reg) {
     
     for (uint32_t frame = 0; stk && frame < maximumFrames; frame++) {
         // Make sure the code is in kernelspace, else the symbol finder might crash
-        if (stk->eip && stk->eip < &text_start || stk->eip > &bss_end) {
+        if (stk->eip && (stk->eip < (uint32_t)&text_start || stk->eip > (uint32_t)&bss_end)) {
             printf("Frame %i: 0x%x (outside of kspace)\n", frame, stk->eip);
             serialPrintf("FRAME %i: IP 0x%x (outside of kspace)\n", frame, stk->eip);
             stk = stk->ebp;
@@ -166,7 +169,7 @@ void vgaTextMode_Panic(char *caller, char *code, char *reason, registers_t *reg,
     serialPrintf("As such, debug info will only be printed to console.\n");
 
     printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
-    for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" ");
+    for (uint32_t i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" ");
     
     updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED); // When we're called this hasn't been done
 
@@ -214,23 +217,13 @@ void *panic(char *caller, char *code, char *reason) {
 
     setKBHandler(false);
     clearScreen(COLOR_WHITE, COLOR_RED);
-    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
 
     // Make sure we're not in VGA text mode
     if (terminalMode == 0) {
         vgaTextMode_Panic(caller, code, reason, NULL, NULL);
     }
 
-    // Make things look nicer
-    terminalSetUpdateScreen(false);
-
-    printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
-    
-    for (int i = 0; i < ((modeWidth - ((strlen("reduceOS v  - Kernel Panic") + strlen(CODENAME) + strlen(VERSION)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
-    
-    
-    terminalSetUpdateScreen(true);
-    terminalUpdateScreen();
+    terminalUpdateTopBarKernel("Kernel Panic");
 
     // updateBottomText("A fatal error occurred!");
 
@@ -295,22 +288,9 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
 
     setKBHandler(false);
     clearScreen(COLOR_WHITE, COLOR_RED);
-    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
-
-    // Make things look nicer
-    terminalSetUpdateScreen(false);
-
-    printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
-    if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
-    } else {
-        for (int i = 0; i < ((modeWidth - ((strlen("reduceOS v  - Kernel Panic") + strlen(CODENAME) + strlen(VERSION)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
-    }
     
-    terminalSetUpdateScreen(true);
-    terminalUpdateScreen();
-
-    // updateBottomText("A fatal error occurred!");
+    terminalUpdateTopBarKernel("Kernel Panic");
+    // updateBottomText("A fatal error occurred!"); - Function unused
 
     updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED);
 
@@ -370,26 +350,13 @@ void *pageFault(registers_t *reg) {
 
     clearScreen(COLOR_WHITE, COLOR_RED);
 
-    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
 
     // Make sure we're not in VGA text mode
     if (terminalMode == 0) {
         vgaTextMode_Panic(NULL, NULL, NULL, reg, faultAddress);
     }
 
-
-    // Make things look nicer
-    terminalSetUpdateScreen(false);
-
-    printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
-    if (terminalMode == 0) {
-        for (int i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" "); // vga only because idc enough to do PSF_WIDTH
-    } else {
-        for (int i = 0; i < ((modeWidth - ((strlen("reduceOS v  - Kernel Panic") + strlen(CODENAME) + strlen(VERSION)) * psfGetFontWidth()))); i += psfGetFontWidth()) printf(" ");
-    }
-    
-    terminalSetUpdateScreen(true);
-    terminalUpdateScreen();
+    terminalUpdateTopBarKernel("Kernel Panic");
 
     updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED);
 

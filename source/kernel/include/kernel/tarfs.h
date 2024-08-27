@@ -44,6 +44,7 @@ typedef struct {
 
 // Functions
 int tarfs_register();
+int tar_install();
 
 
 #endif

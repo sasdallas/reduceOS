@@ -146,4 +146,7 @@ int ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi
 int ideGetDriveCapacity(uint8_t drive); // Returns drive capacity
 uint32_t ideRead_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buffer); // Read function for the VFS
 uint32_t ideWrite_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buffer); // Write function in the VFS
+fsNode_t *ideGetVFSNode(int driveNum);
+int ide_install(int argc, char *argv[]);
+
 #endif

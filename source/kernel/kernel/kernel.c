@@ -4,12 +4,37 @@
 // =====================================================================
 // This file is apart of the reduceOS C kernel. Please credit me if you use this code.
 
+#include <stdio.h>
+#include <time.h>
+#include <stdint.h>
+
 #include <kernel/kernel.h> // Kernel header file
 #include <kernel/cmds.h>
-#include <time.h>
 #include <kernel/process.h>
 #include <kernel/console.h>
-
+#include <kernel/keyboard.h>
+#include <kernel/process.h>
+#include <kernel/module.h>
+#include <kernel/ksym.h>
+#include <kernel/ide_ata.h>
+#include <kernel/debugdev.h>
+#include <kernel/serialdev.h>
+#include <kernel/modfs.h>
+#include <kernel/nulldev.h>
+#include <kernel/tarfs.h>
+#include <kernel/ext2.h>
+#include <kernel/fat.h>
+#include <kernel/terminal.h>
+#include <kernel/vesa.h>
+#include <kernel/clock.h>
+#include <kernel/font.h>
+#include <kernel/processor.h>
+#include <kernel/dma.h>
+#include <kernel/pci.h>
+#include <kernel/syscall.h>
+#include <kernel/command.h>
+#include <kernel/test.h>
+#include <kernel/floppy.h>
 
 // ide_ata.c defined variables
 extern ideDevice_t ideDevices[4];
@@ -26,11 +51,11 @@ void kshell();
 
 void usermodeMain() {
     printf("Hello!\n");
-    syscall_sys_write(2, "Hello, system call world!", strlen("Hello, system call world!"));
+    // Implicit function declaration. Need to know how to solve
+    // syscall_sys_write(2, "Hello, system call world!", strlen("Hello, system call world!"));
 
     for (;;);
 }
-
 
 
 
@@ -43,17 +68,19 @@ int enterUsermode(int argc, char *args[]) {
 
 
 
+// Filesystem nodes
 fsNode_t *fatDriver = NULL;
 fsNode_t *ext2_root = NULL;
 
 
+// Function prototypes
+void useCommands();
+void kshell();
 
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(unsigned long addr, unsigned long loader_magic) {
     // Update global multiboot info.
 
-    multiboot_info *mboot;
-    
     globalInfo = (multiboot_info*)addr;
     
     // Some extra stuff
@@ -127,7 +154,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Deinitialize multiboot modules
     multiboot_mod_t *mod;
-    int i2;
+    uint32_t i2;
     for (i2 = 0, mod = (multiboot_mod_t*)globalInfo->m_modsAddr; i2 < globalInfo->m_modsCount; i2++, mod++) {
         pmm_deinitRegion(mod->mod_start, mod->mod_end - mod->mod_start);
     }
@@ -224,13 +251,13 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     while (true) {
         char *mntpoint = kmalloc(strlen("/device/modules/modx"));
         strcpy(mntpoint, "/device/modules/mod");
-        itoa(i, mntpoint+strlen("/device/modules/mod"), 10);
+        itoa((void*)i, mntpoint+strlen("/device/modules/mod"), 10);
 
         fsNode_t *modnode = open_file(mntpoint, 0);
         if (!modnode) { kfree(mntpoint); break; }
         
         multiboot_mod_t *mod = (multiboot_mod_t*)modnode->impl_struct;
-        if (strstr(mod->cmdline, "type=initrd") != NULL) {
+        if (strstr((char*)mod->cmdline, "type=initrd") != NULL) {
             modnode->close(modnode);
             initrd = open_file(mntpoint, 0);
             kfree(mntpoint);
@@ -252,7 +279,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     for (int i = 0; i < 4; i++) {
         fsNode_t *ideNode = ideGetVFSNode(i);
 
-        if (ideNode->impl == -1) {
+        if ((int)ideNode->impl == -1) {
             // Drive does not exist, but memory for the fsNode was still allocated
             kfree(ideNode);
             continue;
@@ -261,7 +288,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         // First, we'll mount this device to /device/idex
         char *name = kmalloc(sizeof(char) * (strlen("/device/ide")  + 1));
         strcpy(name, "/device/ide");
-        itoa(i, name + strlen("/device/ide"), 10);
+        itoa((void*)i, name + strlen("/device/ide"), 10);
     
         
         vfsMount(name, ideNode);

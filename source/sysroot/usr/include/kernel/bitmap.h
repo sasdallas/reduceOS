@@ -51,4 +51,5 @@ typedef struct {
 
 // Functions
 bitmap_t *bitmap_loadBitmap(fsNode_t *node); // Loads the bitmap into memory and returns the bitmap_t object.
+void displayBitmap(bitmap_t *bmp, int x, int y);
 #endif

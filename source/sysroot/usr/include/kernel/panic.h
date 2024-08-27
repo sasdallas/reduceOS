@@ -13,8 +13,8 @@
 #include <kernel/CONFIG.h> // Configuration
 
 // Typedefs
-typedef struct {
-    struct stack_frame* ebp;
+typedef struct _stack_frame {
+    struct _stack_frame* ebp;
     uint32_t eip;
 } stack_frame;
 

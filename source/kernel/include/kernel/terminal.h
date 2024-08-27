@@ -30,7 +30,7 @@ extern int terminalMode; // 0 signifies VGA mode, 1 signifies VESA VBE.
 
 // Function declarations
 
-void terminalInit(void); // terminalInit() - load the terminal
+void initTerminal(void); // initTerminal() - load the terminal
 void changeTerminalMode(int mode); // changeTerminalMode() - Update the terminal mode (0 = VGA, 1 = VESA)
 void updateTerminalColor(uint8_t color); // updateTerminalColor() - Change the terminal color. Requires a vgaColorEntry already setup.
 void terminalPutcharXY(unsigned char c, uint8_t color, size_t x, size_t y); // terminalPutcharXY() - Place an unsigned char at a certain X and Y. Not recommended, doesn't include scrolling stuff.
@@ -52,4 +52,6 @@ void instantUpdateTerminalColor(uint8_t fg, uint8_t bg); // Instantly update the
 void terminalSetUpdateScreen(bool state); // Toggles whether the screen should update when terminalUpdateScreen() is called
 void terminalUpdateTopBar(char *text); // Update the top bar on the screen
 void terminalUpdateTopBarKernel(char *text); // Updates the top bar and prints out kernel version info
+void updateTerminalColor_gfx(uint8_t fg, uint8_t bg); // Updates the color to specific FG and BG values
+char *getShell();
 #endif

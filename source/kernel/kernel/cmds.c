@@ -3,7 +3,11 @@
 // ==========================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
+#include <stdint.h>
+#include <string.h>
 #include <stdio.h>
+#include <time.h>
+#include <kernel/clock.h>
 #include <kernel/cmds.h>
 #include <kernel/kernel.h>
 #include <kernel/vfs.h>
@@ -77,7 +81,7 @@ int dump(int argc, char *args[]) {
         uint32_t *addr1 = (uint32_t*)strtol(args[2], NULL, 16);
         uint32_t *addr2 = (uint32_t*)strtol(args[3], NULL, 16);
         printf("Values from memory addresses 0x%x - 0x%x:\n", addr1, addr2);
-        for (addr1; addr1 < addr2; addr1 += 4) {
+        for (; addr1 < addr2; addr1 += 4) {
             printf("0x%x: ", addr1);
             uint8_t bytes[4];
             memcpy(bytes, addr1, sizeof(uint32_t));
@@ -124,6 +128,7 @@ int crash(int argc, char *args[]) {
     printf("FOR SCIENCE, OF COURSE!");
     sleep(3000);
     panic("kernel", "kmain()", "Error in function crash()");
+    __builtin_unreachable();
 }
 
 extern pciDevice **pciDevices;
@@ -138,9 +143,10 @@ int pciInfo(int argc, char *args[]) {
 
 
 int shutdown(int argc, char *args[]) {
-    printf("Shutting down reduceOS...\n");
+    printf("Shutting down reduceOS (halting CPU)...\n");
     asm volatile ("cli");
     asm volatile ("hlt");
+    __builtin_unreachable();
 }
 
 
@@ -165,14 +171,16 @@ int getInitrdFiles(int argc, char *args[]) {
         {
             printf("\n\t contents: ");
             char buf[256];
-            uint32_t sz = readFilesystem(fsNode, 0, 256, buf);
-            for (int j = 0; j < sz; j++)
+            uint32_t sz = readFilesystem(fsNode, 0, 256, (uint8_t*)(&buf));
+            for (uint32_t j = 0; j < sz; j++)
                 printf("%c", buf[j]);
             
             printf("\n");
         }
         i++;
     }
+
+    return 0;
 }
 
 
@@ -193,6 +201,7 @@ int about(int argc, char *args[]) {
     printf("reduceOS v%s (codename %s)\n", VERSION, CODENAME);
     printf("Build number %s-%s - build date %s\n", BUILD_NUMBER, BUILD_CONFIGURATION, BUILD_DATE);
     printf("Created by @sasdallas\n");
+    return 0;
 }
 
 int color(int argc, char *args[]) {
@@ -232,6 +241,7 @@ int color(int argc, char *args[]) {
 // Used for debugging
 int panicTest(int argc, char *args[]) {
     panic("kernel", "panicTest()", "Testing panic function");
+    __builtin_unreachable();
 }
 
 int readFloppyTest(int sect) {
@@ -247,7 +257,7 @@ int readFloppyTest(int sect) {
     uint32_t sector = (uint32_t)sect;
     uint8_t *buffer = 0;
 
-    int ret = floppy_readSector(sector, &buffer);
+    int ret = floppy_readSector(sector, buffer);
     
     if (ret != FLOPPY_OK) {
         printf("Could not read sector. Error code %i\n", ret);
@@ -282,7 +292,7 @@ int read_floppy(int argc, char *args[]) {
 
     printf("Reading sector %i...\n", sector);
 
-    int ret = floppy_readSector(sector, &buffer);
+    int ret = floppy_readSector(sector, buffer);
     
     if (ret != FLOPPY_OK) {
         printf("Could not read sector. Error code %i\n", ret);
@@ -346,7 +356,7 @@ int doPageFault(int argc, char *args[]) {
     uint32_t *fault = (uint32_t*)0xF0000000;
     uint32_t dofault = *fault;
 
-    printf("what\n");
+    printf("Tried to use address 0x%x to page fault, did not succeed. Is the address mapped?\n", dofault);
     return -1;
 }
 
@@ -360,6 +370,7 @@ int serviceBIOS32(int argc, char *args[]) {
 
     printf("Interrupt serviced. Results:\n");
     printf("AX = 0x%x BX = 0x%x CX = 0x%x DX = 0x%x\n", out.ax, out.bx, out.cx, out.dx);
+    return 0;
 }
 
 
@@ -473,7 +484,7 @@ int cat(int argc, char *args[]) {
     }
 
     uint8_t *buffer = kmalloc(file->length);
-    int ret = file->read(file, 0, file->length, buffer);
+    uint32_t ret = file->read(file, 0, file->length, buffer);
 
     if (ret != file->length) {
         printf("Failed to read the file (file->read returned %i).\n", ret);
@@ -559,6 +570,8 @@ making_directory:
     } else {
         printf("Path '%s' was not found.\n", path2);
     }
+
+    return 0;
 }
 
 int create(int argc, char *args[]) {
@@ -718,7 +731,7 @@ int edit(int argc, char *args[]) {
 
     if (!strcmp(line, "y") || !strcmp(line, "Y")) {
         printf("Saving, please wait..\n");
-        int ret = file->write(file, 0, chars, buffer);
+        int ret = file->write(file, 0, chars, (uint8_t*)buffer);
         if (ret != chars) {
             printf("Error: Write method returned %i.\n", ret);
         } else {
@@ -759,7 +772,9 @@ int rm(int argc, char *args[]) {
         return -1;
     }
 
-    unlinkFilesystem(args[1]);
+    printf("rm has been disabled due to it being bad\n"); // when I say bad I mean bad in terms of "this implementation sucks"
+    // unlinkFilesystem(args[1]);
+    return 0;
 }
 
 int strace(int argc, char *args[]) {
@@ -775,7 +790,7 @@ int strace(int argc, char *args[]) {
     stack_frame *stk;
     asm volatile ("movl %%ebp, %0" : "=r"(stk));
 
-    for (uint32_t frame = 0; stk && frame < maxFrames; frame++) {
+    for (uint32_t frame = 0; stk && frame < (uint32_t)maxFrames; frame++) {
         // Try to get the symbol
         ksym_symbol_t *sym = kmalloc(sizeof(ksym_symbol_t));
         int err = ksym_find_best_symbol(stk->eip, sym);
@@ -797,6 +812,8 @@ int strace(int argc, char *args[]) {
 
         stk = stk->ebp;
     }
+
+    return 0;
 }
 
 int pmm(int argc, char *args[]) {
@@ -828,10 +845,10 @@ int makeProcess(int argc, char *args[]) {
     char *path = vfs_canonicalizePath(get_cwd(), args[1]);
 
     int ret = createProcess(path);
-    
+    return ret;
 }
 
-process_t *thr_proc;;
+
 
 void thread(void *pargs) {
     while (1) {
@@ -851,7 +868,7 @@ int startThread(int argc, char *args[]) {
     printf("Spawning thread...\n");
 
     char *pargs = kmalloc(200);
-    thr_proc = spawn_worker_thread(thread, "worker", pargs);
+    spawn_worker_thread(thread, "worker", pargs);
     spawn_worker_thread(thread, "worker2", pargs);
     return 0;
 }
@@ -880,7 +897,7 @@ int loadELF(int argc, char *args[]) {
 
 
     char *fbuf = kmalloc(elf_file->length);
-    int ret = elf_file->read(elf_file, 0, elf_file->length, fbuf);
+    uint32_t ret = elf_file->read(elf_file, 0, elf_file->length, (uint8_t*)fbuf);
 
     if (ret != elf_file->length) {
         kfree(path);
@@ -927,7 +944,7 @@ int mountTAR(int argc, char *args[]) {
 
     printf("Mounting '%s' to '%s'...\n", args[1], args[2]);
     // user does this wrong its THEIR fault not mine (even though I should've accounted for it)
-    int ret = vfs_mountType("tar", file, mountpoint);
+    int ret = vfs_mountType("tar", (char*)file, mountpoint);
 
     if (ret == 0) {
         printf("Successfully mounted tar archive at %s.\n", mountpoint);
@@ -972,7 +989,7 @@ int loadModule(int argc, char *args[]) {
             printf("Failed to load module (ELF load fail)\n");
             break;
         case MODULE_CONF_ERROR:
-            printf("Failed to load module (configuration error??)\n");
+            printf("Failed to load module (conf error, should not be possible)\n");
             break;
         case MODULE_META_ERROR:
             printf("Failed to load module (no metadata)\n");

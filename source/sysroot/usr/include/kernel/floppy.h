@@ -112,6 +112,6 @@ void floppy_IRQ(); // Called when floppy IRQ is present
 void floppy_waitIRQ(); // Waits for an IRQ, then resets the value
 void floppy_acknowledgeIRQ(uint32_t *st0, uint32_t *cyl); // Acknowledges to the FDC an interrupt was received
 int floppy_readSector(int lba, uint8_t *buffer); // Read a sector from the floppy disk.
-
+int floppy_writeSector(int lba, uint8_t *buffer);
 
 #endif
