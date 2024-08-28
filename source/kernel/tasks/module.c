@@ -28,7 +28,7 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     // We'll allocate physical memory using our PMM, then map it into the last_load_address
     // Round the length to the nearest 4096
     uint64_t length = (modfile->length + 4096) - ((modfile->length + 4096) % 4096);
-    void *mem = pmm_allocateBlocks(length);
+    void *mem = pmm_allocateBlocks(length/4096);
 
     uint32_t i;
     void *paddr;
@@ -116,13 +116,13 @@ void module_parseCFG() {
 
     // First, grab handles to root and/or initrd, depending on which has been mounted where.
     fsNode_t *root = open_file("/", 0);
-    bool needsInitrd = (strcmp(root->name, "tarfs") == 0) ? false : true;
+    bool doesNotNeedInitrd = (strcmp(root->name, "tarfs") == 0) ? false : true;
 
     // Next, grab the boottime and userspace configuration files (mod_boot.conf and mod_user.conf)
     // We ALWAYS want to pull from initial ramdisk and ONLY pull from backup root if necessary, because they can differ.
-    fsNode_t *modBoot = (needsInitrd) ? open_file("/device/initrd/mod_boot.conf", 0) : open_file("/mod_boot.conf", 0);
+    fsNode_t *modBoot = (doesNotNeedInitrd) ? open_file("/device/initrd/mod_boot.conf", 0) : open_file("/mod_boot.conf", 0);
     if (!modBoot) {
-        if (needsInitrd) {
+        if (doesNotNeedInitrd) {
             // Try the backup method, but be warned that if the devices are different some modules may not be loaded.
             serialPrintf("module_parseCFG: WARNING!!!!! Pulling from backup device!!!\n");
             modBoot = open_file("/boot/conf/mod_boot.conf", 0);
@@ -133,9 +133,9 @@ void module_parseCFG() {
         }
     }
 
-    fsNode_t *modUser = (needsInitrd) ? open_file("/device/initrd/mod_user.conf", 0) : open_file("/mod_user.conf", 0);
+    fsNode_t *modUser = (doesNotNeedInitrd) ? open_file("/device/initrd/mod_user.conf", 0) : open_file("/mod_user.conf", 0);
     if (!modUser) {
-        if (needsInitrd) {
+        if (doesNotNeedInitrd) {
             // Try the backup method, but be warned that if the devices are different some modules may not be loaded.
             serialPrintf("module_parseCFG: WARNING!!!!! Pulling from backup device!!!\n");
             modUser = open_file("/boot/conf/mod_user.conf", 0);
@@ -210,15 +210,29 @@ void module_parseCFG() {
 
             // First, let's make sure the module exists.
             char *fullpath = kmalloc(strlen("/boot/modules/") + strlen(filename));
-            if (needsInitrd) strcpy(fullpath, "/boot/modules/");
+            if (doesNotNeedInitrd) strcpy(fullpath, "/boot/modules/");
             else strcpy(fullpath, "/modules/");
             strcpy(fullpath + strlen(fullpath), filename);
 
             serialPrintf("module_parseCFG: Loading module '%s' with priority %s...\n", fullpath, priority);
             fsNode_t *module = open_file(fullpath, 0);
             if (!module) {
-                module_handleFaultPriority(filename, priority);
-                goto _nextToken;
+                // This can happen if a module is added but the system wants to pull from the main EXT2 disk
+                // Open it via the initrd if possible
+                if (doesNotNeedInitrd) {
+                    serialPrintf("module_parseCFG: The module was not found on the main EXT2 disk. Using initial ramdisk.\n");
+                    snprintf(fullpath, strlen("/device/initrd/modules/") + strlen(filename) + 1, "/device/initrd/modules/%s", filename);
+                    module = open_file(fullpath, 0);
+
+                    if (!module) {
+                        serialPrintf("module_parseCFG: Could not locate module\n");
+                        module_handleFaultPriority(filename, priority);
+                        goto _nextToken;
+                    }
+                } else {
+                    module_handleFaultPriority(filename, priority);
+                    goto _nextToken;
+                }
             }
 
             // Parse the module

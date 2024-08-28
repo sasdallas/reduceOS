@@ -225,7 +225,16 @@ void pmm_freeBlock(void *block) {
 
 // pmm_allocateBlocks(size_t size) - Allocates size amount of blocks
 void *pmm_allocateBlocks(size_t size) {
-    if ((pmm_maxBlocks - pmm_usedBlocks) <= size) return 0; // Not enough memory is available
+    if (size > 4096) {
+        serialPrintf("pmm_allocateBlocks: Warning, a potential block overrun might happen - size is 0x%x\n", size);
+        panic("pmm", "pmm_allocateBlocks", "A function may have attempted to pass in bytes instead of blocks.");
+    }
+
+    if ((pmm_maxBlocks - pmm_usedBlocks) <= size) {
+        panic("pmm", "PMM manager", "Out of memory, could not perform allocation.");
+        return 0; // Not enough memory is available
+    }
+
     int frame = pmm_firstFrames(size);
     if (frame == -1) {
         serialPrintf("pmm_allocateBlocks: Failed to allocate %i blocks\n", size);

@@ -19,68 +19,6 @@ PSF2_Header *font; // TODO: PSF1 support
 extern char _binary_font_psf_start;
 extern char _binary_font_psf_end;
 extern uint8_t *vbeBuffer;
-extern uint32_t font_data[127][20];
-
-uint32_t currentFont[127][20];
-
-
-// Bitmap Font Functions
-
-// bitmapFontInit() - Initializes bitmap font reading with the default font found in font_data.c
-void bitmapFontInit() {
-    memcpy(currentFont, font_data, sizeof(font_data));
-}
-
-// bitmapLoadFont(uint32_t *font_data) - Loads a a new font for the bitmap.
-void bitmapLoadFont(uint32_t *font_data) {
-    memcpy(currentFont, font_data, sizeof(currentFont));
-}
-
-
-
-
-// bitmapFontDrawChar(char ch, int x, int y, int color) - Puts a character of color 'color' at x, y
-void bitmapFontDrawChar(char ch, int x, int y, int color) {
-    int pixelData, tempValue = 0;
-
-    for (int i = 0; i < 20; i++) {
-        tempValue = x;
-        x += 20;
-        pixelData = currentFont[(int)ch][i];
-
-        while (pixelData > 0) {
-            if (pixelData & 1) vbePutPixel(x, y, color);
-            pixelData >>= 1;
-            x--;
-        }
-
-        x = tempValue;
-        y++;
-    }
-}
-
-#pragma GCC diagnostic ignored "-Wunused-value"
-
-// bitmapFontDrawString(char *str, int x, int y, int color) - Draw a string from the bitmap
-void bitmapFontDrawString(char *str, int x, int y, int color) {
-    int tmpX = x, tmpY = y;
-    while (*str != '\0') {
-        bitmapFontDrawChar(*str, tmpX, tmpY, color);
-        *str++;
-        tmpX += 14;
-
-        if ((uint32_t)tmpX > modeWidth) {
-            tmpY += 17;
-            tmpX = x;
-        }
-    }
-}
-
-
-
-// PSF Functions
-
-//uint8_t *psf_data;
 
 // reduceOS loads in with a default font for PSF, encoded into the actual kernel binary file.
 // Other PSF fonts can be loaded from the initial ramdisk or storage mediums.
