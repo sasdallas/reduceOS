@@ -29,7 +29,7 @@ static void fpu_write(uint32_t word) {
 
 int fpu_init() {
     // Check if the system has an FPU
-    if (!fpu_isSupportedCPUID) return -1;
+    if (!fpu_isSupportedCPUID()) return -1;
 
     // Initialize the FPU
 
@@ -55,39 +55,4 @@ int fpu_init() {
         serialPrintf("fpu_init: Could not initialize FPU.\n");
         return -1;
     }
-}
-
-// fpu_ftoa(char *buf, float f) - Convert a floating point value to a string (probably should not be here)
-void fpu_ftoa(char *buf, float f) {
-    uint32_t count = 1;
-    // Assume the decimal count is 8
-
-    char int_buf[16];
-    char *p;
-    memset(int_buf, 0, 16);
-
-    // Add the integer part
-    int x = (int)f;
-    serialPrintf("int conv: %i\n", x);
-    itoa(x, int_buf, 10);
-    p = int_buf;
-    while (*p != '\0') *buf++ = *p++;
-
-    *buf++ = '.'; // Add the decimal point
-
-    // Subtract the integer part from the float
-    float decimal = f - x;
-    if (decimal == 0) {
-        *buf++ = '0';
-    } else {
-        while (decimal > 0) {
-            uint32_t y = decimal * 10;
-            *buf++ = y + '0';
-            decimal = (decimal * 10) - y;
-            count++;
-            if (count == 8) break;
-        }
-    }
-
-    *buf = '\0';
 }

@@ -200,6 +200,10 @@ int sleep_on_unlocking(list_t *queue, atomic_flag *release); // Wait for a binar
 void process_switchTask(uint8_t reschedule);
 void tasking_start();
 void scheduler_init();
+pid_t fork();
+void makeProcessReady(volatile process_t *proc);
+int wakeup_queue(list_t *queue);
+void updateProcessTimesOnExit();
 
 
 #endif

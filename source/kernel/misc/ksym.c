@@ -27,7 +27,7 @@ static void ksym_bind_symbol(const char *symname, void *addr) {
 int ksym_bind_symbols(fsNode_t *symbolTable) {
     // First, read the contents into a buffer.
     uint8_t *symbuf = kmalloc(symbolTable->length);
-    int ret = symbolTable->read(symbolTable, 0, symbolTable->length, symbuf);
+    uint32_t ret = symbolTable->read(symbolTable, 0, symbolTable->length, symbuf);
     
     if (ret != symbolTable->length) {
         serialPrintf("ksym: Debugging symbols disabled - reading file failed.\n");
@@ -44,7 +44,7 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
     
     char *save;
     char *save2;
-    char *token = strtok_r(symbuf, "\n", &save);
+    char *token = strtok_r((char*)symbuf, "\n", &save);
 
     while (token != NULL) {
         token = strtok_r(NULL, "\n", &save);
@@ -62,7 +62,7 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
         char *symname = strtok_r(NULL, " ", &save2);
 
         if (!strcmp(type, "T")) {
-            void *addr = strtol(address, NULL, 16);
+            void *addr = (void*)strtol(address, NULL, 16);
             ksym_bind_symbol(symname, addr);
         }
 
@@ -71,11 +71,12 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
     }
 
     debug_symbols_populated = true;
+    return 0;
 }
 
 // ksym_lookup_addr(const char *name) - Gets the address needed
 void *ksym_lookup_addr(const char *name) {
-    if (ksym_hashmap == NULL) return -1;
+    if (ksym_hashmap == NULL) return 0x0;
 
     return hashmap_get(ksym_hashmap, name);
 }
@@ -96,7 +97,7 @@ int ksym_find_best_symbol(long addr, ksym_symbol_t *out) {
 
     long best_match = 0;
     char *name;
-    for (int i = 0; i < ksym_hashmap->size; i++) {
+    for (uint32_t i = 0; i < ksym_hashmap->size; i++) {
         hashmap_entry_t *x = ksym_hashmap->entries[i];
         while (x) {
             void *symbol_addr = x->value;
@@ -109,7 +110,7 @@ int ksym_find_best_symbol(long addr, ksym_symbol_t *out) {
         }
     }   
 
-    out->address = best_match;
+    out->address = (void*)best_match;
     out->symname = kmalloc(strlen(name)); 
     strcpy(out->symname, name);
 

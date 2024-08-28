@@ -4,6 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/ide_ata.h> // Main header file
+#include <stdio.h>
 
 // What is IDE?
 // According to the OSDev wiki, IDE is a keyword which refers to the electrical specification of the cables which connect ATA drives (like hard drives) to another device. The drives use the ATA (Advanced Technology Attachment) interface. An IDE cable also can terminate at an IDE card connected to PCI.
@@ -14,7 +15,7 @@
 // Variables
 ideChannelRegisters_t channels[2]; // Primary and secondary channels
 uint8_t ideBuffer[2048] = {0}; // Buffer to read the identification space into (see ide_ata.h).
-volatile unsigned static char ideIRQ = 0; // Set to 1 when an IRQ is received.
+static volatile unsigned char ideIRQ = 0; // Set to 1 when an IRQ is received.
 static uint8_t atapiPacket[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // ATAPI drives
 ideDevice_t ideDevices[4]; // Maximum devices supported is 4.
 
@@ -188,13 +189,13 @@ fsNode_t *ide_fs_mount(const char *device, const char *mount_path) {
     serialPrintf("ide_fs_mount: Trying to mount drive %s on %s...\n", device, mount_path);
 
     // Convert it back to a number
-    int i = atoi(device);
+    int i = (int)strtol(device, (char**)NULL, 10);
 
     // Now, we try to get the VFS node for the device.
     fsNode_t *vfsNode = ideGetVFSNode(i);
 
     // Check if it's actually a valid node
-    if (vfsNode->impl == -1) {
+    if ((int)vfsNode->impl == -1) {
         kfree(vfsNode);
         return NULL;
     }
@@ -218,7 +219,7 @@ uint32_t ideRead_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *buf
     int lba = (off - (off % 512)) / 512;
 
     // Read in the sectors
-    int ret = ideReadSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, temporary_buffer);
+    int ret = ideReadSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, (uint32_t)temporary_buffer);
     if (ret != IDE_OK) return ret;
 
     // We've now read in about one sector greater than our size, for offset purposes
@@ -242,14 +243,14 @@ uint32_t ideWrite_vfs(struct fsNode *node, off_t off, uint32_t size, uint8_t *bu
     int lba = (off - (off % 512)) / 512;
 
     // Read in the sector for our offset
-    int ret = ideReadSectors(((fsNode_t*)node)->impl, 1, lba, (uint32_t*)padded_buffer);
+    int ret = ideReadSectors(((fsNode_t*)node)->impl, 1, lba, (uint32_t)padded_buffer);
     if (ret != IDE_OK) return ret;
  
     // Copy the contents of buffer to padded_buffer with an offset
     memcpy(padded_buffer + (off-(lba*512)), buffer, size);
 
     // Write the sectors
-    ret = ideWriteSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, padded_buffer);
+    ret = ideWriteSectors(((fsNode_t*)node)->impl, ((size + 512) - ((size + 512) % 512)) / 512, lba, (uint32_t)padded_buffer);
     if (ret != IDE_OK) return ret;
 
     return IDE_OK;
@@ -614,7 +615,7 @@ uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t ed
     ideWrite(channel, ATA_REG_COMMAND, ATA_PACKET);
 
     // Wait for the drive to finish or return an error.
-    if (err = idePolling(channel, 1)) return err; // Error.
+    if ((err = idePolling(channel, 1))) return err; // Error.
 
     // Send the packet data.
     asm ("rep outsw" :: "c"(6), "d"(bus), "S"(atapiPacket));
@@ -622,7 +623,7 @@ uint8_t ideReadATAPI(uint8_t drive, uint32_t lba, uint8_t sectorNum, uint32_t ed
     // Receive the data.
     for (i = 0; i < sectorNum; i++) {
         ideWaitIRQ(); // Wait for an IRQ.
-        if (err = idePolling(channel, 1)) return err; // There was an error.
+        if ((err = idePolling(channel, 1))) return err; // There was an error.
         asm ("pushw %es");
         asm ("rep insw" :: "c"(words), "d"(bus), "D"(edi)); // Receive the data.
         asm ("popw %es");
@@ -647,7 +648,7 @@ uint8_t package[8]; // package[0] contains err code
 int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint64_t lba, uint32_t edi) {
 
     // Check if the drive is present.
-    if (drive > 3 | ideDevices[drive].reserved == 0) {
+    if (drive > 3 || ideDevices[drive].reserved == 0) {
         package[0] = 0x1;
         serialPrintf("ideReadSectors: drive not found - cannot continue.\n");
         return IDE_DRIVE_NOT_FOUND;
@@ -674,6 +675,8 @@ int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint64_t lba, uint32_t edi)
             return package[0];
         }
     }
+
+    return 0;
 }
 
 
@@ -682,7 +685,7 @@ int ideReadSectors(uint8_t drive, uint8_t sectorNum, uint64_t lba, uint32_t edi)
 int ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi) {
     // Like the above funtion, we follow similar steps.
     // Check if the drive is present.
-    if (drive > 3 | ideDevices[drive].reserved == 0) {
+    if (drive > 3 || ideDevices[drive].reserved == 0) {
         package[0] = 0x1;
         serialPrintf("ideWriteSectors: drive not found - cannot continue.\n");
         return IDE_DRIVE_NOT_FOUND;
@@ -711,7 +714,7 @@ int ideWriteSectors(uint8_t drive, uint8_t sectorNum, uint32_t lba, uint32_t edi
 // ideGetDriveCapacity(uint8_t drive) - Returns drive capacity
 int ideGetDriveCapacity(uint8_t drive) {
     // Sanity checks
-    if (drive > 3 | ideDevices[drive].reserved == 0) {
+    if (drive > 3 || ideDevices[drive].reserved == 0) {
         return -1;
     }
     

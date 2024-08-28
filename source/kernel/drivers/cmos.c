@@ -20,8 +20,9 @@ static void cmos_selectRegister(uint8_t cmosreg) {
 uint8_t cmos_readRegister(uint8_t cmosreg) {
     disableHardwareInterrupts();
     cmos_selectRegister(cmosreg);
-    uint8_t ret = inportb(0x71);
+    uint8_t ret = inportb(0x71); 
     enableHardwareInterrupts();
+    return ret;
 }
 
 void cmos_writeRegister(uint8_t cmosreg, uint8_t value) {

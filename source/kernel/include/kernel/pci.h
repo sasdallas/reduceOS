@@ -98,4 +98,7 @@ void printPCIInfo(); // Prints PCI info
 uint32_t pciConfigReadField(uint32_t device, int field, int size); // A simplified version of pciConfigRead() that will take 3 parameters and read from a PCI device config space field.
 void pciScan(pciFunction_t func, int type, void *extra); // Scans the PCI buses for devices (used to implement device discovery)
 int pciGetInterrupt(uint32_t device); // Returns the interrupt of a specific device
+void pciScanBus(pciFunction_t func, int type, int bus, void *extra); // Scan each slot on the bus
+void pciScanSlot(pciFunction_t func, int type, int bus, int slot, void *extra); // Scan specific slot
+void pciScanFunc(pciFunction_t f, int type, int bus, int slot, int func, void *extra); // Scanning the function of a PCI device
 #endif

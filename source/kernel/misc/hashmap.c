@@ -30,12 +30,12 @@ unsigned int hashmap_string_hash(const void * _key) {
 }
 
 int hashmap_string_comp(const void * a, const void * b) {
-	return !strcmp(a,b);
+	return !strcmp(a, (char*)b); // the lack of const char* in strcmp strikes again!
 }
 
 void * hashmap_string_dupe(const void * key) {
-	char *out = kmalloc(strlen(key) + 1);
-    memcpy(out, key, strlen(key) + 1);
+	char *out = kmalloc(strlen((char*)key) + 1);
+    memcpy(out, key, strlen((char*)key) + 1);
     return out;
 }
 

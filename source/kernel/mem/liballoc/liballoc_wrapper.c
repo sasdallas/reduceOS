@@ -36,7 +36,7 @@ void *liballoc_alloc(size_t pages) {
 
     
     // Now, we can map the pages (basically identity mapping) to the ptr.
-    for (int i = 0; i < pages; i++) {
+    for (size_t i = 0; i < pages; i++) {
         vmm_mapPage(ptr + (i*4096), ptr + (i*4096));
     }
 
@@ -50,12 +50,12 @@ int liballoc_free(void *addr, size_t pages) {
     pmm_freeBlocks(addr, pages);
 
     // Get the page directory for our virtual address
-    pde_t *entry = vmm_getPageTable((uint32_t)addr);
+    pde_t *entry = vmm_getPageTable((void*)addr);
     pagetable_t *pageTable = (pagetable_t*)VIRTUAL_TO_PHYS(entry);
 
     // Now, we iterate through the table and find anything relating to our frames
-    for (int i = 0; i < pages; i++) {
-        pte_t *entry = vmm_tableLookupEntry(pageTable, addr + (i*4096));
+    for (size_t i = 0; i < pages; i++) {
+        pte_t *entry = vmm_tableLookupEntry(pageTable, (uint32_t)addr + (i*4096));
         vmm_freePage(entry);
     }
 

@@ -21,7 +21,7 @@ extern bool pagingEnabled;
 void enable_liballoc();
 void *kmalloc(size_t size);
 void *krealloc(void *a, size_t b);
-void *kcalloc(void *a, size_t b);
+void *kcalloc(size_t a, size_t b);
 void kfree(void *a);
 
 #endif

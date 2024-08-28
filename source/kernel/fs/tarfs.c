@@ -5,6 +5,7 @@
 // The original implementation is available here: https://github.com/klange/toaruos/blob/master/kernel/vfs/tarfs.c
 
 #include <kernel/tarfs.h> // Main header file
+#include <kernel/tokenize.h>
 
 // Function prototypes
 static fsNode_t *tarfs_ustarToFile(tarfs_t *fs, ustar_t *file, unsigned int offset);
@@ -113,7 +114,7 @@ static struct dirent* readdir_tar_root(fsNode_t *node, unsigned long index) {
         struct dirent *out = kmalloc(sizeof(struct dirent));
         memset(out, 0x00, sizeof(struct dirent));
         strcpy(out->name, "."); 
-        out->ino == 0;
+        out->ino = 0;
         return out;
     }
 
@@ -392,9 +393,9 @@ static fsNode_t *tarfs_ustarToFile(tarfs_t *fs, ustar_t *file, unsigned int offs
 }
 
 fsNode_t *tar_mount(const char *device, const char *mount_path) {
-    char *arg = kmalloc(strlen(device));
+    char *arg = kmalloc(strlen((char*)device));
     strcpy(arg, device);
-    arg[strlen(device)] = 0;
+    arg[strlen((char*)device)] = 0;
 
     char *argv[10];
     int argc = tokenize(arg, ",", argv);
@@ -436,4 +437,5 @@ fsNode_t *tar_mount(const char *device, const char *mount_path) {
 
 int tar_install() {
     vfs_registerFilesystem("tar", tar_mount);
+    return 0;
 }

@@ -15,6 +15,8 @@
 #include <kernel/vfs.h>
 #include <kernel/processor.h>
 #include <kernel/keyboard.h>
+#include <kernel/ide_ata.h>
+#include <sleep.h>
 
 
 extern ideDevice_t ideDevices[4];

@@ -248,5 +248,7 @@ fsNode_t *ext2_finddir(fsNode_t *node, char *name); // Returns NULL if file exis
 int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNode_t *ret);
 int ext2_install(int argc, char *argv[]); // Installs the EXT2 filesystem driver to automatically initialize when a disk is detected
 int ext2_unlink(fsNode_t *file, char *name); // Unlinks/deletes a file
+void ext2_refreshInode(ext2_t *fs, ext2_inode_t *inodet, uint32_t inode);
+int ext2_allocateInodeMetadataBlock(ext2_t *fs, uint32_t *blockPtr, ext2_inode_t *inode, uint32_t index, uint8_t *buffer, uint32_t blockOverwrite);
 
 #endif

@@ -6,6 +6,7 @@
 // For more information on this topic, check https://wiki.osdev.org/PCI
 
 #include <kernel/pci.h> // Main header file
+#include <stdio.h>
 
 // TODO: Implement support for different header types, we always assume header type 0x0.
 
@@ -218,7 +219,7 @@ void initPCI() {
 
 int getDevTableId(uint32_t deviceID, uint32_t vendorID) {
     int id = -1;
-    for (int i = 0; i < PCI_DEVTABLE_LEN; i++) {
+    for (uint32_t i = 0; i < PCI_DEVTABLE_LEN; i++) {
         if (PciDevTable[i].DevId == deviceID && PciDevTable[i].VenId == vendorID) {
             id = i;
             break;
@@ -231,7 +232,7 @@ int getDevTableId(uint32_t deviceID, uint32_t vendorID) {
 int getClassIdType(uint16_t classID, uint16_t subclassID) {
     int id = -1;
 
-    for (int i = 0; i < PCI_CLASSCODETABLE_LEN; i++) {
+    for (uint32_t i = 0; i < PCI_CLASSCODETABLE_LEN; i++) {
         if (PciClassCodeTable[i].BaseClass == classID && PciClassCodeTable[i].SubClass == subclassID) {
             id = i;
             break;
@@ -243,7 +244,7 @@ int getClassIdType(uint16_t classID, uint16_t subclassID) {
 
 void printPCIInfo() {
 
-    for (int i = 0; i < dev_idx; i++) {
+    for (uint32_t i = 0; i < dev_idx; i++) {
         
         // Get the class type
         uint16_t classID = pciGetClassID(pciDevices[i]->bus, pciDevices[i]->slot, pciDevices[i]->func);
@@ -252,14 +253,14 @@ void printPCIInfo() {
 
         int id = getDevTableId(pciDevices[i]->device, pciDevices[i]->vendor);
         if (id != -1 && classTypeId != -1) {
-            if (PciClassCodeTable[classTypeId].ProgDesc != "") {
+            if (!PciClassCodeTable[classTypeId].ProgDesc) {
                 printf("%i) %s %s (%s - %s - %s)\n", i, PciDevTable[id].Chip, PciDevTable[i].ChipDesc, PciClassCodeTable[classTypeId].BaseDesc, PciClassCodeTable[classTypeId].SubDesc, PciClassCodeTable[classTypeId].ProgDesc);
             } else {
                 printf("%i) %s %s (%s - %s)\n", i, PciDevTable[id].Chip, PciDevTable[i].ChipDesc, PciClassCodeTable[classTypeId].BaseDesc, PciClassCodeTable[classTypeId].SubDesc);
             }
         } else if (classTypeId != -1) {
             // We don't know the exact device type - that's ok, just print Unknown and the class type
-            if (PciClassCodeTable[classTypeId].ProgDesc != "") {
+            if (!PciClassCodeTable[classTypeId].ProgDesc) {
                 printf("%i) Unknown Device (%s - %s - %s)\n", i,  PciClassCodeTable[classTypeId].BaseDesc, PciClassCodeTable[classTypeId].SubDesc, PciClassCodeTable[classTypeId].ProgDesc);
             } else {
                 printf("%i) Unknown Device (%s - %s)\n", i, PciClassCodeTable[classTypeId].BaseDesc, PciClassCodeTable[classTypeId].SubDesc);

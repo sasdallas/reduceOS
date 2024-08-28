@@ -4,6 +4,9 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/font.h> // Main header file
+#include <stdio.h>
+
+/* TODO: REMOVE BITMAP FONT */
 
 // PSF (as mentioned in the header file) stands for 'PC screen font', which is the font used by Linux for its console.
 // The font is encoded with its own header and in unicode
@@ -56,6 +59,8 @@ void bitmapFontDrawChar(char ch, int x, int y, int color) {
     }
 }
 
+#pragma GCC diagnostic ignored "-Wunused-value"
+
 // bitmapFontDrawString(char *str, int x, int y, int color) - Draw a string from the bitmap
 void bitmapFontDrawString(char *str, int x, int y, int color) {
     int tmpX = x, tmpY = y;
@@ -64,7 +69,7 @@ void bitmapFontDrawString(char *str, int x, int y, int color) {
         *str++;
         tmpX += 14;
 
-        if (tmpX > modeWidth) {
+        if ((uint32_t)tmpX > modeWidth) {
             tmpY += 17;
             tmpX = x;
         }
@@ -84,14 +89,14 @@ void bitmapFontDrawString(char *str, int x, int y, int color) {
 void psfGetPSFInfo() {
     serialPrintf("psfGetPSFInfo: PSF font is loaded from 0x%x to 0x%x\n", &_binary_font_psf_start, &_binary_font_psf_end);
     char *start_addr = &_binary_font_psf_start;
-    PSF1_Header *h1 = start_addr;
-    if (h1->magic == 0x0436) {
+    PSF1_Header *h1 = (PSF1_Header*)start_addr;
+    if (h1->magic[0] == 0x04 && h1->magic[1] == 0x36) {
         serialPrintf("psfGetPSFInfo: Font is PSF version 1\n");
         serialPrintf("psfGetPSFInfo: Font mode: %i\npsfGetPSFInfo: Character Size: %i\n", h1->fontMode, h1->characterSize);
     }
 
 
-    PSF2_Header *h2 = start_addr;
+    PSF2_Header *h2 = (PSF2_Header*)start_addr;
     if (h2->magic == 0x864ab572) {
         serialPrintf("psfGetPSFInfo: Font is PSF version 2\n");
         serialPrintf("psfGetPSFInfo: Version is %i\n", h2->version);
@@ -109,14 +114,15 @@ void psfInit() {
     char *start_addr = &_binary_font_psf_start;
 
 
-    PSF1_Header *h1 = start_addr;
-    if (h1->magic == 0x0436) {
+    PSF1_Header *h1 = (PSF1_Header*)start_addr;
+    if (h1->magic[0] == 0x04 && h1->magic[1] == 0x36) {
         serialPrintf("psfInit: PSF version 1 is NOT supported!\n");
-        return;
+        panic("font", "PSF", "Version 1 is not supported");
+        __builtin_unreachable();
     }
 
 
-    PSF2_Header *h2 = start_addr;
+    PSF2_Header *h2 = (PSF2_Header*)start_addr;
     if (h2->magic == 0x864ab572) {
         font = h2;
     }
@@ -137,7 +143,7 @@ void psfDrawChar(unsigned short int c, int cx, int cy, uint32_t fg, uint32_t bg)
     unsigned char *glyph = (unsigned char*)&_binary_font_psf_start + font->header_size + (c > 0 && c < font->glyphs ? c : 0) * font->bytesPerGlyph;
 
     // Display the pixels according to the bitmap.
-    int x, y, mask;
+    uint32_t x, y, mask;
     for (y = 0; y < font->height; y++) {
         mask = 1 << (font->width - 1);
         // Display a row.

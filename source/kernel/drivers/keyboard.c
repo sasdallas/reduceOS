@@ -4,6 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
 
 #include <kernel/keyboard.h> // Main include file
+#include <stdio.h>
 
 static bool isEnabled = true; // As mentioned in keyboard.h, this header file contains definitions for special scancodes and other things.
 static bool shiftKey = false; // Shift, caps lock, and ctrl key handling.
@@ -238,20 +239,13 @@ void keyboardGetKey(char key, bool doPrintChars) {
     setKBPrintChars(doPrintChars); // Set KB print chars to whatever they want.
 
 
-    // A few special keys can be passed to this function.
-    // If \e is passed, wait for ENTER (ch is '\n'). If \s is passed, wait for SHIFT (shiftKey is true.).
-    // If \c is passed, wait for CTRL (ctrlPressed is true).
+    // One special key can be passed to this function.
+    // If \e is passed, wait for ENTER (ch is '\n').
+    // A note about this function: When it says to pass "\e" it means LITERALLY the string 
+    // The remaining are deprecated and CANNOT be used.
 
     if (key == '\e') {
         while (keyboardGetChar() != '\n');
-        setKBPrintChars(previousPrintValue);
-        return;
-    } else if (key == '\s') {
-        while (!shiftKey);
-        setKBPrintChars(previousPrintValue);
-        return;
-    } else if (key == '\c') {
-        while (!ctrlPressed);
         setKBPrintChars(previousPrintValue);
         return;
     } else {

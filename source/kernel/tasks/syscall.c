@@ -7,6 +7,8 @@
 
 #include <kernel/syscall.h> // Main header file
 #include <kernel/process.h>
+#include <stdio.h>
+
 
 
 // List of system calls
@@ -67,7 +69,7 @@ void syscallHandler(registers_t *regs) {
         memcpy(currentProcess->syscall_registers, regs, sizeof(registers_t));
     }
 
-    int syscallNumber = regs->eax;
+    uint32_t syscallNumber = regs->eax;
 
     // Check if system call number is valid.
     if (syscallNumber >= syscallAmount) {
@@ -136,12 +138,13 @@ long sys_write(int file_desc, char *buf, size_t nbyte) {
 
     if (file_desc == 2) {
         // stderr
-        return printf_out(nbyte, buf);
+        printf("%s", buf);
+        return nbyte;
     }
 
     fsNode_t *node = open_file("/device/console", 0);
 
-    int64_t retval = node->write(node, 0, nbyte, buf);
+    int64_t retval = node->write(node, 0, nbyte, (uint8_t*)buf);
 
     return retval;
 }
@@ -207,24 +210,20 @@ int sys_open(const char *name, int flags, int mode) {
 // SYSCALL 14
 // TODO: uint32_t is not the correct type for this, it's arch-specific I believe
 uint32_t sys_sbrk(int incr) {
-    /*if (incr & 0xFFF) {
+    if (incr & 0xFFF) {
         serialPrintf("INCR is not valid.\n");
         return -1;
-    }*/
+    }
     process_t *proc = currentProcess;
-    //if (proc->group != 0) proc = process_from_pid(proc->group);
 
     if (!proc) return -1;
 
     spinlock_lock(&proc->image.spinlock);
     uintptr_t out = proc->image.stack;
-    serialPrintf("Starting mapping at 0x%x...\n", out);
     for (uintptr_t i = out; i < out + incr; i += 4096) {
         vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER); 
-        serialPrintf("Mapping to 0x%x...\n", i);
     }
 
-    serialPrintf("Finished mapping! Sending out 0x%x\n", out);
 
     proc->image.stack += incr;
     spinlock_release(&proc->image.spinlock);

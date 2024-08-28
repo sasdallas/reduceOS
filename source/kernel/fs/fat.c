@@ -62,7 +62,7 @@ int fatToDOSName(char *filename, char *output, int length) {
             output[i + (8 - i) + j] = toupper(filename[i + j]);
         }
     } else if (i < length) {
-        for (i; i < length; i++) {
+        for (; i < length; i++) {
             output[i] = ' ';
         }
     }
@@ -94,9 +94,9 @@ int fatParseRootDirectory32(fat_t *fs, char *path, fsNode_t *file) {
            
             // strcmp() will return a 0 if the other string is totally blank, bad!
             // Solve with this if statement
-            if (strlen(directory->fileName) <= 0) continue;
+            if (strlen((char*)(&(directory->fileName))) <= 0) continue;
 
-            if (!strcmp(directory->fileName, path)) {
+            if (!strcmp((char*)&directory->fileName, path)) {
                 // We found the file! Congrats!
 
                 // Reset the attributes byte
@@ -228,9 +228,9 @@ fsNode_t *fatParseRootDirectory(fat_t *fs, char *path) {
            
             // strcmp() will return a 0 if the other string is totally blank, bad!
             // Solve with this if statement
-            if (strlen(directory->fileName) <= 0) continue;
+            if (strlen((char*)&directory->fileName) <= 0) continue;
 
-            if (!strcmp(directory->fileName, filename)) {
+            if (!strcmp((char*)&directory->fileName, filename)) {
                 // We found the file! Congrats!
 
                 // Reset the attributes byte
@@ -367,7 +367,7 @@ fsNode_t *fatParseSubdirectory(fsNode_t *file, const char *path) {
 
     // First, get the DOS 8.3 filename.
     char *filename = kmalloc(12);
-    if (fatToDOSName(path, filename, 11) != 0) {
+    if (fatToDOSName((char*)path, filename, 11) != 0) {
         ret->flags = -1;
         return ret;
     }
@@ -391,7 +391,7 @@ fsNode_t *fatParseSubdirectory(fsNode_t *file, const char *path) {
             directory->fileName[11] = 0;
 
 
-            if (!strcmp(filename, directory->fileName)) {
+            if (!strcmp(filename, (char*)&directory->fileName)) {
                 // We found it! Setup the return file.
                 // Reset the attributes byte
                 directory->fileName[11] = attributes;
@@ -456,7 +456,6 @@ fsNode_t *fatOpenInternal(fsNode_t *driver, char *filename) {
     
 
     if (!slash) {
-        fat_t *fs = (fat_t*)(driver->impl_struct);
         // The file is not in a subdirectory. Scan the root directory.
         directory = fatParseRootDirectory((fat_t*)(driver->impl_struct), filepath);
 
@@ -510,7 +509,7 @@ fsNode_t *fatOpenInternal(fsNode_t *driver, char *filename) {
         }
 
         // Found directory or file?
-        if (directory->flags == -1) {
+        if ((int)directory->flags == -1) {
             break;
         }
 
@@ -663,7 +662,7 @@ fsNode_t *fatFindDirectory(struct fsNode *node, char *name) {
     fsNode_t *ret = fatOpenInternal((fsNode_t*)node, path); // I wanted to use fatOpen, but it doesn't work. Not sure why.
 
     // Check the flags. finddir methods are supposed to return NULL if something doesn't exist.
-    if (ret->flags == -1) {
+    if ((int)ret->flags == -1) {
         kfree(path);
         kfree(ret);
         return NULL;
@@ -684,7 +683,7 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
 
     // Allocate a buffer to read in the BPB
     uint32_t *buffer = kmalloc(512);
-    int ret = driveNode->read(driveNode, 0, 512, buffer); // Read in the 1st sector
+    int ret = driveNode->read(driveNode, 0, 512, (uint8_t*)buffer); // Read in the 1st sector
 
     if (ret != 0) {
         kfree(buffer);
@@ -779,13 +778,13 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
 
             // The fsInfo structure mandates that the last known free cluster count be checked and recomputed if needed.
             // It also should be range checked that it is avctually valid.
-            if (fsInfo->freeClusterCount == 0xFFFFFFFF || fsInfo->freeClusterCount > driver->drive->totalClusters) {
+            if (fsInfo->freeClusterCount == 0xFFFFFFFF || fsInfo->freeClusterCount > (uint32_t)driver->drive->totalClusters) {
                 serialPrintf("fatInit: WARNING! Free cluster count needs to be recomputed. THIS IS TBD\n");
             }
 
             // The same should be done for the starting number for available clusters. We don't use this number for now, but it would be nice to have later.
             // This number will likely come in handy when write functions are added, as during cluster allocation it should be modified
-            if (fsInfo->availableClusterStart == 0xFFFFFFFF || fsInfo->availableClusterStart > driver->drive->totalClusters) {
+            if (fsInfo->availableClusterStart == 0xFFFFFFFF || fsInfo->availableClusterStart > (uint32_t)driver->drive->totalClusters) {
                 serialPrintf("fatInit: WARNING! Starting cluster number needs to be recomputed. Assuming 2.\n"); // TBD
             }
 
@@ -810,15 +809,15 @@ fsNode_t *fatInit(fsNode_t *driveNode, int flags) {
         fsNode_t *ret = kmalloc(sizeof(fsNode_t));
         ret->flags = VFS_DIRECTORY;
         ret->uid = ret->gid = ret->inode = ret->impl = ret->mask = 0;
-        ret->open = &fatOpen;
-        ret->close = &fatClose;
+        ret->open = (open_t)fatOpen;
+        ret->close = (close_t)fatClose;
         ret->create = NULL;
-        ret->read = &fatRead;
-        ret->write = &fatWrite;
-        ret->finddir = &fatFindDirectory;
+        ret->read = (read_t)fatRead;
+        ret->write = (write_t)fatWrite;
+        ret->finddir = (finddir_t)fatFindDirectory;
         ret->readdir = NULL;
         ret->mkdir = NULL;
-        ret->impl_struct = driver;
+        ret->impl_struct = (uint32_t*)driver;
         strcpy(ret->name, "FAT driver");
     
         return ret;
@@ -837,16 +836,19 @@ struct dirent *fat_readdir(fsNode_t *node, uint32_t index) {
 
     // This is not going to be easy to implement.
     // Not sure how I'm gonna do it while at least looking somewhat decent...
+
+    panic("FAT", "fat_readdir", "Unimplemented");
+    __builtin_unreachable();
 }
 
 
 // fat_fs_mount(const char *device, const char *mount_path) - Mounts the FAT filesystem
 fsNode_t *fat_fs_mount(const char *device, const char *mount_path) {
-    char *arg = kmalloc(strlen(device) + 1);
+    char *arg = kmalloc(strlen((char*)device) + 1);
     strcpy(arg, device);
 
     char *argv[10];
-    int argc = tokenize(arg, ",", argv);
+    tokenize(arg, ",", argv);
 
     fsNode_t *dev = open_file(argv[0], 0);
     if (!dev) {

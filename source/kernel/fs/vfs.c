@@ -7,6 +7,7 @@
 
 
 #include <kernel/vfs.h> // Main header file
+#include <stdio.h>
 
 fsNode_t *fs_root = 0; // Root of the filesystem
 tree_t *fs_tree = NULL; // Mountpoint tree
@@ -181,11 +182,11 @@ int vfs_mountType(const char *type, const char *arg, const char *mountpoint) {
     if (!n) return -1;
 
     // Mount the filesystem
-    tree_node_t *node = vfsMount(mountpoint, n);
-    if (node && node->value) {
+    tree_node_t *node = vfsMount((char*)mountpoint, n);     // Why are we casting to char* when mountpoint is a char*? 
+    if (node && node->value) {                              // GCC will yell about disregarded const, so just cast.
         vfsEntry_t *entry = (vfsEntry_t*)node->value;
-        entry->fs_type = kmalloc(strlen(type) + 1);
-        entry->device = kmalloc(strlen(arg) + 1);
+        entry->fs_type = kmalloc(strlen((char*)type) + 1);
+        entry->device = kmalloc(strlen((char*)arg) + 1);
 
         strcpy(entry->fs_type, type);
         strcpy(entry->device, arg);
@@ -250,9 +251,9 @@ void vfs_mapDirectory(const char *c) {
     fsNode_t *f = vfs_mapper();
     vfsEntry_t *entry = vfsMount((char*)c, f);
     if (!strcmp(c, "/")) {
-        f->device = fs_tree->root;
+        f->device = (fsNode_t*)fs_tree->root; // Bug?
     } else {
-        f->device = entry;
+        f->device = (fsNode_t*)entry;
     }
 }
 
@@ -263,7 +264,7 @@ void debug_print_vfs_tree_node(tree_node_t *node, size_t height, bool printout) 
     // Indent output according to height
     char *indents = kmalloc(100);
     memset(indents, 0, 100);
-    for (int i = 0; i < height; i++) {
+    for (size_t i = 0; i < height; i++) {
         indents[i] = ' ';
     }
 
@@ -392,10 +393,10 @@ char *vfs_canonicalizePath(const char *cwd, const char *input) {
     list_t *out = list_create(); // Stack-based canonicalizer, use list as a stack (ToaruOS)
 
     // Check if we have a relative path (not starting from root). If so, we need to canonicalize the working directory.
-    if (strlen(input) && input[0] != '/') {
+    if (strlen((char*)input) && input[0] != '/') {
         // Make a copy of the current working directory
-        char *path = kmalloc((strlen(cwd) + 1) * sizeof(char));
-        memcpy(path, cwd, strlen(cwd) + 1);
+        char *path = kmalloc((strlen((char*)cwd) + 1) * sizeof(char));
+        memcpy(path, cwd, strlen((char*)cwd) + 1);
 
         // Setup the tokenizer
         char *pch;
@@ -419,8 +420,8 @@ char *vfs_canonicalizePath(const char *cwd, const char *input) {
     }
 
     // Insert elements from new path
-    char *path = kmalloc((strlen(input) + 1) * sizeof(char));
-    memcpy(path, input, strlen(input) + 1);
+    char *path = kmalloc((strlen((char*)input) + 1) * sizeof(char));
+    memcpy(path, input, strlen((char*)input) + 1);
 
     // Initialize tokenizer 
     char *save;
@@ -651,7 +652,7 @@ void change_cwd(const char *newdir) {
     // This is a little weird - but we'll first need to just see if newdir refers to a relative path or a root directory
     if (newdir[0] == '/') {
         // It refers to the root directory, so this is easy, just overwrite cwd with newdir.
-        if (strlen(newdir) > 256) {
+        if (strlen((char*)newdir) > 256) {
             serialPrintf("change_cwd: Maximum path length (256) reached! Cannot continue.\n");
             return;
         }

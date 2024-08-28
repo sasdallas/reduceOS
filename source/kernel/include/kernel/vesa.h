@@ -72,5 +72,7 @@ void vesaInit();
 uint32_t RGB_VBE(uint8_t r, uint8_t g, uint8_t b);
 void vbePutPixel(int x, int y, uint32_t color);
 int vbeSwitchBuffers();
+uint32_t VGA_TO_VBE(uint8_t vgaColor);
+uint32_t vbeGetPixel(int x, int y);
 
 #endif

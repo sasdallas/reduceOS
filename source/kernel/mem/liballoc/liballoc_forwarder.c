@@ -3,7 +3,10 @@
 // ======================================================================== 
 // Unfortunately, this file is part of the reduceOS C kernel. If you're using this code, please, think about your life...
 
+/* TODO: Check me for bugs! */
+
 #include <kernel/mem.h> // Main header file
+#include <kernel/liballoc.h>
 
 uint32_t placement_address = (uint32_t)&end;
 int liballoc_enabled = 0;
@@ -26,7 +29,7 @@ void *kmalloc(size_t size){
 
         uint32_t ret = placement_address;
         placement_address += size;
-        return ret;
+        return (void*)ret;
     }
 }
 
@@ -35,7 +38,7 @@ void *krealloc(void *a, size_t b) {
     return liballoc_krealloc(a, b);
 }
 
-void *kcalloc(void *a, size_t b) {
+void *kcalloc(size_t a, size_t b) {
     return liballoc_kcalloc(a, b);
 }
 

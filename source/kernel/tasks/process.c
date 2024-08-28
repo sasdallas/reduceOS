@@ -8,7 +8,13 @@
 
 #include <kernel/process.h> // Main header file
 #include <kernel/elf.h>
+#include <kernel/clock.h>
 
+
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers" // Because of the way the spinlocks work, the volatile property is discarded.
+                                                        // This is bad, and has been logged as a change to be made.
+                                                        // For now, I'm focused on making reduceOS warning-free.
+                                                        // Is this cheating? Yes. 
 
 /************************ VARIABLES ************************/
 
@@ -98,10 +104,6 @@ void process_switchNext() {
     __sync_or_and_fetch(&currentProcess->flags, PROCESS_FLAG_STARTED);
 
     asm volatile ("" ::: "memory");
-    
-    uint32_t esp = currentProcess->thread.context.sp;
-    uint32_t eip = currentProcess->thread.context.ip;
-    uint32_t ebp = currentProcess->thread.context.bp;
 
     load_context(&currentProcess->thread.context);
 }
@@ -182,12 +184,12 @@ static void kidle() {
 // process_releaseDirectory(thread_t *thread) - Release a process's paging data
 void process_releaseDirectory(thread_t *thread) {
     serialPrintf("Releasing process directory for thread 0x%x\n", thread);
-    spinlock_lock(&thread->pd_lock);
+    spinlock_lock(thread->pd_lock);
     thread->refcount--;
     if (thread->refcount < 1) {
         pmm_freeBlock(thread->page_directory);
     } else {
-        spinlock_release(&thread->pd_lock);
+        spinlock_release(thread->pd_lock);
     }
 }
 
@@ -205,7 +207,7 @@ process_t *spawn_kidle(int bsp) {
     idle->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE; // WARNING: BUG HERE - THIS IS NOT ALIGNED
     vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
                                 idle->image.stack, 
-                                vmm_getPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack),
+                                (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack),
                                 PTE_PRESENT);
     
     // Setup thread context
@@ -265,7 +267,7 @@ process_t *spawn_init() {
     init->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
     vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
                                 init->image.stack, 
-                                vmm_getPhysicalAddress(vmm_getCurrentDirectory(), init->image.stack),
+                                (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), init->image.stack),
                                 PTE_PRESENT);
     
     // Setup flags
@@ -322,7 +324,7 @@ process_t *spawn_process(volatile process_t *parent, int flags) {
     proc->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
     vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
                                 proc->image.stack, 
-                                vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
+                                (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
                                 PTE_PRESENT); 
     proc->image.shm_heap = NULL; // Unused
 
@@ -360,7 +362,7 @@ void process_reap(process_t *proc) {
     // Remap the stack bottom to be writable
     vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
                                 proc->image.stack, 
-                                vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
+                                (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
                                 PTE_PRESENT | PTE_WRITABLE);
 
     // Free the stack
@@ -773,7 +775,7 @@ int waitpid(int pid, int *status, int options) {
 int process_timeout_sleep(process_t *process, int timeout) {
     // Calculate the time to sleep
     unsigned long s, ss;
-    rtc_getDateTime(&s, NULL, NULL, NULL, NULL, NULL);
+    rtc_getDateTime((uint8_t*)&s, NULL, NULL, NULL, NULL, NULL);
     ss = s * 1000;
     s += timeout;
     ss += timeout * 1000;
@@ -793,7 +795,7 @@ int process_timeout_sleep(process_t *process, int timeout) {
     proc->end_tick = s;
     proc->end_subtick = ss;
     proc->is_fswait = 1;
-    list_insert((process_t*)process->nodeWaits, proc);
+    list_insert(process->nodeWaits, (void*)proc);
     list_insert_after(sleep_queue, before, proc);
     process->timeoutNode = list_find(sleep_queue, proc);
 
@@ -941,7 +943,7 @@ pid_t fork() {
     
     // Setup SP and BP
     sp = &(new_proc->image.stack);
-    bp = sp;
+    bp = (uint32_t)sp;
 
     // Setup return value in syscall registers
     r.eax = 0;
@@ -952,7 +954,7 @@ pid_t fork() {
 
     // Setup registers and context
     new_proc->syscall_registers = (void*)sp;
-    new_proc->thread.context.sp = sp;
+    new_proc->thread.context.sp = (uint32_t)sp;
     new_proc->thread.context.bp = bp;
     new_proc->thread.context.tls_base = parent->thread.context.tls_base;
 
@@ -1092,7 +1094,7 @@ int createProcess(char *filepath) {
     }
 
     char *buffer = kmalloc(file->length);
-    int ret = file->read(file, 0, file->length, buffer);
+    uint32_t ret = file->read(file, 0, file->length, (uint8_t*)buffer);
     if (ret != file->length) {
         return -2; // Read error
     }
@@ -1111,8 +1113,6 @@ int createProcess(char *filepath) {
 
 
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
-    //vmm_switchDirectory(NULL);
-    pagedirectory_t *this_directory = currentProcess->thread.page_directory;
     currentProcess->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
     currentProcess->thread.refcount = 1;
     atomic_flag_clear(currentProcess->thread.pd_lock);
@@ -1131,11 +1131,11 @@ int createProcess(char *filepath) {
             // We have to load it into memory
             uint32_t memory_blocks = (phdr->p_memsize + 4096) - ((phdr->p_memsize + 4096) % 4096); // Round up, else page fault will occur.
             void *mem = pmm_allocateBlocks(memory_blocks / 4096);
-            for (int blk = 0; blk < memory_blocks; blk += 4096) {
+            for (uint32_t blk = 0; blk < memory_blocks; blk += 4096) {
                 vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr +  blk, (uint32_t)mem + blk, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
                 
             }
-            memcpy(phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
+            memcpy((void*)phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
         }
 
 
@@ -1149,13 +1149,13 @@ int createProcess(char *filepath) {
 
 
     // Create a usermode stack
-    void *usermodeStack = usermodeBase;
+    void *usermodeStack = (void*)usermodeBase;
     void *stackPhysical = pmm_allocateBlock(); // Allocate a physical block for the stack
 
     // Map the user process stack space
     vmm_mapPhysicalAddress(addressSpace, (uint32_t)usermodeStack, (uint32_t)stackPhysical, PTE_PRESENT|PTE_WRITABLE|PTE_USER);
 
-    currentProcess->image.userstack = usermodeStack;
+    currentProcess->image.userstack = usermodeBase;
 
     // Setup values
     currentProcess->image.heap = (heapBase + 0xFFF) & (~0xFFF);
@@ -1163,7 +1163,9 @@ int createProcess(char *filepath) {
 
     // It is time for your execution
     setKernelStack(currentProcess->image.stack);
-    start_process(usermodeStack, ehdr->e_entry);
+    start_process((uint32_t)usermodeStack, ehdr->e_entry);
+
+    return 0;
 }
 
 

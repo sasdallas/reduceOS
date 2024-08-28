@@ -52,5 +52,8 @@ int gettimeofday(struct timeval *t, void *z);
 time_t time(time_t *out);
 double difftime(time_t a, time_t b);
 char * asctime(const struct tm *tm);
+bool localtime_isYearLeap(int year);
+long localtime_getDaysInMonth(int month, int year);
+uint64_t now();
 
 #endif

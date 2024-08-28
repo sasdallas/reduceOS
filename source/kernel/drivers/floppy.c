@@ -5,6 +5,8 @@
 
 #include <kernel/floppy.h> // Main header file
 #include <kernel/cmos.h>
+#include <sleep.h>
+
 
 // Variables
 static int floppyIRQ_fired = 0;
@@ -67,7 +69,7 @@ static uint8_t floppy_getMSR() {
 static void floppy_sendCommand(uint8_t cmd) {
     // Wait until the data register is ready, then send a command.
     for (int i = 0; i < 1000; i++) {
-        if (floppy_getMSR() & FLOPPY_MSR_RQM) outportb(FLOPPY_DATA_FIFO, cmd); return;
+        if (floppy_getMSR() & FLOPPY_MSR_RQM) { outportb(FLOPPY_DATA_FIFO, cmd); return; }
     }
 
     serialPrintf("floppy_sendCommand: Command timeout!\n");
@@ -76,7 +78,7 @@ static void floppy_sendCommand(uint8_t cmd) {
 // (static) floppy_readDataRegister() - Reads the data register. Usually done after a cmd
 static uint8_t floppy_readDataRegister() {
     for (int i = 0; i < 1000; i++) {
-        if (floppy_getMSR() & FLOPPY_MSR_DIO) return inportb(FLOPPY_DATA_FIFO);
+        if (floppy_getMSR() & FLOPPY_MSR_DIO) { return inportb(FLOPPY_DATA_FIFO); }
     }
 
     serialPrintf("floppy_readDataRegister: Reading data register timeout!\n");
@@ -559,7 +561,7 @@ void floppy_init() {
     isrRegisterInterruptHandler(FLOPPY_IRQ + 32, floppy_IRQ);
 
     // Setup our DMA buffer
-    DMA_BUFFER = dma_allocPool(4096 * 5); // Something like 20 KB
+    DMA_BUFFER = (int)dma_allocPool(4096 * 5); // Something like 20 KB
 
     // We just reset it, because we can't really trust the BIOS to do anything, can we?
     // Proof: A small list of BIOSes with APM bugs - https://lxr.linux.no/#linux+v6.7.1/arch/x86/kernel/apm_32.c#L2055

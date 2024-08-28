@@ -4,6 +4,9 @@
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/clock.h> // Main header file
+#include <kernel/process.h>
+#include <time.h>
+
 
 // Note: Clock implementation ties in with the ToaruOS-sourced process scheduler.
 
@@ -12,7 +15,6 @@ uint64_t tsc_baseline = 0; // Accumulated time on the TSC when it was timed (bas
 uint64_t tsc_mhz = 0x1337; // Calculated on startup to determine TSC difference.
 
 static atomic_flag *timeset_lock; // Lock for setting time
-static uint64_t timeslice_baseline = 0; // Last clock update
 static atomic_flag *clock_lock; // Not very useful right now.
 
 
@@ -177,8 +179,8 @@ void clock_init() {
     );
 
     // Finalize by doing some bitmask calculation
-    uintptr_t end = ((end_hi & 0xFFFFffff) << 32) | (end_lo & 0xFFFFffff);
-    uintptr_t start = ((uintptr_t)(start_hi & 0xFFFFffff) << 32) | (start_lo & 0xFFFFffff);
+    uint64_t end = ((uint64_t)(end_hi & 0xFFFFffff) << 32) | (end_lo & 0xFFFFffff);
+    uint64_t start = ((uint64_t)(start_hi & 0xFFFFffff) << 32) | (start_lo & 0xFFFFffff);
     tsc_mhz = (end - start) / 10000;
     if (tsc_mhz == 0) {
         serialPrintf("clock_init: oh no\n");
@@ -217,7 +219,7 @@ int clock_gettimeofday(struct timeval *t, void *z) {
 // clock_settimeofday(struct timeval *t, void *z) - Same as above (do not call)
 int clock_settimeofday(struct timeval *t, void *z) {
     if (!t) return -1;
-    if (t->tv_sec < 0 || t->tv_usec < 0 || t->tv_usec > 1000000) return -1;
+    if (t->tv_usec > 1000000) return -1;
 
     spinlock_lock(timeset_lock);
     uint64_t clock_time = now();

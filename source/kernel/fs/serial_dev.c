@@ -27,7 +27,7 @@ uint32_t serialdev_read(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) 
     }
     
 
-    for (int i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         buf[i] = serialRead();
     }
 

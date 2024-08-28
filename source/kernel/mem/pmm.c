@@ -5,6 +5,7 @@
 // Some code was sourced from JamesM's Kernel Development Tutorials. Please credit him as well.
 
 #include <kernel/pmm.h> // Main header file
+#include <stdio.h>
 
 // (from JamesM's kernel dev tutorials)
 #define INDEX_BIT(a) (a/(8*4))
@@ -20,11 +21,12 @@ uint32_t pmm_memorySize; // Physical memory size
 uint32_t pmm_usedBlocks; // Used blocks of physical memory
 uint32_t pmm_maxBlocks; // Total amount of blocks of physical memory
 
+// Memory region types as strings
 char* strMemoryTypes[] = {
-	{"Available"},			// Initialize me!
-	{"Reserved"},			// I'm reserved!
-	{"ACPI Reclaim"},		// I'm ACPI related!
-	{"ACPI NVS Memory"}		// I'm ACPI NVS related!
+	"Available",			// Available
+	"Reserved",			    // Reserved
+	"ACPI Reclaim",		    // ACPI Reclaim (todo: initialize this)
+	"ACPI NVS Memory"		// ACPI NVS Memory
 };
 
 // pmm_printMemoryMap(multiboot_info *info) - Prints a memory map
@@ -123,6 +125,8 @@ uint32_t pmm_firstFrame() {
             }
         }
     }
+
+    return -1;
 
 }
 

@@ -187,39 +187,13 @@ uint32_t VGA_TO_VBE(uint8_t vgaColor) {
             return RGB_VBE(255, 255, 85);
         default:
             serialPrintf("VGA_TO_VBE: stupid users (color = %i)\n", vgaColor);
-            return;
+            return RGB_VBE(0, 0, 0);
     }
     // lmao
 }
 
 
 
-// vesa_initGOP(multiboot_info *info) - Initialize VESA using a GOP framebuffer
-int vesa_initGOP(multiboot_info *info) {
-    if (VESA_Initialized) return -2; // Already done for us.
-    if (!info->framebuffer_addr) {
-        return -1; // Nope
-    }
-
-    // Identity map framebuffer!
-    //serialPrintf("Framebuffer address: %p\n", (uintptr_t)info->framebuffer_addr);
-    pmm_deinitRegion((uintptr_t)info->framebuffer_addr, 1024*768);
-    vmm_allocateRegion((uintptr_t)info->framebuffer_addr, (uintptr_t)info->framebuffer_addr, 1024*768*4);
-
-    vbeBuffer = (void*)info->framebuffer_addr;
-    modeWidth = info->framebuffer_width;
-    modeHeight = info->framebuffer_height;
-    modeBpp = info->framebuffer_bpp;
-    modePitch = info->framebuffer_pitch;
-
-    
-
-    framebuffer = kmalloc(1024*768*4);
-
-    VESA_Initialized = true;
-
-    return 0;
-}
 
 
 // vesaInit() - Initializes VESA VBE.
@@ -271,7 +245,7 @@ void vesaInit() {
 
     // Because framebuffer is big and stupid pmm will get confused and try to still allocate memory INSIDE of it
     // So we need to fix that by telling PMM to go pound sand and deinitialize the region
-    pmm_deinitRegion(framebuffer, 1024*768*4);
+    pmm_deinitRegion((uintptr_t)framebuffer, 1024*768*4);
 
     // This will stop other functions from trying to initialize VESA.
     VESA_Initialized = true;

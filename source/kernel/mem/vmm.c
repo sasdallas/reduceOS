@@ -43,7 +43,7 @@ bool vmm_switchDirectory(pagedirectory_t *directory) {
     }
 
     currentDirectory = directory;
-    vmm_loadPDBR(currentDirectory); // Load the new directory into the page directory base register (CR3)
+    vmm_loadPDBR((uint32_t)currentDirectory); // Load the new directory into the page directory base register (CR3)
     return true;
 }
 
@@ -202,7 +202,7 @@ void vmm_allocateRegionFlags(uintptr_t physical_address, uintptr_t virtual_addre
     pagetable_t *table = (pagetable_t*)VIRTUAL_TO_PHYS(entry);
 
     // Now we'll have to identity map
-    for (int i = 0, frame=physical_address, virt=virtual_address; i < size / 4096; i++, frame += 4096, virt += 4096) {
+    for (__UINT_LEAST32_TYPE__ i = 0, frame=physical_address, virt=virtual_address; i < size / 4096; i++, frame += 4096, virt += 4096) {
         pte_t *page = &table->entries[PAGETBL_INDEX(virt)];
 
         // Add the flags
@@ -411,7 +411,7 @@ void vmmInit() {
     pde_setframe(entry4, (uint32_t)table4);
 
     // Set our ISR interrupt handler
-    isrRegisterInterruptHandler(14, pageFault);
+    isrRegisterInterruptHandler(14, (ISR)pageFault);
 
     // Store the current PDBR
     currentPDBR = (uint32_t)&dir->entries;

@@ -4,7 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/graphics.h> // Main header file
-
+#include <stdlib.h>
 
 
 // gfxDrawRect(int x1, int y1, int x2, int y2, uint32_t color, bool fill) - Draws a rectangle.

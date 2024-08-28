@@ -161,7 +161,7 @@ void dma_initPool(int pool_size) {
 
 // dma_allocPool(size_t size) - Gets a chunk from the DMA pool. Note: This chunk is statutory! You cannot put it back!
 void *dma_allocPool(size_t size) {
-    if ((dmaPool->end - dmaPool->next) < size) return NULL; // That's what happens when you forget about freeing memory chunks.
+    if ((uint32_t)(dmaPool->end - dmaPool->next) < size) return NULL; // That's what happens when you forget about freeing memory chunks.
     void *mem = (void*)dmaPool->next;
     dmaPool->next += size;
     return mem;

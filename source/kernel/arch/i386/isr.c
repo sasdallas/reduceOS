@@ -5,9 +5,10 @@
 
 #include <kernel/isr.h> // Main header file
 #include <kernel/process.h>
+#include <kernel/clock.h>
 
 ISR interruptHandlers[256]; // A list of all interrupt handlers
-uint32_t interruptToBeAcknowledged = -1; // When an interrupt is fired, the interrupt number will be logged here. 
+int interruptToBeAcknowledged = -1; // When an interrupt is fired, the interrupt number will be logged here. 
 
 
 #pragma GCC diagnostic ignored "-Wint-conversion" // Lots of warnings about setvector() not taking an unsigned int. Ignore them all.

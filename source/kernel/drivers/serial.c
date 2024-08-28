@@ -4,6 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
 
 #include <kernel/serial.h> // Main header file
+#include <stdio.h>
 
 // Variable declarations
 bool serialTestPassed = true; 
@@ -47,7 +48,7 @@ void serialPrintf(const char *str, ...) {
 
     va_list(ap);
     va_start(ap, str);
-    xvasprintf(serialWrite, NULL, str, ap);
+    xvasprintf((xvas_callback)serialWrite, NULL, str, ap);
     va_end(ap);
 }
 

@@ -27,4 +27,6 @@ char serialRead(); // Read one character from SERIAL_COM1
 void serialReadLine(bool printChars, char *bufferPtr); // Read line from SERIAL_COM1
 void serialWrite(void *user, char c); // Writes character 'c' to serial when transmit is empty.
 void serialPrintf(const char *str, ...); // Prints a formatted line to SERIAL_COM1.
+uint16_t serial_getCOM(); // Returns the selected COM port
+int serial_changeCOM(uint16_t com); // Switch to COM port
 #endif

@@ -10,7 +10,7 @@
 
 static uint32_t modfs_read(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
     uint32_t offset = (uint32_t)off;
-    multiboot_mod_t *mod = node->impl_struct;
+    multiboot_mod_t *mod = (multiboot_mod_t*)node->impl_struct;
     uint32_t modSize = mod->mod_end - mod->mod_start;
     if (offset > modSize) return -1;
 
@@ -20,14 +20,14 @@ static uint32_t modfs_read(fsNode_t *node, off_t off, uint32_t size, uint8_t *bu
     else sizeToRead = size;
 
     // Just memcpy it in
-    memcpy(buf, mod->mod_start + offset, sizeToRead);
+    memcpy(buf, (uint32_t*)(mod->mod_start + offset), sizeToRead);
 
     // Return size (even though we might not have read size)
     return size;
 }
 
 static uint32_t modfs_write(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
-    multiboot_mod_t *mod = node->impl_struct;
+    multiboot_mod_t *mod = (multiboot_mod_t*)node->impl_struct;
     uint32_t modSize = mod->mod_end - mod->mod_start;
     if (off > modSize) return -1;
 
@@ -37,7 +37,9 @@ static uint32_t modfs_write(fsNode_t *node, off_t off, uint32_t size, uint8_t *b
     else sizeToWrite = size - off;
 
     // memcpy it
-    memcpy(mod->mod_start + off, buf, sizeToWrite);
+    memcpy((uint32_t*)(mod->mod_start + (uint32_t)off), buf, sizeToWrite); // Integer overflow?
+
+    return sizeToWrite;
 }
 
 static uint32_t modfs_open(fsNode_t *node) {
@@ -52,13 +54,13 @@ static uint32_t modfs_close(fsNode_t *node) {
 // Mounting functions (note that we don't do this the normal way)
 void mountModfs(multiboot_mod_t *mod, char *mountpoint) {
     fsNode_t *out = kmalloc(sizeof(fsNode_t));
-    out->impl_struct = mod;
+    out->impl_struct = (uint32_t*)mod;
 
     strcpy(out->name, mountpoint); // This may not be the best idea
-    out->read = modfs_read;
-    out->write = modfs_write;
-    out->open = modfs_open;
-    out->close = modfs_close;
+    out->read = (read_t)modfs_read;
+    out->write = (write_t)modfs_write;
+    out->open = (open_t)modfs_open;
+    out->close = (close_t)modfs_close;
     out->length = mod->mod_end - mod->mod_start;
     out->flags = VFS_BLOCKDEVICE;
 
@@ -71,7 +73,7 @@ void mountModfs(multiboot_mod_t *mod, char *mountpoint) {
 
 void modfs_init(multiboot_info *info) {
     multiboot_mod_t *mod;
-    int i;
+    uint32_t i;
     int modsMounted = 0;
 
     // Map the /device/modules/ directory
@@ -79,10 +81,10 @@ void modfs_init(multiboot_info *info) {
 
     for (i = 0, mod = (multiboot_mod_t*)info->m_modsAddr; i < info->m_modsCount; i++, mod++) {
         // modfs command lines should start with modfs=1, and then their other types
-        if (strstr(mod->cmdline, "modfs=1") == mod->cmdline) {
+        if (!strcmp(strstr((char*)mod->cmdline, "modfs=1"),  (char*)mod->cmdline)) {
             char *mntpoint = kmalloc(strlen("/device/modules/modx"));
             strcpy(mntpoint, "/device/modules/mod");
-            itoa(modsMounted, mntpoint+strlen("/device/modules/mod"), 10);
+            itoa((void*)modsMounted, mntpoint+strlen("/device/modules/mod"), 10);
 
             mountModfs(mod, mntpoint);
             modsMounted++;

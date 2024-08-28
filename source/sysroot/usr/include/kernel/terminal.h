@@ -38,10 +38,13 @@ void terminalGotoXY(size_t x, size_t y); // terminalGotoXY() - Change the positi
 void scrollTerminal(); // scrollTerminal() - I don't see how this could be used outside of terminal.c, but just in case. Scrolls the terminal down.
 void terminalDeleteLastLine(); // terminalDeleteLastLine() - Removes the last line placed by the terminal.
 void clearScreen(uint8_t fg, uint8_t bg); // clearScreen() - Clears the terminal screen.
+void clearScreen_VESA(uint8_t fg, uint8_t bg); // clearScreen_VESA() - Clears the screen for VESA
 void terminalPutchar(char c); // terminalPutchar() - Recommended function. Incorporates scrollTerminal and terminalDeleteLastLine.
+void terminalPutcharVESA(char c); // terminalPutcharVESA() - Putchar, but VESA. Automatically handled by terminalPutchar, no need to use.
 void terminalWrite(const char *data, size_t size); // terminalWrite() - This nor terminalWriteString is recommended for use. Use printf. It prints data using a for loop, but needs length.
 void terminalWriteString(const char* data); // terminalWriteString() - The exact same as terminalWrite but with strlen() included.
 void terminalBackspace(); // terminalBackspace() - Removes the last character printed.
+void terminalBackspaceVESA(); // terminalBackspaceVESA() - Removes the last character printed for VESA
 void terminalWriteStringXY(const char *data, size_t x, size_t y); // terminalWriteStringXY() - Moves the terminal to X and Y, prints the string, then moves back to the original position.
 void terminalMoveArrowKeys(int arrowKey); // terminalMoveArrowKeys() - used by keyboard.c, a function to move the cursor around
 void updateBottomText(char *bottomText); // updateBottomText() - A function to update that bottom bar of text
@@ -53,5 +56,9 @@ void terminalSetUpdateScreen(bool state); // Toggles whether the screen should u
 void terminalUpdateTopBar(char *text); // Update the top bar on the screen
 void terminalUpdateTopBarKernel(char *text); // Updates the top bar and prints out kernel version info
 void updateTerminalColor_gfx(uint8_t fg, uint8_t bg); // Updates the color to specific FG and BG values
-char *getShell();
+char *getShell(); // getShell() - Returns the shell
+void updateShell(); // updateShell() - Update the shell to use CWD
+
+
+
 #endif

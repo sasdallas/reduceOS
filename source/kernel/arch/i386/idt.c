@@ -19,7 +19,7 @@ idtPtr_t idtPtr;
 
 
 int idtInstallIR(uint8_t i, uint8_t flags, uint16_t segmentSelector, uint32_t base) {
-    if (i < 0 || i >= I86_MAX_INTERRUPTS) return -1; // This would throw an out of bounds exception if it was.
+    // Side note: It is computationally impossible for i to be invalid. No checking today!
 
     idtEntries[i].baseLow = base & 0xFFFF;
     idtEntries[i].baseHigh = (base >> 16) & 0xFFFF;

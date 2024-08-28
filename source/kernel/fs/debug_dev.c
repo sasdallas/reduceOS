@@ -22,7 +22,7 @@ uint32_t debug_write(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
     // Copy to external buffer (needed)
     char *buffer_to_write = kmalloc(size);
     uint32_t size_to_write = 0;
-    if (size > strlen(buf)) size_to_write = strlen(buf);
+    if (size > (uint32_t)strlen((char*)buf)) size_to_write = strlen((char*)buf);
     else size_to_write = size;
     memcpy(buffer_to_write, buf, size_to_write);
 
@@ -35,10 +35,10 @@ uint32_t debug_write(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
     timestamp[len] = 0;
 
     // Open the serial device and write to it
-    if (!output_dev) return;
+    if (!output_dev) return 0;
 
-    output_dev->write(output_dev, 0, len, timestamp);
-    output_dev->write(output_dev, 0, size_to_write, buffer_to_write);
+    output_dev->write(output_dev, 0, len, (uint8_t*)timestamp);
+    output_dev->write(output_dev, 0, size_to_write, (uint8_t*)buffer_to_write);
     output_dev->close(output_dev);
 
     kfree(buffer_to_write);

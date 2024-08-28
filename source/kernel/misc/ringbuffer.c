@@ -128,7 +128,7 @@ size_t ringbuffer_write(ringbuffer_t *ringbuffer, size_t size, uint8_t *buffer) 
                 spinlock_release(ringbuffer->spinlock);
                 break;
             }
-            if (sleep_on_unlocking(ringbuffer->wait_queue_writers, &ringbuffer->spinlock)) {
+            if (sleep_on_unlocking(ringbuffer->wait_queue_writers, ringbuffer->spinlock)) {
                 if (!written) return -512; // -ERESTARTSYS
                 break;
             }
@@ -150,7 +150,7 @@ ringbuffer_t *ringbuffer_create(size_t size) {
     if (size == 4096) {
         // Align it
         out->buffer = pmm_allocateBlock();
-        vmm_allocateRegion(out->buffer, out->buffer, 4096); 
+        vmm_allocateRegion((uintptr_t)out->buffer, (uintptr_t)out->buffer, 4096); 
     } else {
         out->buffer = kmalloc(size);
     }
@@ -176,7 +176,7 @@ void ringbuffer_destroy(ringbuffer_t *ringbuffer) {
     if (ringbuffer->size == 4096) {
         // Destroy it but with alignment
         pmm_freeBlock(ringbuffer->buffer);
-        vmm_allocateRegionFlags(ringbuffer->buffer, ringbuffer->buffer, 4096, 0, 0, 0); // Force set the page's present flag to 0
+        vmm_allocateRegionFlags((uintptr_t)ringbuffer->buffer, (uintptr_t)ringbuffer->buffer, 4096, 0, 0, 0); // Force set the page's present flag to 0
     } else {
         kfree(ringbuffer->buffer);
     }

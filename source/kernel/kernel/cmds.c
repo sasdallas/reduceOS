@@ -17,6 +17,12 @@
 #include <kernel/mod.h>
 #include <kernel/module.h>
 #include <kernel/process.h>
+#include <kernel/ide_ata.h>
+#include <kernel/bitmap.h>
+#include <kernel/floppy.h>
+#include <kernel/pci.h>
+#include <kernel/keyboard.h>
+#include <kernel/processor.h>
 
 extern fsNode_t *fatDriver;
 extern fsNode_t *ext2_root;

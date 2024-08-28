@@ -7,6 +7,7 @@
 #include <kernel/mod.h>
 #include <kernel/vfs.h>
 #include <kernel/elf.h>
+#include <stdio.h>
 
 // Modules are NEVER unloaded, and we always will have them start at MODULE_ADDR_START (default is 0xA0000000)
 uint32_t last_load_address = MODULE_ADDR_START; // Incremented when a module is loaded
@@ -28,12 +29,16 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     // Round the length to the nearest 4096
     uint64_t length = (modfile->length + 4096) - ((modfile->length + 4096) % 4096);
     void *mem = pmm_allocateBlocks(length);
-    for (uint32_t i = 0, paddr=mem, vaddr=last_load_address; i < length / 0x1000; i++, paddr += 0x1000, vaddr += 0x1000) {
-        vmm_allocateRegionFlags(paddr, vaddr, 0x1000, 1, 1, 1);
+
+    uint32_t i;
+    void *paddr;
+    void *vaddr;
+    for (i = 0, paddr=mem, vaddr=(void*)last_load_address; i < length / 0x1000; i++, paddr += 0x1000, vaddr += 0x1000) {
+        vmm_allocateRegionFlags((uintptr_t)paddr, (uintptr_t)vaddr, 0x1000, 1, 1, 1);
     }
 
     // Read in the module
-    int retval = modfile->read(modfile, 0, modfile->length, (uint8_t*)last_load_address);
+    uint32_t retval = modfile->read(modfile, 0, modfile->length, (uint8_t*)last_load_address);
     if (retval != modfile->length) {
         pmm_freeBlocks(mem, length);
         return MODULE_READ_ERROR;
@@ -41,7 +46,7 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
 
 
     // We'll have to call the load buffer function for ELF
-    void *ret = elf_loadFileFromBuffer(last_load_address);
+    void *ret = elf_loadFileFromBuffer((void*)last_load_address);
     if (ret != 0x0) {
         serialPrintf("module_load: Could not load module\n");
         return MODULE_LOAD_ERROR;
@@ -112,8 +117,6 @@ void module_parseCFG() {
     // First, grab handles to root and/or initrd, depending on which has been mounted where.
     fsNode_t *root = open_file("/", 0);
     bool needsInitrd = (strcmp(root->name, "tarfs") == 0) ? false : true;
-    fsNode_t *initrd = NULL;
-    if (needsInitrd) initrd = open_file("/device/initrd/", 0); 
 
     // Next, grab the boottime and userspace configuration files (mod_boot.conf and mod_user.conf)
     // We ALWAYS want to pull from initial ramdisk and ONLY pull from backup root if necessary, because they can differ.
@@ -150,13 +153,13 @@ void module_parseCFG() {
     // Userspace is more lax, and can be loaded from backups
 
     char *modboot_buf = kmalloc(modBoot->length);
-    int ret = modBoot->read(modBoot, 0, modBoot->length, modboot_buf);
+    uint32_t ret = modBoot->read(modBoot, 0, modBoot->length, (uint8_t*)modboot_buf);
     if (ret != modBoot->length) {
         panic("module", "module_parseCFG", "Failed to read mod_boot.conf");
     }
 
     moduser_buf = kmalloc(modUser->length);
-    ret = modUser->read(modUser, 0, modUser->length, moduser_buf);
+    ret = modUser->read(modUser, 0, modUser->length, (uint8_t*)moduser_buf);
     if (ret != modUser->length) {
         panic("module", "module_parseCFG", "Failed to read mod_user.conf");
     }
@@ -180,7 +183,7 @@ void module_parseCFG() {
             if (strstr(token, "FILENAME ") != token) {
                 char *err = kmalloc(strlen("Parser error at line XXXX"));
                 strcpy(err, "Parser error at line ");
-                itoa(line, err + strlen(err), 10);
+                itoa((void*)line, err + strlen(err), 10);
                 panic("module", "module_parseCFG", err);
             }
 
@@ -197,7 +200,7 @@ void module_parseCFG() {
             if (strstr(token, "PRIORITY ") != token) {
                 char *err = kmalloc(strlen("Parser error at line XXXX"));
                 strcpy(err, "Parser error at line ");
-                itoa(line, err + strlen(err), 10);
+                itoa((void*)line, err + strlen(err), 10);
                 panic("module", "module_parseCFG", err);
             }
 

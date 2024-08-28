@@ -10,6 +10,9 @@
 #include <kernel/ide_ata.h> // IDE/ATA driver
 #include <kernel/vfs.h>
 
+#pragma GCC diagnostic ignored "-Wempty-body" // Don't want to mess with the func that uses this
+
+
 // External variables
 extern ideDevice_t ideDevices[4];
 
@@ -59,7 +62,7 @@ uint32_t ext2_writeInodeBlock(ext2_t *fs, ext2_inode_t *inode, uint32_t inodeNum
         ext2_allocateInodeBlock(fs, inode, inodeNumber, inode->disk_sectors / (fs->block_size / 512));
         ext2_refreshInode(fs, inode, inodeNumber);
 
-        ext2_inode_t *inode2 = ext2_readInodeMetadata(fs, inodeNumber);
+        //ext2_inode_t *inode2 = ext2_readInodeMetadata(fs, inodeNumber);
     }
 
 
@@ -203,7 +206,7 @@ uint32_t ext2_allocateBlock(ext2_t *fs) {
     uint32_t *buffer = kmalloc(fs->block_size);
 
     // Read in the inode bitmap
-    for (int i = 0; i < fs->total_groups; i++) {
+    for (uint32_t i = 0; i < fs->total_groups; i++) {
         if (!fs->bgd_list[i].unallocated_blocks) continue; // No free blocks available
 
         // Get the block usage bitmap
@@ -211,7 +214,7 @@ uint32_t ext2_allocateBlock(ext2_t *fs) {
         ext2_readBlock(fs, bitmapBlock, (uint8_t*)buffer);
         
         // Iterate through it
-        for (int j = 0; j < fs->block_size / 4; j++) {
+        for (uint32_t j = 0; j < fs->block_size / 4; j++) {
             uint32_t sub_bitmap = buffer[j];
             if (sub_bitmap == 0xFFFFFFFF) continue; // Nothing
 
@@ -249,7 +252,7 @@ int allocate_block(ext2_t *fs) {
     uint8_t *bg_buffer = kmalloc(fs->block_size);
 
 
-    for (int i = 0; i < fs->total_groups; i++) {
+    for (uint32_t i = 0; i < fs->total_groups; i++) {
         if (fs->bgd_list[i].unallocated_blocks > 0) {
             ext2_readBlock(fs, fs->bgd_list[i].block_usage_bitmap, (uint8_t*)bg_buffer);
 
@@ -341,7 +344,7 @@ ext2_superblock_t *ext2_readSuperblock(fsNode_t *device) {
 // ext2_writeSuperblock(ext2_t *fs) - Rewrites the superblock according to the superblock currently on the structure
 int ext2_writeSuperBlock(ext2_t *fs) {
     // We cannot assume blockSize is 1024, therefore we HAVE to manually write this.
-    fs->drive->write(fs->drive, 1024, sizeof(ext2_superblock_t), (uint8_t*)(fs->superblock));
+    return fs->drive->write(fs->drive, 1024, sizeof(ext2_superblock_t), (uint8_t*)(fs->superblock));
 }
 
 
@@ -350,7 +353,7 @@ int ext2_writeSuperBlock(ext2_t *fs) {
 
 // ext2_rewriteBGDs(ext2_t *fs) - Rewrite the block group descriptors
 void ext2_rewriteBGDs(ext2_t *fs) {
-    for (int i = 0; i < fs->bgd_blocks; i++) {
+    for (uint32_t i = 0; i < fs->bgd_blocks; i++) {
         ext2_writeBlock(fs, 2 + i, (uint8_t*)fs->bgd_list +  fs->block_size * i);
     }
 }
@@ -361,7 +364,7 @@ void ext2_rewriteBGDs(ext2_t *fs) {
 void ext2_refreshInode(ext2_t *fs, ext2_inode_t *inodet, uint32_t inode) {
     if (!inode) {
         serialPrintf("ext2_refreshInode: Cannot read inode 0\n");
-        return NULL;
+        return;
     }
 
     inode--;
@@ -369,7 +372,7 @@ void ext2_refreshInode(ext2_t *fs, ext2_inode_t *inodet, uint32_t inode) {
     uint32_t group = inode / fs->inodes_per_group;
     if (group > fs->total_groups) {
         serialPrintf("ext2_refreshInode: Attempted to read an inode that does not exist\n");
-        return NULL;
+        return;
     }
 
 
@@ -420,7 +423,7 @@ int ext2_writeInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index) {
 
     // Calculate the group
     int group = index / fs->inodes_per_group;
-    if (group > fs->total_groups) {
+    if ((uint32_t)group > fs->total_groups) {
         serialPrintf("ext2_writeInodeMetadata: Invalid group!\n");
         return -1;
     }
@@ -437,6 +440,7 @@ int ext2_writeInodeMetadata(ext2_t *fs, ext2_inode_t *inode, uint32_t index) {
     memcpy((uint8_t*)((uintptr_t)inodet + offsetInBlock * fs->superblock->extension.inode_struct_size), inode, fs->superblock->extension.inode_struct_size);
     ext2_writeBlock(fs, inodeTableBlock + blockOffset, (uint8_t*)inodet);
     kfree(inodet);
+    return 0;
 }
 
 
@@ -463,7 +467,7 @@ uint32_t ext2_readInodeFiledata(ext2_t *fs, ext2_inode_t *inode, uint32_t offset
     while (i <= endBlock) {
         uint32_t left = 0, right = fs->block_size - 1;
         char *blockBuffer = kmalloc(fs->block_size);
-        ext2_readInodeBlock(fs, inode, i, blockBuffer);
+        ext2_readInodeBlock(fs, inode, i, (uint8_t*)blockBuffer);
 
         if (i == startBlock) left = startOffset;
         if (i == endBlock) right = endSize - 1;
@@ -527,7 +531,7 @@ uint32_t ext2_allocateInode(ext2_t *fs) {
 
 
     // Loop through the BGDs and try to find a free inode
-    for (int i = 0; i < fs->total_groups; i++) {
+    for (uint32_t i = 0; i < fs->total_groups; i++) {
         if (fs->bgd_list[i].unallocated_inodes > 0) {
             serialPrintf("ext2_allocateInode: Group %i has %i free inodes\n", i, fs->bgd_list[i].unallocated_inodes);
             ext2_readBlock(fs, fs->bgd_list[i].inode_usage_bitmap, (uint8_t*)bg_buffer);
@@ -857,7 +861,7 @@ ext2_dirent_t *ext2_direntry(ext2_t *fs, ext2_inode_t *inode, uint32_t no, uint3
 int ext2_mkdir(fsNode_t *parent, char *name, uint32_t permission) {
     if (!name) return -1;
 
-    ext2_t *fs = parent->impl_struct;
+    ext2_t *fs = (ext2_t*)parent->impl_struct;
 
     // First of all, check if it exists
     fsNode_t *check = ext2_finddir(parent, name);
@@ -952,7 +956,7 @@ int ext2_mkdir(fsNode_t *parent, char *name, uint32_t permission) {
 int ext2_create(fsNode_t *parent, char *name, uint32_t permission) {
     if (!name) return -1;
 
-    ext2_t *fs = parent->impl_struct;
+    ext2_t *fs = (ext2_t*)parent->impl_struct;
     
     // First off, check if the file already exists
     fsNode_t *check = ext2_finddir(parent, name);
@@ -1150,7 +1154,6 @@ int ext2_read(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) {
 
     // Now we can actually start reading
     uint8_t *buf = kmalloc(fs->block_size);
-    int actualCharacters = 0;
     if (startBlock == endBlock) {
         // Read in the inode's block
         ext2_readInodeBlock(fs, inode, startBlock, buf);
@@ -1304,6 +1307,7 @@ int ext2_unlink(fsNode_t *file, char *name) {
         ext2_writeInodeMetadata(fs, inode, new_inode);
     }
 
+    return 0;
 }
 
 
@@ -1314,7 +1318,7 @@ fsNode_t *ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) {
     node->uid = node->gid = 0;
     
     // Allocate memory for the impl_struct and copy fs to it.
-    node->impl_struct = fs;
+    node->impl_struct = (uint32_t*)fs;
     
     node->inode = EXT2_ROOT_INODE_NUMBER;
     node->mask = inode->permissions;
@@ -1343,11 +1347,11 @@ fsNode_t *ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) {
     node->write = NULL; 
     node->open = NULL;
     node->close = NULL;
-    node->mkdir = ext2_mkdir;
-    node->create = ext2_create;
-    node->readdir = ext2_readdir;
-    node->finddir = ext2_finddir;
-    node->unlink = ext2_unlink;
+    node->mkdir = (mkdir_t)ext2_mkdir;
+    node->create = (create_t)ext2_create;
+    node->readdir = (readdir_t)ext2_readdir;
+    node->finddir = (finddir_t)ext2_finddir;
+    node->unlink = (unlink_t)ext2_unlink;
 
     strcpy(node->name, "EXT2 driver");
     
@@ -1376,11 +1380,11 @@ int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNo
     ret->flags = 0;
     if ((inode->permissions & EXT2_INODE_FILE) == EXT2_INODE_FILE) {
         ret->flags = VFS_FILE;
-        ret->open = ext2_open;
-        ret->close = ext2_close;
+        ret->open = (open_t)ext2_open;
+        ret->close = (close_t)ext2_close;
         ret->create = NULL;
-        ret->read = ext2_read;
-        ret->write = ext2_write;
+        ret->read = (read_t)ext2_read;
+        ret->write = (write_t)ext2_write;
         ret->finddir = NULL;
         ret->readdir = NULL;
         ret->mkdir = NULL;
@@ -1389,13 +1393,13 @@ int ext2_fileToNode(ext2_t *fs, ext2_dirent_t *dirent, ext2_inode_t *inode, fsNo
         ret->flags = VFS_DIRECTORY;
         ret->open = NULL;
         ret->close = NULL;
-        ret->create = ext2_create;
+        ret->create = (create_t)ext2_create;
         ret->read = NULL;
         ret->write = NULL;
-        ret->finddir = ext2_finddir;
-        ret->readdir = ext2_readdir;
-        ret->mkdir = ext2_mkdir;
-        ret->unlink = ext2_unlink;
+        ret->finddir = (finddir_t)ext2_finddir;
+        ret->readdir = (readdir_t)ext2_readdir;
+        ret->mkdir = (mkdir_t)ext2_mkdir;
+        ret->unlink = (unlink_t)ext2_unlink;
     } else if (inode->permissions == 0x0) {
         ret->flags = -1;
     } else {
@@ -1443,7 +1447,7 @@ fsNode_t *ext2_init(fsNode_t *node, int flags) {
 
         // Now, we need to read in the BGD blocks.
         ext2_filesystem->bgd_list = kmalloc(ext2_filesystem->block_size * ext2_filesystem->bgd_blocks);
-        for (int j = 0; j < ext2_filesystem->bgd_blocks; j++) {
+        for (uint32_t j = 0; j < ext2_filesystem->bgd_blocks; j++) {
             ext2_readBlock(ext2_filesystem, bgd_offset + j, (uint8_t*)((uintptr_t)(ext2_filesystem->bgd_list) + ext2_filesystem->block_size * j));
         }
 
@@ -1502,11 +1506,11 @@ fsNode_t *ext2_init(fsNode_t *node, int flags) {
 
 // ext2_fs_mount(const char *device, const char *mount_path) - Mounts the etx2 filesystem
 fsNode_t *ext2_fs_mount(const char *device, const char *mount_path) {
-    char *arg = kmalloc(strlen(device) + 1);
+    char *arg = kmalloc(strlen((char*)device) + 1);
     strcpy(arg, device);
 
     char *argv[10];
-    int argc = tokenize(arg, ",", argv);
+    tokenize(arg, ",", argv);
 
     fsNode_t *dev = open_file(argv[0], 0);
     if (!dev) {

@@ -5,6 +5,7 @@
 
 #include <kernel/pit.h> // Main header file
 #include <kernel/process.h>
+#include <kernel/clock.h>
 
 static volatile uint64_t pitTicks = 0; // Total PIT ticks
 static bool pit_isInit = false; // Is the PIT initialized?
@@ -67,6 +68,5 @@ void pitInit() {
     outportb(0x40, divisor & 0xFF); // Set the low and high byte of the divisor.
     outportb(0x40, (divisor >> 8) & 0xFF);
 
-    printf("Programmable Interval Timer initialized.\n");
-    serialPrintf("pit: Initialized successfully.\n");
+    serialPrintf("[i386] pit: Initialized successfully.\n");
 }

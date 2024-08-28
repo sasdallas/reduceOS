@@ -31,7 +31,7 @@ void picSendData(uint8_t data, uint8_t picNum) {
 
 // uint8_t picReadData(uint8_t picNum) - Read data from PICs
 uint8_t picReadData(uint8_t picNum) {
-    if (picNum > 1) return; // Don't bother if the picNum is greater than one (there are only two)
+    if (picNum > 1) return 0; // Don't bother if the picNum is greater than one (there are only two)
 
     uint8_t reg = (picNum == 1) ? PIC2_REG_DATA : PIC1_REG_DATA;
     return inportb(reg);
@@ -65,5 +65,4 @@ void picInit(uint8_t base0, uint8_t base1) {
 
     picSendData(icw, 0);
     picSendData(icw, 1);
-    printf("Programmable Interrupt Controller initialized.\n");
 }

@@ -96,7 +96,6 @@ int console_printf(const char *fmt, ...) {
 static size_t console_writeVFS(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) {
     if (size > 4096) return -1; // Nuh uh
 
-    size_t size_in = size;
     if (size && *buffer == '\r') {
         write_console(1, (uint8_t*)"\r");
         buffer++;
@@ -114,7 +113,7 @@ static fsNode_t *console_create() {
     ret->inode = ret->uid = ret->gid = 0;
     ret->mask = 0660;
     ret->flags = VFS_CHARDEVICE;
-    ret->write = console_writeVFS;
+    ret->write = (write_t)console_writeVFS;
     return ret;
 }
 

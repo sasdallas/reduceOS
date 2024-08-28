@@ -202,7 +202,13 @@ typedef struct {
 
 // Functions
 void *elf_loadFileFromBuffer(void *buf); // Loads an ELF file from a buffer with its contents
-void *elf_loadFile(fsNode_t *file); // Loads a file. RETURN VALUE IS EITHER BUFFER FOR NO ENTRYPOINT OR ENTRYPOINT
+void *elf_loadFile(fsNode_t *file); // Loads a file. 
 void *elf_findSymbol(Elf32_Ehdr *ehdr, char *name); // Locates and returns the location of a symbol
 void elf_cleanupFile(char *buffer); // Frees memory where the file was relocated, depending on what it was
+
+// Internal functions, should only be used by process scheduler
+// (scheduler performs memory mapping itself and disregards our method)
+Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr, int offset);
+int elf_isCompatible(Elf32_Ehdr *ehdr);
+
 #endif

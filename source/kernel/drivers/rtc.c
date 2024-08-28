@@ -26,7 +26,7 @@ uint8_t rtc_getRegister(int reg) {
 
 // rtc_getDateTime(uint8_t *second, uint8_t *minute, uint8_t *hour, uint8_t *day, uint8_t *month, uint8_t *year) - Returns the date and time (in the pointers)
 void rtc_getDateTime(uint8_t *second, uint8_t *minute, uint8_t *hour, uint8_t *day, uint8_t *month, int *year) {
-    uint8_t lastSecond, lastMinute, lastHour, lastDay, lastMonth, lastYear, lastCentury, registerB;
+    uint8_t lastSecond, lastMinute, lastHour, lastDay, lastMonth, lastYear, registerB;
     // Because of some weird pointer logic, we have to make more variables and then set the pointers to the variables.
     uint8_t seconds, minutes, hours, days, months, years;
 

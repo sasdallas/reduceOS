@@ -4,13 +4,15 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/processor.h> // Main header file
+#include <kernel/fpu.h>
+#include <stdio.h>
 
 
 // Variables
-static cpuInfo_t processor_data;
+static cpuInfo_t processor_data; // TODO: Seems like not ht ebest way to do things
 
-// Functions:
-
+// Function prototypes
+void cpuCheckSSE();
 
 // cpuInit() - Initializes the CPU with ISR, IDT, and GDT
 void cpuInit() {
@@ -18,11 +20,11 @@ void cpuInit() {
     gdtInit();
     idtInit();
 	
-    serialPrintf("GDT, IDT, and ISR have initialized successfully.\n");
+    serialPrintf("[i386]: GDT/IDT installed\n");
 
     // Enable interrupts.
     enableHardwareInterrupts();
-    serialPrintf("Interrupts successfully enabled.\n");
+    serialPrintf("[i386]: Hardware interrupts enabled.\n");
 
 	
 	// We want a fast boot so we'll only detect CPU frequency when needed.
@@ -31,7 +33,7 @@ void cpuInit() {
 	// Now grab some vendor data.
 	uint32_t eaxvar; // Unused
 	memset(processor_data.vendor, 0, sizeof(processor_data.vendor));
-	__cpuid(0, &eaxvar, &processor_data.vendor[0], &processor_data.vendor[8], &processor_data.vendor[4]);	
+	__cpuid(0, &eaxvar, (uint32_t*)&(processor_data.vendor[0]), (uint32_t*)&(processor_data.vendor[8]), (uint32_t*)&(processor_data.vendor[4]));	
 	
 	int edx = 0;
 

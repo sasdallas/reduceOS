@@ -4,6 +4,10 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/terminal.h> // This header file contains variable declarations as not to clutter up the actual C code.
+#include <kernel/vfs.h> // Only for get_cwd()
+#include <kernel/font.h>
+#include <stdio.h>
+
 
 static char *shell = "\0"; // This will be used if we're handling typing - mainly used with backspace, to prevent deleting the prompt by accident. If this variable is \0, it will not be used.
 
@@ -31,8 +35,8 @@ void initTerminal(void) {
 
         // Now we need to setup the screen by clearing it with ' '.
 
-        for (size_t y = 0; y < SCREEN_HEIGHT; y++) {
-            for (size_t x = 0; x < SCREEN_WIDTH; x++) {
+        for (uint32_t y = 0; y < SCREEN_HEIGHT; y++) {
+            for (uint32_t x = 0; x < SCREEN_WIDTH; x++) {
                 const size_t index = y * SCREEN_WIDTH + x;
                 terminalBuffer[index] = vgaEntry(' ', terminalColor);
             }
@@ -89,15 +93,15 @@ void scrollTerminal_vesa() {
     if (terminalY >= modeHeight) {
 
         // Reading directly from vmem is very slow, but reading from our secondary buffer is not
-        for (int y = psfGetFontHeight(); y < modeHeight; y++) {
-            for (int x = 0; x < modeWidth; x++) {
+        for (uint32_t y = psfGetFontHeight(); y < modeHeight; y++) {
+            for (uint32_t x = 0; x < modeWidth; x++) {
                 vbePutPixel(x, y - psfGetFontHeight(), *(framebuffer + (y*1024 + x))); // Copy the pixels one line below to the current line.
             }    
         }
 
         // Blank the bottom line.
-        for (int y = modeHeight-psfGetFontHeight(); y < modeHeight; y++) {
-            for (int x = 0; x < modeWidth; x++) {
+        for (uint32_t y = modeHeight-psfGetFontHeight(); y < modeHeight; y++) {
+            for (uint32_t x = 0; x < modeWidth; x++) {
                 vbePutPixel(x, y, VGA_TO_VBE(vbeTerminalBackground));
             }
         } 
@@ -122,12 +126,12 @@ void scrollTerminal() {
     uint16_t blank = 0x20 | (terminalColor << 8);
 
     if (terminalY >= SCREEN_HEIGHT) {
-        int i;
+        uint32_t i;
         for (i = 0*SCREEN_WIDTH; i < (SCREEN_HEIGHT-1) * SCREEN_WIDTH; i++) {
             terminalBuffer[i] = terminalBuffer[i+SCREEN_WIDTH];
         }
 
-        for (int i = (SCREEN_HEIGHT - 1) * SCREEN_WIDTH; i < SCREEN_HEIGHT * SCREEN_WIDTH; i++) {
+        for (uint32_t i = (SCREEN_HEIGHT - 1) * SCREEN_WIDTH; i < SCREEN_HEIGHT * SCREEN_WIDTH; i++) {
             terminalBuffer[i] = blank;
         }
 
@@ -139,10 +143,10 @@ void scrollTerminal() {
 // terminalDeleteLastLine() - delete the last line of the terminal. Useful for scrolling.
 void terminalDeleteLastLine() {
     if (!terminalEnabled) return;
-    int x, *ptr;
+    int *ptr;
 
-    for (x = 0; x < SCREEN_WIDTH * 2; x++) {
-        ptr = VIDEO_MEM + (SCREEN_WIDTH * 2) * (SCREEN_HEIGHT - 1) + x;
+    for (uint32_t x = 0; x < SCREEN_WIDTH * 2; x++) {
+        ptr = (int*)((int)VIDEO_MEM + (SCREEN_WIDTH * 2) * (SCREEN_HEIGHT - 1) + x);
         *ptr = 0;
     }
 }
@@ -155,8 +159,8 @@ void clearScreen_VESA(uint8_t fg, uint8_t bg) {
     terminalY = 0;
 
 
-    for (size_t y = 0; y < vbeHeight; y++) {
-        for (size_t x = 0; x < vbeWidth; x++) {
+    for (uint32_t y = 0; y < modeHeight; y++) {
+        for (uint32_t x = 0; x < modeWidth; x++) {
             // bad code fix later
             vbePutPixel(x, y, VGA_TO_VBE(vbeTerminalBackground));
         }
@@ -213,12 +217,12 @@ void updateTextCursor_vesa() {
     // This function is called by pitTicks on a reasonable level
     if (blinkTime > 500) {
         if (blinkedLast) {
-            for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
+            for (uint32_t x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
                 vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalBackground));
             }
             blinkedLast = 0;
         } else {
-            for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
+            for (uint32_t x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
                 vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalForeground));
             }
             blinkedLast = 1;
@@ -233,18 +237,7 @@ void updateTextCursor_vesa() {
 
 
 
-// When a character is typed, we want the cursor to follow it.
-static void redrawTextCursor_vesa() {
-    if (!terminalEnabled) return;
-    if (!cursorEnabled) return;
 
-    if (blinkedLast) {
-        blinkTime = 0;
-        for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
-                vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalForeground));
-        }    
-    }
-}
 
 // If a newline is typed, remove the text cursor if it existed.
 static void clearTextCursor_vesa() {
@@ -252,7 +245,7 @@ static void clearTextCursor_vesa() {
     if (!cursorEnabled) return;
 
     if (blinkedLast) {
-        for (int x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
+        for (uint32_t x = terminalX; x < terminalX + psfGetFontWidth(); x++) {
             vbePutPixel(x, terminalY + psfGetFontHeight() - 2, VGA_TO_VBE(vbeTerminalBackground));
         }
     }
@@ -279,7 +272,7 @@ void terminalPutchar(char c) {
         terminalPutcharVESA(c);
         return;
     }
-    int line;
+
     unsigned char uc = c; // terminalPutcharXY() requires an unsigned char.
 
     // Perform the scrolling stuff for X
@@ -323,11 +316,7 @@ void terminalPutchar(char c) {
 // Note: Don't call this directly! vbeSwitchBuffers is not called, could result in issues and annoyances later.
 void terminalPutcharVESA(char c) {
     if (!terminalEnabled) return;
-    int line;
-    unsigned char uc = c;
-
     
-
     if (c == '\n') {
         clearTextCursor_vesa(); // Clear the text cursor.
         terminalY = terminalY + psfGetFontHeight();
@@ -348,7 +337,7 @@ void terminalPutcharVESA(char c) {
         terminalX = terminalX + psfGetFontWidth(); 
     }
 
-    if (terminalX == vbeWidth) {
+    if (terminalX == (uint32_t)vbeWidth) {
         terminalY = terminalY + psfGetFontHeight();
         terminalX = 0;
     }
@@ -367,14 +356,14 @@ void terminalWrite(const char *data, size_t size) {
 
 
 // terminalWriteString() - The exact same as terminal write, but shorter with no len option (we use strlen). Not recommended for use, use printf (further down in the file)!
-void terminalWriteString(const char *data) { terminalWrite(data, strlen(data)); }
+void terminalWriteString(const char *data) { terminalWrite(data, strlen((char*)data)); }
 
 // terminalBackspace() - Removes the last character outputted.
 void terminalBackspace() {
     if (!terminalEnabled) return;
     if (terminalMode == 1) terminalBackspaceVESA();
     if (terminalX == 0) return; // terminalX being 0 would cause a lot of problems.
-    if (terminalX <= strlen(shell) && shell != "\0") return; // Cannot overwrite the shell.
+    if (terminalX <= (uint32_t)strlen(shell) && shell) return; // Cannot overwrite the shell.
     // First, go back one character.
     terminalGotoXY(terminalX-1, terminalY);
 
@@ -388,8 +377,8 @@ void terminalBackspace() {
 // terminalBackspaceVESA() - Removes the last character outputted (VBE mode)
 void terminalBackspaceVESA() {
     if (!terminalEnabled) return;
-    if (terminalX < psfGetFontWidth()) return;
-    if (terminalX <= strlen(shell)*psfGetFontWidth() && shell != "\0") return; // Cannot overwrite shell
+    if (terminalX < (uint32_t)psfGetFontWidth()) return;
+    if (terminalX <= (uint32_t)(strlen(shell)*psfGetFontWidth()) && shell) return; // Cannot overwrite shell
 
     // Go back one character.
     terminalX = terminalX - psfGetFontWidth();
@@ -418,11 +407,11 @@ void terminalWriteStringXY(const char *data, size_t x, size_t y) {
 // updateBottomText() - A kernel function to make handling the beginning graphics easier.
 void updateBottomText(char *bottomText) {
     if (terminalMode != 0) return;
-    if (strlen(bottomText) > INT_MAX) return -1; // Overflow
+    if (strlen(bottomText) > INT_MAX) return; // Overflow
     
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY);
 
-    for (int i = 0; i < SCREEN_WIDTH; i++) terminalPutcharXY(' ', vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY), i, SCREEN_HEIGHT - 1);
+    for (uint32_t i = 0; i < SCREEN_WIDTH; i++) terminalPutcharXY(' ', vgaColorEntry(COLOR_BLACK, COLOR_LIGHT_GRAY), i, SCREEN_HEIGHT - 1);
     
     terminalWriteStringXY(bottomText, 0, SCREEN_HEIGHT - 1);
 
@@ -453,16 +442,16 @@ void instantUpdateTerminalColor(uint8_t fg, uint8_t bg) {
     // NOTE: Function breaks if it tries to update a section where fg and bg are the same.
     // The way we do this is to iterate over the entire thing two times - once to update bg, once to update fg.
 
-    for (int y = 0; y < modeHeight; y++) {
-        for (int x = 0; x < modeWidth; x++) {
+    for (uint32_t y = 0; y < modeHeight; y++) {
+        for (uint32_t x = 0; x < modeWidth; x++) {
             if (vbeGetPixel(x, y) == VGA_TO_VBE(vbeTerminalBackground)) {
                 vbePutPixel(x, y, VGA_TO_VBE(bg));
             }
         }
     }
 
-    for (int y = 0; y < modeHeight; y++) {
-        for (int x = 0; x < modeWidth; x++) {
+    for (uint32_t y = 0; y < modeHeight; y++) {
+        for (uint32_t x = 0; x < modeWidth; x++) {
             if (vbeGetPixel(x, y) == VGA_TO_VBE(vbeTerminalForeground)) {
                 vbePutPixel(x, y, VGA_TO_VBE(fg));
             }
