@@ -16,7 +16,7 @@
 00103af7 T ataPoll
 00123e5d T atoi
 00102de8 T badapple_test
-00170240 d bchars.1805
+00170240 d bchars.1812
 00170024 D _binary_font_psf_end
 00001020 A _binary_font_psf_size
 0016f004 D _binary_font_psf_start
@@ -104,7 +104,7 @@
 00174020 B currentDirectory
 00121a7c t current_esp
 00171904 B currentFloppyDrive
-001782d0 b currentIndex.1877
+001782d0 b currentIndex.1884
 00174024 B currentPDBR
 0017abd8 B currentProcess
 00169f8c d cursorEnabled
@@ -633,7 +633,7 @@ e4524ff7 a MULTIBOOT_CHECKSUM
 00100000 t multiboot_header
 1badb002 a MULTIBOOT_MAGIC
 00171928 B newline
-0016d720 d _next_pid.2511
+0016d720 d _next_pid.2518
 0017ab44 B nframes
 00125438 T now
 001136c1 T nulldev_init

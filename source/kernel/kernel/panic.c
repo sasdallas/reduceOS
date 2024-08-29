@@ -15,9 +15,9 @@
 #include <kernel/keyboard.h>
 #include <kernel/terminal.h>
 #include <kernel/process.h>
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
-#include <time.h>
+#include <libk_reduced/time.h>
 
 extern uint32_t text_start;
 extern uint32_t bss_end;

@@ -6,7 +6,7 @@
 
 // Includes
 
-#include <stdint.h> // Integer declarations like uint8_t, int16_t, etc.
+#include <libk_reduced/stdint.h> // Integer declarations like uint8_t, int16_t, etc.
 #include <kernel/hal.h> // Some misc functions for interrupts.
 
 

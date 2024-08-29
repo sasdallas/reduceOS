@@ -7,7 +7,7 @@
 #include <kernel/mod.h>
 #include <kernel/vfs.h>
 #include <kernel/elf.h>
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 // Modules are NEVER unloaded, and we always will have them start at MODULE_ADDR_START (default is 0xA0000000)
 uint32_t last_load_address = MODULE_ADDR_START; // Incremented when a module is loaded

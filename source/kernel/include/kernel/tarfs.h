@@ -4,9 +4,9 @@
 #define TARFS_H
 
 // Includes
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <libk_reduced/stdint.h>
+#include <libk_reduced/stdio.h>
+#include <libk_reduced/string.h>
 #include <kernel/vfs.h>
 #include <kernel/list.h>
 

@@ -6,14 +6,14 @@
 
 // We get an include loop if we include string.h before defining pte_t.
 
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 
 // Typedefs
 typedef uint32_t pte_t;
 
 
 // Includes
-#include <string.h>
+#include <libk_reduced/string.h>
 
 // Definitions
 #define PAGEDIR_ADDRSPACE 0x100000000 // 4 GB address space

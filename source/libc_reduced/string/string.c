@@ -2,7 +2,7 @@
 // Why is this required? We use -ffreestanding in our compile options, so the standard std library isn't included.
 // Note that while I try my best to adhere to C standards, none of the libc function for the kernel will ever be used by an application, it's to make the code more easier to read.
 
-#include <string.h>
+#include <libk_reduced/string.h>
 
 // Macros for assistance (ToaruOS)
 #define BITOP(A, B, OP) ((A)[(size_t)(B)/(8*sizeof *(A))] OP (size_t)1<<((size_t)(B)%(8*sizeof *(A))))

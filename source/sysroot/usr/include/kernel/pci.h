@@ -4,7 +4,7 @@
 #define PCI_H
 
 // Includes
-#include <stdint.h> // Integer declarations.
+#include <libk_reduced/stdint.h> // Integer declarations.
 
 #include <kernel/hal.h> // outportl and inportl
 #include <kernel/terminal.h> // printf

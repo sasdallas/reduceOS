@@ -1,6 +1,6 @@
 // time.c - Provides a replacement for the standard libc file
 
-#include <time.h>
+#include <libk_reduced/time.h>
 
 // time(time_t *out) - Returns the time
 time_t time(time_t *out) {

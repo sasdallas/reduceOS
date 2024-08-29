@@ -3,8 +3,8 @@
 // ============================================
 // I do not own this implementation, it was sourced here: https://github.com/klange/toaruos/blob/master/kernel/misc/ringbuffer.c
 
-#include <stdint.h>
-#include <stddef.h>
+#include <libk_reduced/stdint.h>
+#include <libk_reduced/stddef.h>
 #include <kernel/vfs.h>
 #include <kernel/process.h>
 #include <kernel/ringbuffer.h> // Main header file

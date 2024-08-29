@@ -5,7 +5,7 @@
 
 #include <kernel/floppy.h> // Main header file
 #include <kernel/cmos.h>
-#include <sleep.h>
+#include <libk_reduced/sleep.h>
 
 
 // Variables

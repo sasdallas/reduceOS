@@ -6,7 +6,7 @@
 // Includes
 #include <kernel/serial.h>
 #include <kernel/pci.h>
-#include <stdint.h>
+#include <libk_reduced/stdint.h>
 
 // Definitions
 

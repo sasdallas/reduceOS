@@ -302,12 +302,18 @@ void setColor(uint8_t color) {
  * Copyright (C) 2011-2021 K. Lange
  */
 
+
+#ifdef PLATFORM_EFI
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdarg.h>
-
+#else
+#include <libk_reduced/stdint.h>
+#include <libk_reduced/stdlib.h>
+#include <libk_reduced/stdarg.h>
+#endif
 
 size_t (*printf_output)(size_t, uint8_t *) = NULL;
 

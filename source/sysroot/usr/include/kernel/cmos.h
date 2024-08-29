@@ -4,7 +4,7 @@
 #define CMOS_H
 
 // Includes
-#include <stdint.h>
+#include <libk_reduced/stdint.h>
 #include <kernel/hal.h>
 
 // Definitions

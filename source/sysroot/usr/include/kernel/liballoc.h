@@ -15,7 +15,7 @@
 // If we are told to not define our own size_t, then we skip the define.
 //#define _HAVE_UINTPTR_T
 
-#include <stddef.h>
+#include <libk_reduced/stddef.h>
 typedef	unsigned long	uintptr_t;
 
 //This lets you prefix malloc and friends

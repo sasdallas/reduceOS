@@ -5,7 +5,7 @@
 // Some code was sourced from JamesM's Kernel Development Tutorials. Please credit him as well.
 
 #include <kernel/pmm.h> // Main header file
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 // (from JamesM's kernel dev tutorials)
 #define INDEX_BIT(a) (a/(8*4))

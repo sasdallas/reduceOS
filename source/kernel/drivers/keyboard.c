@@ -4,7 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
 
 #include <kernel/keyboard.h> // Main include file
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 static bool isEnabled = true; // As mentioned in keyboard.h, this header file contains definitions for special scancodes and other things.
 static bool shiftKey = false; // Shift, caps lock, and ctrl key handling.

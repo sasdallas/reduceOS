@@ -4,12 +4,12 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
 
-#include <stddef.h> // size_t declaration
-#include <stdint.h> // Integer type declarations
-#include <stdbool.h> // Boolean declarations
-#include <string.h> // String functions
-#include <limits.h> // Limits on integers and more.
-#include <stdarg.h>
+#include <libk_reduced/stddef.h> // size_t declaration
+#include <libk_reduced/stdint.h> // Integer type declarations
+#include <libk_reduced/stdbool.h> // Boolean declarations
+#include <libk_reduced/string.h> // String functions
+#include <libk_reduced/limits.h> // Limits on integers and more.
+#include <libk_reduced/stdarg.h>
 #include <kernel/graphics.h> // Utility functions
 #include <kernel/serial.h> // Serial logging
 #include <kernel/vesa.h> // VESA VBE

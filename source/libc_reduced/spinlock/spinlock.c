@@ -1,6 +1,6 @@
 // spinlock.c - Implements spinlocks to lock/unlock resources
 
-#include <spinlock.h> // Main header file
+#include <libk_reduced/spinlock.h> // Main header file
 
 // This spinlock implementation is very basic and needs to be improved, but it does work.
 

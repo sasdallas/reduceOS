@@ -3,7 +3,7 @@
 #ifndef BOOTINFO_H
 #define BOOTINFO_H
 
-#include <stdint.h> // Definitions of integer types, like uint8_t
+#include <libk_reduced/stdint.h> // Definitions of integer types, like uint8_t
 
 #define MULTIBOOT_MAGIC 0x1BADB002
 

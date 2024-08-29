@@ -6,7 +6,7 @@
 // For more information on this topic, check https://wiki.osdev.org/PCI
 
 #include <kernel/pci.h> // Main header file
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 // TODO: Implement support for different header types, we always assume header type 0x0.
 

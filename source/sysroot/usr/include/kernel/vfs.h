@@ -8,7 +8,7 @@
    A VFS is used to seperate the high-level interface to the FS from the low level interfaces that different implementations (like FAT, ext3, etc), may require. */
 
 // Includes
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 #include <kernel/tree.h> // Mountpoint tree
 #include <kernel/hashmap.h> // Mount hashmap
 

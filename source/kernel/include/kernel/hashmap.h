@@ -1,7 +1,7 @@
 // hashmap.h - Authored by klange, I deserve no credit. License information in misc/hashmap.c
 
-#include <stddef.h>
-#include <string.h>
+#include <libk_reduced/stddef.h>
+#include <libk_reduced/string.h>
 #include <kernel/list.h>
 
 

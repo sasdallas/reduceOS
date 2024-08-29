@@ -2,9 +2,9 @@
 
 #include <kernel/test.h>
 
-#include <stdint.h> 
-#include <stdio.h>
-#include <string.h>
+#include <libk_reduced/stdint.h> 
+#include <libk_reduced/stdio.h>
+#include <libk_reduced/string.h>
 
 #include <kernel/fat.h>
 #include <kernel/serial.h>
@@ -16,7 +16,7 @@
 #include <kernel/processor.h>
 #include <kernel/keyboard.h>
 #include <kernel/ide_ata.h>
-#include <sleep.h>
+#include <libk_reduced/sleep.h>
 
 
 extern ideDevice_t ideDevices[4];

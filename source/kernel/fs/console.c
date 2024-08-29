@@ -7,12 +7,12 @@
 // TODO: This file should be integrated into debugdev, or vice versa. There is no need to have two of them.
 
 
-#include <stdarg.h>
+#include <libk_reduced/stdarg.h>
 #include <kernel/process.h>
 #include <kernel/vfs.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
+#include <libk_reduced/string.h>
+#include <libk_reduced/stdio.h>
+#include <libk_reduced/time.h>
 
 static fsNode_t *condev = NULL;
 extern uint64_t boottime;

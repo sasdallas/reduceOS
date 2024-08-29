@@ -5,9 +5,9 @@
 
 
 // Includes
-#include <stdint.h> // Integer declarations like uint8_t, etc.
-#include <string.h> // String functions
-#include <stdbool.h> // Booleans
+#include <libk_reduced/stdint.h> // Integer declarations like uint8_t, etc.
+#include <libk_reduced/string.h> // String functions
+#include <libk_reduced/stdbool.h> // Booleans
 
 #include <kernel/isr.h> // Interrupt Service Routines
 #include <kernel/terminal.h> // Terminal functions like printf.

@@ -7,7 +7,7 @@
 
 #include <kernel/syscall.h> // Main header file
 #include <kernel/process.h>
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 
 

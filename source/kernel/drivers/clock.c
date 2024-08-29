@@ -5,7 +5,7 @@
 
 #include <kernel/clock.h> // Main header file
 #include <kernel/process.h>
-#include <time.h>
+#include <libk_reduced/time.h>
 
 
 // Note: Clock implementation ties in with the ToaruOS-sourced process scheduler.

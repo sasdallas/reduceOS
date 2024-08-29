@@ -4,7 +4,7 @@
 #define FLOPPY_H
 
 // Includes
-#include <stdint.h> // Integer definitions
+#include <libk_reduced/stdint.h> // Integer definitions
 #include <kernel/hal.h> // Hardware Abstraction Layer
 #include <kernel/dma.h> // Direct Memory Addressing (floppies CAN use PIO mode to transfer, but its better to do ISA DMA)
 

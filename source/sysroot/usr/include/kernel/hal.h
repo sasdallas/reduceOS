@@ -8,8 +8,8 @@
 #include <kernel/idt.h> // Interrupt Descriptor Table
 #include <kernel/pic.h> // Programmable Interrupt Controller
 #include <kernel/pit.h> // Programmable interval Timer
-#include <stdint.h> // Integer declarations (like uint8_t, uint16_t, etc..)
-#include <stddef.h> // size_t declaration
+#include <libk_reduced/stdint.h> // Integer declarations (like uint8_t, uint16_t, etc..)
+#include <libk_reduced/stddef.h> // size_t declaration
 
 // Definitions
 

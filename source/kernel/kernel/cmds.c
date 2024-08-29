@@ -3,10 +3,10 @@
 // ==========================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
+#include <libk_reduced/stdint.h>
+#include <libk_reduced/string.h>
+#include <libk_reduced/stdio.h>
+#include <libk_reduced/time.h>
 #include <kernel/clock.h>
 #include <kernel/cmds.h>
 #include <kernel/kernel.h>

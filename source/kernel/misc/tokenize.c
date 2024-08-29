@@ -9,7 +9,7 @@
  * of the NCSA / University of Illinois License - see LICENSE.md
  * Copyright (C) 2015-2021 K. Lange
  */
-#include <string.h>
+#include <libk_reduced/string.h>
 #include <kernel/tokenize.h>
 
 int tokenize(char * str, const char * sep, char **buf) {

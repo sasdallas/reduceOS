@@ -1,6 +1,6 @@
 #include <kernel/mod.h>
 #include "multifile2.h"
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 int init(int argc, char *args[]) {
     serialPrintf("[module multifile] Multifile 1 says hello!\n");

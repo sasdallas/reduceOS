@@ -1,7 +1,7 @@
 // localtime.c - replacement for the libc file localtime.c
 
-#include <time.h>
-#include <stdbool.h>
+#include <libk_reduced/time.h>
+#include <libk_reduced/stdbool.h>
 
 /* HELPER FUNCTIONS */
 

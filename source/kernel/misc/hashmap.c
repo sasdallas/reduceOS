@@ -9,7 +9,7 @@
  */
 
 
-#include <string.h>
+#include <libk_reduced/string.h>
 #include <kernel/list.h>
 #include <kernel/hashmap.h>
 

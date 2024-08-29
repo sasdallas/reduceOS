@@ -1,6 +1,6 @@
 // arch_gettime.c - exposes the RTC's gettime() handler
 
-#include <time.h>
+#include <libk_reduced/time.h>
 #include <kernel/rtc.h>
 #include <kernel/clock.h>
 

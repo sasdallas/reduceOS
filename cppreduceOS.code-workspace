@@ -55,7 +55,8 @@
 			"vesa.h": "c",
 			"assert.h": "c",
 			"keyboard.h": "c",
-			"clock.h": "c"
+			"clock.h": "c",
+			"stdarg.h": "c"
 		}
 	}
 }

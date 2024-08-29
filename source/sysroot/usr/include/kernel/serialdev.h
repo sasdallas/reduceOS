@@ -4,7 +4,7 @@
 #define SERIAL_DEV_H
 
 // Includes
-#include <stdint.h>
+#include <libk_reduced/stdint.h>
 #include <kernel/vfs.h>
 #include <kernel/serial.h>
 

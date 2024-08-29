@@ -4,9 +4,9 @@
 #define PROCESS_H
 
 /* INCLUDES */
-#include <stdint.h>
-#include <time.h>
-#include <spinlock.h>
+#include <libk_reduced/stdint.h>
+#include <libk_reduced/time.h>
+#include <libk_reduced/spinlock.h>
 #include <stdatomic.h>
 #include <kernel/vmm.h>
 #include <kernel/vfs.h>

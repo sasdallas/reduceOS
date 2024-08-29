@@ -1,8 +1,8 @@
 // sleep.c - Custom libc header file that uses the programmable interval timer to sleep for X milliseconds.
 // Note that while I try my best to adhere to C standards, none of the libc function for the kernel will ever be used by an application, it's to make the code more easier to read.
 
-#include <sleep.h> // Main header file
-#include <time.h>
+#include <libk_reduced/sleep.h> // Main header file
+#include <libk_reduced/time.h>
 
 void sleep(int ms) {
     struct timeval t;

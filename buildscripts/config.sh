@@ -1,5 +1,5 @@
 SYSTEM_HEADER_PROJECTS="libc_reduced kernel"
-PROJECTS="kmods fonts libc_reduced kernel initial_ramdisk boot"
+PROJECTS="newlib kmods fonts libc_reduced kernel initial_ramdisk boot"
 
 export MAKE=${MAKE:-make}
 export HOST=${HOST:-$($BUILDSCRIPTS_ROOT/default_host.sh)}
@@ -27,9 +27,9 @@ export CPPFLAGS=''
 
 # Configure the cross-compiler to use the desired sysroot
 export SYSROOT="$PROJECT_ROOT/source/sysroot"
-export CC="$CC --sysroot=$SYSROOT"
+export CFLAGS="$CFLAGS --sysroot=$SYSROOT"
 
 # Work around that -elf gcc targets don't have a sysroot include directory
 if echo "$HOST" | grep -Eq -- '-elf($|-)'; then
-    export CC="$CC -isystem=$INCLUDEDIR"
+    export CFLAGS="$CFLAGS -isystem=$INCLUDEDIR"
 fi

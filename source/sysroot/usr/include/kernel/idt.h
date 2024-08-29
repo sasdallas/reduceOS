@@ -4,13 +4,13 @@
 #define IDT_H
 
 // Includes
-#include <stddef.h> // size_t declaration
-#include <stdint.h> // Integer type declarations
-#include <stdbool.h> // Boolean declarations
-#include <string.h> // String functions
-#include <limits.h> // Limits on integers and more.
-#include <stdarg.h> // va argument handling (for ... on printf)
-#include <va_list.h> // va_list declared here.
+#include <libk_reduced/stddef.h> // size_t declaration
+#include <libk_reduced/stdint.h> // Integer type declarations
+#include <libk_reduced/stdbool.h> // Boolean declarations
+#include <libk_reduced/string.h> // String functions
+#include <libk_reduced/limits.h> // Limits on integers and more.
+#include <libk_reduced/stdarg.h> // va argument handling (for ... on printf)
+#include <libk_reduced/va_list.h> // va_list declared here.
 #include <kernel/terminal.h> // printf() and other terminal functions
 
 // Definitions

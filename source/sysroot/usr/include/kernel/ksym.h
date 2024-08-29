@@ -4,7 +4,7 @@
 #define KSYM_H
 
 // Includes
-#include <stdint.h>
+#include <libk_reduced/stdint.h>
 #include <kernel/vfs.h>
 
 // Typedefs

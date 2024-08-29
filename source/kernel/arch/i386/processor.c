@@ -5,7 +5,7 @@
 
 #include <kernel/processor.h> // Main header file
 #include <kernel/fpu.h>
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 
 // Variables

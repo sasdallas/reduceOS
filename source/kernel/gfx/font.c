@@ -4,7 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/font.h> // Main header file
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 /* TODO: REMOVE BITMAP FONT */
 

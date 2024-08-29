@@ -4,7 +4,7 @@
 #define PROCESSOR_H
 
 // Includes
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 #include <kernel/gdt.h> // Global descriptor table
 #include <kernel/idt.h> // Interrupt descriptor table
 #include <kernel/isr.h> // Interrupt service routines

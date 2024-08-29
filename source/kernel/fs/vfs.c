@@ -7,7 +7,7 @@
 
 
 #include <kernel/vfs.h> // Main header file
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 fsNode_t *fs_root = 0; // Root of the filesystem
 tree_t *fs_tree = NULL; // Mountpoint tree

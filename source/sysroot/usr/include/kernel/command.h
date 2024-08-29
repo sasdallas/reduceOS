@@ -4,8 +4,8 @@
 #define COMMAND_H
 
 // Includes
-#include <stdint.h> // Integer declarations
-#include <string.h> // String functions
+#include <libk_reduced/stdint.h> // Integer declarations
+#include <libk_reduced/string.h> // String functions
 #include <kernel/heap.h> // Memory allocation functions
 #include <kernel/terminal.h> // printf()
 

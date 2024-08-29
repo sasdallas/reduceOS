@@ -4,9 +4,9 @@
 // =====================================================================
 // This file is apart of the reduceOS C kernel. Please credit me if you use this code.
 
-#include <stdio.h>
-#include <time.h>
-#include <stdint.h>
+#include <libk_reduced/stdio.h>
+#include <libk_reduced/time.h>
+#include <libk_reduced/stdint.h>
 
 #include <kernel/kernel.h> // Kernel header file
 #include <kernel/cmds.h>

@@ -4,7 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
 
 #include <kernel/command.h> // Main header file
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 // Commands in reduceOS must follow this structure:
 // The command function is stored in an array of a type called cmdData (this typedef is present in command.h, note that it is different from command)

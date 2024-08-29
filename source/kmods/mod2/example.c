@@ -1,6 +1,6 @@
 #include <kernel/terminal.h>
 #include <kernel/mod.h>
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 
 

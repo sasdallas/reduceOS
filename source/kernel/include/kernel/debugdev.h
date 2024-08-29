@@ -4,7 +4,7 @@
 #define DEBUG_DEV_H
 
 // Includes
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 #include <kernel/vfs.h>
 #include <kernel/serial.h>
 #include <kernel/rtc.h>

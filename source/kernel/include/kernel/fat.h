@@ -1,7 +1,7 @@
 // fat.h - include file for FAT
 
-#include <stdint.h> // Integer definitions (uint32_t, ...)
-#include <string.h> // String functions
+#include <libk_reduced/stdint.h> // Integer definitions (uint32_t, ...)
+#include <libk_reduced/string.h> // String functions
 #include <kernel/vfs.h> // Virtual File System
 #include <kernel/tokenize.h> // Tokenizer
 

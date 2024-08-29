@@ -4,8 +4,8 @@
 #define PMM_H
 
 // Includes
-#include <stdint.h> // Integer declarations
-#include <string.h> // String functions
+#include <libk_reduced/stdint.h> // Integer declarations
+#include <libk_reduced/string.h> // String functions
 #include <kernel/heap.h> // kmalloc()
 #include <kernel/bootinfo.h> // Multiboot info
 #include <kernel/serial.h>

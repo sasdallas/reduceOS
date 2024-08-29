@@ -2,9 +2,9 @@
 #define CONSOLE_H
 
 // Includes
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <libk_reduced/stdint.h>
+#include <libk_reduced/stdlib.h>
+#include <libk_reduced/string.h>
 
 // Variables
 extern uint64_t boottime;

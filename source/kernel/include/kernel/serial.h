@@ -4,7 +4,7 @@
 #define SERIAL_H
 
 // Includes
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 #include <kernel/hal.h> // outportb() and inportb()
 #include <kernel/terminal.h> // printf_putchar function.
 

@@ -6,7 +6,7 @@
 // NO CODE OF LIBALLOC.C OR LIBALLOC.H IS CREATED BY ME.
 
 #include <kernel/liballoc_wrapper.h> // Main header file
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 #include <kernel/panic.h>
 
 atomic_flag lock = ATOMIC_FLAG_INIT; // Memory lock (we dont use spinlock_init because ehhhh)

@@ -4,11 +4,11 @@
 #define VMM_PDE_H
 
 // Includes
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 
 typedef uint32_t pde_t; // See vmm_pte.h 
 
-#include <string.h> // Will cause include loop
+#include <libk_reduced/string.h> // Will cause include loop
 
 // Definitions
 #define PAGETABLE_ADDRSPACE 0x400000 // 4 MB address space

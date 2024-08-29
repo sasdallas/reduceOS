@@ -4,7 +4,7 @@
 #define RTC_H
 
 // Includes
-#include <stdint.h> // Integer definitions
+#include <libk_reduced/stdint.h> // Integer definitions
 #include <kernel/hal.h> // Hardware abstraction layer
 
 // WARNING: The below is a user-created constant! This needs to change each year and cannot automatically update!

@@ -4,8 +4,8 @@
 #define ELF_H
 
 // Includes
-#include <stdint.h>
-#include <stddef.h>
+#include <libk_reduced/stdint.h>
+#include <libk_reduced/stddef.h>
 #include <kernel/serial.h>
 #include <kernel/ksym.h>
 #include <kernel/mem.h>

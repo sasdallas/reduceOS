@@ -4,7 +4,7 @@
 #define FPU_H
 
 // Includes
-#include <stdint.h>
+#include <libk_reduced/stdint.h>
 #include <kernel/hal.h>
 
 // Functions

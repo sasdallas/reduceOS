@@ -4,7 +4,7 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/acpi.h> // Main header file
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast" // THIS IS BAD AND TO BE REMOVED
 

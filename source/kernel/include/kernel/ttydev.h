@@ -6,9 +6,9 @@
 // Includes
 #include <kernel/vfs.h>         // Virtual filesystem
 #include <kernel/ringbuffer.h>  // Ringbuffer support
-#include <stdint.h>             // Integer declarations
-#include <termios.h>            // Terminal interface
-#include <ioctl.h>              // I/O Control
+#include <libk_reduced/stdint.h>             // Integer declarations
+#include <libk_reduced/termios.h>            // Terminal interface
+#include <libk_reduced/ioctl.h>              // I/O Control
 
 // Typedefs
 

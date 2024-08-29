@@ -4,7 +4,7 @@
 #define MODULE_H
 
 // Includes
-#include <stdint.h>
+#include <libk_reduced/stdint.h>
 #include <kernel/vfs.h>
 #include <kernel/elf.h>
 #include <kernel/mod.h>

@@ -4,7 +4,7 @@
 #define BIOS32_H
 
 // Includes
-#include <stdint.h> // Integer definitions
+#include <libk_reduced/stdint.h> // Integer definitions
 #include <kernel/gdt.h> // Global descriptor table
 #include <kernel/idt.h> // Interrupt descriptor table
 #include <kernel/regs.h> // Registers

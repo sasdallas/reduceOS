@@ -4,7 +4,7 @@
 #define TSS_H
 
 // Includes
-#include <stdint.h> // Integer definitions
+#include <libk_reduced/stdint.h> // Integer definitions
 #include <kernel/gdt.h>
 
 

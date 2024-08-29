@@ -4,8 +4,8 @@
 #define PANIC_H
 
 // Includes
-#include <stdint.h> // Integer declarations like uint8_t.
-#include <stdbool.h> // Booleans
+#include <libk_reduced/stdint.h> // Integer declarations like uint8_t.
+#include <libk_reduced/stdbool.h> // Booleans
 #include <kernel/terminal.h> // Terminal functions, like printf
 #include <kernel/hal.h> // Hardware Abstraction Layer
 #include <kernel/regs.h> // registers_t typedef

@@ -2,8 +2,8 @@
 #ifndef BITMAP_H
 #define BITMAP_H
 
-#include <string.h> // String functions
-#include <stdint.h> // Integer types (uint32_t, ...)
+#include <libk_reduced/string.h> // String functions
+#include <libk_reduced/stdint.h> // Integer types (uint32_t, ...)
 #include <kernel/initrd.h> // Initial ramdisk support
 #include <kernel/vesa.h> // VESA VBE support
 

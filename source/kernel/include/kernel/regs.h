@@ -5,7 +5,7 @@
 
 
 // Includes
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 
 // Typedefs
 typedef struct REGISTERS {

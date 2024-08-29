@@ -4,9 +4,9 @@
 #define GDT_H
 
 // Includes
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 #include <kernel/terminal.h> // printf
-#include <assert.h> // ASSERT() macro
+#include <libk_reduced/assert.h> // ASSERT() macro
 #include <kernel/tss.h> // Task State Segment
 
 // Definitions

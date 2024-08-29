@@ -6,8 +6,8 @@
 #define LIST_H
 
 // Includes
-#include <stdint.h> // Integer declarations
-#include <stddef.h> // size_t
+#include <libk_reduced/stdint.h> // Integer declarations
+#include <libk_reduced/stddef.h> // size_t
 #include <kernel/mem.h> // Memory functions
 
 // Typedefs

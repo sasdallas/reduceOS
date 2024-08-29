@@ -4,7 +4,7 @@
 #define LOCAL_APIC_H
 
 // Includes
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 #include <kernel/hal.h> // Hardware abstraction layer
 
 // Definitions

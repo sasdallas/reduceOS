@@ -5,10 +5,10 @@
 #define RINGBUFFER_H
 
 // Includes
-#include <stddef.h>
+#include <libk_reduced/stddef.h>
 #include <kernel/list.h>
 #include <kernel/vfs.h>
-#include <spinlock.h>
+#include <libk_reduced/spinlock.h>
 
 // The main ringbuffer structure
 typedef struct {

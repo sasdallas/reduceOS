@@ -1,8 +1,8 @@
 // Sourced from ToaruOS - strftime is hard!
 
-#include <stddef.h>
-#include <time.h>
-#include <stdio.h>
+#include <libk_reduced/stddef.h>
+#include <libk_reduced/time.h>
+#include <libk_reduced/stdio.h>
 
 static char * weekdays[] = {
 	"Sunday",

@@ -4,8 +4,8 @@
 #define INITRD_H
 
 // Includes
-#include <stdint.h> // Integer declarations
-#include <string.h> // String functions
+#include <libk_reduced/stdint.h> // Integer declarations
+#include <libk_reduced/string.h> // String functions
 #include <kernel/vfs.h> // Virtual File System definitions
 #include <kernel/terminal.h> // printf()
 

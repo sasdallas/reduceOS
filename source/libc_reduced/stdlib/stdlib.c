@@ -3,7 +3,7 @@
 // Note that while I try my best to adhere to C standards, none of the libc function for the kernel will ever be used by an application, it's to make the code more easier to read.
 
 
-#include <stdlib.h>
+#include <libk_reduced/stdlib.h>
 
 // abs(int x) - absolute value
 int abs(int x) {

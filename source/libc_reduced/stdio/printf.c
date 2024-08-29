@@ -23,11 +23,11 @@
  * Copyright (C) 2011-2021 K. Lange
  */
 
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdarg.h>
+#include <libk_reduced/stdint.h>
+#include <libk_reduced/string.h>
+#include <libk_reduced/stdlib.h>
+#include <libk_reduced/stddef.h>
+#include <libk_reduced/stdarg.h>
 
 
 size_t printf_out(size_t size, uint8_t *buffer) {

@@ -4,7 +4,7 @@
 #define EXT2_H
 
 // Includes
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 #include <kernel/vfs.h>
 #include <kernel/tokenize.h>
 

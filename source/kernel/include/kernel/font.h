@@ -4,8 +4,8 @@
 #define FONT_H
 
 // Includes
-#include <stdint.h> // Integer declarations
-#include <limits.h> // Limits.
+#include <libk_reduced/stdint.h> // Integer declarations
+#include <libk_reduced/limits.h> // Limits.
 #include <kernel/heap.h> // Allocation functions.
 #include <kernel/vesa.h> // VESA VBE drawing
 #include <kernel/font_data.h> // Font data

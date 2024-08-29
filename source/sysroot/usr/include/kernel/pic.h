@@ -8,7 +8,7 @@
 
 #include <kernel/hal.h> // Hardware Abstraction Layer
 #include <kernel/terminal.h> // Terminal output (printf)
-#include <stdint.h> // Integer types like uint8_t, uint16_t, etc...
+#include <libk_reduced/stdint.h> // Integer types like uint8_t, uint16_t, etc...
 
 
 // Definitions

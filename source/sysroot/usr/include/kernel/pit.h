@@ -9,7 +9,7 @@
 #include <kernel/hal.h> // Hardware Abstraction Layer
 #include <kernel/terminal.h> // Terminal output (printf)
 #include <kernel/isr.h> // Interrupt Service Routines
-#include <stdint.h> // Integer declarations
+#include <libk_reduced/stdint.h> // Integer declarations
 
 // Definitions
 

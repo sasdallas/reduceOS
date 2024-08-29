@@ -1,7 +1,7 @@
 // ordered_array.c - Contains ordered array functions and definitions.
 // Implementation credits in header file.
 
-#include <ordered_array.h> // Main header file
+#include <libk_reduced/ordered_array.h> // Main header file
 
 // Functions:
 

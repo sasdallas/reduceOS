@@ -6,7 +6,7 @@
 #include <kernel/terminal.h> // This header file contains variable declarations as not to clutter up the actual C code.
 #include <kernel/vfs.h> // Only for get_cwd()
 #include <kernel/font.h>
-#include <stdio.h>
+#include <libk_reduced/stdio.h>
 
 
 static char *shell = "\0"; // This will be used if we're handling typing - mainly used with backspace, to prevent deleting the prompt by accident. If this variable is \0, it will not be used.
