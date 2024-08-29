@@ -7,3 +7,4 @@ Structure of the source/ directory:
 - source/boot (prototype Polyaniline)
 - source/libc_reduced (reduceOS version of libc, incomplete)
 - source/kmods (kernel modules/drivers folder)
+- source/newlib (newlib C library)

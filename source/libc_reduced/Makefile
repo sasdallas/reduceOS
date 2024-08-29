@@ -62,7 +62,7 @@ $(OUT_OBJ)/%.o: %.c Makefile
 # Installation functions
 
 install-headers:
-	@echo "-- Installing libc_reduced headers..."
+	@echo "-- Installing reduced_libk headers..."
 	-mkdir -p $(DESTDIR)$(INCLUDE_DIR)
 	cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDE_DIR)/.
 
