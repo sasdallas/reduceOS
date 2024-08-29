@@ -34,7 +34,7 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     void *paddr;
     void *vaddr;
     for (i = 0, paddr=mem, vaddr=(void*)last_load_address; i < length / 0x1000; i++, paddr += 0x1000, vaddr += 0x1000) {
-        vmm_allocateRegionFlags((uintptr_t)paddr, (uintptr_t)vaddr, 0x1000, 1, 1, 1);
+        vmm_allocateRegionFlags((uintptr_t)paddr, (uintptr_t)vaddr, 0x1000, 1, 1, 0);
     }
 
     // Read in the module

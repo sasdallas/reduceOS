@@ -56,8 +56,10 @@ void pmmInit(uint32_t physMemorySize) {
     pmm_usedBlocks = pmm_maxBlocks;
 
     nframes = pmm_maxBlocks;
-    frames = kmalloc(nframes);
-
+    frames = kmalloc(nframes);  // TODO: Find a better way to do this, liballoc forwarder will toss it into a page near the heap.
+                                // This page is never kept track of and QUITE important, since it holds the core allocation framework.
+                                // Maybe map to &end and just deinitialize region?
+                                
     // All memory is in use by default.
     memset(frames, 0xF, pmm_maxBlocks / 8);
 }
@@ -231,7 +233,7 @@ void *pmm_allocateBlocks(size_t size) {
     }
 
     if ((pmm_maxBlocks - pmm_usedBlocks) <= size) {
-        panic("pmm", "PMM manager", "Out of memory, could not perform allocation.");
+        serialPrintf("pmm_allocateBlocks: Out of memory trying to allocate 0x%x blocks\n", size);
         return 0; // Not enough memory is available
     }
 

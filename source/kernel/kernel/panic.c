@@ -14,6 +14,7 @@
 #include <kernel/ksym.h>
 #include <kernel/keyboard.h>
 #include <kernel/terminal.h>
+#include <kernel/process.h>
 #include <stdio.h>
 
 #include <time.h>
@@ -24,8 +25,8 @@ extern multiboot_info *globalInfo;
 extern char ch;
 
 
-// This static function will dump physical memory to disk
-static void dumpPMM() {
+// This function will dump physical memory to disk
+void panic_dumpPMM() {
     // Do not dump PMM if we're using a RELEASE build.
     if (!strcmp(BUILD_CONFIGURATION, "RELEASE")) {
         printf("\nThis is a RELEASE build of reduceOS - therefore, to retain the security of your disks, memory dumps have been disabled.\n");
@@ -120,9 +121,9 @@ static void dumpPMM() {
 
 }
 
-// This static function performes a stack trace to get the callers of panic.
+// This function performes a stack trace to get the callers of panic.
 #pragma GCC diagnostic ignored "-Wuninitialized" // Stack frame is technically uninitialized as NULL but stk itself is never used, only EBP
-void stackTrace(uint32_t maximumFrames, registers_t *reg) {
+void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
     stack_frame *stk;
     stk->ebp = (stack_frame*)reg->ebp;
     stk->eip = reg->eip;
@@ -131,6 +132,12 @@ void stackTrace(uint32_t maximumFrames, registers_t *reg) {
     serialPrintf("\nSTACK TRACE (EBP based):\n");
     
     for (uint32_t frame = 0; stk && frame < maximumFrames; frame++) {
+
+        if (!stk->eip) {
+            printf("Frame %i: EIP unknown\n", frame);
+            continue;
+        }
+
         // Make sure the code is in kernelspace, else the symbol finder might crash
         if (stk->eip && (stk->eip < (uint32_t)&text_start || stk->eip > (uint32_t)&bss_end)) {
             printf("Frame %i: 0x%x (outside of kspace)\n", frame, stk->eip);
@@ -207,8 +214,74 @@ void vgaTextMode_Panic(char *caller, char *code, char *reason, registers_t *reg,
     for (;;);
 } 
 
+
+void panic_dumpStack(registers_t *r) {
+
+    if (r != NULL) {
+        registers_t *reg = r; // Dirty hack to make my life easier
+        printf("Error Code: %d\n", reg->err_code);
+        printf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
+        printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
+        printf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
+
+        serialPrintf("\nerr_code %d\n", reg->err_code);
+        serialPrintf("REGISTER DUMP:\n");
+        serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
+        serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
+        serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
+        return;
+    }
+
+    registers_t *reg = (registers_t*)((uint8_t*)&end); // this is bad, need to use stack
+    memset(reg, 0, sizeof(registers_t));
+
+    // Funny
+    asm volatile ("mov %%eax, %0" : "=r"(reg->eax));
+    asm volatile ("mov %%ebx, %0" : "=r"(reg->ebx));
+    asm volatile ("mov %%ecx, %0" : "=r"(reg->ecx));
+    asm volatile ("mov %%edx, %0" : "=r"(reg->edx));
+    asm volatile ("mov %%esi, %0" : "=r"(reg->esi));
+    asm volatile ("mov %%esp, %0" : "=r"(reg->esp));
+    asm volatile ("mov %%ebp, %0" : "=r"(reg->ebp));
+    asm volatile ("mov %%edi, %0" : "=r"(reg->edi));
+    asm volatile ("mov %%ds, %0" : "=r"(reg->ds));
+    asm volatile ("mov %%cs, %0" : "=r"(reg->cs));
+    asm volatile ("mov %%ss, %0" : "=r"(reg->ss));
+
+    printf("\nStack dump:\n\n");
+    printf("No error code was set (kernel panic).\n");
+    printf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
+    printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
+    printf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
+
+    serialPrintf("STACK DUMP:\n");
+    serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
+    serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
+    serialPrintf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
+
+}
+
+// Panic Prepare - prepares the system for a kernel panic, useful for applications that need control over panic's output
+void panic_prepare() {
+    serialPrintf("===========================================================\n");
+    serialPrintf("A fatal error in reduceOS has occurred.\n");
+
+    setKBHandler(false);
+    clearScreen(COLOR_WHITE, COLOR_RED);
+
+
+    terminalUpdateTopBarKernel("Kernel Panic");
+
+    updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED);
+
+    printf("reduceOS encountered a fatal error and needs to shutdown.\n");
+    printf("The error cause will be printed below. If you start an issue on GitHub, please include the following text.\n");
+    printf("Apologies for any inconveniences caused by this error.\n");
+    printf("\n");
+}  
+
 // Panic - halts system and prints an error message
-void *panic(char *caller, char *code, char *reason) {
+void panic(char *caller, char *code, char *reason) {
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** [%s] %s: %s\n", caller, code, reason);
@@ -237,38 +310,20 @@ void *panic(char *caller, char *code, char *reason) {
     printf("*** [%s] %s: %s \n", caller, code, reason);
     
     
-    registers_t *reg;
-    
-    // Funny
-    asm volatile ("mov %%eax, %0" : "=r"(reg->eax));
-    asm volatile ("mov %%ebx, %0" : "=r"(reg->ebx));
-    asm volatile ("mov %%ecx, %0" : "=r"(reg->ecx));
-    asm volatile ("mov %%edx, %0" : "=r"(reg->edx));
-    asm volatile ("mov %%esi, %0" : "=r"(reg->esi));
-    asm volatile ("mov %%esp, %0" : "=r"(reg->esp));
-    asm volatile ("mov %%ebp, %0" : "=r"(reg->ebp));
-    asm volatile ("mov %%edi, %0" : "=r"(reg->edi));
-    asm volatile ("mov %%ds, %0" : "=r"(reg->ds));
-    asm volatile ("mov %%cs, %0" : "=r"(reg->cs));
-    asm volatile ("mov %%ss, %0" : "=r"(reg->ss));
-
-    printf("\nStack dump:\n\n");
-    printf("No error code was set (kernel panic).\n");
-    printf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
-    printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
-    printf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
-
-    serialPrintf("STACK DUMP:\n");
-    serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
-    serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
-    serialPrintf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
 
 
-    stackTrace(7, reg); // Get a stack trace.
+    // Dump the stack and perform a stack trace
+    panic_dumpStack(NULL);
+
+    // Perform a stack trace
+    registers_t *reg = (registers_t*)((uint8_t*)&end); // stealing from the stack dumper LMAO
+    asm volatile ("mov %%ebp, %0" :: "r"(reg->ebp));
+    reg->eip = read_eip();
+    panic_stackTrace(7, reg);
 
     // Dump memory
     serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
-    dumpPMM();
+    panic_dumpPMM();
     serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");
 
 
@@ -279,7 +334,7 @@ void *panic(char *caller, char *code, char *reason) {
 }
 
 
-void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
+void panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** ISR threw exception: %s\n", reason);
@@ -314,12 +369,12 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
 
     // Perform stack trace
-    stackTrace(7, reg);
+    panic_stackTrace(7, reg);
 
 
     // Dump memory
     serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
-    dumpPMM();
+    panic_dumpPMM();
     serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");
 
     printf("\nThe system has been halted. Attach debugger now to view context.\n");
@@ -331,10 +386,16 @@ void *panicReg(char *caller, char *code, char *reason, registers_t *reg) {
 
 
 // Oh no! We encountered a page fault!
-void *pageFault(registers_t *reg) {
+void pageFault(registers_t *reg) {
     // Get the faulting address from CR2
     uint32_t faultAddress;
     asm volatile("mov %%cr2, %0" : "=r" (faultAddress));
+
+    // See syscall.c for an explanation on how this works
+    // We'll map more stack and quietly return
+    if ((currentProcess->image.heap) && (faultAddress >= currentProcess->image.heap_start) && (faultAddress < currentProcess->image.heap_end)) {
+        panic("proc", "pageFault", "Need to map more stack for SBRK (UNIMPLEMENTED)");
+    }
 
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
@@ -387,11 +448,11 @@ void *pageFault(registers_t *reg) {
     // DUMP PMM FIRST
     // This is because page faults will sometimes hang stackTrace
     serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
-    dumpPMM();
+    panic_dumpPMM();
     serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");
 
     // Perform stack trace (note: this might hang) 
-    stackTrace(7, reg);
+    panic_stackTrace(7, reg);
 
     printf("\nThe system has been halted. Attach debugger now to view context.\n");
 

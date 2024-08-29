@@ -19,8 +19,12 @@ typedef struct _stack_frame {
 } stack_frame;
 
 // Functions
-void *panic(char *caller, char *code, char *reason);
-void *panicReg(char *caller, char *code, char *reason, registers_t  *reg);
-void *pageFault(registers_t  *reg);
+void panic(char *caller, char *code, char *reason);
+void panicReg(char *caller, char *code, char *reason, registers_t  *reg);
+void pageFault(registers_t  *reg);
+void panic_stackTrace(uint32_t maximumFrames, registers_t *reg);
+void panic_dumpPMM();
+void panic_prepare();
+void panic_dumpStack(registers_t *r);
 
 #endif

@@ -264,6 +264,8 @@ process_t *spawn_init() {
     // Setup image stack and other values
     init->image.entrypoint = 0;
     init->image.heap = 0;
+    init->image.heap_start = 0;
+    init->image.heap_end = 0;
     init->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
     vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
                                 init->image.stack, 
@@ -321,6 +323,8 @@ process_t *spawn_process(volatile process_t *parent, int flags) {
     // Entry is only stored for reference
     proc->image.entrypoint = parent->image.entrypoint;
     proc->image.heap = parent->image.heap;
+    proc->image.heap_end = parent->image.heap_end;
+    proc->image.heap_start = parent->image.heap_start;
     proc->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
     vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
                                 proc->image.stack, 
@@ -907,6 +911,11 @@ void task_exit(int retval) {
     process_t *parent = process_get_parent((process_t*)currentProcess);
     __sync_or_and_fetch(&currentProcess->flags, PROCESS_FLAG_FINISHED);
 
+    // Before we switch to the next process we need to check if we just killed the init process.
+    // Shoot first, ask questions later.
+    if (currentProcess->id == 1) {
+        panic("reduceOS", "kernel", "A process critical to the system (the init process) has terminated unexpectedly.");
+    }
 
     if (parent && !(parent->flags & PROCESS_FLAG_FINISHED)) {
         spinlock_lock(&parent->wait_lock);
@@ -1158,7 +1167,10 @@ int createProcess(char *filepath) {
     currentProcess->image.userstack = usermodeBase;
 
     // Setup values
-    currentProcess->image.heap = (heapBase + 0xFFF) & (~0xFFF);
+   
+    currentProcess->image.heap = (uint32_t)kmalloc(4096); // could result in potential fault
+    currentProcess->image.heap_start = currentProcess->image.heap;
+    currentProcess->image.heap_end = currentProcess->image.heap;
     currentProcess->image.entrypoint = ehdr->e_entry;
 
     // It is time for your execution

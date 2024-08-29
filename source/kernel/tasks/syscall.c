@@ -34,6 +34,7 @@ void *syscalls[18] = {
 };
 
 uint32_t syscallAmount = 18;
+atomic_flag *write_lock;
 
 // DECLARATION OF TESTSYSTEM CALLS
 DECLARE_SYSCALL0(sys_restart_syscall, 0);
@@ -56,6 +57,7 @@ void syscallHandler();
 // initSyscalls() - Registers interrupt handler 0x80 to allow system calls to happen (interrupt marked as usermode in IDT init).
 void initSyscalls() {
     isrRegisterInterruptHandler(0x80, syscallHandler);
+    write_lock = spinlock_init();
 }
 
 
@@ -86,6 +88,8 @@ void syscallHandler(registers_t *regs) {
 
     // Set EAX to the return value
     asm volatile ("mov %0, %%eax" :: "r"(returnValue));
+    regs->eax = returnValue;
+    currentProcess->syscall_registers->eax = returnValue; // TODO: Need this?
 }
 
 
@@ -132,6 +136,7 @@ long sys_read(int file_desc, void *buf, size_t nbyte) {
     return nbyte;
 }
 
+
 // SYSCALL 3 (https://man7.org/linux/man-pages/man2/write.2.html)
 long sys_write(int file_desc, char *buf, size_t nbyte) {
     if (!nbyte) return 0;
@@ -145,6 +150,8 @@ long sys_write(int file_desc, char *buf, size_t nbyte) {
     fsNode_t *node = open_file("/device/console", 0);
 
     int64_t retval = node->write(node, 0, nbyte, (uint8_t*)buf);
+
+    terminalUpdateScreen(); // console device doesn't update screen, hack.
 
     return retval;
 }
@@ -209,24 +216,38 @@ int sys_open(const char *name, int flags, int mode) {
 
 // SYSCALL 14
 // TODO: uint32_t is not the correct type for this, it's arch-specific I believe
-uint32_t sys_sbrk(int incr) {
-    if (incr & 0xFFF) {
-        serialPrintf("INCR is not valid.\n");
-        return -1;
-    }
+uint32_t sys_sbrk(uint32_t incr_uint) {
+    int incr = (int)incr_uint;
     process_t *proc = currentProcess;
 
     if (!proc) return -1;
 
     spinlock_lock(&proc->image.spinlock);
-    uintptr_t out = proc->image.stack;
-    for (uintptr_t i = out; i < out + incr; i += 4096) {
-        vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER); 
+    
+
+    uintptr_t out = proc->image.heap; // Old heap value
+
+    if (incr < 0) {
+        serialPrintf("sys_sbrk: WARNING! Support for negative SBRK is not implemented yet!\n");
+    
+        serialPrintf("sys_sbrk: If we were to do such a thing though, the heap would be set to %i\n", out + incr);
+        goto end;
     }
 
 
-    proc->image.stack += incr;
+    /* 
+        Here is how the reduceOS sbrk() handler works:
+            1. Increase the heap pointer and return the old one
+            2. The program will attempt to access invalid and unmapped memory
+            3. This is stupid but hilarious - the page fault handler recognizes this, quietly maps the address, then slinks away.
+    */
+    proc->image.heap += incr;
+    proc->image.heap_end = proc->image.heap;
+    ASSERT(proc->image.heap_start, "sys_sbrk", "Current process does not have an available heap_start");
+
+end:
     spinlock_release(&proc->image.spinlock);
+    serialPrintf("sys_sbrk: Heap done - returning 0x%x\n", (uint32_t)out);
     return (uint32_t)out;
 }
 

@@ -97,7 +97,9 @@ typedef struct _image {
     uintptr_t stack;                // Stack allocated for the image
     uintptr_t userstack;            // Usermode stack allocated for the image
     uintptr_t shm_heap;             // Shared memory heap (unused)
-    uintptr_t heap;                 // Heap of the image (unused)
+    uintptr_t heap;                 // Heap of the image, mapped using SBRK
+    uintptr_t heap_start;           // Start of the heap
+    uintptr_t heap_end;             // End of the heap
     atomic_flag spinlock;           // Spinlock
 } image_t;
 

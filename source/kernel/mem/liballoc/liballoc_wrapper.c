@@ -6,6 +6,8 @@
 // NO CODE OF LIBALLOC.C OR LIBALLOC.H IS CREATED BY ME.
 
 #include <kernel/liballoc_wrapper.h> // Main header file
+#include <stdio.h>
+#include <kernel/panic.h>
 
 atomic_flag lock = ATOMIC_FLAG_INIT; // Memory lock (we dont use spinlock_init because ehhhh)
 
@@ -29,9 +31,25 @@ void *liballoc_alloc(size_t pages) {
     // Allocate some physical memory for the pages
     void *ptr = pmm_allocateBlocks(pages + 1); // one extra to stop stupid liballoc from doing stupid things
     if (!ptr) {
-        serialPrintf("liballoc_alloc: Failure to allocate %i pages. Faulting.\n", pages + 1);
-        panic("alloc_wrapper", "liballoc_alloc", "Could not allocate pages");
-        return  NULL;
+        panic_prepare();
+        serialPrintf("*** The memory manager could not successfully allocate enough memory.\n");
+        serialPrintf("*** Failed to allocate %i pages during liballoc allocation sequence.\n", pages + 1);
+
+        printf("*** The system has run out of memory.\n");
+        printf("\nThis error indicates that your system has fully run out of memory and can no longer continue its operation.\n");
+        printf("Please either do not open many resource intensive applications, or potentially use a larger pagefile\n"); // Good luck with that 
+        printf("\nStack dump:\n");
+        panic_dumpStack(NULL);
+        printf("\n");
+        registers_t *reg = (registers_t*)((uint8_t*)&end);
+        asm volatile ("mov %%ebp, %0" :: "r"(reg->ebp));
+        reg->eip = NULL; // TODO: Use read_eip()?
+        panic_stackTrace(7, reg);
+
+        disableHardwareInterrupts();
+        asm volatile ("hlt");
+        for (;;);
+        __builtin_unreachable();
     } 
 
     

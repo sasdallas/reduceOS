@@ -104,9 +104,6 @@ void isrInstall() {
     setVector(29, (uint32_t) isr29);
     setVector(30, (uint32_t) isr30);
     setVector(31, (uint32_t) isr31);
-
-    // Initialize PIC
-    // i86_picInit(0x20, 0x28);
     
     // Register all IRQs
     setVector(32, (uint32_t)irq_0);

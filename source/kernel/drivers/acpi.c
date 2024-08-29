@@ -90,7 +90,7 @@ void acpiParseRSDT(ACPIHeader *rsdt) {
 
     while (tablePtr < endAddr) {
         uint32_t address = *tablePtr++;
-        ACPIHeader *table = (ACPIHeader*)(uint64_t)address;
+        ACPIHeader *table = (ACPIHeader*)address;
 
         // Parse the table signature first (like in acpiInit do our trick where we convert to uint32 and check against hex instead of calling strcmp).
         uint32_t signature = (uint32_t)table->signature;
@@ -123,7 +123,7 @@ void acpiParseXSDT(ACPIHeader *xsdt) {
     serialPrintf("ACPI table signatures (XSDT):");
     while (tablePtr < endAddr) {
         uint64_t address = *tablePtr++;
-        ACPIHeader *table = (ACPIHeader*)(uint64_t)address;
+        ACPIHeader *table = (ACPIHeader*)address;
 
         // Parse the table signature first (like in acpiInit do our trick where we convert to uint32 and check against hex instead of calling strcmp).
         uint32_t signature = (uint32_t)table->signature;
@@ -196,10 +196,10 @@ bool acpiParseRSDP(uint8_t *ptr) {
 
         if (xsdtAddress) {
             // Parse the XSDT.
-            acpiParseXSDT((ACPIHeader*)(uint64_t)xsdtAddress);
+            acpiParseXSDT((ACPIHeader*)xsdtAddress);
         } else {
             // Parse the RSDT
-            acpiParseRSDT((ACPIHeader*)(uint64_t)rsdtAddress);
+            acpiParseRSDT((ACPIHeader*)rsdtAddress);
         }
     } else {
         serialPrintf("apciParseRSDP: Unsupported ACPI version %d.\n", header->revision);

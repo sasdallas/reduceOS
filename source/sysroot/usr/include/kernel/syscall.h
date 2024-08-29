@@ -133,7 +133,7 @@ int sys_kill(int pid, int sig);
 int sys_link(char *old, char *new);
 int sys_lseek(int file, int ptr, int dir);
 int sys_open(const char *name, int flags, int mode);
-uint32_t sys_sbrk(int incr);
+uint32_t sys_sbrk(uint32_t incr_uint);
 int sys_stat(char *file, void *st);
 int sys_times(void *buf);
 int sys_unlink(char *name);
