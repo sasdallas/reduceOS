@@ -5,6 +5,6 @@ Structure of the source/ directory:
 - source/initial_ramdisk (initial ramdisk generator)
 - source/sysroot (this is the directory where kernel & libc headers are installed, and the filesystem is created)
 - source/boot (prototype Polyaniline)
-- source/libc_reduced (reduceOS version of libc, incomplete)
+- source/libk_reduced (reduceOS version of libc, incomplete)
 - source/kmods (kernel modules/drivers folder)
 - source/newlib (newlib C library)
