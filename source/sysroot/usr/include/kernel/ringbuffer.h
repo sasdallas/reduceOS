@@ -16,7 +16,7 @@ typedef struct {
     size_t          write_ptr;
     size_t          read_ptr;
     size_t          size;
-    atomic_flag*    spinlock;
+    spinlock_t*    spinlock;
     list_t*         wait_queue_readers;
     list_t*         wait_queue_writers;
     int             internal_stop;

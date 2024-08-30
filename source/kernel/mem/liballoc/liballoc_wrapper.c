@@ -9,7 +9,7 @@
 #include <libk_reduced/stdio.h>
 #include <kernel/panic.h>
 
-atomic_flag lock = ATOMIC_FLAG_INIT; // Memory lock (we dont use spinlock_init because ehhhh)
+spinlock_t lock = ATOMIC_FLAG_INIT; // Memory lock (we dont use spinlock_init because ehhhh)
 
 // liballoc requires four functions to be declared before it can operate - here they are:
 

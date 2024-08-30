@@ -35,7 +35,7 @@ void *syscalls[18] = {
 };
 
 uint32_t syscallAmount = 18;
-atomic_flag *write_lock;
+spinlock_t *write_lock;
 
 // DECLARATION OF TESTSYSTEM CALLS
 DECLARE_SYSCALL0(sys_restart_syscall, 0);

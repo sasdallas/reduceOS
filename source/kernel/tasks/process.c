@@ -32,12 +32,12 @@ process_t *idleTask;                        // The kernel's idling task
 
 
 // Spinlocks
-static atomic_flag tree_lock = ATOMIC_FLAG_INIT;
-static atomic_flag process_queue_lock = ATOMIC_FLAG_INIT;
-static atomic_flag wait_lock_tmp = ATOMIC_FLAG_INIT;
-static atomic_flag sleep_lock = ATOMIC_FLAG_INIT;
-static atomic_flag reap_lock = ATOMIC_FLAG_INIT;
-static atomic_flag switch_lock = ATOMIC_FLAG_INIT; // Controls who gets to switch page directories
+static spinlock_t tree_lock = ATOMIC_FLAG_INIT;
+static spinlock_t process_queue_lock = ATOMIC_FLAG_INIT;
+static spinlock_t wait_lock_tmp = ATOMIC_FLAG_INIT;
+static spinlock_t sleep_lock = ATOMIC_FLAG_INIT;
+static spinlock_t reap_lock = ATOMIC_FLAG_INIT;
+static spinlock_t switch_lock = ATOMIC_FLAG_INIT; // Controls who gets to switch page directories
 
 
 /************************* TIMING **************************/
@@ -603,8 +603,8 @@ int sleep_on(list_t *queue) {
 
 
 
-// sleep_on_unlocking(list_t *queue, atomic_flag *release) - Wait for a binary semaphore on unlocking
-int sleep_on_unlocking(list_t *queue, atomic_flag *release) {
+// sleep_on_unlocking(list_t *queue, spinlock_t *release) - Wait for a binary semaphore on unlocking
+int sleep_on_unlocking(list_t *queue, spinlock_t *release) {
     __sync_and_and_fetch(&currentProcess->flags, ~(PROCESS_FLAG_SLEEPINT));
     spinlock_lock(&wait_lock_tmp);
     list_append(queue, (node_t*)&currentProcess->sleepNode);
@@ -1189,7 +1189,7 @@ int createProcess(char *filepath) {
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
     currentProcess->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
     currentProcess->thread.refcount = 1;
-    atomic_flag_clear(currentProcess->thread.pd_lock);
+    spinlock_release(currentProcess->thread.pd_lock);
     vmm_switchDirectory(currentProcess->thread.page_directory);
     spinlock_release(&switch_lock);
 

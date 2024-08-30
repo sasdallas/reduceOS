@@ -14,8 +14,8 @@ uint64_t boottime = 0; // Calculated on startup
 uint64_t tsc_baseline = 0; // Accumulated time on the TSC when it was timed (baseline)
 uint64_t tsc_mhz = 0x1337; // Calculated on startup to determine TSC difference.
 
-static atomic_flag *timeset_lock; // Lock for setting time
-static atomic_flag *clock_lock; // Not very useful right now.
+static spinlock_t *timeset_lock; // Lock for setting time
+static spinlock_t *clock_lock; // Not very useful right now.
 
 
 

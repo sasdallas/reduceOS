@@ -76,7 +76,7 @@ typedef struct _fd_table {
     fsNode_t        **nodes;        // List of filesystem nodes used by the FDs
     uint64_t        *fd_offsets;    // Offsets of the FDs, used for writing/reading
     int             *modes;         // For future use
-    atomic_flag     *fd_lock;
+    spinlock_t     *fd_lock;
 
     size_t          length;         // Amount of FDs actually in the table
     size_t          max_fds;        // The length of the table
@@ -89,7 +89,7 @@ typedef struct _thread {
     uint8_t fp_regs[512] __attribute__((aligned(16)));      // FPU registers
     pagedirectory_t *page_directory;                        // Thread page directory
     int refcount;                                           // PD refcount
-    atomic_flag *pd_lock;                                   // PD lock
+    spinlock_t *pd_lock;                                   // PD lock
 } thread_t;
 
 // The image structure defines where the image/ELF is located, its size, its heap, its userstack, ...
@@ -101,7 +101,7 @@ typedef struct _image {
     uintptr_t heap;                 // Heap of the image, mapped using SBRK
     uintptr_t heap_start;           // Start of the heap
     uintptr_t heap_end;             // End of the heap
-    atomic_flag spinlock;           // Spinlock
+    spinlock_t spinlock;           // Spinlock
 } image_t;
 
 
@@ -135,8 +135,8 @@ typedef struct process {
     node_t sleepNode;
     node_t *timedSleepNode;
     node_t *timeoutNode;
-    atomic_flag sched_lock;
-    atomic_flag wait_lock;
+    spinlock_t sched_lock;
+    spinlock_t wait_lock;
 
     // Working directory
     char *wd_name;
@@ -201,7 +201,7 @@ int waitpid(int pid, int *status, int options); // Wait for a process to finish/
 void sleep_until(process_t *process, unsigned long seconds, unsigned long subseconds);
 void wakeup_sleepers(unsigned long seconds, unsigned long subseconds);
 process_t *spawn_process(volatile process_t *parent, int flags); // Spawn a process
-int sleep_on_unlocking(list_t *queue, atomic_flag *release); // Wait for a binary semaphore
+int sleep_on_unlocking(list_t *queue, spinlock_t *release); // Wait for a binary semaphore
 void process_switchTask(uint8_t reschedule);
 void tasking_start();
 void scheduler_init();

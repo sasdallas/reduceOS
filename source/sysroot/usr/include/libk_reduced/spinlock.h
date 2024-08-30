@@ -5,11 +5,13 @@
 
 // Includes
 #include <libk_reduced/stdint.h> // Integer declarations
-#include <stdatomic.h> // For once in our lives, C is on our side!!
+#include <stdatomic.h>
+
+typedef atomic_flag spinlock_t;
 
 // Functions
-atomic_flag *spinlock_init(); // Creates a new spinlock
-void spinlock_lock(atomic_flag *lock); // Locks the spinlock
-void spinlock_release(atomic_flag *lock); // Releases the spinlock
+spinlock_t *spinlock_init(); // Creates a new spinlock
+void spinlock_lock(spinlock_t *lock); // Locks the spinlock
+void spinlock_release(spinlock_t *lock); // Releases the spinlock
 
 #endif
