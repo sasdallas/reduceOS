@@ -44,7 +44,7 @@ typedef void (*close_t)(struct fsNode*);
 // These aren't from the POSIX specification.
 typedef struct dirent * (*readdir_t)(struct fsNode*, uint32_t);
 typedef struct fsNode * (*finddir_t)(struct fsNode*, char *name);
-typedef void (*create_t) (struct fsNode *, char *name, uint16_t permission);
+typedef int (*create_t) (struct fsNode *, char *name, uint16_t permission);
 typedef void (*mkdir_t) (struct fsNode *, char *name, uint16_t permission);
 
 typedef int (*unlink_t) (struct fsNode *, char *name);
@@ -71,6 +71,7 @@ typedef struct fsNode {
     mkdir_t mkdir;      // Make directory function.
     unlink_t unlink;    // Unlink function (deletion)
     struct fsNode *ptr; // Used by mountpoints and symlinks.
+    int references;     // Child processes (and other cores if SMP is added) will sometimes hold access to the same node. This stores the reference count.
     void *device;       // Pointer to the device needed (unused mostly, most drivers will use impl_struct but you can use this)
 } fsNode_t;
 
@@ -117,4 +118,8 @@ int vfs_registerFilesystem(const char *name, vfs_mountCallback callback); // Reg
 void vfs_mapDirectory(const char *c); // Maps a directory in the virtual filesystem
 char *vfs_canonicalizePath(const char *cwd, const char *input); // Canonicalizes a path
 void debug_print_vfs_tree(bool printout);
+fsNode_t *cloneFilesystemNode(fsNode_t *node);
+void vfs_lock(fsNode_t *node);
+int createFilesystem(char *name, uint16_t mode);
+
 #endif

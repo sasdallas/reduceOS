@@ -61,15 +61,23 @@ int link(char *old, char *new) {
 }
 
 int lseek(int file, int ptr, int dir) {
-    return 0;
+    return SYSCALL3(int, SYS_LSEEK, file, ptr, dir);
 }
 
 int open(const char *name, int flags, ...) {
-    return -1;
+    // TODO: va_args?
+    int ret = SYSCALL2(int, SYS_OPEN, name, flags);
+    if (ret < 0) {
+        errno = ret*ret; // newlib uses positive errnos
+        return -1;
+    }
+    return ret;
 }
 
+
 int read(int file, char *ptr, int len) {
-    return 0;
+    int ret = SYSCALL3(int, SYS_READ, file, ptr, len);
+    return ret;
 }
 
 
@@ -98,7 +106,7 @@ int stat(const char *__restrict __path, struct stat *__restrict st) {
 }
 
 clock_t times(struct tms *buf) {
-    return  -1;
+    return SYSCALL1(clock_t, SYS_TIMES, buf);
 }
 
 int unlink(char *name) {

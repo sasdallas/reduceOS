@@ -56,7 +56,9 @@
 			"assert.h": "c",
 			"keyboard.h": "c",
 			"clock.h": "c",
-			"stdarg.h": "c"
+			"stdarg.h": "c",
+			"errno.h": "c",
+			"tree.h": "c"
 		}
 	}
 }

@@ -8,6 +8,4 @@ source_bak
 deployment_scripts
 serial_out.txt
 cppreduceOS.code-workspace
-source/sysroot/usr/i686-reduceOS
-source/sysroot/usr/i686-reduceOS/**
 source/newlib/newlib-build/**

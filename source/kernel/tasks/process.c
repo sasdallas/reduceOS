@@ -257,7 +257,6 @@ process_t *spawn_init() {
     // Setup working directory values
     init->wd_node = kmalloc(sizeof(fsNode_t));
     memcpy(init->wd_node, fs_root, sizeof(fsNode_t));
-
     init->wd_name = kmalloc(2);
     strcpy(init->wd_name, "/");
 
@@ -289,6 +288,16 @@ process_t *spawn_init() {
     init->sleepNode.value = init;
 
     init->timedSleepNode = NULL;
+
+
+    // Setup the file descriptors
+    init->file_descs = kmalloc(sizeof(fd_table_t));
+    init->file_descs->length = 0;
+    init->file_descs->max_fds = 4;
+    init->file_descs->nodes = kmalloc(init->file_descs->max_fds * sizeof(fsNode_t*));
+    init->file_descs->modes = kmalloc(init->file_descs->max_fds * sizeof(int));
+    init->file_descs->fd_offsets = kmalloc(init->file_descs->max_fds * sizeof(uint64_t));
+    init->file_descs->fd_lock = spinlock_init();
 
     // Setup the page directory
     init->thread.page_directory = vmm_getCurrentDirectory();
@@ -348,6 +357,36 @@ process_t *spawn_process(volatile process_t *parent, int flags) {
 
     // Setup time
     gettimeofday(&proc->start, NULL);
+
+    // Check if the kernel wants to reuse file descriptors
+    if (flags & PROCESS_FLAG_REUSE_FDS) {
+        // Reuse file descriptors from parent process
+        spinlock_lock(parent->file_descs->fd_lock);
+        proc->file_descs = parent->file_descs;
+        spinlock_release(parent->file_descs->fd_lock);
+    } else {
+        // Allocate memory and clone over some values
+        proc->file_descs = kmalloc(sizeof(fd_table_t));
+        proc->file_descs->fd_lock = spinlock_init();
+        spinlock_lock(parent->file_descs->fd_lock);
+        proc->file_descs->length = parent->file_descs->length;
+        proc->file_descs->max_fds = parent->file_descs->max_fds;
+    
+        // Allocate memory for lists
+        proc->file_descs->nodes =       kmalloc(proc->file_descs->max_fds * sizeof(fsNode_t*));
+        proc->file_descs->modes =       kmalloc(proc->file_descs->max_fds * sizeof(int));
+        proc->file_descs->fd_offsets =  kmalloc(proc->file_descs->max_fds * sizeof(uint64_t));
+
+        // Copy over the file descriptors
+        for (uint32_t i = 0; i < proc->file_descs->length; i++) {
+            proc->file_descs->nodes[i] = kmalloc(sizeof(fsNode_t));
+            memcpy(proc->file_descs->nodes[i], parent->file_descs->nodes[i], sizeof(fsNode_t));
+            proc->file_descs->modes[i] = parent->file_descs->modes[i];
+            proc->file_descs->fd_offsets[i] = parent->file_descs->fd_offsets[i];
+        }
+
+        spinlock_release(parent->file_descs->fd_lock);
+    }
 
     // Setup tree node and insert it
     tree_node_t *entry = tree_node_create(proc);
@@ -906,6 +945,32 @@ void task_exit(int retval) {
         currentProcess->nodeWaits = NULL;
     }
 
+    if (currentProcess->file_descs) {
+        spinlock_lock(currentProcess->file_descs->fd_lock);
+        currentProcess->file_descs->references--;
+
+        if (currentProcess->file_descs->references == 0) {
+            // No child processes currently hold a refernece
+            for (uint32_t fd = 0; fd < currentProcess->file_descs->length; fd++) {
+                if (currentProcess->file_descs->nodes[fd]) {
+                    closeFilesystem(currentProcess->file_descs->nodes[fd]);
+                    // VFS currently doesn't take care of freeing
+                    kfree(currentProcess->file_descs->nodes[fd]);
+                } 
+
+                kfree(currentProcess->file_descs->nodes);
+                kfree(currentProcess->file_descs->fd_offsets);
+                kfree(currentProcess->file_descs->modes);
+                kfree(currentProcess->file_descs);
+                currentProcess->file_descs = NULL;
+            }  
+        } else {
+            // One does, dang..
+            spinlock_release(currentProcess->file_descs->fd_lock);
+        }
+    }
+
+
     updateProcessTimes();
 
     process_t *parent = process_get_parent((process_t*)currentProcess);
@@ -1155,8 +1220,6 @@ int createProcess(char *filepath) {
     }
 
 
-
-
     // Create a usermode stack
     void *usermodeStack = (void*)usermodeBase;
     void *stackPhysical = pmm_allocateBlock(); // Allocate a physical block for the stack
@@ -1181,3 +1244,58 @@ int createProcess(char *filepath) {
 }
 
 
+
+
+// process_addfd(process_t *proc, fsNode_t *node) - Creates a new file descriptor and return its ID
+unsigned long process_addfd(process_t *proc, fsNode_t *node) {
+    spinlock_lock(proc->file_descs->fd_lock);
+
+    // Fill in the gaps
+    for (unsigned long i = 0; i < proc->file_descs->length; i++) {
+        if (!proc->file_descs->nodes[i]) {
+            // There's a free node, yoink it
+            proc->file_descs->nodes[i] = node;
+            proc->file_descs->modes[i] = 0;
+            proc->file_descs->fd_offsets[i] = 0;
+            spinlock_release(proc->file_descs->fd_lock);
+            return i;
+        }
+    }
+
+    // :( no gaps in the list
+    // Expand, expand, expand...
+    if (proc->file_descs->length == proc->file_descs->max_fds) {
+        proc->file_descs->max_fds *= 2;
+        proc->file_descs->nodes = krealloc(proc->file_descs->nodes, sizeof(fsNode_t*) * proc->file_descs->max_fds);
+        proc->file_descs->modes = krealloc(proc->file_descs->modes, sizeof(int) * proc->file_descs->max_fds);
+        proc->file_descs->fd_offsets = krealloc(proc->file_descs->fd_offsets, sizeof(uint64_t) * proc->file_descs->max_fds);
+    }
+
+    proc->file_descs->nodes[proc->file_descs->length] = node;
+    proc->file_descs->modes[proc->file_descs->length] = 0;
+    proc->file_descs->fd_offsets[proc->file_descs->length] = 0;
+    proc->file_descs->length++;
+    spinlock_release(proc->file_descs->fd_lock);
+    return proc->file_descs->length - 1;
+}
+
+
+// process_movefd(process_t *proc, long src, long dest) - Move a file descriptor around
+long process_movefd(process_t *proc, long src, long dest) {
+    if ((size_t)src >= proc->file_descs->length || (dest != -1 && (size_t)dest >= proc->file_descs->length)) return -1; // Invalid parameters
+
+    if (dest == -1) {
+        // If dest is specified as -1, we just need to make a new fd
+        dest = process_addfd(proc, NULL);
+    }
+    if (proc->file_descs->nodes[dest] != proc->file_descs->nodes[src]) {
+        // Clone them over
+        closeFilesystem(proc->file_descs->nodes[dest]);
+        proc->file_descs->nodes[dest] = proc->file_descs->nodes[src];
+        proc->file_descs->modes[dest] = proc->file_descs->modes[src];
+        proc->file_descs->fd_offsets[dest] = proc->file_descs->fd_offsets[src];
+        openFilesystem(proc->file_descs->nodes[dest], 0, 0);
+    }
+
+    return dest;
+}

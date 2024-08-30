@@ -8,6 +8,7 @@
 
 #include <kernel/vfs.h> // Main header file
 #include <libk_reduced/stdio.h>
+#include <libk_reduced/errno.h>
 
 fsNode_t *fs_root = 0; // Root of the filesystem
 tree_t *fs_tree = NULL; // Mountpoint tree
@@ -59,6 +60,23 @@ void closeFilesystem(fsNode_t *node) {
     if (node->close != 0)
         return node->close(node);
 }
+
+fsNode_t *cloneFilesystemNode(fsNode_t *node) {
+    if (!node) return NULL;
+
+    if (!node->references) node->references = 0;
+
+    if (node->references >= 0) {
+        node->references++;
+    }
+    
+
+    // There's no need to allocate another node and memcpy it
+    // While that might ensure "safety" the easy way, refcounts and forcing use of closeFilesystem and openFilesystem are the way to go.
+    // They'll use reference counts to keep track of stuff.
+    return node;
+}
+
 
 // Now it gets slightly more complicated.
 
@@ -114,7 +132,7 @@ int unlinkFilesystem(char *name) {
 
     if (!parent) {
         kfree(path);
-        return -1;
+        return -ENOENT;
     }
 
     // TODO: Permissions
@@ -123,7 +141,7 @@ int unlinkFilesystem(char *name) {
     if (parent->unlink) {
         ret = parent->unlink(parent, file_path);
     } else {
-        ret = -1;
+        ret = -EINVAL;
     }
 
     kfree(path);
@@ -131,6 +149,52 @@ int unlinkFilesystem(char *name) {
     return ret;
 }
 
+// createFilesystem(char *name, uint16_t mode) - Creates a file from the filesystem
+int createFilesystem(char *name, uint16_t mode) {
+    fsNode_t *parent;
+    char *path = vfs_canonicalizePath(cwd, name);
+
+    char *parent_path_tmp = kmalloc(strlen(path) + 5);
+    snprintf(parent_path_tmp, strlen(path) + 4, "%s/..", path);
+
+    char *parent_path = vfs_canonicalizePath(cwd, parent_path_tmp);
+
+    kfree(parent_path_tmp);
+
+    char *file_path = path + strlen(path) - 1;
+    while (file_path > path) {
+        if (*file_path == '/') {
+            file_path += 1;
+            break;
+        }
+
+        file_path--;
+    }
+
+    while (*file_path == '/') file_path++;
+
+    serialPrintf("createFilesystem: Creating %s in %s\n", file_path, parent_path);
+    parent = open_file(parent_path, 0);
+    kfree(parent_path);
+
+    if (!parent) {
+        kfree(path);
+        return -ENOENT;
+    }
+
+    // TODO: Permissions
+
+    int ret = 0;
+    if (parent->create) {
+        ret = parent->create(parent, file_path, mode);
+    } else {
+        return -EINVAL;
+    }
+
+    kfree(path);
+    kfree(parent);
+    return ret;
+}
 
 // getRootFilesystem() - Returns root filesystem
 fsNode_t *getRootFilesystem() {

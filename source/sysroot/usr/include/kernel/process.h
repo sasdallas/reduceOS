@@ -21,13 +21,15 @@
 #define KSTACK_SIZE             0x9000  // Size of the kernel's  stack
 
 
-// Process state bitflags
-#define PROCESS_FLAG_IS_TASKLET 0x01
-#define PROCESS_FLAG_FINISHED   0x02
-#define PROCESS_FLAG_STARTED    0x04
-#define PROCESS_FLAG_RUNNING    0x08
-#define PROCESS_FLAG_SLEEPINT   0x10
-#define PROCESS_FLAG_SUSPEND    0x020
+// Process state bitflags (& flags for creation)
+#define PROCESS_FLAG_REUSE_FDS  0x001   // Reuse the parent process' file descriptors
+#define PROCESS_FLAG_IS_TASKLET 0x01    // Is the process a kernel tasklet?
+#define PROCESS_FLAG_FINISHED   0x02    // Process finished
+#define PROCESS_FLAG_STARTED    0x04    // Process started
+#define PROCESS_FLAG_RUNNING    0x08    // Process running
+#define PROCESS_FLAG_SLEEPINT   0x10    // Process interrupted for sleep
+#define PROCESS_FLAG_SUSPEND    0x020   // Suspended process
+
 
 // Wait options (should be in libc_reduced)
 #define WNOHANG   0x0001
@@ -68,21 +70,20 @@ typedef struct {
     void* saved[6];
 } thread_context_t;
 
-/*
-struct process;
-typedef struct thread {
-    struct process *parent;         // Parent process of a thread
-    void *initial_stack;            // Initial process stack
-    void *stack_limit;              // Stack limit
-    void *kernel_stack;             // Thread's kernel stack
-    uint32_t priority;              // Priority of the thread
-    uint32_t state;            // Thread state
-    trapFrame_t frame;              // Trap frame
-    uint32_t imageBase;             // Base of the executable
-    uint32_t imageSize;             // Size of the image
-} thread_t;
-*/
 
+// File descriptor
+typedef struct _fd_table {
+    fsNode_t        **nodes;        // List of filesystem nodes used by the FDs
+    uint64_t        *fd_offsets;    // Offsets of the FDs, used for writing/reading
+    int             *modes;         // For future use
+    atomic_flag     *fd_lock;
+
+    size_t          length;         // Amount of FDs actually in the table
+    size_t          max_fds;        // The length of the table
+    size_t          references;     // References that child processes hold on the FDs      
+} fd_table_t;
+
+// Thread
 typedef struct _thread {
     thread_context_t context;                               // Thread context
     uint8_t fp_regs[512] __attribute__((aligned(16)));      // FPU registers
@@ -145,6 +146,8 @@ typedef struct process {
     thread_t thread;
     image_t image;
 
+    // File descriptors
+    fd_table_t  *file_descs;
 
     // Time values
     struct timeval start;
@@ -206,6 +209,8 @@ pid_t fork();
 void makeProcessReady(volatile process_t *proc);
 int wakeup_queue(list_t *queue);
 void updateProcessTimesOnExit();
+unsigned long process_addfd(process_t *proc, fsNode_t *node);
+long process_movefd(process_t *proc, long src, long dest);
 
 
 #endif

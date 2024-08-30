@@ -8,7 +8,8 @@
 #include <kernel/syscall.h> // Main header file
 #include <kernel/process.h>
 #include <libk_reduced/stdio.h>
-
+#include <libk_reduced/fcntl.h>
+#include <libk_reduced/errno.h>
 
 
 // List of system calls
@@ -142,18 +143,22 @@ long sys_write(int file_desc, char *buf, size_t nbyte) {
     if (!nbyte) return 0;
 
     if (file_desc == 2) {
-        // stderr
-        printf("%s", buf);
+        // stderr, force it
+        serialPrintf("%s", buf);
         return nbyte;
     }
 
-    fsNode_t *node = open_file("/device/console", 0);
+    if (!currentProcess->file_descs->nodes[file_desc]) {
+        return 0;
+    }
 
-    int64_t retval = node->write(node, 0, nbyte, (uint8_t*)buf);
 
-    terminalUpdateScreen(); // console device doesn't update screen, hack.
+    //syscall_validatePointer(buf, "sys_write");
 
-    return retval;
+    fsNode_t *node = currentProcess->file_descs->nodes[file_desc];
+    int64_t out = writeFilesystem(node, currentProcess->file_descs->fd_offsets[file_desc], nbyte, (uint8_t*)buf);
+    if (out > 0) currentProcess->file_descs->fd_offsets[file_desc] += out;
+    return out;
 }
 
 /*
@@ -166,7 +171,13 @@ long sys_write(int file_desc, char *buf, size_t nbyte) {
 
 // SYSCALL 4 
 int sys_close(int fd) {
-    return -1; // lmao
+    if (currentProcess->file_descs->nodes[fd]) {
+        closeFilesystem(currentProcess->file_descs->nodes[fd]);
+        currentProcess->file_descs->nodes[fd] = NULL;
+        return 0;
+    }
+
+    return -EBADF;
 }
 
 // SYSCALL 5
@@ -211,7 +222,65 @@ int sys_lseek(int file, int ptr, int dir) {
 
 // SYSCALL 13
 int sys_open(const char *name, int flags, int mode) {
-    return -1;
+    fsNode_t *node = open_file(name, flags);
+
+    // sys_open can take a variety of flags, but right now we'll only focus on a few
+    // O_CREAT      will create the file if it doesn't exist
+    // O_EXCL       will force the call to create the file and fail if it doesn't
+    // O_DIRECTORY  will fail the call if the returned object is not a directory
+
+    // Check if we found the file and the call is supposed to fail if we do
+    // O_EXCL's behavior is undefined without O_CREAT
+    if (node && (flags & O_EXCL) && (flags & O_CREAT)) {
+        closeFilesystem(node);
+        kfree(node); // VFS does not free yet
+        return -EEXIST;
+    }
+
+
+    // If the node does not exist and O_CREAT was specified, try to create the file
+    if (!node && (flags & O_CREAT)) {
+        int result = createFilesystem((char*)name, mode);
+        if (!result) {
+            node =  open_file((char*)name, flags);
+        } else {
+            serialPrintf("sys_open: O_CREAT specified but did not succeed\n");
+            return result;
+        }
+    }
+
+    if (node && (flags & O_DIRECTORY)) {
+        // User wants directory.
+        if (!(node->flags & VFS_DIRECTORY)) {
+            // Not chill
+            closeFilesystem(node);
+            kfree(node);
+            return -ENOTDIR;
+        }
+    }
+
+
+    if (!node) {
+        // Not found
+        return -ENOENT;
+    }
+
+    // O_CREAT and directories don't mix
+    if (node && (flags & O_CREAT) && (node->flags & VFS_DIRECTORY)) {
+        closeFilesystem(node);
+        kfree(node);
+        return -EISDIR;
+    }
+
+    int fd = process_addfd(currentProcess, node);
+    if (flags & O_APPEND) {
+        currentProcess->file_descs->fd_offsets[fd] = node->length;
+    } else {
+        currentProcess->file_descs->fd_offsets[fd] = 0;
+    }
+
+
+    return fd;
 }
 
 // SYSCALL 14
