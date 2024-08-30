@@ -27,7 +27,6 @@ uname -v = #115~20.04.1-Ubuntu SMP Mon Apr 15 17:33:04 UTC 2024
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
 
-PATH: /home/samuel/.local/bin
 PATH: /opt/devkitpro/tools/bin
 PATH: /home/samuel/.local/bin
 PATH: /opt/devkitpro/tools/bin

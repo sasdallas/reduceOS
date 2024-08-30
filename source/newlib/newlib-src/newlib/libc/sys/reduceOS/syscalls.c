@@ -26,7 +26,7 @@ int close(int file) {
 }
 
 int execve(char *name, char **argv, char **env) {
-    errno = ENOMEM;
+    int ret = SYSCALL3(int, SYS_EXECVE, name, argv, env);
     return -1;
 }
 
