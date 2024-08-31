@@ -58,7 +58,8 @@
 			"clock.h": "c",
 			"stdarg.h": "c",
 			"errno.h": "c",
-			"tree.h": "c"
+			"tree.h": "c",
+			"spinlock.h": "c"
 		}
 	}
 }

@@ -1,6 +1,8 @@
 # reduceOS Newlib Makefile
 # Pretty simple stuff to be honest
 
+include make.config
+
 BUILDDIR=newlib-build
 SRCDIR=newlib-src
 
@@ -38,7 +40,11 @@ endif
 
 install: MAKE_DIRS TEST_REDUCEOS BUILD_NEWLIB
 	@echo "-- Installing newlib headers..."
-	make -C $(BUILDDIR) DESTDIR=$(DESTDIR)$(INCLUDE_DIR) install
+	make -C $(BUILDDIR) DESTDIR=$(DESTDIR) install
+	@echo "-- Copying files..."
+	-mkdir -p $(DESTDIR)$(LIBDIR)
+	cp -rp $(DESTDIR)/usr/$(TARGET)-reduceOS/include/* $(DESTDIR)$(INCLUDE_DIR)/
+	cp -rp $(DESTDIR)/usr/$(TARGET)-reduceOS/lib/* $(DESTDIR)$(LIBDIR)
 
 clean:
 	@echo "-- Cleaning up newlib..."

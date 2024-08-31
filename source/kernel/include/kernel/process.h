@@ -7,7 +7,6 @@
 #include <libk_reduced/stdint.h>
 #include <libk_reduced/time.h>
 #include <libk_reduced/spinlock.h>
-#include <stdatomic.h>
 #include <kernel/vmm.h>
 #include <kernel/vfs.h>
 #include <kernel/regs.h>

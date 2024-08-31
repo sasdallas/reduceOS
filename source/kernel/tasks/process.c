@@ -32,12 +32,12 @@ process_t *idleTask;                        // The kernel's idling task
 
 
 // Spinlocks
-static spinlock_t tree_lock = ATOMIC_FLAG_INIT;
-static spinlock_t process_queue_lock = ATOMIC_FLAG_INIT;
-static spinlock_t wait_lock_tmp = ATOMIC_FLAG_INIT;
-static spinlock_t sleep_lock = ATOMIC_FLAG_INIT;
-static spinlock_t reap_lock = ATOMIC_FLAG_INIT;
-static spinlock_t switch_lock = ATOMIC_FLAG_INIT; // Controls who gets to switch page directories
+static spinlock_t tree_lock = SPINLOCK_RELEASED;
+static spinlock_t process_queue_lock = SPINLOCK_RELEASED;
+static spinlock_t wait_lock_tmp = SPINLOCK_RELEASED;
+static spinlock_t sleep_lock = SPINLOCK_RELEASED;
+static spinlock_t reap_lock = SPINLOCK_RELEASED;
+static spinlock_t switch_lock = SPINLOCK_RELEASED; // Controls who gets to switch page directories
 
 
 /************************* TIMING **************************/

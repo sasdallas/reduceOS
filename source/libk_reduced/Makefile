@@ -68,7 +68,7 @@ install-headers:
 
 install: libk_reduced.a
 	@echo "-- Installing libk_reduced.a..."
-	mkdir -p $(DESTDIR)$(LIBDIR)
+	-mkdir -p $(DESTDIR)$(LIBDIR)
 	cp libk_reduced.a $(DESTDIR)$(LIBDIR)
 
 # Clean function

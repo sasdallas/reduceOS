@@ -5,9 +5,12 @@
 
 // Includes
 #include <libk_reduced/stdint.h> // Integer declarations
-#include <stdatomic.h>
 
-typedef atomic_flag spinlock_t;
+typedef volatile int spinlock_t;
+
+// Definitions
+#define SPINLOCK_LOCKED     1
+#define SPINLOCK_RELEASED   0
 
 // Functions
 spinlock_t *spinlock_init(); // Creates a new spinlock

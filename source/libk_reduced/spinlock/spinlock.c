@@ -2,26 +2,27 @@
 
 #include <libk_reduced/spinlock.h> // Main header file
 
-// This spinlock implementation is very basic and needs to be improved, but it does work.
+/* TODO: This sucks */
 
 
 // spinlock_init() - Creates a new spinlock
 spinlock_t *spinlock_init() {
     spinlock_t *lock = kmalloc(sizeof(spinlock_t));
-    atomic_flag_clear(lock);
+    lock = SPINLOCK_RELEASED;
     return lock;
 }
 
 
 // spinlock_lock(spinlock_t *lock) - Locks the spinlock
 void spinlock_lock(spinlock_t *lock) {
-    while (atomic_flag_test_and_set_explicit(lock, memory_order_acquire)) {
+    while (lock == SPINLOCK_LOCKED) {
         asm volatile ("pause"); // IA-32 pause instruction, should prevent P-4s and Xeons from corrupting stuff
     }
+    lock = SPINLOCK_LOCKED;
 }
 
 // spinlock_release(spinlock_t *lock) - Releases the spinlock
 void spinlock_release(spinlock_t *lock) {
-    atomic_flag_clear_explicit(lock, memory_order_release);
+    lock = SPINLOCK_RELEASED;
 }
 

@@ -6,9 +6,6 @@ CP = cp -F
 RM = rm
 GRUB_FILE = grub-file
 
-# PYTHON = python3 # Should expose this so the user can modify. Sorry!
-
-
 # Source directories
 
 # Other Directories

@@ -7,7 +7,6 @@
 #include <libk_reduced/stdint.h>
 #include <libk_reduced/time.h>
 #include <libk_reduced/spinlock.h>
-#include <stdatomic.h>
 #include <kernel/rtc.h> // Real-time clock driver
 #include <kernel/pit.h> // PIT driver
 #include <kernel/isr.h> // Interrupt Service Registers
