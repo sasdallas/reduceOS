@@ -1044,7 +1044,7 @@ e4524ff7 a MULTIBOOT_CHECKSUM
 00124c50 T strtol
 00175114 b switch_lock
 001229b0 T switchToUserMode
-0016e5a8 D syscallAmount
+0016e5ac D syscallAmount
 0011a53e T syscall__exit
 0011a5cb T syscallHandler
 0016e560 D syscalls
@@ -1067,8 +1067,8 @@ e4524ff7 a MULTIBOOT_CHECKSUM
 0011ab62 T sys_sbrk
 0011ac56 T sys_stat
 0011ac60 T sys_times
-0011ac6a T sys_unlink
-0011ac74 T sys_wait
+0011ac74 T sys_unlink
+0011ac6a T sys_wait
 0011a7ba T sys_write
 00110c37 t tarfs_ustarFromOffset
 001117c0 t tarfs_ustarToFile

@@ -110,12 +110,15 @@ clock_t times(struct tms *buf) {
 }
 
 int unlink(char *name) {
-    errno = ENOENT;
-    return -1;
+    int ret = SYSCALL1(int, SYS_UNLINK, name);
+    if (ret != 0) {
+        errno = ret;
+        return -1;
+    }
+    return 0;
 }
 
 
 int wait(int *status) {
-    errno = ECHILD;
-    return -1;
+    return SYSCALL1(int, SYS_WAIT, status);
 }

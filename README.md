@@ -16,6 +16,8 @@ reduceOS has switched to a brand new kernel, with cleaner, commented code and mo
 **To build reduceOS, you need these packages:** `i686-elf-gcc`, `nasm`, `make`, `grub`\
 **To run reduceOS, you need these packages:** `qemu-system` (emulation), `grub2-common`, and `xorriso`
 
+**BEFORE ANYTHING,** run `make clean`. I may or may not leave build files built on my machine, and if so I apologize (really bad habit) but to prevent anything always CLEAN
+
 There are **two targets** available to build reduceOS for - RELEASE and DEBUG.\
 To change the target you want to build, edit the `make.config` file to have BUILD_TARGET set to either release or debug.
 
@@ -24,7 +26,9 @@ Then, you can run `make build iso` to build an ISO in `out/iso`.
 Run `make targets` to get a full list of targets.
 
 # System Filesystem Structure
-On build, the kernel and its libc will place their headers in `source/sysroot`. For the kernel, it will be under `sysroot/usr/include/kernel`, and for libc it will be under `sysroot/usr/include`.
+On build, the kernel and its libc will place their headers in `source/sysroot`. For the kernel, it will be under `sysroot/usr/include/kernel`, and for libk it will be under `sysroot/usr/include/libk_reduced`.
+
+Newlib will place its header files under `sysroot/usr/include/`. **Under no circumstances should this folder be used in modules**
 
 PSF files are placed under `sysroot/usr/fonts/`.
 

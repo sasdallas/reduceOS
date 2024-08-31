@@ -13,7 +13,7 @@
 
 
 // List of system calls
-void *syscalls[18] = {
+void *syscalls[19] = {
     &sys_restart_syscall,
     &_exit,
     &sys_read,
@@ -31,10 +31,11 @@ void *syscalls[18] = {
     &sys_sbrk,
     &sys_stat,
     &sys_times,
-    &sys_wait
+    &sys_wait,
+    &sys_unlink
 };
 
-uint32_t syscallAmount = 18;
+uint32_t syscallAmount = 19;
 spinlock_t *write_lock;
 
 // DECLARATION OF TESTSYSTEM CALLS
@@ -331,12 +332,12 @@ int sys_times(void *buf) {
 }
 
 // SYSCALL 17
-int sys_unlink(char *name) {
+int sys_wait(int *status) {
     return -1;
 }
 
 // SYSCALL 18
-int sys_wait(int *status) {
-    return -1;
+int sys_unlink(char *name) {
+    return -ENOENT;
 }
 
