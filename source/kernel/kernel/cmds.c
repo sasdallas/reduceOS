@@ -850,7 +850,11 @@ int makeProcess(int argc, char *args[]) {
 
     char *path = vfs_canonicalizePath(get_cwd(), args[1]);
 
-    int ret = createProcess(path);
+    int proc_argc = 2;
+    char *proc_argv[] = {args[1], "hello worl"};
+    char *proc_env[] = {"NULL"};
+
+    int ret = createProcess(path, proc_argc, proc_argv, proc_env);
     return ret;
 }
 

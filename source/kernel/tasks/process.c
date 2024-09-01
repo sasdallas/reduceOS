@@ -1159,8 +1159,8 @@ pagedirectory_t *cloneDirectory(pagedirectory_t *in) {
 }
 
 
-// createProcess(char *filepath) - Creates a process from filepath, maps it into memory, and sets it up
-int createProcess(char *filepath) {
+// createProcess(char *filepath, int argc, char *argv[], char *env[]) - Creates a process from filepath, maps it into memory, and sets it up
+int createProcess(char *filepath, int argc, char *argv[], char *env[]) {
     // First, get the file
     fsNode_t *file = open_file(filepath, 0);
     if (!file) {
@@ -1229,16 +1229,45 @@ int createProcess(char *filepath) {
 
     currentProcess->image.userstack = usermodeBase;
 
-    // Setup values
-   
+
+  
+
+
+
+    // Setup values   
     currentProcess->image.heap = (uint32_t)kmalloc(4096); // could result in potential fault
     currentProcess->image.heap_start = currentProcess->image.heap;
     currentProcess->image.heap_end = currentProcess->image.heap;
     currentProcess->image.entrypoint = ehdr->e_entry;
 
+    // Setup the process' stack
+    
+    // First part is to push the actual strings onto the stack.
+    // The process will not access this.
+    char *argv_ptrs[argc];
+    for (int i = 0; i < argc; i++) {
+        int l = strlen(argv[i]);
+        do {
+            PUSH(currentProcess->image.userstack, char, (char)(argv[i][l]));
+            l--;
+        } while (l >= 0);
+        argv_ptrs[i] = (char*)currentProcess->image.userstack;
+    }
+
+    // Next, we can push pointers to those strings we just pushed before.
+    PUSH(currentProcess->image.userstack, int, 0);
+    for (int i = argc; i > 0; i--) {
+        PUSH(currentProcess->image.userstack, char*, argv_ptrs[i-1]);
+        serialPrintf("pointer 0x%x pushed to 0x%x\n", argv_ptrs[i-1], (char*)currentProcess->image.userstack);
+    }
+
+
+    PUSH(currentProcess->image.userstack, int, argc);
+    
+
     // It is time for your execution
     setKernelStack(currentProcess->image.stack);
-    start_process((uint32_t)usermodeStack, ehdr->e_entry);
+    start_process((uint32_t)currentProcess->image.userstack, ehdr->e_entry);
 
     return 0;
 }

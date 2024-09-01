@@ -191,7 +191,7 @@ extern process_t *currentProcess;
 volatile process_t *process_getNextReadyProcess(); // Returns the next ready process
 process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name, void *argp); // Spawn a worker thread
 pagedirectory_t *cloneDirectory(pagedirectory_t *in); // Clone directory (NULL = current directory)
-int createProcess(char *filepath); // Creates a process from filepath
+int createProcess(char *filepath, int argc, char *argv[], char *env[]); // Creates a process from filepath
 void task_exit(int retval); // Exit the current task
 int process_alert_node(process_t *process, void *value); // Alert the process
 void process_awaken_signal(process_t *process);

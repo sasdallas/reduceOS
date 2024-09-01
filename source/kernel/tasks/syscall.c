@@ -198,7 +198,7 @@ int sys_fstat(int file, void *st) {
 
 // SYSCALL 8
 int sys_getpid(void) {
-    return 1;
+    return currentProcess->id;
 }
 
 // SYSCALL 9
@@ -333,7 +333,7 @@ int sys_times(void *buf) {
 
 // SYSCALL 17
 int sys_wait(int *status) {
-    return -1;
+    return waitpid(-1, status, 0);
 }
 
 // SYSCALL 18
