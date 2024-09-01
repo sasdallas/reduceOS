@@ -6,40 +6,52 @@
 #include <kernel/keyboard.h> // Main include file
 #include <libk_reduced/stdio.h>
 
-static bool isEnabled = true; // As mentioned in keyboard.h, this header file contains definitions for special scancodes and other things.
+bool keyboard_enabled = true; // Enabled?
+bool keyboard_printChars = true; // Print chars out?
 static bool shiftKey = false; // Shift, caps lock, and ctrl key handling.
 static bool capsLock = false;
 static bool ctrlPressed = false;
-static bool printChars = true;
 
 
 char bufferPointer[256];
 int bindex = 0;
 bool newline = false;
 
-// Making life so much easier for me. Instead of manually switching between the scancodes in a switch() statement, just match them to this! So much easier.
-const char scancodeChars[] = {
-    '\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
-    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
-    '\0', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', '\0',
-    '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', '\0', '\0', '\0'
-};
 
 char ch = '\0'; // The char we will output. You may be wondering why it is declared here instead of in keyboardHandler() - that's because a few other functions need access to this variable.
 
 
 // setKBHandler(bool state) - Changes if the keyboard handler is allowed to save characters.
 // Dev notes: Possibly add some special keycodes (like CTRL + C) that can pause the boot process or do something (therefore bypassing this).
-void setKBHandler(bool state) { isEnabled = state; }
+void setKBHandler(bool state) { keyboard_enabled = state; }
 
 // setKBPrintChars(bool state) - Changes if the keyboard handler is allowed to output characters.
-void setKBPrintChars(bool state) { printChars = state; }
+void setKBPrintChars(bool state) { keyboard_printChars = state; }
 
 // getControl() - Returns whether control is down
 bool getControl() { return ctrlPressed; }
 
 
-char altChars(char ch) {
+// setKBShiftKey(bool state) - Sets the SHIFT key state
+void setKBShiftKey(bool state) { shiftKey = state; }
+
+// setKBCapsLock(bool state) - Sets the CAPS LOCK key state
+void setKBCapsLock(bool state) { capsLock = state; }
+
+// setKBCtrl(bool state) - Sets the CTRL key state
+void setKBCtrl(bool state) { ctrlPressed = state; } 
+
+// getKBShift() - Returns the SHIFT key state
+bool getKBShift() { return shiftKey; }
+
+// getKBCapsLock() - Returns the CAPS LOCK key state
+bool getKBCapsLock() { return capsLock; }
+
+// getKBCtrl() - Returns the CTRL key state
+bool getKBCtrl() { return ctrlPressed; }
+
+
+char keyboard_altChars(char ch) {
     switch (ch) {
         case '`': return '~';
         case '1': return '!';
@@ -70,10 +82,9 @@ char altChars(char ch) {
 
 // keyboardRegisterKeyPress(char key) - Registers that a key was pressed.
 void keyboardRegisterKeyPress(char key) {
-
     if (key == '\n') {
         newline = true;
-    } else if (key == '\b' && bindex != 0) {
+    } else if (key == '\b' && bindex > 0) {
         bufferPointer[bindex-1] = '\0';
         bindex--;
     } else {
@@ -83,106 +94,11 @@ void keyboardRegisterKeyPress(char key) {
     
 }
 
+
+// keyboardWaitForNewline() - Waits for newline to be pressed.
 void keyboardWaitForNewline() {
     while (!newline);
     newline = false;
-    
-    return;
-}
-
-// keyboardHandler(registers_t *r) - The handler assigned by keyboardInitialize to IRQ 33. Handles all scancode stuff.
-static void keyboardHandler(registers_t *r) {
-    uint8_t scancode = inportb(0x60); // No matter if the handler is enabled or not, we need to read from port 0x60 or the keyboard might stop responding.
-
-    if (!isEnabled) { return; } // Do not continue if not enabled.
-   
-
-    if (scancode & 0x80) {
-        // This signifies a key was released. We don't care UNLESS it's the shift key or control key. Then we care.
-        if (scancode == 0xAA || scancode == 0xB6) { // Left or right shift key was released
-            shiftKey = false;
-        }
-        
-        if (scancode == 0x9D) {
-            ctrlPressed = false;
-        }
-        ch = '\0';
-    } else {
-        switch (scancode) {
-            case SCANCODE_CAPSLOCK:
-                ch = '\0';
-                if (capsLock) { capsLock = false; }
-                else {
-                    capsLock = true;
-                }
-                break;
-            
-            case SCANCODE_ENTER:
-                ch = '\n';
-                break;
-
-            case SCANCODE_LEFTSHIFT:
-                ch = '\0';
-                shiftKey = true;
-                break;
-
-            case SCANCODE_RIGHTSHIFT:
-                ch = '\0';
-                shiftKey = true;
-                break;
-
-            case SCANCODE_CTRL:
-                ch = '\0';
-                ctrlPressed = true;
-                break;
-
-            case SCANCODE_TAB:
-                ch = '\t';
-                break;
-            
-            case SCANCODE_LEFT:
-                ch = '\0';
-                terminalMoveArrowKeys(0);
-                break;
-            
-            case SCANCODE_RIGHT:
-                ch = '\0';
-                terminalMoveArrowKeys(1);
-                break;
-
-            case SCANCODE_SPACE:
-                ch = ' ';
-                break;
-            
-            case SCANCODE_BACKSPACE:
-                ch = '\b'; // \b will tell terminalPutchar() to handle this.
-                break;
-
-            default:
-                ch = scancodeChars[(int) scancode];
-                if (capsLock) {
-                    if (shiftKey) { ch = altChars(ch); } // If SHIFT key is also pressed, do nothing except convert to alternate chars.
-                    else { ch = toupper(ch); } // Else, convert to upper case.
-                } else {
-                    if (shiftKey) {
-                        if (isalpha(ch)) ch = toupper(ch); 
-                        else { ch = altChars(ch); }
-                    }
-                }
-        }
-    }
-    
-    // keyboardGetChar() will handle getting the char and returning it (for the shell).
-    // Before we return we need to report that the key was pressed.
-    if (ch <= 0 || ch == '\0') {
-        // Do nothing if ch is 0 or \n. 
-    } else {
-        keyboardRegisterKeyPress(ch);
-        if (printChars) {
-            terminalPutchar(ch);
-            vbeSwitchBuffers(); // sorry
-        }
-    }
     
     return;
 }
@@ -204,6 +120,7 @@ char keyboardGetChar() {
 }
 
 // Custom method to wait for a character or until when ctrl is pressed, and then it returns -1.
+// Bad
 char keyboardGetChar_ctrl() {
     char c;
     while (true) {
@@ -219,14 +136,14 @@ char keyboardGetChar_ctrl() {
     }
 }
 
-// isKeyPressed() - A small method to return the key currently being pressed (if any)
-char isKeyPressed() {
+// keyboard_getKeyPressed() - A small method to return the key currently being pressed (if any)
+char keyboard_getKeyPressed() {
     return ch;
 }
 
 
-// clearBuffer() - Clears the keyboard buffer.
-void clearBuffer() {
+// keyboard_clearBuffer() - Clears the keyboard buffer.
+void keyboard_clearBuffer() {
     memset(bufferPointer, 0, sizeof(char) * 256);
     bindex = 0;
 }
@@ -235,7 +152,7 @@ void clearBuffer() {
 // keyboardGetKey() - Waits until a specific key is pressed and returns it.
 // We leave this one because it can usually keep up.
 void keyboardGetKey(char key, bool doPrintChars) {
-    bool previousPrintValue = printChars; // We will restore this value after we're done.
+    bool previousPrintValue = keyboard_printChars; // We will restore this value after we're done.
     setKBPrintChars(doPrintChars); // Set KB print chars to whatever they want.
 
 
@@ -265,7 +182,7 @@ char *getKeyboardBuffer() {
 void keyboardGetLine(char *buffer) {
     keyboardWaitForNewline();
     strcpy(buffer, bufferPointer);
-    clearBuffer();
+    keyboard_clearBuffer();
     bindex = 0;
     return;
 }
@@ -274,6 +191,6 @@ void keyboardGetLine(char *buffer) {
 
 // keyboardInitialize() - Main function that loads the keyboard
 void keyboardInitialize() {
-    isrRegisterInterruptHandler(33, keyboardHandler); // Register IRQ 33 as an ISR interrupt handler value.
+    //isrRegisterInterruptHandler(33, keyboardHandler); // Register IRQ 33 as an ISR interrupt handler value.
     printf("Keyboard driver initialized.\n");
 }

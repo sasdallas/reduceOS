@@ -6,7 +6,9 @@
 // Implementation source: https://wiki.osdev.org/ELF_Tutorial
 
 #include <kernel/elf.h> // Main header file
-#include <kernel/mod.h>
+#include <kernel/mod.h> // Why do we need this again?
+#include <kernel/process.h> // Used for createProcess
+
 
 // Variables
 
@@ -174,6 +176,15 @@ static int elf_getSymbolValue(Elf32_Ehdr *ehdr, int table, uint32_t index) {
     } else if (symbol->st_shndx == SHN_ABS) {
         // Absolute symbol, we're done.
         return symbol->st_value;
+    } else if (symbol->st_shndx == SHN_COMMON) {
+        // Common my ass, we don't have this.
+        Elf32_Shdr *strtab = elf_section(ehdr, symtab->sh_link);
+        const char *symname = (const char *)ehdr + strtab->sh_offset + symbol->st_name;
+
+        serialPrintf("!! SYM ERROR !!\n");
+        serialPrintf("\tSYMBOL %s is of type SHN_COMMON - UNKNOWN\n", symname);
+        panic("ELF", "ELF Loader", "SHN_COMMON symbol detected, too scared to proceed.");   
+        __builtin_unreachable(); 
     } else {
         // Internally defined symbol
         Elf32_Shdr *target = elf_section(ehdr, symbol->st_shndx);
@@ -220,8 +231,6 @@ void *elf_findSymbol(Elf32_Ehdr *ehdr, char *name) {
                 const char *symname = (const char *)ehdr + strtab->sh_offset + sym->st_name;
 
                 if (symname && !strcmp(symname, name) && ((sym->st_info >> 4) & 0xF)) {
-                    serialPrintf("elf_findSymbol: Found symbol '%s' successfully.\n");
-
                     out = (void*)elf_getSymbolValue(ehdr, section->sh_link, ELF32_R_SYM(reltab->r_info));
                     break;
                 }
@@ -421,10 +430,6 @@ static void *elf_loadRelocatable(Elf32_Ehdr *ehdr) {
         serialPrintf("elf_loadRelocatable: Failed to load ELF file (parse PHDR error)\n");
         return NULL;
     }*/
-
-
-
-    serialPrintf("elf_loadRelocatable: Successfully loaded the file. Entrypoint 0x%x\n", ehdr->e_entry);
     
     return (void*)ehdr->e_entry;
 }
@@ -565,4 +570,33 @@ void *elf_loadFile(fsNode_t *file) {
     } else {
         return returnValue;
     }
+}
+
+
+/* EXPOSED FUNCTIONS FOR SYSCALL INTERFACE */
+
+// execve(char *filename, int argc, char *argv[], char *envp[]) - basically just a pointer to createProcess
+int execve(char *filename, int argc, char *argv[], char *envp[]) {
+    // Only difference is that we should calculate envc first
+    #pragma GCC diagnostic ignored "-Wsizeof-array-argument" // gcc when you make one hack:
+    int envc = sizeof envp / sizeof*envp;
+
+    return createProcess(filename, argc, argv, envp, envc);
+}
+
+// system(char *filename, int argc, char *argv_in[]) - system() as in Linux, envin can be NULL and still be interpreted
+int system(char *filename, int argc, char *argv_in[]) {
+    char **argv = kmalloc(sizeof(char*) * (argc + 1));
+    for (int i = 0; i < argc; i++) {
+        argv[i] = kmalloc((strlen(argv_in[i]) + 1));
+        memcpy((void*)argv[i], argv_in[i], strlen(argv_in[i] + 1));
+    }
+
+    argv[argc] = NULL; // Null last entry
+    
+    // createProcess will handle the hard part of setting up the process' values
+    // although maybe we should do that here? unsure
+
+    char *env[] = { NULL }; // todo: allow user to take control of this?
+    return execve(filename, argc, argv, env);
 }

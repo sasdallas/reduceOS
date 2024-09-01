@@ -363,7 +363,7 @@ void useCommands() {
     serialPrintf("kmain: Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
 
     // Make sure the keyboard buffer is clear
-    clearBuffer(); 
+    keyboard_clearBuffer(); 
 
     // Modules may want to use registerCommand
     initCommandHandler();
@@ -425,6 +425,9 @@ void useCommands() {
     
 
     tasking_start();
+    char *argv[] = {"Hello", "World"};
+    char *envp[] = {"Hello World"};
+    execve("balls", 2, argv, envp);
     kshell();
 }
 

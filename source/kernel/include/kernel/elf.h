@@ -206,9 +206,14 @@ void *elf_loadFile(fsNode_t *file); // Loads a file.
 void *elf_findSymbol(Elf32_Ehdr *ehdr, char *name); // Locates and returns the location of a symbol
 void elf_cleanupFile(char *buffer); // Frees memory where the file was relocated, depending on what it was
 
+// Pointer functions
+int execve(char *filename, int argc, char *argv[], char *envp[]); // just points to createProcess pretty much
+
 // Internal functions, should only be used by process scheduler
 // (scheduler performs memory mapping itself and disregards our method)
 Elf32_Phdr *elf_getPHDR(Elf32_Ehdr *ehdr, int offset);
 int elf_isCompatible(Elf32_Ehdr *ehdr);
+
+
 
 #endif

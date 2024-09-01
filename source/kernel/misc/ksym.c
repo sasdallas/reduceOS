@@ -54,6 +54,7 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
 
         if (strstr(token2, " ") == NULL) {
             serialPrintf("ksym_bind_symbols: Early termination, assuming symbols populated.\n");
+            kfree(token2);
             break;
         }
 
@@ -61,12 +62,15 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
         char *type = strtok_r(NULL, " ", &save2);
         char *symname = strtok_r(NULL, " ", &save2);
 
-        if (!strcmp(type, "T")) {
+        if (!strcmp(type, "a")) goto next_token; // these may crash strtol()
+
+        // ksym used to only bind T type symbols
+        if (1) {
             void *addr = (void*)strtol(address, NULL, 16);
             ksym_bind_symbol(symname, addr);
         }
-
-
+        
+    next_token:
         kfree(token2); 
     }
 
