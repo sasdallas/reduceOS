@@ -23,11 +23,11 @@ TEST_REDUCEOS:
 ifeq ($(shell which $(TARGET)-reduceOS-gcc),)
 	@echo "It looks as though you don't have $(TARGET)-reduceOS ready."
 	@echo "We can create symlinks for you, you just need to provide permissions."
-	sudo ln -sf $(shell which $(TARGET)-elf-gcc) $(dir $(shell which $($(TARGET)-elf-gcc)))/$(TARGET)-reduceOS-gcc
-	sudo ln -sf $(shell which $(TARGET)-elf-gcc) $(dir $(shell which $($(TARGET)-elf-gcc)))/$(TARGET)-reduceOS-cc
-	sudo ln -sf $(shell which $(TARGET)-elf-ar) $(dir $(shell which $($(TARGET)-elf-ar)))/$(TARGET)-reduceOS-ar
-	sudo ln -sf $(shell which $(TARGET)-elf-as) $(dir $(shell which $($(TARGET)-elf-as)))/$(TARGET)-reduceOS-as
-	sudo ln -sf $(shell which $(TARGET)-elf-ranlib) $(dir $(shell which $($(TARGET)-elf-ranlib)))/$(TARGET)-reduceOS-ranlib
+	sudo ln -sf $(shell which $(TARGET)-elf-gcc) $(dir $(shell which $(TARGET)-elf-gcc))/$(TARGET)-reduceOS-gcc
+	sudo ln -sf $(shell which $(TARGET)-elf-gcc) $(dir $(shell which $(TARGET)-elf-gcc))/$(TARGET)-reduceOS-cc
+	sudo ln -sf $(shell which $(TARGET)-elf-ar) $(dir $(shell which $(TARGET)-elf-ar))/$(TARGET)-reduceOS-ar
+	sudo ln -sf $(shell which $(TARGET)-elf-as) $(dir $(shell which $(TARGET)-elf-as))/$(TARGET)-reduceOS-as
+	sudo ln -sf $(shell which $(TARGET)-elf-ranlib) $(dir $(shell which $(TARGET)-elf-ranlib))/$(TARGET)-reduceOS-ranlib
 	@echo "Done!"
 endif
 
