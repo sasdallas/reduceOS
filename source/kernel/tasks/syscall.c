@@ -13,7 +13,7 @@
 
 
 // List of system calls
-void *syscalls[19] = {
+void *syscalls[20] = {
     &sys_restart_syscall,
     &_exit,
     &sys_read,
@@ -32,10 +32,11 @@ void *syscalls[19] = {
     &sys_stat,
     &sys_times,
     &sys_wait,
-    &sys_unlink
+    &sys_unlink,
+    &sys_readdir
 };
 
-uint32_t syscallAmount = 19;
+uint32_t syscallAmount = 20;
 spinlock_t *write_lock;
 
 // DECLARATION OF TESTSYSTEM CALLS
@@ -341,3 +342,23 @@ int sys_unlink(char *name) {
     return -ENOENT;
 }
 
+// SYSCALL 19
+int sys_readdir(int fd, int cur_entry, struct dirent *entry) {
+    // Check the file descriptor
+    if (currentProcess->file_descs->length > (size_t)fd && fd >= 0 && currentProcess->file_descs->nodes[fd]) {
+        syscall_validatePointer(entry, "sys_readdir");
+
+        if (!entry) return -EINVAL; // not the correct error code
+        struct dirent *kentry = readDirectoryFilesystem(currentProcess->file_descs->nodes[fd], (uint32_t)cur_entry); // TODO: readdirFilesystem takes in a uint32_t, probably not good
+
+        if (kentry) {
+            memcpy(entry, kentry, sizeof *entry);
+            kfree(entry);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    return -EBADF;
+}

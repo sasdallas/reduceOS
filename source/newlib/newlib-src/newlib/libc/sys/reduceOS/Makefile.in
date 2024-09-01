@@ -69,7 +69,7 @@ ARFLAGS = cru
 lib_a_AR = $(AR) $(ARFLAGS)
 lib_a_LIBADD =
 am_lib_a_OBJECTS = lib_a-syscalls.$(OBJEXT) lib_a-crt0_main.$(OBJEXT) \
-	lib_a-crt0.$(OBJEXT)
+	lib_a-dirent.$(OBJEXT) lib_a-crt0.$(OBJEXT)
 lib_a_OBJECTS = $(am_lib_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp =
@@ -196,7 +196,7 @@ AUTOMAKE_OPTIONS = cygnus
 INCLUDES = $(NEWLIB_CFLAGS) $(CROSS_CFLAGS) $(TARGET_CFLAGS)
 AM_CCASFLAGS = $(INCLUDES) $(CFLAGS)
 noinst_LIBRARIES = lib.a
-lib_a_SOURCES = syscalls.c crt0_main.c crt0.S
+lib_a_SOURCES = syscalls.c crt0_main.c dirent.c crt0.S
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
 lib_a_CFLAGS = $(AM_CFLAGS)
 ACLOCAL_AMFLAGS = -I ../../.. -I ../../../..
@@ -282,6 +282,12 @@ lib_a-crt0_main.o: crt0_main.c
 
 lib_a-crt0_main.obj: crt0_main.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-crt0_main.obj `if test -f 'crt0_main.c'; then $(CYGPATH_W) 'crt0_main.c'; else $(CYGPATH_W) '$(srcdir)/crt0_main.c'; fi`
+
+lib_a-dirent.o: dirent.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-dirent.o `test -f 'dirent.c' || echo '$(srcdir)/'`dirent.c
+
+lib_a-dirent.obj: dirent.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_a_CFLAGS) $(CFLAGS) -c -o lib_a-dirent.obj `if test -f 'dirent.c'; then $(CYGPATH_W) 'dirent.c'; else $(CYGPATH_W) '$(srcdir)/dirent.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

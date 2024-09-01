@@ -4,7 +4,10 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
 
 #include <kernel/command.h> // Main header file
+#include <kernel/vfs.h>
+#include <kernel/process.h>
 #include <libk_reduced/stdio.h>
+#include <libk_reduced/errno.h>
 
 // Commands in reduceOS must follow this structure:
 // The command function is stored in an array of a type called cmdData (this typedef is present in command.h, note that it is different from command)
@@ -28,7 +31,7 @@ static int parseArguments(char *cmd, char ***parsedArguments) {
         } else if (cmd[i] == ' ' && charactersFromLastSpace == 0) {
             // users are attempting to crash the OS by typing only spaces!
             // not on my watch!
-            return -1;
+            return -EINVAL;
         } else {
             charactersFromLastSpace++;
         }
@@ -64,6 +67,19 @@ static int parseArguments(char *cmd, char ***parsedArguments) {
 }
 
 
+// (static) executeCommandAsFile(int argc, char **argv) - Execute a command as a file
+static int executeCommandAsFile(int argc, char **argv) {
+    // Check if the file actually exists
+    fsNode_t *file = open_file(argv[0], 0);
+    if (!file) return -EINVAL;
+
+    // Try to start the file
+    char *env[] = {NULL};
+    int ret = createProcess(argv[0], argc, argv, env, 1);
+
+    return ret;
+}
+
 // parseCommand(char *cmd) - Parses a command to get the function to call.
 int parseCommand(char *cmd) {
     if (index == 0 || strlen(cmd) == 0) return -1;
@@ -89,6 +105,11 @@ int parseCommand(char *cmd) {
         }
     }  
 
+
+    int fileret = executeCommandAsFile(argc, argv);
+    if (fileret != -EINVAL) {
+        return fileret;
+    }
 
     printf("Unknown command - %s\n", cmd);
     return 0;

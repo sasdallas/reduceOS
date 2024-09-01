@@ -11,7 +11,7 @@
 #define	ECHILD 10	/* No children */
 #define	EAGAIN 11	/* No more processes */
 #define	ENOMEM 12	/* Not enough space */
-#define	EACCES 13	/* Permission denied */
+#define	EACCES 13	/* Permission denied */  
 #define	EBUSY 16	/* Device or resource busy */
 #define	EEXIST 17	/* File exists */
 #define	EXDEV 18	/* Cross-device link */

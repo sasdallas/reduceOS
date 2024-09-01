@@ -138,7 +138,7 @@ int sys_stat(char *file, void *st);
 int sys_times(void *buf);
 int sys_unlink(char *name);
 int sys_wait(int *status);
-
+int sys_readdir(int fd, int cur_entry, struct dirent *entry);
 
 // Syscall definitions (only test system calls)
 DEFINE_SYSCALL0(sys_restart_syscall);

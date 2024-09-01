@@ -13,8 +13,8 @@ extern int errno;
 register char * stack_ptr asm ("esp");
 
 // Environmental variables
-char *__env[1] = { 0 };
-char **environ = __env;
+
+
 
 void _exit() {
     SYSCALL1(int, SYS_EXIT, 0);

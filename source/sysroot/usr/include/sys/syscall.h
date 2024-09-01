@@ -25,6 +25,7 @@
 #define SYS_TIMES 16
 #define SYS_WAIT 17
 #define SYS_UNLINK 18
+#define SYS_READDIR 19
 
 
 // System call macros
