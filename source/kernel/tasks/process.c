@@ -16,6 +16,8 @@
                                                         // For now, I'm focused on making reduceOS warning-free.
                                                         // Is this cheating? Yes. 
 
+#pragma GCC diagnostic ignored "-Wunused-value"         // envp will break this code.
+
 /************************ VARIABLES ************************/
 
 process_t *currentProcess;                  // The current process running.
@@ -1159,8 +1161,8 @@ pagedirectory_t *cloneDirectory(pagedirectory_t *in) {
 }
 
 
-// createProcess(char *filepath, int argc, char *argv[], char *env[]) - Creates a process from filepath, maps it into memory, and sets it up
-int createProcess(char *filepath, int argc, char *argv[], char *env[]) {
+// createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc) - Creates a process from filepath, maps it into memory, and sets it up
+int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc) {
     // First, get the file
     fsNode_t *file = open_file(filepath, 0);
     if (!file) {
@@ -1254,16 +1256,37 @@ int createProcess(char *filepath, int argc, char *argv[], char *env[]) {
         argv_ptrs[i] = (char*)currentProcess->image.userstack;
     }
 
+
+    // Now we'll do the same thing with environments
+
+    char *env_ptrs[envc];
+    for (int i = 0; i < envc; i++) {
+        int l = strlen(envl[i]);
+        do {
+            PUSH(currentProcess->image.userstack, char, (char)(envl[i][l]));
+            l--;
+        } while (l >= 0);
+        env_ptrs[i] = (char*)currentProcess->image.userstack;
+    }
+
     // Next, we can push pointers to those strings we just pushed before.
     PUSH(currentProcess->image.userstack, int, 0);
     for (int i = argc; i > 0; i--) {
         PUSH(currentProcess->image.userstack, char*, argv_ptrs[i-1]);
-        serialPrintf("pointer 0x%x pushed to 0x%x\n", argv_ptrs[i-1], (char*)currentProcess->image.userstack);
+        serialPrintf("pointer for argv 0x%x pushed to 0x%x\n", argv_ptrs[i-1], currentProcess->image.userstack);
+    }
+
+    // Same for envp
+    PUSH(currentProcess->image.userstack, int, 0);
+    for (int i = envc; i > 0; i--) {
+        PUSH(currentProcess->image.userstack, char*, env_ptrs[i-1]);
+        serialPrintf("pointer for envp 0x%x pushed to 0x%x\n", env_ptrs[i-1], currentProcess->image.userstack);
     }
 
 
+
     PUSH(currentProcess->image.userstack, int, argc);
-    
+    PUSH(currentProcess->image.userstack, int, envc);
 
     // It is time for your execution
     setKernelStack(currentProcess->image.stack);
