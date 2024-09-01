@@ -8,7 +8,7 @@ AM_CCASFLAGS = $(INCLUDES) $(CFLAGS)
 
 noinst_LIBRARIES = lib.a
 
-lib_a_SOURCES = syscalls.c crt0_main.c dirent.c crt0.S
+lib_a_SOURCES = syscalls.c crt0_main.c dirent.c crt0.S ioctl.c
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
 lib_a_CFLAGS = $(AM_CFLAGS)
 

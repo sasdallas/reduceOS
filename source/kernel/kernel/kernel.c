@@ -305,6 +305,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         }
     }
 
+    // We also need to mount the VESA VBE block device.
+    vesa_createVideoDevice("fb0");
+
     debug_print_vfs_tree(false);
 
     // For compatibility with our tests, we need to set the ext2_root variable.

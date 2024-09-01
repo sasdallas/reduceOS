@@ -1,6 +1,13 @@
 // stdlib.h - replacement for standard C header file.
 // Why is this required? We use -ffreestanding in our compile options, so the standard std library isn't included.
 
+#ifndef __INTELLISENSE__
+#if !defined __KERNEL__ && !defined __KERNMOD__
+#error "This file cannot be used in userspace."
+#endif
+#endif
+
+
 #ifndef STDLIB_H
 #define STDLIB_H
 

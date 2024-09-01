@@ -13,7 +13,7 @@
 
 
 // List of system calls
-void *syscalls[20] = {
+void *syscalls[21] = {
     &sys_restart_syscall,
     &_exit,
     &sys_read,
@@ -33,10 +33,11 @@ void *syscalls[20] = {
     &sys_times,
     &sys_wait,
     &sys_unlink,
-    &sys_readdir
+    &sys_readdir,
+    &sys_ioctl,
 };
 
-uint32_t syscallAmount = 20;
+uint32_t syscallAmount = 21;
 spinlock_t *write_lock;
 
 // DECLARATION OF TESTSYSTEM CALLS
@@ -134,8 +135,16 @@ void _exit(int status) {
 // SYSCALL 2 (https://man7.org/linux/man-pages/man2/read.2.html)
 // NOTE: Should return a ssize_t but long works I think
 long sys_read(int file_desc, void *buf, size_t nbyte) {
-    // ssize_t really should be a type though ;)
-    serialPrintf("read: system call received for %i bytes on fd %i\n", nbyte, file_desc);
+    if (!nbyte) return 0;
+
+    if (!SYS_FD_VALIDATE(file_desc)) {
+        return -EBADF;
+    }
+
+    fsNode_t *node = currentProcess->file_descs->nodes[file_desc];
+    int64_t out = readFilesystem(node, currentProcess->file_descs->fd_offsets[file_desc], nbyte, (uint8_t*)buf);
+    if (out > 0) currentProcess->file_descs->fd_offsets[file_desc] += out;
+
     return nbyte;
 }
 
@@ -150,8 +159,8 @@ long sys_write(int file_desc, char *buf, size_t nbyte) {
         return nbyte;
     }
 
-    if (!currentProcess->file_descs->nodes[file_desc]) {
-        return 0;
+    if (!SYS_FD_VALIDATE(file_desc)) {
+        return -EBADF;
     }
 
 
@@ -345,11 +354,11 @@ int sys_unlink(char *name) {
 // SYSCALL 19
 int sys_readdir(int fd, int cur_entry, struct dirent *entry) {
     // Check the file descriptor
-    if (currentProcess->file_descs->length > (size_t)fd && fd >= 0 && currentProcess->file_descs->nodes[fd]) {
+    if (SYS_FD_VALIDATE(fd)) {
         syscall_validatePointer(entry, "sys_readdir");
 
         if (!entry) return -EINVAL; // not the correct error code
-        struct dirent *kentry = readDirectoryFilesystem(currentProcess->file_descs->nodes[fd], (uint32_t)cur_entry); // TODO: readdirFilesystem takes in a uint32_t, probably not good
+        struct dirent *kentry = readDirectoryFilesystem(SYS_FD(fd), (uint32_t)cur_entry); // TODO: readdirFilesystem takes in a uint32_t, probably not good
 
         if (kentry) {
             memcpy(entry, kentry, sizeof *entry);
@@ -358,6 +367,17 @@ int sys_readdir(int fd, int cur_entry, struct dirent *entry) {
         } else {
             return 0;
         }
+    }
+
+    return -EBADF;
+}
+
+// SYSCALL 20
+int sys_ioctl(int fd, unsigned long request, void *argp) {
+    if (SYS_FD_VALIDATE(fd)) {
+        if (argp) syscall_validatePointer(argp, "sys_ioctl"); // argp can be 0
+
+        return ioctlFilesystem(fd, request, argp);
     }
 
     return -EBADF;

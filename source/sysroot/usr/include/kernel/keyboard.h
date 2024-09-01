@@ -12,8 +12,6 @@
 #include <kernel/isr.h> // Interrupt Service Routines
 #include <kernel/terminal.h> // Terminal functions like printf.
 #include <kernel/panic.h> // Register declarations
-#include <kernel/heap.h> // Heap declarations (for allocating memory)
-
 
 // Functions
 void keyboardInitialize();                      // keyboardInit() - Registers keyboardHandler on IRQ 33 - enabling the keyboard.

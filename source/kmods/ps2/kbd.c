@@ -23,7 +23,6 @@ static void keyboardHandler(registers_t *r) {
     uint8_t scancode = inportb(0x60); // No matter if the handler is enabled or not, we need to read from port 0x60 or the keyboard might stop responding.
 
     if (!keyboard_enabled) { return; } // Do not continue if not enabled.
-   
 
     if (scancode & 0x80) {
         // This signifies a key was released. We don't care UNLESS it's the shift key or control key. Then we care.

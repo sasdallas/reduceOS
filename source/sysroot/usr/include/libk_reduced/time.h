@@ -1,5 +1,11 @@
 // time.h - what day is it? i forgot
 
+#ifndef __INTELLISENSE__
+#if !defined __KERNEL__ && !defined __KERNMOD__
+#error "This file cannot be used in userspace."
+#endif
+#endif
+
 #ifndef TIME_H
 #define TIME_H
 

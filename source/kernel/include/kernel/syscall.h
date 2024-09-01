@@ -14,6 +14,9 @@
 // Validating userspace pointers
 #define PTR_INRANGE(PTR) ((uintptr_t)PTR > currentProcess->image.entrypoint) // TODO: Check for over-access as well.
 
+// File descriptor validation
+#define SYS_FD_VALIDATE(fd) (fd < currentProcess->file_descs->length && fd >= 0 && currentProcess->file_descs->nodes[fd])
+#define SYS_FD(fd) (currentProcess->file_descs->nodes[fd])
 
 // 5 DEFINE_SYSCALL macros (just function prototypes)
 #define DEFINE_SYSCALL0(func) int syscall_##func();
@@ -139,6 +142,7 @@ int sys_times(void *buf);
 int sys_unlink(char *name);
 int sys_wait(int *status);
 int sys_readdir(int fd, int cur_entry, struct dirent *entry);
+int sys_ioctl(int fd, unsigned long request, void *argp);
 
 // Syscall definitions (only test system calls)
 DEFINE_SYSCALL0(sys_restart_syscall);

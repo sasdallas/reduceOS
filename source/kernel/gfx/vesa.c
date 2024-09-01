@@ -9,6 +9,12 @@
 // For more information, see https://wiki.osdev.org/Drawing_In_a_Linear_Framebuffer
 
 #include <kernel/vesa.h> // Main header file
+#include <kernel/vfs.h>
+#include <kernel/fb.h>
+#include <kernel/syscall.h>
+#include <libk_reduced/errno.h>
+#include <libk_reduced/stdio.h>
+
 
 // Variables
 
@@ -280,3 +286,84 @@ uint32_t vbeGetPixel(int x, int y) {
     return *(framebuffer + (y * (modePitch/4) + x));
 }
 
+
+
+/* /device/fbX FUNCTIONS */
+
+// I/O control function
+int vesa_ioctl(fsNode_t *node, unsigned long request, void *argp) {
+    if (!VESA_Initialized) return -EBUSY; // -16 can also mean device not initialized
+
+    fb_info_t *info;
+    
+    switch (request) {
+        case FBIOGET_SCREENH:
+            syscall_validatePointer(argp, "VESAIOCTL");
+            *((size_t*)argp) = modeHeight;
+            return 0;
+        case FBIOGET_SCREENW:
+            syscall_validatePointer(argp, "VESAIOCTL");
+            *((size_t*)argp) = modeWidth;
+            return 0;
+        case FBIOGET_SCREENDEPTH:
+            syscall_validatePointer(argp, "VESAIOCTL");
+            *((size_t*)argp) = modeBpp;
+            return 0;
+        case FBIOGET_SCREENPITCH:
+            syscall_validatePointer(argp, "VESAIOCTL");
+            *((size_t*)argp) = modePitch;
+            return 0;
+        case FBIOGET_SCREENADDR:
+            syscall_validatePointer(argp, "VESAIOCTL");
+            uintptr_t mapOffset;
+            if (argp) { 
+                // The user wants us to map to a specific pointer. 
+                syscall_validatePointer((void*)(*(uintptr_t*)argp), "VESAIOCTL");
+                mapOffset = *(uintptr_t*)argp;
+                for (uint32_t i = mapOffset; i < mapOffset + (modeWidth*modeHeight); i += 0x1000) {
+                    vmm_mapPage((void*)i, (void*)i);
+                }
+            } else {
+                mapOffset = *(uintptr_t*)kmalloc(modeWidth * modeHeight);
+            }
+
+            *((uintptr_t*)argp) = mapOffset;
+            return 0;
+        case FBIOPUT_SCREENINFO:
+            // They want to put screen info, or set a specific method. Therefore, let's follow through.
+            syscall_validatePointer(argp, "VESAIOCTL");
+            if (!argp) return -EINVAL;
+
+            info = (fb_info_t*)argp;
+            uint32_t mode = vbeGetMode(info->width, info->height, info->bpp);
+            if ((int)mode == -1) return -EINVAL;
+            vbeSetMode(mode);
+            return 0;
+        case FBIOPUT_SCREENADDR:
+            panic("VESA", "ioctl", "Kernel trap on unimplemented function FBIOPUT_SCREENADDR.");
+            __builtin_unreachable();
+        default:
+            serialPrintf("vesa_ioctl: Unknown I/O control request 0x%x\n", request);
+            break;
+    }
+
+    return -EINVAL;
+}
+
+int vesa_createVideoDevice(char *devname) {
+    if (!devname) return -EINVAL;
+    fsNode_t *fnode = kmalloc(sizeof(fsNode_t));
+    memset((void*)fnode, 0, sizeof(fsNode_t));
+    snprintf(fnode->name, 100, devname);
+
+
+    fnode->length = 0;
+    fnode->flags = VFS_BLOCKDEVICE;
+    fnode->mask = 0660;
+    fnode->ioctl = vesa_ioctl;
+
+    char *mntpath = kmalloc(strlen("/device/") + strlen(devname) + 1);
+    sprintf(mntpath, "/device/%s", devname);
+    vfsMount(mntpath, fnode);
+    return 0;
+}

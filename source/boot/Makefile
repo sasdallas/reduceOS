@@ -56,9 +56,9 @@ $(OUT_EFI)/%.o: %.asm Makefile
 $(OUT_EFI)/%.o: %.S Makefile
 	$(CC) -m32 -c $< -o $@
 
-# .c compilation
+# .c compilation (polyaniline is totally part of the kernel, dw about it)
 $(OUT_EFI)/%.o: %.c Makefile
-	gcc $< -Ipolyaniline/include/ -c -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -I /usr/include/efi/ -I /usr/include/efi/x86_64 -DEFI_FUNCTION_WRAPPER -DPLATFORM_IS_SELECTED -DPLATFORM_EFI -o $@
+	gcc $< -D__KERNEL__ -Ipolyaniline/include/ -c -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -I /usr/include/efi/ -I /usr/include/efi/x86_64 -DEFI_FUNCTION_WRAPPER -DPLATFORM_IS_SELECTED -DPLATFORM_EFI -o $@
 
 # Compilation functions (BIOS)
 $(OUT_BIOS)/%.o: %.S Makefile

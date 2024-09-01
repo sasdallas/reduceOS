@@ -1,6 +1,12 @@
 // string.h - replacement for standard C header file. Contains certain useful functions like strlen.
 // Why is this required? We use -ffreestanding in our compile options, so the standard std library isn't included.
 
+#ifndef __INTELLISENSE__
+#if !defined __KERNEL__ && !defined __KERNMOD__
+#error "This file cannot be used in userspace."
+#endif
+#endif
+
 #ifndef STRING_H
 #define STRING_H
 

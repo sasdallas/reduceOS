@@ -74,5 +74,6 @@ void vbePutPixel(int x, int y, uint32_t color);
 int vbeSwitchBuffers();
 uint32_t VGA_TO_VBE(uint8_t vgaColor);
 uint32_t vbeGetPixel(int x, int y);
+int vesa_createVideoDevice(char *devname);
 
 #endif

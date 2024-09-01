@@ -46,9 +46,8 @@ typedef struct dirent * (*readdir_t)(struct fsNode*, uint32_t);
 typedef struct fsNode * (*finddir_t)(struct fsNode*, char *name);
 typedef int (*create_t) (struct fsNode *, char *name, uint16_t permission);
 typedef void (*mkdir_t) (struct fsNode *, char *name, uint16_t permission);
-
 typedef int (*unlink_t) (struct fsNode *, char *name);
-
+typedef int (*ioctl_t) (struct fsNode *, unsigned long request, void *argp);
 
 // Actual typedef structures.
 typedef struct fsNode {
@@ -70,6 +69,7 @@ typedef struct fsNode {
     create_t create;    // Create function
     mkdir_t mkdir;      // Make directory function.
     unlink_t unlink;    // Unlink function (deletion)
+    ioctl_t ioctl;      // I/O control function
     struct fsNode *ptr; // Used by mountpoints and symlinks.
     int references;     // Child processes (and other cores if SMP is added) will sometimes hold access to the same node. This stores the reference count.
     void *device;       // Pointer to the device needed (unused mostly, most drivers will use impl_struct but you can use this)
@@ -121,5 +121,6 @@ void debug_print_vfs_tree(bool printout);
 fsNode_t *cloneFilesystemNode(fsNode_t *node);
 void vfs_lock(fsNode_t *node);
 int createFilesystem(char *name, uint16_t mode);
+int ioctlFilesystem(fsNode_t *node, unsigned long request, void *argp);
 
 #endif

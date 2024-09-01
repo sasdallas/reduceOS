@@ -1,5 +1,11 @@
 // spinlock.h - header file for the spinlock mechanism
 
+#ifndef __INTELLISENSE__
+#if !defined __KERNEL__ && !defined __KERNMOD__
+#error "This file cannot be used in userspace."
+#endif
+#endif
+
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
 

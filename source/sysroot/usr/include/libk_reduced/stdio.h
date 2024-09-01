@@ -1,5 +1,12 @@
 // stdio.h - Handles outputting to console or other devices
 
+#ifndef __INTELLISENSE__
+#if !defined __KERNEL__ && !defined __KERNMOD__
+#error "This file cannot be used in userspace."
+#endif
+#endif
+
+
 #ifndef STDIO_H
 #define STDIO_H
 

@@ -1,5 +1,5 @@
 // ==============================================================================
-// tty.c - Filesystem driver for the teletype and psuedo-teletype device
+// tty.c - Filesystem driver for the teletype and psuedo-teletype (PTY) device
 // ==============================================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 

@@ -97,10 +97,10 @@ fsNode_t *findDirectoryFilesystem(fsNode_t *node, char *name) {
     if ((node->flags & 0x7) == VFS_DIRECTORY && node->finddir != 0) {
         return node->finddir(node, name);
     } else {
-        serialPrintf("The node does not have a finddir function\n");
         return 0; 
     }
 }
+
 
 // unlinkFilesystem(char *name) - Unlinks/removes a file from the filesystem
 int unlinkFilesystem(char *name) {
@@ -194,6 +194,18 @@ int createFilesystem(char *name, uint16_t mode) {
     kfree(path);
     kfree(parent);
     return ret;
+}
+
+
+// ioctlFilesystem(fsNode_t *node, unsigned long request, void *argp) - Calls the ioctl() method on a device
+int ioctlFilesystem(fsNode_t *node, unsigned long request, void *argp) {
+    if (!node) return -ENOENT;
+
+    if (node->ioctl) {
+        return node->ioctl(node, request, argp);
+    } else {
+        return -EINVAL;
+    }
 }
 
 // getRootFilesystem() - Returns root filesystem

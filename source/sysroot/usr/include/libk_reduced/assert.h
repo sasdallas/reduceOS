@@ -1,5 +1,14 @@
 // assert.h - contains the assertion macro
 
+
+// I hate VS Code.
+#ifndef __INTELLISENSE__
+#if !defined __KERNEL__ && !defined __KERNMOD__
+#error "This file cannot be used in userspace."
+#endif
+#endif
+
+
 #ifndef ASSERT_H
 #define ASSERT_H
 

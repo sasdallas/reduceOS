@@ -77,10 +77,10 @@ updateheaders:
 # QEMU Targets
 
 qemu:
-	qemu-system-x86_64 -cdrom out/iso/reduceOS.iso -serial stdio
+	qemu-system-i386 -cdrom out/iso/reduceOS.iso -serial stdio -s
 
 qemu_kernel:
-	qemu-system-x86_64 -kernel source/sysroot/boot/kernel.elf -initrd source/sysroot/boot/initrd.img -serial stdio
+	qemu-system-i386 -kernel source/sysroot/boot/kernel.elf -initrd source/sysroot/boot/initrd.img -serial stdio -s
 
 qemu_dbg: qemu # Muscle memory for me
 
@@ -90,7 +90,7 @@ qemu_dbg_gdb:
 	qemu-system-i386 -cdrom out/iso/reduceOS.iso -serial stdio -s -S
 
 qemu_drive:
-	qemu-system-x86_64 -cdrom out/iso/reduceOS.iso -serial stdio -hda drive.img
+	qemu-system-x86_64 -cdrom out/iso/reduceOS.iso -serial stdio -hda drive.img -s
 
 
 # Other targets
