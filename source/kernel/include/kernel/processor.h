@@ -43,10 +43,13 @@ typedef struct {
 
 
 // Functions
-void cpuInit(); // Initializes the CPU with ISR, IDT, and GDT
-uint32_t getCPUFrequency(); // Returns the CPU frequency (todo: create processor.c).
-bool isCPULongModeCapable(); // Returns if the CPU is 64-bit capable
-char *getCPUVendorData(); // Returns CPU vendor data
-cpuInfo_t getCPUProcessorData();
+void cpuInit();                     // Initializes the CPU with ISR, IDT, and GDT
+uint32_t getCPUFrequency();         // Returns the CPU frequency (todo: create processor.c).
+bool isCPULongModeCapable();        // Returns if the CPU is 64-bit capable
+char *getCPUVendorData();           // Returns CPU vendor data
+cpuInfo_t getCPUProcessorData();    // Returns CPU processor data structure
+bool cpu_hasMSR();                  // Returns whether rdmsr and wrmsr are supported
+void cpu_getMSR(uint32_t msr, uint32_t *lo, uint32_t *hi);  // Read MSR
+void cpu_setMSR(uint32_t msr, uint32_t lo, uint32_t hi);    // Set MSR
 
 #endif

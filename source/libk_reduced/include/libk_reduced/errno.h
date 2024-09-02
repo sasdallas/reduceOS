@@ -83,3 +83,4 @@
 #define ENOTRECOVERABLE 141	/* State not recoverable */
 #define EOWNERDEAD 142	/* Previous owner died */
 #define EWOULDBLOCK EAGAIN	/* Operation would block */
+#define ERESTARTSYS 512     /* Restart system call*/

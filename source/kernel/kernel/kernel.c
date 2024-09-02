@@ -16,6 +16,7 @@
 #include <kernel/process.h>
 #include <kernel/module.h>
 #include <kernel/ksym.h>
+#include <kernel/elf.h>
 #include <kernel/ide_ata.h>
 #include <kernel/debugdev.h>
 #include <kernel/serialdev.h>
@@ -36,6 +37,7 @@
 #include <kernel/test.h>
 #include <kernel/floppy.h>
 #include <kernel/acpi.h>
+#include <kernel/signal.h>
 
 // ide_ata.c defined variables
 extern ideDevice_t ideDevices[4];
@@ -143,7 +145,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Before CPU initialization can even take place, we should start the clock.
     clock_init();
 
-    // Now initialize ACPI
+    // Now initialize ACPI, has to be done before VMM (it will allocate regions I think)
     acpiInit();
 
     // Initialize all the basic CPU features
@@ -430,12 +432,15 @@ void useCommands() {
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
     if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
-    
+     
 
     tasking_start();
-    char *argv[] = {"Hello", "World"};
-    char *envp[] = {"Hello World"};
-    execve("balls", 2, argv, envp);
+    signal_init();
+    
+    // Try to start the init process, if available
+    //char *argv[] = {"/init"};
+    //system("/init", 1, argv);
+
     kshell();
 }
 

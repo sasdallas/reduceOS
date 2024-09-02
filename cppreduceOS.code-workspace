@@ -6,6 +6,7 @@
 	],
 	"settings": {
 		"files.associations": {
+			"*.asm": "asm-collection",
 			"*.inc": "arm",
 			"util.h": "c",
 			"graphics.h": "c",
@@ -59,7 +60,8 @@
 			"stdarg.h": "c",
 			"errno.h": "c",
 			"tree.h": "c",
-			"spinlock.h": "c"
+			"spinlock.h": "c",
+			"signal.h": "c"
 		}
 	}
 }

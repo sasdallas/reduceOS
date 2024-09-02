@@ -10,10 +10,9 @@ extern start
 ; Flags
 PG_ALIGN            equ 1 << 0
 MEMINFO             equ 1 << 1
-VESA_FRAMEBUFFER    equ 1 << 2
 
 
-MULTIBOOT_FLAGS equ PG_ALIGN | MEMINFO | VESA_FRAMEBUFFER
+MULTIBOOT_FLAGS equ PG_ALIGN | MEMINFO
 MULTIBOOT_MAGIC equ 0x1BADB002
 MULTIBOOT_CHECKSUM equ -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
 
@@ -32,13 +31,6 @@ multiboot_header:
     dd bss_start
     dd end
     dd _start
-
-    ; Request a framebuffer for 1024x768 with colordepth 32 BPP
-    ; As I'm writing this we don't actually even use this lmao.
-    dd 0x0000000
-    dd 1024
-    dd 768
-    dd 32
 
 section .data
     align 4096

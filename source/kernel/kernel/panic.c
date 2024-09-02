@@ -397,6 +397,8 @@ void pageFault(registers_t *reg) {
         panic("proc", "pageFault", "Need to map more stack for SBRK (UNIMPLEMENTED)");
     }
 
+    
+
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** Page fault at address 0x%x\n", faultAddress);

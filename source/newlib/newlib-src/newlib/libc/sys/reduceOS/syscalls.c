@@ -27,7 +27,7 @@ int close(int file) {
 
 int execve(char *name, char **argv, char **env) {
     int ret = SYSCALL3(int, SYS_EXECVE, name, argv, env);
-    return -1;
+    return ret;
 }
 
 int fork() {
@@ -50,10 +50,6 @@ int isatty(int file) {
     return ret;
 }
 
-int kill(int pid, int sig) {
-    errno = EINVAL;
-    return -1;
-}
 
 int link(char *old, char *new) {
     errno = EMLINK;

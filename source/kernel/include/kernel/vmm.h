@@ -12,7 +12,6 @@
 #include <kernel/vmm_pde.h>
 
 #include <kernel/panic.h> // Kernel panicking
-#include <kernel/heap.h> // Kernel heap management.
 #include <kernel/terminal.h>
 #include <kernel/serial.h>
 #include <kernel/pmm.h> // Physical memory management

@@ -9,4 +9,5 @@ SOURCE_DIRECTORIES += arch
 SOURCE_SUBDIRECTORIES += arch/i386
 ASM_SOURCE_DIRECTORIES += arch/i386
 
-
+# Specify the linker.ld file to use
+ARCH_LINK_LD := arch/i386/linker.ld

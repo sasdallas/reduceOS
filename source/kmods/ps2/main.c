@@ -5,11 +5,11 @@
 
 int init(int argc, char *argv[]) {
     ps2_kbd_init();
+    serialPrintf("[module ps2] PS/2 module initialized and ready.\n");
     return 0;
 }
 
 void deinit() {
-
 }
 
 

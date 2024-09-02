@@ -13,11 +13,6 @@ extern void install_idt(uint32_t);
 idtEntry_t idtEntries[I86_MAX_INTERRUPTS];
 idtPtr_t idtPtr;
 
-
-
-
-
-
 int idtInstallIR(uint8_t i, uint8_t flags, uint16_t segmentSelector, uint32_t base) {
     // Side note: It is computationally impossible for i to be invalid. No checking today!
 

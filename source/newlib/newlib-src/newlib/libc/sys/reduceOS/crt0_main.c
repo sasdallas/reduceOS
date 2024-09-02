@@ -23,7 +23,6 @@ void crt0_main(int envc, int argc, int args) {
         argv[i] = (*(args_start + i));
     }
 
-    _init_signal();
     int ex = main(argc, argv);
     _exit(ex);
 }

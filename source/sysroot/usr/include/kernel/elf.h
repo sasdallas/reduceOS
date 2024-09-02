@@ -208,6 +208,8 @@ void elf_cleanupFile(char *buffer); // Frees memory where the file was relocated
 
 // Pointer functions
 int execve(char *filename, int argc, char *argv[], char *envp[]); // just points to createProcess pretty much
+int system(char *filename, int argc, char *argv_in[]);
+
 
 // Internal functions, should only be used by process scheduler
 // (scheduler performs memory mapping itself and disregards our method)

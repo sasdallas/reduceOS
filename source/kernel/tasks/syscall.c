@@ -7,13 +7,14 @@
 
 #include <kernel/syscall.h> // Main header file
 #include <kernel/process.h>
+#include <kernel/signal.h>
 #include <libk_reduced/stdio.h>
 #include <libk_reduced/fcntl.h>
 #include <libk_reduced/errno.h>
-
+#include <libk_reduced/signal.h>
 
 // List of system calls
-void *syscalls[21] = {
+void *syscalls[22] = {
     &sys_restart_syscall,
     &_exit,
     &sys_read,
@@ -35,9 +36,10 @@ void *syscalls[21] = {
     &sys_unlink,
     &sys_readdir,
     &sys_ioctl,
+    &sys_signal
 };
 
-uint32_t syscallAmount = 21;
+uint32_t syscallAmount = 22;
 spinlock_t *write_lock;
 
 // DECLARATION OF TESTSYSTEM CALLS
@@ -105,7 +107,26 @@ int syscall_validatePointer(void *ptr, const char *syscall) {
         if (!PTR_INRANGE(ptr)) { 
             // Normally we could send a SIGSEGV to the process to say "that aint your memory son" but we don't have that.
             // So just crash! I'm sure nothing could go wrong!
-            panic("syscall", "pointer vaildation", "Current process attempted to access memory outside of its address space.");
+            panic_prepare();
+            disableHardwareInterrupts();
+            printf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n", syscall, currentProcess->name, currentProcess->id);
+            printf("*** The attempted access violation happened at 0x%x\n", ptr);
+
+            serialPrintf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n", syscall, currentProcess->name, currentProcess->id);
+            serialPrintf("*** The attempted access violation happened at 0x%x\n", ptr);
+        
+
+            panic_dumpPMM();
+            registers_t *reg = (registers_t*)((uint8_t*)&end);
+            asm volatile ("mov %%ebp, %0" :: "r"(reg->ebp));
+            reg->eip = NULL; // TODO: Use read_eip()?
+            panic_stackTrace(7, reg);
+
+            asm volatile ("hlt");
+            for (;;);
+
+
+            //panic("syscall", "pointer vaildation", "Current process attempted to access memory outside of its address space.");
         }
 
         pte_t *page = vmm_getPage(ptr);
@@ -193,7 +214,64 @@ int sys_close(int fd) {
 
 // SYSCALL 5
 int sys_execve(char *name, char **argv, char **env) {
-    return -1;
+    // serialPrintf("sys_execve: executing %s\n", name);
+
+    bool use_env = ((int)env > 0x1) ? true : false; // BUG: Sometimes env will be 0x1.
+    syscall_validatePointer(name, "sys_execve");
+    syscall_validatePointer(argv, "sys_execve");
+    if (use_env) syscall_validatePointer(env, "sys_execve");
+
+    int argc = 0;
+    int envc = 0;
+
+    while ((int)argv[argc] > 0x1) {
+        syscall_validatePointer(argv[argc], "sys_execve");
+        argc++;
+    }
+
+    if (use_env && env) {
+        while (env[envc]) {
+            envc++;
+        }
+    }
+
+
+    char **argv_ = kmalloc(sizeof(char*) * (argc + 1));
+    for (int j = 0; j < argc; j++) {
+        argv_[j] = kmalloc(strlen(argv[j]) + 1);
+        memcpy((void*)argv_[j], (void*)argv[j], strlen(argv[j]) + 1);
+    }
+
+    argv_[argc] = NULL;
+
+    char **envp;
+    if (use_env && env && envc) {
+        // Fill it
+        envp = kmalloc(sizeof(char*) * (envc + 1));
+        for (int j = 0; j < envc; j++) {
+            envp[j] = kmalloc(strlen(env[j]) + 1);
+            memcpy((void*)envp[j], (void*)env[j], strlen(env[j]) + 1);
+        }
+    } else {
+        envp = kmalloc(sizeof(char*));
+        envp[0] = NULL;
+    }
+
+    // Close all the file descriptors >2
+    for (unsigned int i = 3; i < currentProcess->file_descs->length; i++) {
+        if (SYS_FD_VALIDATE(i)) {
+            closeFilesystem(currentProcess->file_descs->nodes[i]);
+            currentProcess->file_descs->nodes[i] = NULL;
+        }
+    }
+
+
+    currentProcess->cmdline = argv_;
+    serialPrintf("ready to go, starting execution...\n");
+
+    char *env_empty[] = {NULL};
+
+    return createProcess(name, 1, argv, (use_env) ? envp : env_empty, 1);
 }
 
 // SYSCALL 6
@@ -218,7 +296,15 @@ int sys_isatty(int file) {
 
 // SYSCALL 10
 int sys_kill(int pid, int sig) {
-    return -1;
+    if (pid < -1) {
+        panic("syscall", "sys_kill", "group_send_signal unimplemented");
+    } else if (pid == 0) {
+        panic("syscall", "sys_kill", "group_send_signal unimplemented");
+    } else {
+        serialPrintf("sys_kill: Sending signal...\n");
+        return send_signal(pid, sig, 0);
+    }
+    __builtin_unreachable();
 }
 
 // SYSCALL 11
@@ -327,7 +413,7 @@ uint32_t sys_sbrk(uint32_t incr_uint) {
 
 end:
     spinlock_release(&proc->image.spinlock);
-    serialPrintf("sys_sbrk: Heap done - returning 0x%x\n", (uint32_t)out);
+    serialPrintf("sys_sbrk: Heap done - expanded: 0x%x - 0x%x\n", (uint32_t)out, (uint32_t)proc->image.heap_end);
     return (uint32_t)out;
 }
 
@@ -343,7 +429,7 @@ int sys_times(void *buf) {
 
 // SYSCALL 17
 int sys_wait(int *status) {
-    return waitpid(-1, status, 0);
+    return waitpid(-1, status, WNOKERN);
 }
 
 // SYSCALL 18
@@ -381,4 +467,24 @@ int sys_ioctl(int fd, unsigned long request, void *argp) {
     }
 
     return -EBADF;
+}
+
+
+// SYSCALL 21
+long sys_signal(long signum, uintptr_t handler) {
+    serialPrintf("sys_signal: Trying to register handler for signum %i handler 0x%x\n", signum, handler);
+
+    if (signum >= NUMSIGNALS || signum < 0) return -1;
+    if (signum == SIGKILL || signum == SIGSTOP) return -1;
+
+    // signal() wants us to return the old handler
+    uintptr_t old_handler = currentProcess->signals[signum].handler;
+
+    // Set the new handler
+    currentProcess->signals[signum].handler = handler;
+    currentProcess->signals[signum].flags = SA_RESTART;
+
+    serialPrintf("sys_signal: Handler is all setup.\n");
+
+    return old_handler;
 }

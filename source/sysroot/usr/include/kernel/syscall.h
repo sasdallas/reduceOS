@@ -143,6 +143,9 @@ int sys_unlink(char *name);
 int sys_wait(int *status);
 int sys_readdir(int fd, int cur_entry, struct dirent *entry);
 int sys_ioctl(int fd, unsigned long request, void *argp);
+long sys_signal(long signum, uintptr_t handler);
+void syscallHandler(registers_t *regs);
+
 
 // Syscall definitions (only test system calls)
 DEFINE_SYSCALL0(sys_restart_syscall);

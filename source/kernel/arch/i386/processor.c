@@ -168,6 +168,8 @@ uint32_t getCPUFrequency() {
 }
 
 
+/* VENDOR DATA */
+
 
 // getCPUVendorData() - Returns CPU vendor data
 char *getCPUVendorData() {
@@ -181,3 +183,24 @@ bool isCPULongModeCapable() {
 cpuInfo_t getCPUProcessorData() {
 	return processor_data;
 }
+
+
+/* MSR FUNCTIONS */
+
+// cpu_hasMSR() - returns whether the CPU has support for rdmsr and wrmsr
+bool cpu_hasMSR() {
+	static uint32_t a, d;
+	__cpuid(1, &a, NULL, NULL, &d);
+	return d & 1 << 5;
+}
+
+// cpu_getMSR(uint32_t msr, uint32_t *lo, uint32_t *hi) - Returns the model-specific register and puts bytes into lo and hi
+void cpu_getMSR(uint32_t msr, uint32_t *lo, uint32_t *hi) {
+	asm volatile ("rdmsr" : "=a"(*lo), "=d"(*hi) : "c"(msr));
+}
+
+// cpu_setMSR(uint32_t msr, uint32_t lo, uint32_t hi) - Returns the model-specific register and puts bytes into lo and hi
+void cpu_setMSR(uint32_t msr, uint32_t lo, uint32_t hi) {
+	asm volatile ("wrmsr" ::  "a"(lo), "d"(hi), "c"(msr));
+}
+

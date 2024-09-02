@@ -59,11 +59,11 @@ TARGET_DISABLED:
 
 $(OUT_KERNEL)/kernel_debug.elf:  MAKE_OUTPUT_DIRS DELETE_OLD_KERNEL_OBJ BUILDSCRIPTS_DEBUG PRINT_ASM_HEADER $(ASM_OBJS) PRINT_C_HEADER $(C_OBJS)
 	@echo "-- Linking $(OUT_KERNEL)/kernel.elf for DEBUG target..."
-	$(LD) $(LDFLAGS) -T linker.ld $(C_OBJS) $(ASM_OBJS) $(OUT_OBJ)/fonts/*.o -o kernel.elf $(LIBS)
+	$(LD) $(LDFLAGS) -T $(ARCH_LINK_LD) $(C_OBJS) $(ASM_OBJS) $(OUT_OBJ)/fonts/*.o -o kernel.elf $(LIBS)
 
 $(OUT_KERNEL)/kernel_release.elf:  MAKE_OUTPUT_DIRS DELETE_OLD_KERNEL_OBJ BUILDSCRIPTS_RELEASE PRINT_ASM_HEADER $(ASM_OBJS) PRINT_C_HEADER $(C_OBJS)
 	@echo "-- Linking $(OUT_KERNEL)/kernel.elf for RELEASE target..."
-	$(LD) $(LDFLAGS) -T linker.ld $(C_OBJS) $(ASM_OBJS) $(OUT_OBJ)/fonts/*.o -o kernel.elf $(LIBS)
+	$(LD) $(LDFLAGS) -T $(ARCH_LINK_LD) $(C_OBJS) $(ASM_OBJS) $(OUT_OBJ)/fonts/*.o -o kernel.elf $(LIBS)
 
 	@echo "-- Stripping debug symbols..."
 	objcopy --strip-debug kernel.elf
@@ -76,9 +76,11 @@ MAKE_OUTPUT_DIRS:
 
 
 # Fixes a CONFIG.h not updating bug
+# Not good
 DELETE_OLD_KERNEL_OBJ:
-	-@$(RM) $(OUT_OBJ)/kernel.o
-	-@$(RM) $(OUT_OBJ)/panic.o
+	-@$(RM) $(OUT_OBJ)/kernel/kernel.o
+	-@$(RM) $(OUT_OBJ)/kernel/panic.o
+	-@$(RM) $(OUT_OBJ)/kernel/cmds.o
 
 BUILDSCRIPTS_RELEASE:
 	@printf "[ Running buildscripts for RELEASE build of reduceOS... ]\n"

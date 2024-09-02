@@ -18,6 +18,9 @@ static spinlock_t *timeset_lock; // Lock for setting time
 static spinlock_t *clock_lock; // Not very useful right now.
 
 
+clock_callback_func callbacks[MAX_CLOCK_FUNCTIONS];
+static int callback_index = 0;
+
 
 
 // (static) yearsToSeconds(int years) - Unix millisecond conversion
@@ -265,6 +268,24 @@ void clock_update() {
 
     spinlock_release(clock_lock);
 
+    // Let's go through each callback and call it
+    for (int i = 0; i < callback_index; i++) {
+        clock_callback_func func = callbacks[callback_index];
+        func(timer_ticks, timer_subticks);
+    }
+
     // Wakeup sleeping processes
     wakeup_sleepers(timer_ticks, timer_subticks);
 }
+
+// clock_registerCallback(clock_callback_func func) - Register a clock callback
+void clock_registerCallback(clock_callback_func func) {
+    if (callback_index >= MAX_CLOCK_FUNCTIONS) {
+        panic("clock", "callback", "Maximum amount of callback functions reached");
+        __builtin_unreachable();
+    }
+
+    callbacks[callback_index] = func;
+    callback_index++;
+}
+

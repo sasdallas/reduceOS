@@ -41,6 +41,10 @@ static int ac97_init(int argc, char *argv[]) {
 
     device->IRQ = pciGetInterrupt(device->pciDevice);
     serialPrintf("[module ac97] Device wants IRQ %zd\n", device->IRQ);
+    if (device->IRQ == 255) {
+        serialPrintf("[module ac97] IRQ returned means disconnected or no connection.\n");
+        return 0;
+    }
     return 0;
 }
 

@@ -6,7 +6,6 @@
 // Includes
 #include <libk_reduced/stdint.h> // Integer declarations
 #include <libk_reduced/string.h> // String functions
-#include <kernel/heap.h> // Memory allocation functions
 #include <kernel/terminal.h> // printf()
 
 // Typedefs

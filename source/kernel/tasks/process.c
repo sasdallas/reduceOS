@@ -9,6 +9,7 @@
 #include <kernel/process.h> // Main header file
 #include <kernel/elf.h>
 #include <kernel/clock.h>
+#include <kernel/signal.h>
 
 
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers" // Because of the way the spinlocks work, the volatile property is discarded.
@@ -553,6 +554,7 @@ int wakeup_queue(list_t *queue) {
         node_t *node = list_pop(queue);
         spinlock_release(&wait_lock_tmp);
         if (!(((process_t*)node->value)->flags & PROCESS_FLAG_FINISHED)) {
+            
             makeProcessReady(node->value);
         }
         spinlock_lock(&wait_lock_tmp);
@@ -986,7 +988,8 @@ void task_exit(int retval) {
 
     if (parent && !(parent->flags & PROCESS_FLAG_FINISHED)) {
         spinlock_lock(&parent->wait_lock);
-        // send_signal(parent->group, SIGCHLD, 1)
+        serialPrintf("task_exit: Sending SIGCHLD...\n");
+        send_signal(parent->group, SIGCHLD, 1);
         wakeup_queue(parent->waitQueue);
         spinlock_release(&parent->wait_lock);
     }

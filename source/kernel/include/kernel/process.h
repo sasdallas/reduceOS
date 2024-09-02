@@ -7,7 +7,9 @@
 #include <libk_reduced/stdint.h>
 #include <libk_reduced/time.h>
 #include <libk_reduced/spinlock.h>
+#include <libk_reduced/signal_defs.h>
 #include <kernel/vmm.h>
+#include <libk_reduced/signal.h>
 #include <kernel/vfs.h>
 #include <kernel/regs.h>
 #include <kernel/list.h>
@@ -41,7 +43,6 @@
 
 // Variable types
 typedef int pid_t;                  // Process ID
-
 
 
 struct thread; // Prototype
@@ -104,6 +105,12 @@ typedef struct _image {
 } image_t;
 
 
+// Signal configuration
+struct signal_config {
+	uintptr_t handler;
+	sigset_t  mask;
+	int flags;
+};
 
 // This is the main process structure - all processes require this.
 typedef struct process {
@@ -147,6 +154,12 @@ typedef struct process {
 
     // File descriptors
     fd_table_t  *file_descs;
+
+    // Signal values
+    struct signal_config signals[NUMSIGNALS+1];
+	sigset_t blocked_signals;
+	sigset_t pending_signals;
+	sigset_t awaited_signals;
 
     // Time values
     struct timeval start;
@@ -210,6 +223,8 @@ int wakeup_queue(list_t *queue);
 void updateProcessTimesOnExit();
 unsigned long process_addfd(process_t *proc, fsNode_t *node);
 long process_movefd(process_t *proc, long src, long dest);
-
+process_t *process_get_parent(process_t *process);
+process_t *process_from_pid(pid_t pid);
+int process_isReady(process_t *proc);
 
 #endif

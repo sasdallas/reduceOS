@@ -7,27 +7,28 @@
 
 // System call list
 #define SYS_RESTART_SYSCALL 0
-#define SYS_EXIT 1
-#define SYS_READ 2
-#define SYS_WRITE 3
-#define SYS_CLOSE 4
-#define SYS_EXECVE 5
-#define SYS_FORK 6
-#define SYS_FSTAT 7
-#define SYS_GETPID 8
-#define SYS_ISATTY 9
-#define SYS_KILL 10
-#define SYS_LINK 11
-#define SYS_LSEEK 12
-#define SYS_OPEN 13
-#define SYS_SBRK 14
-#define SYS_STAT 15
-#define SYS_TIMES 16
-#define SYS_WAIT 17
-#define SYS_UNLINK 18
-#define SYS_READDIR 19
-#define SYS_IOCTL 20
-
+#define SYS_EXIT        1
+#define SYS_READ        2
+#define SYS_WRITE       3
+#define SYS_CLOSE       4
+#define SYS_EXECVE      5
+#define SYS_FORK        6
+#define SYS_FSTAT       7
+#define SYS_GETPID      8
+#define SYS_ISATTY      9
+#define SYS_KILL        10
+#define SYS_LINK        11
+#define SYS_LSEEK       12
+#define SYS_OPEN        13
+#define SYS_SBRK        14
+#define SYS_STAT        15
+#define SYS_TIMES       16
+#define SYS_WAIT        17
+#define SYS_UNLINK      18
+#define SYS_READDIR     19
+#define SYS_IOCTL       20
+#define SYS_SIGNAL      21
+#define SYS_KILL        22
 
 // System call macros
 
