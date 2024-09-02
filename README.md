@@ -47,7 +47,7 @@ I've written an excellent README for the `source/kmods` folder, which can be fou
 reduceOS will automatically load and handle your modules without needing to modify the parent directory Makefile.
 
 # Known Bugs
-- **Highest priority:** `waitpid()` is not working, process scheduling requires bugfixes
+- **Highest priority:** `fork()` crashes the next time it tries to switch processes
 - **High priority:** EXT2 driver crashes during memory dumping.
 - **High priority:** ATAPI drives cannot be read
 - **Requires further debugging:** Loading bitmaps cause more memory leaks than the Titanic had, and if you try to free buffers they crash. 

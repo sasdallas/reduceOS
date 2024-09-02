@@ -175,7 +175,7 @@ void pmm_initRegion(uintptr_t base, size_t size) {
 
     pmm_setFrame(0); // First block is always set.
 
-    serialPrintf("pmm_initRegion: Region at 0x%x (size 0x%x) initialized. Blocks used: %i. Free blocks: %i\n", base, size, blocks, (pmm_maxBlocks - pmm_usedBlocks));
+    // serialPrintf("pmm_initRegion: Region at 0x%x (size 0x%x) initialized. Blocks used: %i. Free blocks: %i\n", base, size, blocks, (pmm_maxBlocks - pmm_usedBlocks));
 }
 
 // pmm_deinitRegion(uintptr_t base, size_t size) - Marks a region as unusable memory (e.g. kernel region)
@@ -191,7 +191,7 @@ void pmm_deinitRegion(uintptr_t base, size_t size) {
 
     pmm_setFrame(0);
 
-    serialPrintf("pmm_deinitRegion: Region at 0x%x (size 0x%x) deinitialized. Blocks used: %i. Free blocks: %i\n", base, size, pmm_usedBlocks, (pmm_maxBlocks - pmm_usedBlocks));
+    // serialPrintf("pmm_deinitRegion: Region at 0x%x (size 0x%x) deinitialized. Blocks used: %i. Free blocks: %i\n", base, size, pmm_usedBlocks, (pmm_maxBlocks - pmm_usedBlocks));
 }
 
 // pmm_allocateBlock() - Allocates a block

@@ -9,7 +9,7 @@ PROJECT_ROOT=${PROJECT_ROOT:"${BUILDSCRIPTS_ROOT}/.."}
 
 
 # Change the working directory to a known path
-. $BUILDSCRIPTS_ROOT/build.sh
+. $BUILDSCRIPTS_ROOT/config.sh
 
 
 cd $PROJECT_ROOT

@@ -1189,6 +1189,8 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
         return -3; // Not compatible
     }
 
+    
+
 
 
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
@@ -1199,6 +1201,9 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     spinlock_release(&switch_lock);
 
     pagedirectory_t *addressSpace = currentProcess->thread.page_directory;
+
+
+    serialPrintf("createProcess VMM mappings (directory: 0x%x)\n", currentProcess->thread.page_directory);
 
     // Now, we should start parsing.
     uintptr_t heapBase = 0;
@@ -1212,8 +1217,9 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
             void *mem = pmm_allocateBlocks(memory_blocks / 4096);
             for (uint32_t blk = 0; blk < memory_blocks; blk += 4096) {
                 vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr +  blk, (uint32_t)mem + blk, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
-                
             }
+
+            serialPrintf("- PT_LOAD map for %i memory blocks, paddr 0x%x vaddr 0x%x\n", memory_blocks, (uint32_t)mem, phdr->p_vaddr);
             memcpy((void*)phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
         }
 

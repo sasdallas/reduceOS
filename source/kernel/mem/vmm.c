@@ -238,6 +238,9 @@ void vmm_mapPhysicalAddress(pagedirectory_t *dir, uint32_t virt, uint32_t phys, 
     }
 
     ((uint32_t*)(pagedir[virt >> 22] & ~0xFFF))[virt << 10 >> 10 >> 12] = phys | flags;
+
+    pmm_deinitRegion(virt, 4096);
+    pmm_deinitRegion(phys, 4096);
 }
 
 // vmm_createPageTable(pagedirectory_t *dir, uint32_t virt, uint32_t flags) - Creates a page table

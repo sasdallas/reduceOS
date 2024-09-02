@@ -393,10 +393,29 @@ void pageFault(registers_t *reg) {
 
     // See syscall.c for an explanation on how this works
     // We'll map more stack and quietly return
-    if ((currentProcess->image.heap) && (faultAddress >= currentProcess->image.heap_start) && (faultAddress < currentProcess->image.heap_end)) {
-        panic("proc", "pageFault", "Need to map more stack for SBRK (UNIMPLEMENTED)");
+    if (reg->cs != 0x08 && (currentProcess->image.heap) && (faultAddress >= currentProcess->image.heap_start) && (faultAddress < currentProcess->image.heap_end)) {
+        volatile process_t *volatile proc = currentProcess;
+
+        if (proc->group != 0) {
+            proc = process_from_pid(proc->group);
+        }
+
+        if (!proc) goto continue_fault;
+
+        spinlock_lock(&proc->image.spinlock);
+        for (uintptr_t i = faultAddress; i < proc->image.userstack; i += 0x1000) {
+            vmm_mapPhysicalAddress(proc->thread.page_directory, faultAddress, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
+        }
+
+        proc->image.userstack = faultAddress;
+
+        spinlock_release(&proc->image.spinlock);
+
+        // Literally just say screw the kernel and go back
+        return;
     }
 
+continue_fault:
     
 
     serialPrintf("===========================================================\n");

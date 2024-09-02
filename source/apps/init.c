@@ -16,22 +16,14 @@ int main(int argc, char **argv) {
 
     // Fork our current process and try to run /stage2
     int cpid = fork();
-    
-    if (!cpid) {
-        fprintf(stderr, "Hello from the child process!\n");
-        for (;;);
-    }
-
-    fprintf(stderr, "Hello from the main process!\n");
-    for (;;);
-
-    /*
 
     if (!cpid) {
         // We're the child process. Start execution
         char *cargv[] = {"/stage2"};
         int cargc = 1;
         execve("/stage2", cargv, cargc);
+
+        fprintf(stderr, "child process execve failed or succeeded lmfao fuck everything idk\n");
 
         // Failed?
         exit(0);
@@ -51,6 +43,5 @@ int main(int argc, char **argv) {
 
     
     printf("The child process finished or was terminated.\n");
-
-    for (;;);*/
+    for (;;);
 }
