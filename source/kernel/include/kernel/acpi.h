@@ -132,6 +132,35 @@ typedef struct {
     uint16_t flags;
 } __attribute__((packed)) APICInterruptOverride;
 
+typedef struct {
+    ACPIHeader header;
+    uint8_t nmi;            // NMI source
+    uint8_t reserved;       // Reserved
+    uint16_t flags;         // Flags
+    uint32_t interrupt;     // Global System Interrupt
+} __attribute__((packed)) APICIO_NMISource;
+
+typedef struct {
+    ACPIHeader header;
+    uint8_t processor_id;   // CPU ID
+    uint16_t flags;         // Flags
+    uint8_t lint;           // LINT#
+} __attribute__((packed)) APICLocalNMI;
+
+typedef struct {
+    ACPIHeader header;
+    uint16_t reserved;      // Reserved
+    uint64_t address;       // 64-bit address of local APIC
+} __attribute__((packed)) APICLocalAddressOverride;
+
+typedef struct {
+    ACPIHeader header;
+    uint16_t reserved;      // Reserved
+    uint32_t apic_id;       // APIC ID
+    uint32_t flags;         // Flags
+    uint32_t acpi_id;       // ACPI ID (not to be confused with APIC_ID)
+} __attribute__((packed)) APICLocalx2;
+
 // RSDP (Root System Description Pointer)
 // ACPI version 1.0
 typedef struct {
@@ -157,10 +186,20 @@ typedef struct {
     uint32_t flags;
 } __attribute__((packed)) ACPI_MADT;
 
+typedef struct {
+    ACPIHeader h;
+    uint32_t pointers[];
+} RSDT;
+
+
 // Definitions
-#define APIC_TYPE_LOCAL_APIC 0
-#define APIC_TYPE_IO_APIC 1
-#define APIC_TYPE_INT_OVERRIDE 2
+#define APIC_TYPE_LOCAL_APIC            0
+#define APIC_TYPE_IO_APIC               1
+#define APIC_TYPE_IO_INT_OVERRIDE       2
+#define APIC_TYPE_IO_NMI_SOURCE         3
+#define APIC_TYPE_LOCAL_NMI             4
+#define APIC_TYPE_LOCAL_ADDR            5
+#define APIC_TYPE_LOCALX2_APIC          9
 
 
 
@@ -168,5 +207,8 @@ typedef struct {
 extern uint8_t *localAPICAddress;
 extern uint8_t *ioAPIC_addr;
 
+
+// Functions
+void acpiInit();
 
 #endif

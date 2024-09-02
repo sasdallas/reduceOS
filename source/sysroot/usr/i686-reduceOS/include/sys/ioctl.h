@@ -15,6 +15,6 @@
 
 #define FIONBIO  0x4e424c4b
 
-int ioctl(int fd,int request,...);
+int ioctl(int fd,int request, void *argp);
 
 #endif

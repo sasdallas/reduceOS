@@ -121,5 +121,6 @@ void debug_print_vfs_tree(bool printout);
 fsNode_t *cloneFilesystemNode(fsNode_t *node);
 void vfs_lock(fsNode_t *node);
 int createFilesystem(char *name, uint16_t mode);
+int ioctlFilesystem(fsNode_t *node, unsigned long request, void *argp);
 
 #endif

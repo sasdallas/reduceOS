@@ -26,6 +26,7 @@
 #define SYS_WAIT 17
 #define SYS_UNLINK 18
 #define SYS_READDIR 19
+#define SYS_IOCTL 20
 
 
 // System call macros

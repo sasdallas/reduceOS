@@ -45,6 +45,10 @@ install: MAKE_DIRS TEST_REDUCEOS BUILD_NEWLIB
 	-mkdir -p $(DESTDIR)$(LIBDIR)
 	cp -rp $(DESTDIR)/usr/$(TARGET)-reduceOS/include/* $(DESTDIR)$(INCLUDE_DIR)/
 	cp -rp $(DESTDIR)/usr/$(TARGET)-reduceOS/lib/* $(DESTDIR)$(LIBDIR)
+# The user might want to install the headers into their actual system
+ifeq ($(NEWLIB_INSTALL_GLOBAL_HEADERS),TRUE)
+	sudo make -C $(BUILDDIR) install
+endif
 
 clean:
 	@echo "-- Cleaning up newlib..."

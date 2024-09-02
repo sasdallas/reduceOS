@@ -377,7 +377,7 @@ int sys_ioctl(int fd, unsigned long request, void *argp) {
     if (SYS_FD_VALIDATE(fd)) {
         if (argp) syscall_validatePointer(argp, "sys_ioctl"); // argp can be 0
 
-        return ioctlFilesystem(fd, request, argp);
+        return ioctlFilesystem(SYS_FD(fd), request, argp);
     }
 
     return -EBADF;

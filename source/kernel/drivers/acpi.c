@@ -32,7 +32,6 @@ void acpiParseFacp(ACPI_FADT *facp) {
     if (facp->SMI_CommandPort != 0) {
         // Enable ACPI.
         // outportb(facp->SMI_CommandPort, facp->AcpiEnable);
-        serialPrintf("acpiParseFacp: ACPI enabled succesfully.\n");
     } else {
         serialPrintf("acpiParseFacp: Cannot enable ACPI, already enabled.\n");
     }
@@ -58,21 +57,33 @@ void acpiParseApic(ACPI_MADT *table) {
         if ((uint8_t)header->type == APIC_TYPE_LOCAL_APIC) {
             APICLocal *local = (APICLocal*)ptr;
 
-            serialPrintf("Found CPU: %d %d %x\n", local->ACPIProcessorID, local->apicID, local->flags);
+            serialPrintf("\t- Found CPU: %d %d %x\n", local->ACPIProcessorID, local->apicID, local->flags);
             if (ACPI_cpuCount < 16) {
                 ACPI_cpuIDs[ACPI_cpuCount] = local->apicID;
                 ACPI_cpuCount++;
             }
         } else if ((uint8_t)header->type == APIC_TYPE_IO_APIC) {
             APICIO *io = (APICIO*)ptr;
-            serialPrintf("Found I/O APIC: %d 0x%x %d\n", io->ioAPIC_id, &io->ioAPIC_addr, io->globalSystemInterruptBase);
+            serialPrintf("\t- Found I/O APIC: %d 0x%x %d\n", io->ioAPIC_id, &io->ioAPIC_addr, io->globalSystemInterruptBase);
             
             ioAPIC_addr = (uint8_t*)&io->ioAPIC_addr;
-        } else if ((uint8_t)header->type == APIC_TYPE_INT_OVERRIDE) {
+        } else if ((uint8_t)header->type == APIC_TYPE_IO_INT_OVERRIDE) {
             APICInterruptOverride *into = (APICInterruptOverride*)ptr;
-            serialPrintf("Found interrupt override: %d %d %d 0x%x\n", into->bus, into->source, into->interrupt, into->flags);
+            serialPrintf("\t- Found interrupt override: %d %d %d 0x%x\n", into->bus, into->source, into->interrupt, into->flags);
+        } else if ((uint8_t)header->type == APIC_TYPE_IO_NMI_SOURCE) {
+            APICIO_NMISource *nmi = (APICIO_NMISource*)ptr;
+            serialPrintf("\t- Found I/O APIC NMI source - %02x %04x %08x\n", nmi->nmi, nmi->flags, nmi->interrupt);
+        } else if ((uint8_t)header->type == APIC_TYPE_LOCAL_NMI) {
+            APICLocalNMI *nmi = (APICLocalNMI*)ptr;
+            serialPrintf("\t- Found local APIC NMI source - %02x %04x %02x\n", nmi->processor_id, nmi->flags, nmi->lint);
+        } else if ((uint8_t)header->type == APIC_TYPE_LOCAL_ADDR) {
+            APICLocalAddressOverride *override = (APICLocalAddressOverride*)ptr;
+            serialPrintf("\t- Found local APIC address override - %016llx\n", override->address);
+        } else if ((uint8_t)header->type == APIC_TYPE_LOCALX2_APIC) {
+            APICLocalx2 *apic = (APICLocalx2*)ptr;
+            serialPrintf("\t- Found Local x2APIC - %08x %08x %08x\n", apic->apic_id, apic->flags, apic->acpi_id);
         } else {
-            serialPrintf("Found unknown APIC structure type %d\n", (uint8_t)header->type);
+            serialPrintf("\t- Found unknown APIC structure type %d\n", (uint8_t)header->type);
         }
         ptr += headerLength;
     }
@@ -85,7 +96,8 @@ void acpiParseRSDT(ACPIHeader *rsdt) {
     uint32_t *tablePtr = (uint32_t *)(rsdt + 1);
     uint32_t *endAddr = (uint32_t*)((uint8_t*)rsdt + rsdt->length);
     
-    
+
+
     serialPrintf("ACPI table signatures (RSDT):\n");
 
     while (tablePtr < endAddr) {
@@ -107,9 +119,7 @@ void acpiParseRSDT(ACPIHeader *rsdt) {
             acpiParseFacp((ACPI_FADT*)table);
         } else if (!strncmp(signature_str, "APIC", 4)) {
             acpiParseApic((ACPI_MADT*)table);
-        } 
-        
-
+        }
     }
 }
 
@@ -174,11 +184,10 @@ bool acpiParseRSDP(uint8_t *ptr) {
     if (header->revision == 0) {
         // (for debugging purposes)
         serialPrintf("acpiParseRSDP: found ACPI version 1.0, parsing RSDT...\n");
-        
-        uint32_t addr = *(uint32_t*)(ptr + 16);
 
-        
-        vmm_allocateRegion(addr, addr, (uint32_t)(addr + (sizeof(char)*4)));
+        vmm_allocateRegion(header->rsdtAddress, header->rsdtAddress, (uint32_t)(header->rsdtAddress + (sizeof(char)*4)));
+
+        uint32_t addr = *(uint32_t*)(ptr + 16);
 
         ACPIHeader *rsdt = (ACPIHeader*)addr;
 

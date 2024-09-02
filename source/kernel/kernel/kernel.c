@@ -35,6 +35,7 @@
 #include <kernel/command.h>
 #include <kernel/test.h>
 #include <kernel/floppy.h>
+#include <kernel/acpi.h>
 
 // ide_ata.c defined variables
 extern ideDevice_t ideDevices[4];
@@ -138,8 +139,12 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     }
 
     
+    
     // Before CPU initialization can even take place, we should start the clock.
     clock_init();
+
+    // Now initialize ACPI
+    acpiInit();
 
     // Initialize all the basic CPU features
     updateBottomText("Initializing HAL...");

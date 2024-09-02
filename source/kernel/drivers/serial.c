@@ -50,6 +50,11 @@ void serialPrintf(const char *str, ...) {
     va_start(ap, str);
     xvasprintf((xvas_callback)serialWrite, NULL, str, ap);
     va_end(ap);
+
+    // Just in case, check if they used a newline and if so drop a \r after it..
+    if (strchr((char*)str, '\n')) {
+        serialWrite(NULL, '\r');
+    }
 }
 
 // serialReadLine(bool printChars) - Reads a line from SERIAL_COM1
