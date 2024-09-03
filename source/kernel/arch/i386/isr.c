@@ -6,6 +6,7 @@
 #include <kernel/isr.h> // Main header file
 #include <kernel/process.h>
 #include <kernel/clock.h>
+#include <kernel/signal.h>
 
 ISR interruptHandlers[256]; // A list of all interrupt handlers
 int interruptToBeAcknowledged = -1; // When an interrupt is fired, the interrupt number will be logged here. 
@@ -64,7 +65,7 @@ void isrIRQHandler(registers_t *reg) {
     }
 
     // If the call is from userspace, we need to update the process times on eixt
-    if (from_userspace) {
+    if (from_userspace && currentProcess) {
         updateProcessTimesOnExit();
     }
     

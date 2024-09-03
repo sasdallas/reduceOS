@@ -3,6 +3,8 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <signal.h>
+
 
 int main(int argc, char **argv) {
     // Step one is to setup the file descriptor outputs

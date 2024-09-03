@@ -1016,6 +1016,10 @@ pid_t fork() {
     new_proc->thread.refcount = 1;
     new_proc->thread.pd_lock = spinlock_init();
  
+    memcpy(new_proc->signals, parent->signals, sizeof(struct signal_config) * (NUMSIGNALS-1));
+    new_proc->blocked_signals = parent->blocked_signals;
+
+
     // Create system call registers
     registers_t r;
     memcpy(&r, parent->syscall_registers, sizeof(registers_t));
@@ -1060,6 +1064,9 @@ pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     new_proc->thread.page_directory = currentProcess->thread.page_directory;
     new_proc->thread.refcount = currentProcess->thread.refcount;
     new_proc->thread.pd_lock = currentProcess->thread.pd_lock;
+
+    memcpy(new_proc->signals, parent->signals, sizeof(struct signal_config) * (NUMSIGNALS-1));
+    new_proc->blocked_signals = parent->blocked_signals;
 
     spinlock_lock(new_proc->thread.pd_lock);
     new_proc->thread.refcount++;
@@ -1203,8 +1210,6 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     pagedirectory_t *addressSpace = currentProcess->thread.page_directory;
 
 
-    serialPrintf("createProcess VMM mappings (directory: 0x%x)\n", currentProcess->thread.page_directory);
-
     // Now, we should start parsing.
     uintptr_t heapBase = 0;
     uintptr_t execBase = -1;
@@ -1218,8 +1223,6 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
             for (uint32_t blk = 0; blk < memory_blocks; blk += 4096) {
                 vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr +  blk, (uint32_t)mem + blk, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
             }
-
-            serialPrintf("- PT_LOAD map for %i memory blocks, paddr 0x%x vaddr 0x%x\n", memory_blocks, (uint32_t)mem, phdr->p_vaddr);
             memcpy((void*)phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
         }
 
@@ -1282,7 +1285,6 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     PUSH(currentProcess->image.userstack, int, 0);
     for (int i = argc; i > 0; i--) {
         PUSH(currentProcess->image.userstack, char*, argv_ptrs[i-1]);
-        serialPrintf("pointer for argv 0x%x pushed to 0x%x\n", argv_ptrs[i-1], currentProcess->image.userstack);
     }
 
     // Same for envp

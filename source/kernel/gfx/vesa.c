@@ -48,7 +48,7 @@ static void vbeGetInfo() {
     bios32_call(0x10, &in, &out);
 
     if (out.ax != 0x004F) {
-        panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
+        return;
     }
 
     // Copy the data to vbeInfo.
@@ -60,10 +60,9 @@ static void vbeGetInfo() {
 
 
 // (static) vbeGetModeInfo(uint16_t mode) - Returns information on a certain mode.
-static vbeModeInfo_t vbeGetModeInfo(uint16_t mode) {
+static int vbeGetModeInfo(uint16_t mode, vbeModeInfo_t *modeInfo) {
     // Like before, setup the registers for our INT 0x10 call.
     // This time, however, change AX to be 0x4F01 to signify that we want mode info.
-    vbeModeInfo_t modeInfo;
 
     REGISTERS_16 in = {0};
     in.ax = 0x4F01;
@@ -76,12 +75,12 @@ static vbeModeInfo_t vbeGetModeInfo(uint16_t mode) {
     bios32_call(0x10, &in, &out);
 
     if (out.ax != 0x004F) {
-        panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
+        return -1;
     }
 
     // Copy the data.
-    memcpy(&modeInfo, (void*)0x7E00 + 1024, sizeof(vbeModeInfo_t));
-    return modeInfo;
+    memcpy(modeInfo, (void*)0x7E00 + 1024, sizeof(vbeModeInfo_t));
+    return 0;
 }
 
 // DEBUG FUNCTION!!
@@ -89,13 +88,13 @@ void vesaPrintModes() {
     uint16_t *modes = (uint16_t*)vbeInfo.videoModePtr;
     uint16_t currentMode = *modes++;
 
-    vbeModeInfo_t modeInfo;
+    vbeModeInfo_t *modeInfo = kmalloc(sizeof(vbeModeInfo_t));
 
     // Possible bug here - we are supposed to stop on currentMode being 0xFFFF, but this crashes a lot until it randomly works - unsure if bug with code or QEMU??
     // For now just choose the best resolution we can use without crashing the entire system.
     for (int i = 0; i < 10; i++) {
-        modeInfo = vbeGetModeInfo(currentMode);
-        serialPrintf("Found mode %d - %d x %d with colordepth %d (mode is 0x%x)\n", currentMode, modeInfo.width, modeInfo.height, modeInfo.bpp, currentMode);
+        int ret = vbeGetModeInfo(currentMode, modeInfo);
+        if (ret == 0) serialPrintf("Found mode %d - %d x %d with colordepth %d (mode is 0x%x)\n", currentMode, modeInfo->width, modeInfo->height, modeInfo->bpp, currentMode);
         currentMode = *modes++;
     }
 }
@@ -107,7 +106,7 @@ void vesaPrintModes() {
 // Functions (non-static)
 
 // vbeSetMode(uint32_t mode) - Sets a VBE mode using BIOS32
-void vbeSetMode(uint32_t mode) {
+int vbeSetMode(uint32_t mode) {
     // Like all BIOS32 calls, setup the registers first.
     REGISTERS_16 in = {0};
     in.ax = 0x4F02;
@@ -119,8 +118,10 @@ void vbeSetMode(uint32_t mode) {
     bios32_call(0x10, &in, &out);
 
     if (out.ax != 0x004F) {
-        panic("VBE", "vbeGetModeInfo", "BIOS 0x10 call failed");
+        return -1;
     }
+
+    return 0;
 }
 
 // vbeGetMode(uint32_t width, uint32_t height, uint32_t color_depth) - Returns the VBE mode with the parameters given.
@@ -134,7 +135,8 @@ uint32_t vbeGetMode(uint32_t width, uint32_t height, uint32_t color_depth) {
     // Locate the mode.
     while (currentMode != 0xFFFF) {
         // Get the mode info and compare it against the parameters.
-        vbeModeInfo_t modeInfo = vbeGetModeInfo(currentMode);
+        vbeModeInfo_t modeInfo;
+        vbeGetModeInfo(currentMode, &modeInfo); // Unsafe(?)
         
         if (modeInfo.width == width && modeInfo.height == height && modeInfo.bpp == color_depth) {
             return currentMode; // Found the mode!
@@ -222,36 +224,91 @@ void vesaInit() {
     
 
     // Bypass getting the mode and just set it like so.
-    uint32_t mode = 0x144 | 0x4000;
+    uint32_t mode = vbeGetMode(1024, 768, 32);
+
+    if ((int)mode == -1) {
+        mode = vbeGetMode(800, 600, 32);
+        if ((int)mode == -1) {
+            // No mode, let's setup a temporary VGA graphics terminal and print fault
+            changeTerminalMode(0);
+            initTerminal();
+
+            printf("*** No suitable VESA VBE graphics mode could be found.\n");
+            printf("*** Tried: 1024x768x32, 800x600x32\n");
+            printf("\nThis is likely a bug with the driver. Please notify the creator.\n");
+            asm volatile ("hlt");
+            for (;;);
+        }
+    }
     
     // Get a bit more information on the mode.
-    vbeModeInfo_t modeInfo = vbeGetModeInfo(mode);
+    vbeModeInfo_t *modeInfo = kmalloc(sizeof(vbeModeInfo_t));
+    vbeGetModeInfo(mode, modeInfo);
+
+    if ((int)modeInfo == NULL) {
+        changeTerminalMode(0);
+        initTerminal();
+
+        printf("*** The call to VESA VBE hardware to get information on mode 0x%x failed.\n", mode);
+        printf("*** Unknown cause.\n");
+        printf("\nThis is likely a bug with the driver. Please notify the creator.\n");
+        asm volatile ("hlt");
+        for (;;);
+    }
+
+    vesaPrintModes();
 
     // Identity map framebuffer!
-    vmm_allocateRegion(modeInfo.framebuffer, modeInfo.framebuffer, 1024*768*4);
+    vmm_allocateRegion(modeInfo->framebuffer, modeInfo->framebuffer, modeInfo->width*modeInfo->height*4);
 
     // Make sure PMM knows not to allocate here
-    pmm_deinitRegion(modeInfo.framebuffer, 1024*768);
+    pmm_deinitRegion(modeInfo->framebuffer, modeWidth*modeHeight);
 
     // Change variables to reflect on modeInfo.
     selectedMode = mode;
-    modeWidth = modeInfo.width;
-    modeHeight = modeInfo.height;
-    modeBpp = modeInfo.bpp;
-    modePitch = modeInfo.pitch;
-    vbeBuffer = (uint8_t*)modeInfo.framebuffer;
+    modeWidth = modeInfo->width;
+    modeHeight = modeInfo->height;
+    modeBpp = modeInfo->bpp;
+    modePitch = modeInfo->pitch;
+    vbeBuffer = (uint8_t*)modeInfo->framebuffer;
     
     // Now, switch the mode.
-    vbeSetMode(mode);
+    if (vbeSetMode(mode) == -1) {
+        // That didn't work...
+        mode = vbeGetMode(800, 600, 32); // Try to grab it for 800x600x32
+        if ((int)mode == -1) {
+            changeTerminalMode(0);
+            initTerminal();
+            panic_prepare();
+            printf("*** No suitable video mode could be found.\n");
+            printf("*** Fallback options not available.\n");
+            asm volatile ("hlt");
+            for (;;);
+            __builtin_unreachable();
+        }
+        
+        if (vbeSetMode(mode) == -1) {
+            changeTerminalMode(0);
+            initTerminal();
+            panic_prepare();
+            printf("*** No suitable video mode could be set (tried 800x600x32 and 1024x768x32).\n");
+            printf("*** Fallback options not available.\n");
+            asm volatile ("hlt");
+            for (;;);
+            __builtin_unreachable();
+        }
+        
+    }
 
-    framebuffer = kmalloc(1024*768*4); // BUG: Why *4?
 
-    serialPrintf("vesaInit: Allocated framebuffer to 0x%x - 0x%x\n", framebuffer, (int)framebuffer + (1024*768*4));
-    serialPrintf("vesaInit: vbeBuffer is from 0x%x - 0x%x\n", vbeBuffer, (int)vbeBuffer + (1024*768*4));
+    framebuffer = kmalloc(modeWidth*modeHeight*4); // The *4 is for the size of a uint32_t
+
+    serialPrintf("vesaInit: Allocated framebuffer to 0x%x - 0x%x\n", framebuffer, (int)framebuffer + (modeWidth*modeHeight*4));
+    serialPrintf("vesaInit: vbeBuffer is from 0x%x - 0x%x\n", vbeBuffer, (int)vbeBuffer + (modeWidth*modeHeight*4));
 
     // Because framebuffer is big and stupid pmm will get confused and try to still allocate memory INSIDE of it
     // So we need to fix that by telling PMM to go pound sand and deinitialize the region
-    pmm_deinitRegion((uintptr_t)framebuffer, 1024*768*4);
+    pmm_deinitRegion((uintptr_t)framebuffer, modeWidth*modeHeight*4);
 
     // This will stop other functions from trying to initialize VESA.
     VESA_Initialized = true;

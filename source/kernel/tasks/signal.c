@@ -234,6 +234,7 @@ int send_signal(pid_t process, int signal, int force_root) {
 
 // process_check_signals(registers_t *r) - Examines the signal delivery queue and handles
 void process_check_signals(registers_t *r) {
+
 tryagain:
     spinlock_lock(sig_lock);
     if (currentProcess && !(currentProcess->flags & PROCESS_FLAG_FINISHED)) {
@@ -250,6 +251,7 @@ tryagain:
             active_signals >>= 1;
             signal++;
         }
+
     }
     
     spinlock_release(sig_lock);

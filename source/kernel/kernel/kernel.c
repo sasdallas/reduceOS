@@ -94,7 +94,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     extern uint32_t bss_start;
     extern uint32_t bss_end;
 
-
     // ==== MEMORY MANAGEMENT INITIALIZATION ==== 
     // This has to be done before ANYTHING else, because lack of PMM will break a lot of stuff.
     pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
@@ -140,8 +139,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         panic("kernel", "kmain", "loader_magic != 0x43D8C305"); 
     }
 
-    
-    
     // Before CPU initialization can even take place, we should start the clock.
     clock_init();
 

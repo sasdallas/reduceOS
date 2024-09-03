@@ -172,9 +172,15 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
 
 // VGA Text Mode Panic - Halts system and prints out less helpful info
 void vgaTextMode_Panic(char *caller, char *code, char *reason, registers_t *reg, uint32_t faultAddress) {
+    changeTerminalMode(0);
+    initTerminal();
+    clearScreen(COLOR_WHITE, COLOR_RED);
+
+
     serialPrintf("\nWARNING: Exception occurred within VGA text mode, before VBE initialization.\n");
     serialPrintf("As such, debug info will only be printed to console.\n");
-
+    updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
+    
     printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
     for (uint32_t i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" ");
     
