@@ -61,7 +61,8 @@
 			"errno.h": "c",
 			"tree.h": "c",
 			"spinlock.h": "c",
-			"signal.h": "c"
+			"signal.h": "c",
+			"liballoc.h": "c"
 		}
 	}
 }

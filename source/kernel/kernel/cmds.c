@@ -1014,10 +1014,86 @@ int loadModule(int argc, char *args[]) {
         case MODULE_INIT_ERROR:
             printf("Failed to initialize module\n");
             break;
+        case MODULE_EXISTS_ERROR:
+            printf("The module you are trying to load has already been loaded\n");
+            break;
         default:
-            printf("Unknown module error\n");
+            printf("Unknown module error - %i\n", ret);
             break;
     }
 
+    return 0;
+}
+
+int modinfo(int argc, char *args[]) {
+    hashmap_t *module_map = module_getHashmap();
+
+    if (argc > 1) {
+
+        char name[256];
+        memset(name, 0, 256);
+        for (int i = 1; i < argc; i++) {
+            if (strlen(name) + strlen(args[i]) > 256) {
+                printf("Specify shorter name\n");
+                return -1;
+            }
+
+            sprintf(name, "%s %s", name, args[i]);
+        }
+
+        // for some reason, there's a space at the beginning.
+        // stop that (gross code)
+        if (name[0] == ' ') {
+            char *name2 = kmalloc(strlen(name));
+            strcpy(name2, name);
+            strcpy(name, name2+1);
+            kfree(name2);
+        }
+
+        foreach(key, hashmap_keys(module_map)) {
+            if (!strcmp((char*)key->value, name)) {
+                loaded_module_t *moddata = hashmap_get(module_map, key);
+                printf("Information about this module:\n");
+                printf("Name: %s\n", key->value);
+                printf("File size: %i bytes\n", moddata->file_length);
+                printf("Loaded at: 0x%x - 0x%x\n", moddata->load_addr, moddata->load_addr + moddata->load_size);
+                return 0;
+            }
+        }
+
+        printf("No module named '%s' could be found.\n", name);
+        return 0;
+    }
+
+    printf("Information about loaded modules:\n");
+    foreach(key, hashmap_keys(module_map)) {
+        loaded_module_t *module = hashmap_get(module_map, key);        
+        printf("- %s (0x%x - 0x%x)\n", key->value, module->load_addr, module->load_addr + module->load_size);
+    }
+
+    return 0;
+} 
+
+int showmodes(int argc, char *args[]) {
+    vesaPrintModes(true);
+    return 0;
+}
+
+int setmode(int argc, char *args[]) {
+    if (argc < 4) {
+        printf("Usage: setmode <x> <y> <bpp>\n");
+        return 0;
+    }
+    
+    int x_res = (int)strtol(args[1], (char**)NULL, 10);
+    int y_res = (int)strtol(args[2], (char**)NULL, 10);
+    int bpp = (int)strtol(args[3], (char**)NULL, 10);
+
+    uint32_t mode = vbeGetMode(x_res, y_res, bpp);
+    printf("Found mode 0x%x\n", mode);
+
+    vbeSetMode(mode);
+    printf("Done.\n");
+    
     return 0;
 }

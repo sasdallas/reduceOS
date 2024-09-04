@@ -2,6 +2,8 @@
 // ide_ata.c - reduceOS IDE + ATA driver
 // =========================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
+// TODO: This file should be replaced with a global drive interface that will manage VFS and such.
+
 
 #include <kernel/ide_ata.h> // Main header file
 #include <libk_reduced/stdio.h>

@@ -85,7 +85,7 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     loadedModule->load_size = length;
     loadedModule->file_length = modfile->length;
 
-    hashmap_set(module_hashmap, data->name, loadedModule);
+    hashmap_set(module_hashmap, data->name, (void*)loadedModule);
     last_load_address += length;
     if (mdataout != NULL) memcpy(mdataout, data, sizeof(struct Metadata));
     return MODULE_OK;

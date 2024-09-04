@@ -1291,7 +1291,6 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     PUSH(currentProcess->image.userstack, int, 0);
     for (int i = envc; i > 0; i--) {
         PUSH(currentProcess->image.userstack, char*, env_ptrs[i-1]);
-        serialPrintf("pointer for envp 0x%x pushed to 0x%x\n", env_ptrs[i-1], currentProcess->image.userstack);
     }
 
 

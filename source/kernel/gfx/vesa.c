@@ -35,10 +35,10 @@ bool VESA_Initialized = false;
 // For now we use manual swapping, but potentially later PIT will swap each tick.
 
 
-// Static functions
+// Caller functions
 
-// (static) vbeGetInfo() - Gets VBE information.
-static void vbeGetInfo() {
+// vbeGetInfo() - Gets VBE information.
+void vbeGetInfo() {
     // Set up the registers for our INT 0x10 call.
     REGISTERS_16 in, out = {0};
     in.ax = 0x4F00;
@@ -59,8 +59,8 @@ static void vbeGetInfo() {
 }
 
 
-// (static) vbeGetModeInfo(uint16_t mode) - Returns information on a certain mode.
-static int vbeGetModeInfo(uint16_t mode, vbeModeInfo_t *modeInfo) {
+// vbeGetModeInfo(uint16_t mode) - Returns information on a certain mode.
+int vbeGetModeInfo(uint16_t mode, vbeModeInfo_t *modeInfo) {
     // Like before, setup the registers for our INT 0x10 call.
     // This time, however, change AX to be 0x4F01 to signify that we want mode info.
 
@@ -84,7 +84,7 @@ static int vbeGetModeInfo(uint16_t mode, vbeModeInfo_t *modeInfo) {
 }
 
 // DEBUG FUNCTION!!
-void vesaPrintModes() {
+void vesaPrintModes(bool showModesToConsole) {
     uint16_t *modes = (uint16_t*)vbeInfo.videoModePtr;
     uint16_t currentMode = *modes++;
 
@@ -95,8 +95,11 @@ void vesaPrintModes() {
     for (int i = 0; i < 10; i++) {
         int ret = vbeGetModeInfo(currentMode, modeInfo);
         if (ret == 0) serialPrintf("Found mode %d - %d x %d with colordepth %d (mode is 0x%x)\n", currentMode, modeInfo->width, modeInfo->height, modeInfo->bpp, currentMode);
+        if (ret == 0 && showModesToConsole) printf("Found mode %d - %d x %d with colordepth %d (mode is 0x%x)\n", currentMode, modeInfo->width, modeInfo->height, modeInfo->bpp, currentMode);
         currentMode = *modes++;
     }
+
+    kfree(modeInfo);
 }
 
 
@@ -255,8 +258,6 @@ void vesaInit() {
         asm volatile ("hlt");
         for (;;);
     }
-
-    vesaPrintModes();
 
     // Identity map framebuffer!
     vmm_allocateRegion(modeInfo->framebuffer, modeInfo->framebuffer, modeInfo->width*modeInfo->height*4);

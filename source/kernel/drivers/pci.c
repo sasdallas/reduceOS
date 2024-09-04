@@ -2,6 +2,7 @@
 // pci.c - Handles the Peripheral Component Interconnect (PCI) bus
 // ===================================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
+// @warning This file is messy. I recommend you don't use it
 
 // For more information on this topic, check https://wiki.osdev.org/PCI
 
@@ -53,6 +54,7 @@ void pciConfigWrite(uint32_t bus, uint32_t slot, uint32_t offset, uint32_t value
 
 
 // pciConfigReadField(uint32_t device, int field, int size) - A simplified version of pciConfigRead() that will take 3 parameters and read from a PCI device config space field.
+// @todo Remove pciConfigRead
 uint32_t pciConfigReadField(uint32_t device, int field, int size)  {
     outportl(PCI_CONFIG_ADDR, PCI_ADDR(device, field));
 
@@ -69,12 +71,19 @@ uint32_t pciConfigReadField(uint32_t device, int field, int size)  {
     return PCI_NONE; // Error
 }
 
+// pciConfigWriteField(uint32_t device, int field, int size, uint32_t value) - Write a value to the PCI device config space field
+void pciConfigWriteField(uint32_t device, int field, int size, uint32_t value) {
+    outportl(PCI_CONFIG_ADDR, PCI_ADDR(device, field));
+    outportl(PCI_CONFIG_DATA, value);
+}
+
+
 
 /* PCI SCANNING - Scans the PCI buses for devices and calls the given function for each device */
 
 
 // Helper function
-uint16_t pci_find_type(uint32_t dev) {
+uint16_t pciGetType(uint32_t dev) {
 	return (pciConfigReadField(dev, PCI_OFFSET_CLASSID, 1) << 8) | pciConfigReadField(dev, PCI_OFFSET_SUBCLASSID, 1);
 }
 
@@ -90,11 +99,11 @@ static void pciScanHit(pciFunction_t func, uint32_t device, void *extra) {
 void pciScanFunc(pciFunction_t f, int type, int bus, int slot, int func, void *extra) {
     uint32_t dev = (uint32_t)((bus << 16) | (slot << 8) | func);
 
-    if (type == -1 || type == pci_find_type(dev)) {
+    if (type == -1 || type == pciGetType(dev)) {
         pciScanHit(f, dev, extra);
     }
 
-    if (pci_find_type(dev) == PCI_TYPE_BRIDGE) {
+    if (pciGetType(dev) == PCI_TYPE_BRIDGE) {
         // It's a bridge, do more work
         pciScanBus(f, type, pciConfigReadField(dev, PCI_SECONDARY_BUS, 1), extra);
     }
@@ -207,16 +216,18 @@ void initPCI() {
     if (isPCIInitialized) return; // Stupid users
 
     // Allocate memory for devices and drivers
-    pciDrivers = (pciDriver**)kmalloc(32 * sizeof(pciDriver));
+    // pciDrivers is currently unused
+    // pciDrivers = (pciDriver**)kmalloc(32 * sizeof(pciDriver));
 
     // Probe PCI devices
     pciProbeForDevices();
 
     // Make sure the functions know initialization has completed.
     isPCIInitialized = true;
-    printf("PCI handler initialized.\n");
 }
 
+
+// Returns the PciDevTable ID of of something
 int getDevTableId(uint32_t deviceID, uint32_t vendorID) {
     int id = -1;
     for (uint32_t i = 0; i < PCI_DEVTABLE_LEN; i++) {
@@ -229,6 +240,8 @@ int getDevTableId(uint32_t deviceID, uint32_t vendorID) {
     return id;
 }
 
+
+// Returns the class ID type of something
 int getClassIdType(uint16_t classID, uint16_t subclassID) {
     int id = -1;
 
@@ -254,9 +267,9 @@ void printPCIInfo() {
         int id = getDevTableId(pciDevices[i]->device, pciDevices[i]->vendor);
         if (id != -1 && classTypeId != -1) {
             if (!PciClassCodeTable[classTypeId].ProgDesc) {
-                printf("%i) %s %s (%s - %s - %s)\n", i, PciDevTable[id].Chip, PciDevTable[i].ChipDesc, PciClassCodeTable[classTypeId].BaseDesc, PciClassCodeTable[classTypeId].SubDesc, PciClassCodeTable[classTypeId].ProgDesc);
+                printf("%i) %s %s (%s - %s - %s)\n", i, PciDevTable[id].Chip, PciDevTable[id].ChipDesc, PciClassCodeTable[classTypeId].BaseDesc, PciClassCodeTable[classTypeId].SubDesc, PciClassCodeTable[classTypeId].ProgDesc);
             } else {
-                printf("%i) %s %s (%s - %s)\n", i, PciDevTable[id].Chip, PciDevTable[i].ChipDesc, PciClassCodeTable[classTypeId].BaseDesc, PciClassCodeTable[classTypeId].SubDesc);
+                printf("%i) %s %s (%s - %s)\n", i, PciDevTable[id].Chip, PciDevTable[id].ChipDesc, PciClassCodeTable[classTypeId].BaseDesc, PciClassCodeTable[classTypeId].SubDesc);
             }
         } else if (classTypeId != -1) {
             // We don't know the exact device type - that's ok, just print Unknown and the class type

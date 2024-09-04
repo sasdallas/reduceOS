@@ -220,6 +220,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Start the process scheduler
     scheduler_init();
+    printf("Process scheduler initialized.\n");
 
     // ==== FILESYSTEM INITIALIZATION ====
 
@@ -227,16 +228,19 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     vfsInit();
 
     // First, we need to install some filesystem drivers.
+    printf("Preparing filesystem drivers...");
     ext2_install(0, NULL);
     fat_install(0, NULL);
     ide_install(0, NULL);
     tar_install();
+    printf("done\n");
 
     // Then, we need to map the /device/ directory
     vfs_mapDirectory("/device");
 
 
     // Mount the other devices
+    printf("Preparing devices...");
     nulldev_init();             // /device/null
     zerodev_init();             // /device/zero
     serialdev_init();           // /device/serial/COMx           
@@ -248,6 +252,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
 
     console_setOutput(printf_output);
+    printf("done\n");
 
     // Try to find the initial ramdisk (sorry about the messy code)
     int i = 0;
@@ -277,6 +282,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     if (initrd == NULL) {
         panic("kernel", "kmain", "Initial ramdisk not found.");
     }
+
+    printf("Located initial ramdisk successfully.\n");
 
     // Now, we can iterate through each IDE node, mount them to the dev directory, and try to use them as root if needed
     bool rootMounted = false;
@@ -313,6 +320,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     vesa_createVideoDevice("fb0");
 
     debug_print_vfs_tree(false);
+    
+    printf("Mounted IDE nodes successfully.\n");
 
     // For compatibility with our tests, we need to set the ext2_root variable.
     // The user can use the mount_fat command to mount the FAT driver.
@@ -342,6 +351,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         panic("kernel", "kmain", "Failed to get kernel symbols!");
     }
 
+    printf("Debug symbols loaded.\n");
+
 
     // ==== FINAL INITIALIZATION ====
 
@@ -353,12 +364,14 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): %i/%i/%i %i:%i:%i\n", months, days, years, hours, minutes, seconds);
 
     
+    
     // Initialize system calls
     initSyscalls();
 
     // Start the module system
     module_init();
 
+    printf("Kernel loading completed.\n");
     useCommands();
 }
 
@@ -373,12 +386,15 @@ void useCommands() {
     keyboard_clearBuffer(); 
 
     // Modules may want to use registerCommand
+    printf("Preparing command handler...\n");
     initCommandHandler();
 
     // Scan and initialize modules for kernelspace
+    printf("Starting up modules...\n");
     module_parseCFG();
 
 
+    printf("Finishing up...\n");
 
     registerCommand("isr", (command*)testISRException);
     registerCommand("system", (command*)getSystemInformation);
@@ -421,6 +437,11 @@ void useCommands() {
     registerCommand("modload", (command*)loadModule);
     registerCommand("start_process", (command*)makeProcess);
     registerCommand("start_thread", (command*)startThread);
+    registerCommand("modinfo", (command*)modinfo);
+    registerCommand("showmodes", (command*)showmodes);
+    registerCommand("setmode", (command*)setmode);
+    
+
 
     serialPrintf("kmain: All commands registered successfully.\n");
     

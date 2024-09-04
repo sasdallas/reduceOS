@@ -481,8 +481,6 @@ continue_fault:
     // Perform stack trace (note: this might hang) 
     panic_stackTrace(7, reg);
 
-    printf("\nThe system has been halted. Attach debugger now to view context.\n");
-
     
     asm volatile ("hlt");
     for (;;);

@@ -75,5 +75,10 @@ int vbeSwitchBuffers();
 uint32_t VGA_TO_VBE(uint8_t vgaColor);
 uint32_t vbeGetPixel(int x, int y);
 int vesa_createVideoDevice(char *devname);
+void vesaPrintModes(bool showModesToConsole);
+int vbeGetModeInfo(uint16_t mode, vbeModeInfo_t *modeInfo);
+void vbeGetInfo();
+int vbeSetMode(uint32_t mode);
+uint32_t vbeGetMode(uint32_t width, uint32_t height, uint32_t color_depth);
 
 #endif

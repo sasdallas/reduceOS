@@ -45,4 +45,8 @@ int mountTAR(int argc, char *args[]);
 int loadModule(int argc, char *args[]);
 int makeProcess(int argc, char *args[]);
 int startThread(int argc, char *args[]);
+int modinfo(int argc, char *args[]);
+int showmodes(int argc, char *args[]);
+int setmode(int argc, char *args[]);
+
 #endif

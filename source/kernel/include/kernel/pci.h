@@ -96,6 +96,8 @@ typedef void (*pciFunction_t)(uint32_t device, uint16_t vendor_id, uint16_t devi
 void initPCI(); // Initializes the PCI environment (probes devices and stuff)
 void printPCIInfo(); // Prints PCI info
 uint32_t pciConfigReadField(uint32_t device, int field, int size); // A simplified version of pciConfigRead() that will take 3 parameters and read from a PCI device config space field.
+void pciConfigWriteField(uint32_t device, int field, int size, uint32_t value); // Similar to pciConfigReadField, this will write instead.
+uint16_t pciGetType(uint32_t dev); // Returns the PCI type of a device
 void pciScan(pciFunction_t func, int type, void *extra); // Scans the PCI buses for devices (used to implement device discovery)
 int pciGetInterrupt(uint32_t device); // Returns the interrupt of a specific device
 void pciScanBus(pciFunction_t func, int type, int bus, void *extra); // Scan each slot on the bus
