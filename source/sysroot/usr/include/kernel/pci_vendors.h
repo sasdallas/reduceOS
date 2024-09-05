@@ -1,7 +1,7 @@
 // pci_vendors.h - Contains a list of all PCI vendors.
 // I DID NOT MAKE THIS FILE - THE ORIGINAL SOURCE I GOT IT FROM (possibly not the OG source of the list) WAS HERE: https://github.com/RWTH-OS/eduOS/blob/master/arch/x86/kernel/pcihdr.h
 
-
+/* @todo Remove me*/
 
 typedef struct _PCI_VENTABLE
 {

@@ -28,19 +28,60 @@
 #include <kernel/mod.h>
 #include <kernel/pci.h>
 #include <kernel/vmm.h>
+#include <kernel/ide_ata.h>
 
 
-// AHCI uses memoryspace
-static uint32_t ahci_readmem(uintptr_t base, intptr_t offset) {
-    volatile uint32_t *data = (volatile uint32_t *)(base + offset);
-    return *data;
+
+// ahci_getPortType(ahci_hba_port_t *port) - Get the port's type
+static AHCI_DEVTYPE ahci_getPortType(ahci_hba_port_t *port) {
+    uint32_t ssts = port->ssts;
+
+    uint8_t ipm = (ssts >> 8) & 0x0F;
+    uint8_t det = ssts & 0x0F;
+
+    if (det != HBA_PORT_DET_PRESENT) return AHCI_DEV_NONE;
+    if (ipm != HBA_PORT_IPM_ACTIVE) return AHCI_DEV_NONE;
+
+    // Check the port's signature
+    switch (port->sig) {
+        case AHCI_PORTSIG_ATAPI:
+            return AHCI_DEV_SATAPI;
+        case AHCI_PORTSIG_SEMB:
+            return AHCI_DEV_SEMB;
+        case AHCI_PORTSIG_PM:
+            return AHCI_DEV_PM;
+        case AHCI_DEV_NONE:
+            return AHCI_DEV_NONE;
+        default:
+            return AHCI_DEV_SATA;
+    }
 }
 
-static uint32_t ahci_writemem(uintptr_t base, intptr_t offset, uint32_t value) {
-    volatile uint32_t *data = (volatile uint32_t *)(base + offset);
-    *data = value;
+// ahci_probePorts(ahci_hba_mem_t *abar) - Probes the ports at ABAR
+void ahci_probePorts(ahci_hba_mem_t *abar) {
+    uint32_t pi = abar->pi;
+    for (int i = 0; i < 32; i++) {
+        if (pi & 1) {
+            int dt = ahci_getPortType(&abar->ports[i]);
+            switch (dt) {
+                case AHCI_DEV_SATA:
+                    serialPrintf("[module ahci] SATA device found at port %d\n", i);
+                    break;
+                case AHCI_DEV_SATAPI:
+                    serialPrintf("[module ahci] SATAPI device found at port %d\n", i);
+                    break;
+                case AHCI_DEV_SEMB:
+                    serialPrintf("[module ahci] SEMB device found at port %d\n", i);
+                    break;
+                case AHCI_DEV_PM:
+                    serialPrintf("[module ahci] PM device found at port %d\n", i);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 }
-
 
 
 static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, void *extra) {
@@ -63,43 +104,19 @@ static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
     // Use the VMM to map regions
     uint32_t addr = pciConfigReadField(device, PCI_OFFSET_BAR5, 4) & 0xFFFFFFF0;
     vmm_allocateRegionFlags(addr, addr, 0x2000, 1, 1, 0); // do we need usermode? IRQ handler should deal with this
+    
+    ahci_hba_mem_t *mem = (ahci_hba_mem_t*)addr;
 
-    // Read MMIO, we'll use regular address
-    uint32_t enabledPorts = ahci_readmem(addr, 0x0C);
+    uint32_t enabledPorts = mem->ports;
     serialPrintf("[module ahci] Enabled ports = %#x\n", enabledPorts);
 
+    
+
     // Read the AHCI version (debug)
-    uint32_t ahciVersion = ahci_readmem(addr, 0x10);
+    uint32_t ahciVersion = mem->vs;
     serialPrintf("[module ahci] Controller version %d.%d%d\n", (ahciVersion >> 16) & 0xFFF, (ahciVersion >> 8) & 0xFF, (ahciVersion) & 0xFF);
 
-    int offset = 0x100;
-    for (int port = 0; port < 32; port++) {
-        if (enabledPorts & (1UL << port)) {
-            uint32_t portSig = ahci_readmem(addr, offset + 0x24);
-            uint32_t portStatus = ahci_readmem(addr, offset + 0x28);
-
-            serialPrintf("[module ahci] port %d: status     = %#x\n", port, portStatus);
-            serialPrintf("[module ahci] port %d: sig        = %#x\n", port, portSig);
-
-            switch (portSig) {
-                case AHCI_PORTSIG_ATAPI:
-                    serialPrintf("[module ahci]\tATAPI (CD, DVD)\n");
-                    break;
-                case AHCI_PORTSIG_HDD:
-                    serialPrintf("[module ahci]\tHard disk\n");
-                    break;
-                case AHCI_PORTSIG_NONE:
-                    serialPrintf("[module ahci]\tNo devices\n");
-                    break;
-                default:
-                    serialPrintf("[module ahci]\t???\n");
-                    break;
-            }
-        }
-
-        offset += 0x80;
- 
-    }
+    ahci_probePorts(mem);
 }
 
 

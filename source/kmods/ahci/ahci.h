@@ -1,7 +1,7 @@
 // ahci.h - Header file for the AHCI driver
 
-#ifndef AHCI_H
-#define AHCI_H
+#ifndef AHCI_AHCI_H
+#define AHCI_AHCI_H
 
 // Includes
 #include <libk_reduced/stdint.h>
@@ -323,9 +323,27 @@ typedef struct _ahci_hba_cmdtable
 #define AHCI_PXCMD_CR       (1 << 15UL)
 
 // Port signatures
-#define AHCI_PORTSIG_ATAPI  0xEB140101
-#define AHCI_PORTSIG_HDD    0x00000101
-#define AHCI_PORTSIG_NONE   0xFFFF0101
+#define AHCI_PORTSIG_ATAPI  0xEB140101  // SATAPI driver
+#define AHCI_PORTSIG_HDD    0x00000101  // SATA drive
+#define AHCI_PORTSIG_SEMB   0xC33C0101  // Enclosure management bridge
+#define AHCI_PORTSIG_PM     0x96690101  // Port multiplier
+#define AHCI_PORTSIG_NONE   0xFFFF0101  // Nothing lol
+
+// Type of thingy
+typedef enum {
+    AHCI_DEV_NONE    = 0,
+    AHCI_DEV_SATA    = 1,
+    AHCI_DEV_SEMB    = 2,
+    AHCI_DEV_PM      = 3,
+    AHCI_DEV_SATAPI  = 4
+} AHCI_DEVTYPE;
+
+// HBA shenanigans
+#define HBA_PORT_IPM_ACTIVE  1
+#define HBA_PORT_DET_PRESENT 3    
+
+
+
 
 #endif 
 
