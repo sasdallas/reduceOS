@@ -65,13 +65,10 @@ void usb_poll(unsigned long seconds, unsigned long subseconds) {
  */
 
 int usb_init() {
-    usb_DevInit(); // Initialize the device list
-    clock_registerCallback(&usb_poll);
-
-
-    usb_controllers = list_create();
-
-    pciScan(find_usb, -1, NULL);
+    usb_DevInit();                      // Initialize the device list
+    usb_controllers = list_create();    // Initialize the controllers list
+    clock_registerCallback(&usb_poll);  // Register poll method
+    pciScan(find_usb, -1, NULL);        // Scan for USB controllers
 
     return 0;
 }

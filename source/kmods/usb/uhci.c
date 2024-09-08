@@ -28,6 +28,10 @@ void uhci_printQH(uhci_queue_head_t *qh) {
     serialPrintf("[module usb]\tQH 0x%x - head=0x%08x element=0x%08x\n", qh, qh->head_link_ptr, qh->element_link_ptr);
 }
 
+void uhci_printTD(uhci_td_t *td) {
+    serialPrintf("[module usb]\tTD 0x%x - link 0x%08x cs 0x%08x token %08x buffer ptr %08x next %08x\n", td, td->link_ptr, td->cs, td->token, td->buf_ptr, td->tdNext);
+}
+
 /**
  * @brief Write a value to a controller port
  * @param port The port to write to
@@ -146,6 +150,9 @@ static uhci_td_t *uhci_createTD(uhci_td_t *prev,
     
     td->buf_ptr = (uint32_t)data;
 
+    serialPrintf("[module usb]\tTD 0x%x created - prev 0x%x speed 0x%x addr 0x%x endp 0x%x toggle 0x%x packetType 0x%x length 0x%x data 0x%x\n",
+                                td, prev, speed, addr, endp, toggle, packetType, length, data);
+
     return td;
 }
 
@@ -224,7 +231,6 @@ void uhci_handleQH(uhci_t *c, uhci_queue_head_t *qh) {
 
         // When removing we need to find the node that points to our QH and then reset some of its pointers.
         uhci_queue_head_t *prev = (uhci_queue_head_t*)qh_node->prev->value;
-        serialPrintf("[module usb] QH 0x%x from prev node 0x%x is being updated to use head link ptr 0x%x\n", prev, qh_node->prev, qh->head_link_ptr);
         prev->head_link_ptr = qh->head_link_ptr;
         
         list_delete(c->qh_async, qh_node);
@@ -278,6 +284,7 @@ void uhci_control(USBDevice_t *dev, USBTransfer_t *t) {
     uhci_td_t *prev = td;
     uhci_td_t *head = td;
 
+
     // Now let's create the data in/out packets
     uint32_t packetType = type & USB_RT_D2H ? TD_PACKET_IN : TD_PACKET_OUT;
 
@@ -306,7 +313,6 @@ void uhci_control(USBDevice_t *dev, USBTransfer_t *t) {
     // Initialize a queue head
     uhci_queue_head_t *qh = kmalloc(sizeof(uhci_queue_head_t));
     qh->qh_link = list_create();
-    qh->head_link_ptr = td;
     qh->td_head = head;
     qh->transfer = t;
     qh->element_link_ptr = head;
@@ -328,14 +334,8 @@ void uhci_control(USBDevice_t *dev, USBTransfer_t *t) {
 
     list_insert(hc->qh_async, qh);
 
-    serialPrintf("[module usb] QH order updated:\n");
-    foreach(n, hc->qh_async) {
-        uhci_printQH((uhci_queue_head_t*)n->value);
-    }
-
-
     // Wait until the qh is procesed
-    serialPrintf("Done, now waiting for queue to process...\n");
+    serialPrintf("[module usb] Done, now waiting for queue to process...\n");
     uhci_waitQH(hc, qh);
 }
 
@@ -349,7 +349,6 @@ void uhci_control(USBDevice_t *dev, USBTransfer_t *t) {
  */
 void uhci_poll(USBController_t *controller) {
     uhci_t *c = (uhci_t*)controller->hc;
-    //serialPrintf("erm... what the sigma? HC=0x%x QH_ASYNC=0x%x BIO=0x%x\n", c, c->qh_async, c->io_addr);
 
     foreach(qh_node, c->qh_async) {
         uhci_queue_head_t *qh = (uhci_queue_head_t*)qh_node->value;
@@ -424,6 +423,8 @@ void uhci_probe(uhci_t *c) {
             dev->controller = c;
             dev->port = port;
             dev->speed = speed;
+
+            
             dev->maxPacketSize = 8;
 
             dev->control = uhci_control;
@@ -471,7 +472,6 @@ void uhci_init(uint32_t device) {
     list_insert(c->qh_async, qh);
 
     c->frame_list = pmm_allocateBlocks((1024 * sizeof(uint32_t)) / 4096);
-    serialPrintf("Pushing the value 0x%x to 0x%x\n", (UHCI_TD_PTR_QH | ((uint32_t)qh << 4)), c->frame_list);
 
     for (int i = 0; i < 1024; i++) {
         c->frame_list[i] = UHCI_TD_PTR_QH | ((uint32_t)qh);

@@ -175,6 +175,6 @@ typedef struct _uhci {
 /**** Functions ****/
 
 void uhci_init(uint32_t device);
-
+uint32_t uhci_resetPort(uhci_t *c, uint32_t port);
 
 #endif

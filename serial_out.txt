@@ -2,7 +2,7 @@ Serial logging started on COM1.
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 9327-DEBUG, compiled on 09/07/24, 13:18:54
+	Build 9381-DEBUG, compiled on 09/08/24, 10:29:50
 ============================================================================================================================
 
 Kernel location: 0x100000 - 0x1c537c
@@ -12,8 +12,8 @@ Text section: 0x100000 - 0x129000; Data section: 0x1b6000 - 0x1bd440; BSS sectio
 Serial logging initialized!
 clock: Initializing clock system...
 clock: TSC calculated speed is 11 MHz
-clock: Boot time is 1723036842s (UNIX timestamp).
-clock: Initial TSC timestamp was 15497049us
+clock: Boot time is 1723113091s (UNIX timestamp).
+clock: Initial TSC timestamp was 13409391us
 acpiInit: Found RSDP signature at 0xfa330
 acpiParseRSDP: (dbg) OEM is BOCHS 
 acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
@@ -100,7 +100,7 @@ Text section: 0x100000 - 0x129000; Data section: 0x1b6000 - 0x1bd440; BSS sectio
 vfs_mountType: Mounted tar[/device/modules/mod0] to /device/initrd: 0x24660
 ksym_bind_symbols: read file
 ksym_bind_symbols: Early termination, assuming symbols populated.
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 9/7/2024 13:21:36
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 9/8/2024 10:32:25
 kmain: Memory management online with 31044 KB of physical memory
 module_parseCFG: Loading module '/boot/modules/example.mod' with priority LOW...
 module_load: Loading module 'Example Module'...
@@ -124,58 +124,57 @@ Text section: 0x100000 - 0x129000; Data section: 0x1b6000 - 0x1bd440; BSS sectio
 module_load: Loading module 'USB Driver'...
 [module usb] Found a UHCI controller
 [module usb] Initializing UHCI controller on PCI device 0x102...
-Pushing the value 0x668d202 to 0x7000
 [module usb]	Probe for UHCI device start (BIO = 0xc020)...
 [module usb] UHCI resetting port 0xc030
 [module usb] UHCI driver found that a USB device on port 0x0 with speed 0x0 is available
-[module usb] Initializing device (dev->controller = 0x668cd0)...
-[module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x8 type=0x80 length=0x8
-[module usb] QH order updated:
-[module usb]	QH 0x668d20 - head=0x0066bc32 element=0x00000001
-[module usb]	QH 0x66bc30 - head=0x00000001 element=0x00000001
-Done, now waiting for queue to process...
+[module usb] Initializing device (speed = 0x0)...
+[module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x40 type=0x80 length=0x8
+[module usb]	TD 0x66bd50 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
+[module usb]	TD 0x66bda0 created - prev 0x66bd50 speed 0x0 addr 0x0 endp 0x0 toggle 0x9 packetType 0x69 length 0x7 data 0x1c4f92
+[module usb]	TD 0x66bdf0 created - prev 0x66bda0 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
+[module usb] Done, now waiting for queue to process...
 [module usb] UHCI transfer completed
-[module usb] QH 0x668d20 from prev node 0x668e10 is being updated to use head link ptr 0x1
+[module usb] Request USB_REQ_GET_DESC completed. Device descriptor:
+[module usb]	Device descriptor - length 0x12 type 0x1 spec 0x101 devclass 0x0 devsubclass 0x0 protocol 0x0 mps 0x8
+[module usb] UHCI resetting port 0xc030
 [module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x8 type=0x0 length=0x0
-[module usb] QH order updated:
-[module usb]	QH 0x668d20 - head=0x0066bbe2 element=0x00000001
-[module usb]	QH 0x66bbe0 - head=0x00000001 element=0x00000001
-Done, now waiting for queue to process...
+[module usb]	TD 0x66bd50 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
+[module usb]	TD 0x66bda0 created - prev 0x66bd50 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0x69 length 0x7ff data 0x0
+[module usb] Done, now waiting for queue to process...
 [module usb] UHCI transfer completed
-[module usb] QH 0x668d20 from prev node 0x668e10 is being updated to use head link ptr 0x1
-[module usb]	UHCI request: speed=0 addr=0x4728203a endp=0x0 maxSize=0x8 type=0x80 length=0x8
-[module usb] QH order updated:
-[module usb]	QH 0x668d20 - head=0x0066bdb2 element=0x00000001
-[module usb]	QH 0x66bdb0 - head=0x00000001 element=0x0066bb50
-Done, now waiting for queue to process...
+[module usb]	UHCI request: speed=0 addr=0x4728203a endp=0x0 maxSize=0x8 type=0x80 length=0x12
+[module usb]	TD 0x66bd50 created - prev 0x0 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
+[module usb]	TD 0x66bda0 created - prev 0x66bd50 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x13 packetType 0x69 length 0x7 data 0x1c4f92
+[module usb]	TD 0x66bdf0 created - prev 0x66bda0 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x12 packetType 0x69 length 0x7 data 0x1c4f9a
+[module usb]	TD 0x66be40 created - prev 0x66bdf0 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x13 packetType 0x69 length 0x1 data 0x1c4fa2
+[module usb]	TD 0x66bfc0 created - prev 0x66be40 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
+[module usb] Done, now waiting for queue to process...
 [module usb] UHCI controller detected TD stall
 [module usb] UHCI transfer completed
-[module usb] QH 0x668d20 from prev node 0x668e10 is being updated to use head link ptr 0x1
 [module usb] UHCI resetting port 0xc032
 [module usb] UHCI driver found that a USB device on port 0x1 with speed 0x0 is available
-[module usb] Initializing device (dev->controller = 0x668cd0)...
-[module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x8 type=0x80 length=0x8
-[module usb] QH order updated:
-[module usb]	QH 0x668d20 - head=0x0066bef2 element=0x00000001
-[module usb]	QH 0x66bef0 - head=0x00000001 element=0x00000001
-Done, now waiting for queue to process...
+[module usb] Initializing device (speed = 0x0)...
+[module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x40 type=0x80 length=0x8
+[module usb]	TD 0x66be10 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
+[module usb]	TD 0x66bfc0 created - prev 0x66be10 speed 0x0 addr 0x0 endp 0x0 toggle 0x9 packetType 0x69 length 0x7 data 0x1c4f92
+[module usb]	TD 0x66c010 created - prev 0x66bfc0 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
+[module usb] Done, now waiting for queue to process...
 [module usb] UHCI transfer completed
-[module usb] QH 0x668d20 from prev node 0x668e10 is being updated to use head link ptr 0x1
+[module usb] Request USB_REQ_GET_DESC completed. Device descriptor:
+[module usb]	Device descriptor - length 0x12 type 0x1 spec 0x101 devclass 0x0 devsubclass 0x0 protocol 0x0 mps 0x40
+[module usb] UHCI resetting port 0xc032
 [module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x40 type=0x0 length=0x0
-[module usb] QH order updated:
-[module usb]	QH 0x668d20 - head=0x0066beb2 element=0x00000001
-[module usb]	QH 0x66beb0 - head=0x00000001 element=0x00000001
-Done, now waiting for queue to process...
+[module usb]	TD 0x66be10 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
+[module usb]	TD 0x66bfc0 created - prev 0x66be10 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0x69 length 0x7ff data 0x0
+[module usb] Done, now waiting for queue to process...
 [module usb] UHCI transfer completed
-[module usb] QH 0x668d20 from prev node 0x668e10 is being updated to use head link ptr 0x1
-[module usb]	UHCI request: speed=0 addr=0x4728203b endp=0x0 maxSize=0x40 type=0x80 length=0x8
-[module usb] QH order updated:
-[module usb]	QH 0x668d20 - head=0x0066c082 element=0x00000001
-[module usb]	QH 0x66c080 - head=0x00000001 element=0x0066bdb0
-Done, now waiting for queue to process...
+[module usb]	UHCI request: speed=0 addr=0x4728203b endp=0x0 maxSize=0x40 type=0x80 length=0x12
+[module usb]	TD 0x66be10 created - prev 0x0 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
+[module usb]	TD 0x66bfc0 created - prev 0x66be10 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x13 packetType 0x69 length 0x11 data 0x1c4f92
+[module usb]	TD 0x66c140 created - prev 0x66bfc0 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
+[module usb] Done, now waiting for queue to process...
 [module usb] UHCI controller detected TD stall
 [module usb] UHCI transfer completed
-[module usb] QH 0x668d20 from prev node 0x668e10 is being updated to use head link ptr 0x1
 kmain: All commands registered successfully.
 kmain: Shell ready
 

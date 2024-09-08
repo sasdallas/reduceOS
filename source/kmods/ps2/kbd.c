@@ -31,16 +31,16 @@ static void keyboardHandler(registers_t *r) {
         }
         
         if (scancode == 0x9D) {
-            setKBCtrl(true);
+            setKBCtrl(false);
         }
         ch = '\0';
     } else {
         switch (scancode) {
             case SCANCODE_CAPSLOCK:
                 ch = '\0';
-                if (getKBCtrl()) { setKBCtrl(false); } // Caps lock release event
+                if (getKBCapsLock()) { setKBCapsLock(false); } // Caps lock release event
                 else {
-                    setKBCtrl(true);
+                    setKBCapsLock(true);
                 }
                 break;
             

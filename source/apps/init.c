@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
         int cargc = 1;
         execve("/stage2", cargv, cargc);
 
-        fprintf(stderr, "child process execve failed or succeeded lmfao fuck everything idk\n");
+        fprintf(stderr, "child process execve failed or succeeded\n");
 
         // Failed?
         exit(0);

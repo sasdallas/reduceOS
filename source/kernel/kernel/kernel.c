@@ -287,6 +287,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     printf("Located initial ramdisk successfully.\n");
 
+
     // Now, we can iterate through each IDE node, mount them to the dev directory, and try to use them as root if needed
     bool rootMounted = false;
     for (int i = 0; i < 4; i++) {
@@ -477,5 +478,6 @@ void kshell() {
         printf(getShell());
         keyboardGetLine(buffer);
         parseCommand(buffer);
+        updateShell();
     }
 }

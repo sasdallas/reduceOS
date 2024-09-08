@@ -32,7 +32,7 @@ Newlib will place its header files under `sysroot/usr/include/`. **Under no circ
 
 PSF files are placed under `sysroot/usr/fonts/`.
 
-The compiled `libc_reduced.a` is placed under `sysroot/usr/lib`, and this path is included in the compiler options for the kernel.
+The compiled `libk_reduced.a` is placed under `sysroot/usr/lib`, and this path is included in the compiler options for the kernel.
 
 The initial ramdisk and the kernel are placed under `sysroot/boot/`.
 
@@ -51,8 +51,9 @@ reduceOS will automatically load and handle your modules without needing to modi
 - **High priority:** EXT2 driver crashes during memory dumping.
 - **High priority:** ATAPI drives cannot be read
 - **Requires further debugging:** Loading bitmaps cause more memory leaks than the Titanic had, and if you try to free buffers they crash. 
-- **Unknown if true:** The OS appears to be very unstable with the heavy use of `uint32_t` and not arch-independent types.
+- **Medium Priority:** Bochs does not clock handler functions
 - **Medium Priority:** Memory dumping doesn't entirely work
+- **TODO:** Merge USB driver handling into kernel
 - **TODO:** device/ directory is not present when running `ls`
 - **TODO:** DMA in IDE/ATA driver
 - **TODO:** System calls need a better interface(?)

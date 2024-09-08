@@ -89,6 +89,11 @@ int parseCommand(char *cmd) {
 
     if (argc == -1) return -1;
    
+    // Before we call the command, disable the shell on the kernel.
+    char *oldshell = kmalloc(strlen(getShell()));
+    strcpy(oldshell, getShell()); // Man I wish we had strdup...
+    enableShell("");
+
 
     for (int i = 0; i < 1024; i++) {
         cmdData *data = &cmdFunctions[i];
@@ -100,6 +105,10 @@ int parseCommand(char *cmd) {
                 // Free the memory allocated for the parsed command
                 for (int arg = 0; arg < argc; arg++) kfree(argv[arg]);
                 kfree(argv);
+
+                // Now, re-enable the shell
+                enableShell(oldshell);
+
                 return ret;
             }
         }
@@ -107,9 +116,15 @@ int parseCommand(char *cmd) {
 
 
     int fileret = executeCommandAsFile(argc, argv);
+    
+    // Now, re-enable the shell
+    enableShell(oldshell);
+
     if (fileret != -EINVAL) {
         return fileret;
     }
+
+    
 
     printf("Unknown command - %s\n", cmd);
     return 0;
