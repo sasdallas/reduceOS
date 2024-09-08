@@ -40,5 +40,6 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
 void module_parseCFG();
 hashmap_t *module_getHashmap();
 void module_init();
+uint32_t module_getLoadAddress(char *modulename);
 
 #endif

@@ -14,7 +14,7 @@ void deinit() {
 
 
 struct Metadata data = {
-    .name = "PS/2 Module",
+    .name = "PS/2 Driver",
     .description = "PS/2 driver for reduceOS",
     .init = init,
     .deinit = deinit

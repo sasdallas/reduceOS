@@ -254,6 +254,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     console_setOutput(printf_output);
     printf("done\n");
 
+    serial_changeCOM(SERIAL_COM1); // Bochs bugs out without this
+
     // Try to find the initial ramdisk (sorry about the messy code)
     int i = 0;
     fsNode_t *initrd = NULL;

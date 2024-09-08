@@ -264,6 +264,17 @@ hashmap_t *module_getHashmap() {
     return module_hashmap;
 }
 
+// module_getLoadAddress(char *modulename) - Gets the base load address for a module
+uint32_t module_getLoadAddress(char *modulename) {
+    // Try to find the module
+    loaded_module_t *module = (loaded_module_t*)hashmap_get(module_hashmap, modulename);
+    if (!module) {
+        return NULL; // Pray to the HEAVENS that this works...
+    } else {
+        return module->load_addr;
+    }
+}
+
 // module_init() - Starts the module handler
 void module_init() {
     module_hashmap = hashmap_create(10);

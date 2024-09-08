@@ -61,7 +61,7 @@ uint16_t inportw(uint16_t port) {
 
 // outportw(unsigned short port, unsigned short data) - Writes word to device
 void outportw(uint16_t port, uint16_t data) {
-    asm volatile ("outl %%eax, %%dx" :: "Nd"(port), "a"(data));
+    asm volatile ("outw %%eax, %%dx" :: "Nd"(port), "a"(data));
 }
 
 // void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) - Returns an assembly cpuid instruction's results.

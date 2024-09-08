@@ -16,8 +16,6 @@ bool isPCIInitialized = false; // In case a function is ever called before initP
 pciDevice *pciDevices[32];
 uint32_t dev_idx = 0;
 
-pciDriver **pciDrivers = 0;
-uint32_t drv_idx = 0;
 
 // pciConfigRead(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset) - Handles reading a PCI configuration.
 uint32_t pciConfigRead(uint16_t bus, uint16_t slot, uint16_t func, uint16_t offset) {
@@ -77,6 +75,50 @@ void pciConfigWriteField(uint32_t device, int field, int size, uint32_t value) {
     outportl(PCI_CONFIG_DATA, value);
 }
 
+
+
+/* PCI BARs - Handles base address registers */
+
+pciBar_t *pciGetBAR(uint32_t device, int bar) {
+    pciBar_t *out = kmalloc(sizeof(pciBar_t));
+
+    // Read in the BAR itself first
+    uint32_t bar_address = pciConfigReadField(device, bar, 4);
+
+    // Now read in the BAR size
+    pciConfigWriteField(device, bar, 4, 0xFFFFFFFF);
+    uint32_t bar_size = pciConfigReadField(device, bar, 4);
+    pciConfigWriteField(device, bar, 4, bar_address);
+
+    // There are three types of BARs (that we need to handle) - 64-bit MMIO, I/O registers, and 32-bit MMIO
+    // Each needs to be handled differently
+    if (bar_address & PCI_BAR_MMIO64) {
+        // This is a 64-bit value, we'll have to read in both.
+        uint32_t bar_addressHigh = pciConfigReadField(device, bar + 1, 4);
+        pciConfigWriteField(device, bar + 1, 4, 0xFFFFFFFF);
+        uint32_t bar_sizeHigh = pciConfigReadField(device, bar + 1, 4);
+        pciConfigWriteField(device, bar + 1, 4, bar_addressHigh);
+
+        // Setup values
+        #pragma GCC diagnostic ignored "-Wint-conversion" // BUG
+        out->barAddress = (((uint64_t)bar_addressHigh << 32) | (bar_address & ~0xF)); // Remember to clear the lower 4 bits!
+        out->size = ~(((uint64_t)bar_sizeHigh << 32) | (bar_size & ~0xF)) + 1;
+        out->flags = bar_address & 0xF; // The lower 4-bits are the flags
+    } else if (bar_address & PCI_BAR_IO) {
+        // This is an I/O register (last two bits are flags)
+        // GCC will not stop whining about an "invalid type conversion" without having a completely separate port...
+        out->port =  (uint16_t)(bar_address & ~0x3);
+        out->size = (uint16_t)(~(bar_size & ~0x3) + 1);
+        out->flags = bar_address & 0x3;
+    } else {
+        // Assume this is a 32-bit MMIO BAR (lower 4 bits are flags)
+        out->barAddress = (void*)(bar_address & ~0xF);
+        out->size = ~(bar_size & ~0xF) + 1;
+        out->flags = bar_address & 0xF;
+    }
+
+    return out;
+}
 
 
 /* PCI SCANNING - Scans the PCI buses for devices and calls the given function for each device */
@@ -197,7 +239,6 @@ void pciProbeForDevices() {
 
                 pciDevice *dev = (pciDevice*)kmalloc(sizeof(pciDevice));
                 dev->device = deviceID;
-                dev->driver = 0;
                 dev->func = func;
                 dev->vendor = vendor;
                 dev->bus = bus;
@@ -214,10 +255,6 @@ void pciProbeForDevices() {
 
 void initPCI() {
     if (isPCIInitialized) return; // Stupid users
-
-    // Allocate memory for devices and drivers
-    // pciDrivers is currently unused
-    // pciDrivers = (pciDriver**)kmalloc(32 * sizeof(pciDriver));
 
     // Probe PCI devices
     pciProbeForDevices();

@@ -34,6 +34,9 @@ typedef struct _uhci_td {
     volatile uint32_t cs;
     volatile uint32_t token;
     volatile uint32_t buf_ptr;
+
+    // We'll have to have a tdNext object which will define the next TD in the line
+    uint32_t tdNext;
 } uhci_td_t;
 
 // Link pointer
@@ -87,7 +90,7 @@ typedef struct _uhci_queue_head {
     // Driver specific shenanigans
     USBTransfer_t *transfer;
     list_t *qh_link;
-    uint32_t td_head;
+    uint32_t td_head; // Normally, I would use a list, but this is more of a chain situation. A list would fit qh_link better.
     uint32_t active;
     uint32_t padding[24]; // Padding so this can still be typecasted
 } uhci_queue_head_t;
@@ -165,7 +168,7 @@ typedef struct _uhci {
     uint32_t            *frame_list;
     uhci_queue_head_t   *qh_pool;
     uhci_td_t           *td_pool;
-    uhci_queue_head_t   *qh_async;
+    list_t              *qh_async;
 } uhci_t;
 
 

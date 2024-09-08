@@ -44,6 +44,6 @@ void list_merge(list_t * target, list_t * source);
 
 void list_append_after(list_t * list, node_t * before, node_t * node);
 void list_insert_after(list_t * list, node_t * before, void * item);
-
+void list_insert_before(list_t * list, node_t * after, void * item);
 
 #endif

@@ -270,7 +270,7 @@ void clock_update() {
 
     // Let's go through each callback and call it
     for (int i = 0; i < callback_index; i++) {
-        clock_callback_func func = callbacks[callback_index];
+        clock_callback_func func = callbacks[i];
         func(timer_ticks, timer_subticks);
     }
 

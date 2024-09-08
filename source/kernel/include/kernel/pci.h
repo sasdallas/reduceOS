@@ -52,18 +52,20 @@
 #define PCI_NONE                    0xFFFF
 
 
+// BAR flags
+#define PCI_BAR_IO                  0x01
+#define PCI_BAR_MEMLO               0x02
+#define PCI_BAR_MMIO64              0x04
+#define PCI_BAR_PREFETCH            0x08
+
 
 // Typedefs
-
-struct __pciDriver; // Hack to make pciDevice work
-
 typedef struct {
     uint32_t bus;
     uint32_t slot;
     uint32_t vendor;
     uint32_t device;
     uint32_t func;
-    struct __pciDriver *driver;
 } pciDevice;
 
 typedef struct {
@@ -72,16 +74,14 @@ typedef struct {
     uint32_t func;
 } pciDeviceID;
 
-typedef struct __pciDriver {
-    pciDeviceID devId;
-    char *deviceName;
-    uint8_t (*initDevice)(pciDevice*);
-    uint8_t (*initDriver)(void);
-    uint8_t (*stopDriver)(void);    
-} pciDriver;
-
-
 typedef void (*pciFunction_t)(uint32_t device, uint16_t vendor_id, uint16_t device_id, void * extra);
+
+typedef struct _pciBar {
+    void    *barAddress;    // The address of the BAR.
+    uint16_t port;
+    uint16_t flags;         // BAR flags
+    uint64_t size;          // Size of the BAR
+} pciBar_t;
 
 // Macros
 #define PCI_BUS(device) (uint8_t)((device >> 16))
@@ -103,4 +103,5 @@ int pciGetInterrupt(uint32_t device); // Returns the interrupt of a specific dev
 void pciScanBus(pciFunction_t func, int type, int bus, void *extra); // Scan each slot on the bus
 void pciScanSlot(pciFunction_t func, int type, int bus, int slot, void *extra); // Scan specific slot
 void pciScanFunc(pciFunction_t f, int type, int bus, int slot, int func, void *extra); // Scanning the function of a PCI device
+pciBar_t *pciGetBAR(uint32_t device, int bar); // Returns the base address register
 #endif

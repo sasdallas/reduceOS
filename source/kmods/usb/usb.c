@@ -14,30 +14,78 @@
  */
 
 #include "uhci.h"
+#include "usb.h"
 #include <kernel/mod.h>
-#include <kernel/pit.h>
+#include <kernel/clock.h>
 #include <kernel/pci.h>
 
+static list_t *usb_controllers;
+
 static void find_usb(uint32_t device, uint16_t vendorID, uint16_t deviceID, void *extra) {
-    if (pciGetType(device) != 0x0C03 && pciConfigReadField(device, PCI_OFFSET_PROGIF, 4) != 0x00) return;
+    if (pciGetType(device) == 0x0C03 && pciConfigReadField(device, PCI_OFFSET_PROGIF, 1) == 0x00) {
+        serialPrintf("[module usb] Found a UHCI controller\n");
+        uhci_init(device);
+    }
 
-    serialPrintf("[module usb] Found a UHCI controller\n");
-    uhci_init(device);
-
+    if (pciGetType(device) == 0x0C03 && pciConfigReadField(device, PCI_OFFSET_PROGIF, 1) == 0x20) {
+        serialPrintf("[module usb] Found an EHCI controller\n");
+    }
 }
 
+/**
+ * @brief Add a controller to the USB controller list
+ */
+void usb_addController(USBController_t *controller) {
+    list_insert(usb_controllers, controller);
+}
+
+
+/**
+ * @brief USB poll method
+ */
+void usb_poll(unsigned long seconds, unsigned long subseconds) {
+
+    foreach(hcnode, usb_controllers) {
+        USBController_t *hc = (USBController_t*)hcnode->value;
+        hc->poll(hc);
+    }
+
+    list_t *usblist = usb_getUSBDeviceList();
+    foreach(devnode, usblist) {
+        USBDevice_t *dev = (USBDevice_t*)devnode->value;
+        if (dev->poll) {
+            dev->poll(dev);
+        }
+    }
+}
+
+
+/**
+ * @brief Initialize the USB module
+ */
+
 int usb_init() {
+    usb_DevInit(); // Initialize the device list
+    clock_registerCallback(&usb_poll);
+
+
+    usb_controllers = list_create();
+
     pciScan(find_usb, -1, NULL);
 
     return 0;
 }
 
+
+/**
+ * @brief Deinitialize the USB module
+ */
 void usb_deinit() {
 
 }
 
 struct Metadata data = {
-    .name = "USB driver",
+    .name = "USB Driver",
     .description = "reduceOS Universal Serial Bus driver",
     .init = usb_init,
     .deinit = usb_deinit

@@ -7,6 +7,7 @@
 #include "desc.h"
 #include "req.h"
 #include <libk_reduced/stdint.h>
+#include <kernel/list.h>
 
 /**** Definitions ****/
 
@@ -41,6 +42,7 @@ typedef void (*hc_interface_t)(struct USBDevice *dev, USBTransfer_t *transfer);
 
 typedef void (*hc_poll_t)(struct USBDevice *dev);
 
+typedef void (*poll_t)(struct USBController *hc);
 
 // Device itself
 typedef struct USBDevice {
@@ -62,9 +64,18 @@ typedef struct USBDevice {
     hc_poll_t           poll;           // USB poll method
 } USBDevice_t;
 
-// We'll keep a list for now
-extern USBDevice_t *USBDeviceList;
+// A minified stripped down controller object that is used in the global USB driver
+typedef struct USBController {
+    void                *hc;
+    poll_t               poll;
+} USBController_t;
 
-
+// Functions
+void usb_DevInit();
+USBDevice_t *usb_createDevice();
+int usb_initDevice(USBDevice_t *dev);
+int usb_request(USBDevice_t *dev, uint32_t type, uint32_t request,
+                uint32_t value, uint32_t index, uint32_t length, void *data);
+list_t *usb_getUSBDeviceList();
 
 #endif 

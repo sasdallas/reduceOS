@@ -26,6 +26,7 @@ optramimage2: file=none
 optramimage3: file=none
 optramimage4: file=none
 pci: enabled=1, chipset=i440fx, slot1=pcivga, slot2=none, slot3=none, slot4=none, slot5=none
+usb_uhci: port1=mouse, port2=disk, options2="path:ext2.img"
 vga: extension=vbe, update_freq=5, realtime=1, ddc=builtin
 cpu: count=1, ips=12000000, model=bx_generic, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
 cpuid: level=6, stepping=3, model=3, family=6, vendor_string="AuthenticAMD", brand_string="AMD Athlon(tm) processor"
@@ -42,7 +43,7 @@ clock: sync=none, time0=local, rtc_sync=0
 # no cmosimage
 log: -
 logprefix: %t%e%d
-debug: action=ignore, dma=report, floppy=report, pit=ignore, harddrv=ignore, serial=ignore, pit82c54=ignore, pic=report
+debug: action=ignore, dma=report, floppy=report, pit=ignore, harddrv=ignore, serial=ignore, pit82c54=ignore, pic=ignore, usb_uhci=report, pci=report
 info: action=report
 error: action=report
 panic: action=ask
@@ -52,6 +53,6 @@ speaker: enabled=true, mode=system
 parport1: enabled=true, file=none
 parport2: enabled=false
 com1: enabled=true, mode=file, dev="serial_out.txt"
-com2: enabled=false
+com2: enabled=true, mode=file, dev="serial_out2.txt"
 com3: enabled=false
 com4: enabled=false

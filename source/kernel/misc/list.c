@@ -81,6 +81,37 @@ void list_append_after(list_t *list, node_t *before, node_t *node) {
     list->length++;
 }
 
+
+// list_append_before(list_t *list, node_t *after, node_t *node) - Append before a node
+void list_append_before(list_t *list, node_t *after, node_t *node) {
+    node->owner = list;
+
+    if (!list->length) {
+        list_append(list, node);
+        return;
+    }
+
+    if (after == NULL) {
+        node->next = NULL;
+        node->prev = list->tail;
+        list->tail->next = node;
+        list->tail = node;
+        list->length++;
+        return;
+    }
+
+    if (after == list->head) {
+        list->head = node;
+    } else {
+        after->prev->next = node;
+        node->prev = after->prev;
+    }
+
+    node->next = after;
+    after->prev =  node;
+    list->length++;
+}
+
 // list_insert_after(list_t *list, node_t *before, void *item) - Insert after a node
 void list_insert_after(list_t *list, node_t *before, void *item) {
     node_t *node = kmalloc(sizeof(node_t));
@@ -89,6 +120,16 @@ void list_insert_after(list_t *list, node_t *before, void *item) {
     node->prev = NULL;
     node->owner = NULL;
     list_append_after(list, before, node);
+}
+
+// list_insert_before(list_t *list, node_t *after, void *item) - Insert before a node
+void list_insert_before(list_t *list, node_t *after, void *item) {
+    node_t *node = kmalloc(sizeof(node_t));
+    node->value = item;
+    node->next = NULL;
+    node->prev = NULL;
+    node->owner = NULL;
+    list_append_before(list, after, node);
 }
 
 // list_create() - Create a new list
