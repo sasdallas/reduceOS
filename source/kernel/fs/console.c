@@ -6,7 +6,6 @@
 
 // TODO: This file should be integrated into debugdev, or vice versa. There is no need to have two of them.
 
-
 #include <libk_reduced/stdarg.h>
 #include <kernel/process.h>
 #include <kernel/vfs.h>

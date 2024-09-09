@@ -337,11 +337,14 @@ void vmmInit() {
         table->entries[PAGETBL_INDEX(virt)] = page;
     }
     
-    // Remove the present flag for the first 4KB, for debugging, as if a pointer goes to 0x0, we'll know
+    // Remove the user flag for the first 4KB, for debugging, as if a pointer goes to 0x0, we'll know
     /*pte_t page = 0;
     pte_setframe(&page, 0x0);
-    if (pte_ispresent(page)) pte_delattrib(page, PTE_PRESENT);
-    if (pte_iswritable(page)) pte_delattrib(page, PTE_WRITABLE);
+    //if (pte_ispresent(page)) pte_delattrib(&page, PTE_PRESENT);
+    //if (pte_iswritable(page)) pte_delattrib(&page, PTE_WRITABLE);
+    pte_addattrib(&page, PTE_PRESENT);
+    pte_addattrib(&page, PTE_WRITABLE);
+    pte_delattrib(&page, PTE_USER);
 
     table->entries[PAGETBL_INDEX(0x00000000)] = page;*/
 

@@ -6,3 +6,5 @@
 #include <kernel/ttydev.h>
 #include <kernel/ringbuffer.h>
 #include <kernel/vfs.h>
+#include <libk_reduced/termios.h>
+

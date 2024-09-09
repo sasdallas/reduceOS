@@ -15,6 +15,7 @@
 #include <kernel/keyboard.h>
 #include <kernel/terminal.h>
 #include <kernel/process.h>
+#include <kernel/signal.h>
 #include <libk_reduced/stdio.h>
 
 #include <libk_reduced/time.h>
@@ -260,7 +261,7 @@ void panic_dumpStack(registers_t *r) {
     printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     printf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
 
-    serialPrintf("STACK DUMP:\n");
+    serialPrintf("REGISTER DUMP:\n");
     serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
     serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     serialPrintf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
@@ -291,7 +292,7 @@ void panic(char *caller, char *code, char *reason) {
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** [%s] %s: %s\n", caller, code, reason);
-    serialPrintf("panic type: kernel panic\n");
+    serialPrintf("panic type: kernel panic\n\n");
 
 
     setKBHandler(false);
@@ -391,11 +392,18 @@ void panicReg(char *caller, char *code, char *reason, registers_t *reg) {
 
 
 
-// Oh no! We encountered a page fault!
+// Page fault handler (TODO: Replace this with something using panic_prepare())
 void pageFault(registers_t *reg) {
     // Get the faulting address from CR2
     uint32_t faultAddress;
     asm volatile("mov %%cr2, %0" : "=r" (faultAddress));
+
+    // Magic signal address
+    if (faultAddress == 0x516)  {
+        serialPrintf("Returning from a signal handler\n");
+        restore_from_signal_handler(reg);
+        return;
+    }
 
     // See syscall.c for an explanation on how this works
     // We'll map more stack and quietly return
@@ -421,6 +429,15 @@ void pageFault(registers_t *reg) {
         return;
     }
 
+    // Only faults in the kernel are critical. If it was a usermode process, we don't care.
+    if (reg->cs != 0x08) {
+        // stupid processes
+        serialPrintf("pageFault: Current process attempted to access a bad memory address (0x%x)\n", faultAddress);
+        send_signal(currentProcess->id, SIGSEGV, 1);
+        return;
+    }
+
+    
 continue_fault:
     
 

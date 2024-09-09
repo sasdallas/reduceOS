@@ -5,8 +5,11 @@
 #define FB_H
 
 // Includes
+#ifdef __KERNEL__
 #include <libk_reduced/stdint.h>
-
+#else
+#include <stdint.h>
+#endif
 
 // Definitions
 #define FBIOGET_SCREENW     0x4600      // Get screen width

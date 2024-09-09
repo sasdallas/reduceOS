@@ -4,7 +4,7 @@
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/ksym.h>
-
+#include <libk_reduced/stdio.h>
 
 static hashmap_t *ksym_hashmap = NULL;
 static bool debug_symbols_populated = false;
@@ -49,14 +49,13 @@ int ksym_bind_symbols(fsNode_t *symbolTable) {
     while (token != NULL) {
         token = strtok_r(NULL, "\n", &save);
 
-        char *token2 = kmalloc(strlen(token));
-        strcpy(token2, token);
-
-        if (strstr(token2, " ") == NULL) {
-            serialPrintf("ksym_bind_symbols: Early termination, assuming symbols populated.\n");
-            kfree(token2);
+        // Sometimes token will be NULL right after the call. If that's the case, the symbols are likely populated
+        if (token == NULL) {
             break;
         }
+
+        char *token2 = kmalloc(strlen(token));
+        strcpy(token2, token);
 
         char *address = strtok_r(token2, " ", &save2);
         char *type = strtok_r(NULL, " ", &save2);

@@ -47,6 +47,8 @@ void vbeGetInfo() {
     // Call the BIOS for our interrupt.
     bios32_call(0x10, &in, &out);
 
+
+
     if (out.ax != 0x004F) {
         return;
     }
@@ -85,6 +87,7 @@ int vbeGetModeInfo(uint16_t mode, vbeModeInfo_t *modeInfo) {
 
 // DEBUG FUNCTION!!
 void vesaPrintModes(bool showModesToConsole) {
+    vbeGetInfo();
     uint16_t *modes = (uint16_t*)vbeInfo.videoModePtr;
     uint16_t currentMode = *modes++;
 
@@ -101,7 +104,6 @@ void vesaPrintModes(bool showModesToConsole) {
 
     kfree(modeInfo);
 }
-
 
 
 
@@ -123,6 +125,8 @@ int vbeSetMode(uint32_t mode) {
     if (out.ax != 0x004F) {
         return -1;
     }
+
+    
 
     return 0;
 }
@@ -209,6 +213,7 @@ uint32_t VGA_TO_VBE(uint8_t vgaColor) {
 
 // vesaInit() - Initializes VESA VBE.
 void vesaInit() {
+    
     if (VESA_Initialized) return; // Already done for us
 
     // First, get VBE info and check if supported.
@@ -228,7 +233,6 @@ void vesaInit() {
 
     // Bypass getting the mode and just set it like so.
     uint32_t mode = vbeGetMode(1024, 768, 32);
-
     if ((int)mode == -1) {
         mode = vbeGetMode(800, 600, 32);
         if ((int)mode == -1) {
@@ -374,15 +378,16 @@ int vesa_ioctl(fsNode_t *node, unsigned long request, void *argp) {
         case FBIOGET_SCREENADDR:
             syscall_validatePointer(argp, "VESAIOCTL");
             uintptr_t mapOffset;
-            if (argp) { 
+            if (*(uintptr_t*)argp != 0) { 
                 // The user wants us to map to a specific pointer. 
                 syscall_validatePointer((void*)(*(uintptr_t*)argp), "VESAIOCTL");
                 mapOffset = *(uintptr_t*)argp;
-                for (uint32_t i = mapOffset; i < mapOffset + (modeWidth*modeHeight); i += 0x1000) {
-                    vmm_mapPage((void*)i, (void*)i);
-                }
             } else {
-                mapOffset = *(uintptr_t*)kmalloc(modeWidth * modeHeight);
+                mapOffset = (uintptr_t)kmalloc(modeWidth * modeHeight * 4);
+            }
+
+            for (uint32_t i = mapOffset; i < mapOffset + (modeWidth*modeHeight*4); i += 0x1000) {
+                vmm_allocateRegionFlags((uintptr_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), (uintptr_t)(vbeBuffer + (i-mapOffset))), i, 4096, 1, 1, 1);
             }
 
             *((uintptr_t*)argp) = mapOffset;

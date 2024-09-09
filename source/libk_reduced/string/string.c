@@ -631,3 +631,11 @@ char *strstr(const char * h, const char * n) {
 	/* Two-way on large needles */
 	return strstr_twoway((void *)h, (void *)n);
 }
+
+
+// strdup(const char *s) - Creates a new version of a string and returns it (requires allocation functions)
+char *strdup(const char *s) {
+	char *output = kmalloc(strlen(s));
+	strcpy(output, s);
+	return output;
+}

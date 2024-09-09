@@ -66,6 +66,7 @@ void isrIRQHandler(registers_t *reg) {
 
     // If the call is from userspace, we need to update the process times on eixt
     if (from_userspace && currentProcess) {
+        process_check_signals(reg);
         updateProcessTimesOnExit();
     }
     

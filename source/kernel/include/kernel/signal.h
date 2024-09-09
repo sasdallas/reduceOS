@@ -9,5 +9,5 @@ void restore_from_signal_handler(registers_t *r);
 void process_check_signals(registers_t *r);
 int send_signal(pid_t process, int signal, int force_root);
 int handle_signal(process_t *proc, int signum, registers_t *r);
-
+void restore_from_signal_handler(registers_t *r);
 #endif

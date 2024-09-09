@@ -73,6 +73,9 @@ static int executeCommandAsFile(int argc, char **argv) {
     fsNode_t *file = open_file(argv[0], 0);
     if (!file) return -EINVAL;
 
+    // When executing a command as a file, the command needs full control over graphics output.
+    setCursorEnabled(false);
+
     // Try to start the file
     char *env[] = {NULL};
     int ret = createProcess(argv[0], argc, argv, env, 1);

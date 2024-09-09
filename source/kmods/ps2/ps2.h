@@ -6,6 +6,49 @@
 #include <kernel/keyboard.h>
 #include <kernel/isr.h>
 
+
+// PS/2 Controller Definitions
+#define PS2_DATA_PORT               0x60 // R/W
+#define PS2_STATUS_PORT             0x64 // R
+#define PS2_CMD_PORT                0x64 // W
+
+// PS/2 status bitflags
+#define PS2_STATUS_OUTPUTBUF        0x01 // Output buffer status (0 = empty, 1 = full) 
+#define PS2_STATUS_INPUTBUF         0x02 // Input buffer status (0 = empty, 1 = full)
+#define PS2_STATUS_SYSFLAG          0x04 // System flag, meant to be cleared and reset by firmware (we can't trust the BIOS!!!!)
+#define PS2_STATUS_CMDDATA          0x08 // Command/data (0 = data written to input buffer is data for the device, 1 = data is for the controller)
+#define PS2_STATUS_TIMEOUT          0x40 // Timeout error (if 1)
+#define PS2_STATUS_PARITY           0x80 // Parity error (if 1)
+
+// PS/2 commands
+#define PS2_COMMAND_GETCCB          0x20 // Read byte 0 from internal RAM
+#define PS2_COMMAND_GETBYTE         0x21 // 0x21 - 0x3F, read byte N from controler RAM
+#define PS2_COMMAND_WRITECCB        0x60 // Write byte 0 to internal RAM
+#define PS2_COMMAND_WRITEBYTE       0x61 // 0x61 - 0x6F, write byte to controller RAM
+#define PS2_COMMAND_DISABLE2        0xA7 // Disable second PS/2 port
+#define PS2_COMMAND_ENABLE2         0xA8 // Enable second PS/2 port
+#define PS2_COMMAND_TEST2           0xA9 // Test second PS/2 port
+#define PS2_COMMAND_TEST            0xAA // Test the controller
+#define PS2_COMMAND_TEST1           0xAB // Test the first PS/2 port
+#define PS2_COMMAND_DIAG            0xAC // Diagnostic dump (read all bytes of internal RAM - controller specific!)
+#define PS2_COMMAND_DISABLE1        0xAD // Disable the first PS/2 port
+#define PS2_COMMAND_ENABLE1         0xAE // Enable the first PS/2 port
+#define PS2_COMMAND_GETINPUT        0xC0 // Get the controller input port
+#define PS2_COMMAND_COPYSTATUS03    0xC1 // Copy bits 0-3 of input port to status bits 4-7
+#define PS2_COMMAND_COPYSTATUS47    0xC2 // Copy bits 4-7 of input port to status bits 4-7
+#define PS2_COMMAND_READOUTPUT      0xD0 // Read the controller output port
+#define PS2_COMMAND_WRITEOUTPUT     0xD1 // Write to the controller output port
+#define PS2_COMMAND_WRITEOUTPUT1    0xD2 // Write next byte to controller output port #1 (check if buffer is empty first!)
+#define PS2_COMMAND_WRITEOUTPUT2    0xD3 // Write next byte to controller output port #2 (check if buffer is empty first!)
+#define PS2_COMMAND_WRITEINPUT      0xD4 // Write next byte to controller input port #2
+#define PS2_COMMAND_PULSEOUTPUT     0xF0 // This command uses bits 0-3 as a mask (0 = pulse line, 1 = don't pulse line) 
+
+
+// CCB flags (only what we need)
+#define PS2_PORT1_INTERRUPT         0x01
+#define PS2_PORT2_INTERRUPT         0x02
+
+
 // Typedefs
 
 #define SCANCODE_ESC 0x01
@@ -64,6 +107,8 @@ typedef enum LEDStates {
     NumberLock = 1,
     CapsLock = 2
 };
+
+
 
 // Functions
 void ps2_kbd_init();

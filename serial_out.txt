@@ -2,7 +2,7 @@ Serial logging started on COM1.
 ============================================================================================================================
 	reduceOS v1.3 Apricity - written by sasdallas
 	New kernel, same trash.
-	Build 9381-DEBUG, compiled on 09/08/24, 10:29:50
+	Build 9459-DEBUG, compiled on 09/08/24, 15:02:32
 ============================================================================================================================
 
 Kernel location: 0x100000 - 0x1c537c
@@ -11,9 +11,9 @@ Text section: 0x100000 - 0x129000; Data section: 0x1b6000 - 0x1bd440; BSS sectio
 
 Serial logging initialized!
 clock: Initializing clock system...
-clock: TSC calculated speed is 11 MHz
-clock: Boot time is 1723113091s (UNIX timestamp).
-clock: Initial TSC timestamp was 13409391us
+clock: TSC calculated speed is 12 MHz
+clock: Boot time is 1723132411s (UNIX timestamp).
+clock: Initial TSC timestamp was 10297404us
 acpiInit: Found RSDP signature at 0xfa330
 acpiParseRSDP: (dbg) OEM is BOCHS 
 acpiParseRSDP: found ACPI version 1.0, parsing RSDT...
@@ -99,17 +99,14 @@ Text section: 0x100000 - 0x129000; Data section: 0x1b6000 - 0x1bd440; BSS sectio
 === END VFS TREE ===
 vfs_mountType: Mounted tar[/device/modules/mod0] to /device/initrd: 0x24660
 ksym_bind_symbols: read file
-ksym_bind_symbols: Early termination, assuming symbols populated.
-rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 9/8/2024 10:32:25
-kmain: Memory management online with 31044 KB of physical memory
+rtc_getDateTime: Got date and time from RTC (formatted as M/D/Y H:M:S): 9/8/2024 15:54:25
 module_parseCFG: Loading module '/boot/modules/example.mod' with priority LOW...
 module_load: Loading module 'Example Module'...
 [module example] Hello, module world!
 module_parseCFG: Loading module '/boot/modules/ps2.mod' with priority REQUIRED...
-module_load: Loading module 'PS/2 Module'...
+module_load: Loading module 'PS/2 Driver'...
 [module ps2] PS/2 module initialized and ready.
 module_parseCFG: Loading module '/boot/modules/ahci.mod' with priority LOW...
-module_parseCFG: The module was not found on the main EXT2 disk. Using initial ramdisk.
 module_load: Loading module 'AHCI Driver'...
 module_parseCFG: Loading module '/boot/modules/ac97.mod' with priority LOW...
 module_load: Loading module 'AC97 Driver'...
@@ -120,7 +117,6 @@ Text section: 0x100000 - 0x129000; Data section: 0x1b6000 - 0x1bd440; BSS sectio
 [module multifile] Multifile 1 says hello!
 [module multifile] Multifile 2 says hello!
 module_parseCFG: Loading module '/boot/modules/usb.mod' with priority LOW...
-module_parseCFG: The module was not found on the main EXT2 disk. Using initial ramdisk.
 module_load: Loading module 'USB Driver'...
 [module usb] Found a UHCI controller
 [module usb] Initializing UHCI controller on PCI device 0x102...
@@ -129,25 +125,25 @@ Text section: 0x100000 - 0x129000; Data section: 0x1b6000 - 0x1bd440; BSS sectio
 [module usb] UHCI driver found that a USB device on port 0x0 with speed 0x0 is available
 [module usb] Initializing device (speed = 0x0)...
 [module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x40 type=0x80 length=0x8
-[module usb]	TD 0x66bd50 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
-[module usb]	TD 0x66bda0 created - prev 0x66bd50 speed 0x0 addr 0x0 endp 0x0 toggle 0x9 packetType 0x69 length 0x7 data 0x1c4f92
-[module usb]	TD 0x66bdf0 created - prev 0x66bda0 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
+[module usb]	TD 0x66c230 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x6654b0
+[module usb]	TD 0x66c280 created - prev 0x66c230 speed 0x0 addr 0x0 endp 0x0 toggle 0x9 packetType 0x69 length 0x7 data 0x1c4fa2
+[module usb]	TD 0x66c2c0 created - prev 0x66c280 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
 [module usb] Done, now waiting for queue to process...
 [module usb] UHCI transfer completed
 [module usb] Request USB_REQ_GET_DESC completed. Device descriptor:
 [module usb]	Device descriptor - length 0x12 type 0x1 spec 0x101 devclass 0x0 devsubclass 0x0 protocol 0x0 mps 0x8
 [module usb] UHCI resetting port 0xc030
 [module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x8 type=0x0 length=0x0
-[module usb]	TD 0x66bd50 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
-[module usb]	TD 0x66bda0 created - prev 0x66bd50 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0x69 length 0x7ff data 0x0
+[module usb]	TD 0x66c230 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x6654b0
+[module usb]	TD 0x66c280 created - prev 0x66c230 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0x69 length 0x7ff data 0x0
 [module usb] Done, now waiting for queue to process...
 [module usb] UHCI transfer completed
 [module usb]	UHCI request: speed=0 addr=0x4728203a endp=0x0 maxSize=0x8 type=0x80 length=0x12
-[module usb]	TD 0x66bd50 created - prev 0x0 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
-[module usb]	TD 0x66bda0 created - prev 0x66bd50 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x13 packetType 0x69 length 0x7 data 0x1c4f92
-[module usb]	TD 0x66bdf0 created - prev 0x66bda0 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x12 packetType 0x69 length 0x7 data 0x1c4f9a
-[module usb]	TD 0x66be40 created - prev 0x66bdf0 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x13 packetType 0x69 length 0x1 data 0x1c4fa2
-[module usb]	TD 0x66bfc0 created - prev 0x66be40 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
+[module usb]	TD 0x66c230 created - prev 0x0 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x6654b0
+[module usb]	TD 0x66c280 created - prev 0x66c230 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x13 packetType 0x69 length 0x7 data 0x1c4fa2
+[module usb]	TD 0x66c2c0 created - prev 0x66c280 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x12 packetType 0x69 length 0x7 data 0x1c4faa
+[module usb]	TD 0x66c310 created - prev 0x66c2c0 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x13 packetType 0x69 length 0x1 data 0x1c4fb2
+[module usb]	TD 0x66c490 created - prev 0x66c310 speed 0x0 addr 0x4728203a endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
 [module usb] Done, now waiting for queue to process...
 [module usb] UHCI controller detected TD stall
 [module usb] UHCI transfer completed
@@ -155,26 +151,27 @@ Text section: 0x100000 - 0x129000; Data section: 0x1b6000 - 0x1bd440; BSS sectio
 [module usb] UHCI driver found that a USB device on port 0x1 with speed 0x0 is available
 [module usb] Initializing device (speed = 0x0)...
 [module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x40 type=0x80 length=0x8
-[module usb]	TD 0x66be10 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
-[module usb]	TD 0x66bfc0 created - prev 0x66be10 speed 0x0 addr 0x0 endp 0x0 toggle 0x9 packetType 0x69 length 0x7 data 0x1c4f92
-[module usb]	TD 0x66c010 created - prev 0x66bfc0 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
+[module usb]	TD 0x66c2f0 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x6654b0
+[module usb]	TD 0x66c490 created - prev 0x66c2f0 speed 0x0 addr 0x0 endp 0x0 toggle 0x9 packetType 0x69 length 0x7 data 0x1c4fa2
+[module usb]	TD 0x66c4e0 created - prev 0x66c490 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
 [module usb] Done, now waiting for queue to process...
 [module usb] UHCI transfer completed
 [module usb] Request USB_REQ_GET_DESC completed. Device descriptor:
 [module usb]	Device descriptor - length 0x12 type 0x1 spec 0x101 devclass 0x0 devsubclass 0x0 protocol 0x0 mps 0x40
 [module usb] UHCI resetting port 0xc032
 [module usb]	UHCI request: speed=0 addr=0x0 endp=0x0 maxSize=0x40 type=0x0 length=0x0
-[module usb]	TD 0x66be10 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
-[module usb]	TD 0x66bfc0 created - prev 0x66be10 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0x69 length 0x7ff data 0x0
+[module usb]	TD 0x66c2f0 created - prev 0x0 speed 0x0 addr 0x0 endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x6654b0
+[module usb]	TD 0x66c490 created - prev 0x66c2f0 speed 0x0 addr 0x0 endp 0x0 toggle 0x1 packetType 0x69 length 0x7ff data 0x0
 [module usb] Done, now waiting for queue to process...
 [module usb] UHCI transfer completed
 [module usb]	UHCI request: speed=0 addr=0x4728203b endp=0x0 maxSize=0x40 type=0x80 length=0x12
-[module usb]	TD 0x66be10 created - prev 0x0 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x666860
-[module usb]	TD 0x66bfc0 created - prev 0x66be10 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x13 packetType 0x69 length 0x11 data 0x1c4f92
-[module usb]	TD 0x66c140 created - prev 0x66bfc0 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
+[module usb]	TD 0x66c2f0 created - prev 0x0 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x0 packetType 0x2d length 0x7 data 0x6654b0
+[module usb]	TD 0x66c490 created - prev 0x66c2f0 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x13 packetType 0x69 length 0x11 data 0x1c4fa2
+[module usb]	TD 0x66c620 created - prev 0x66c490 speed 0x0 addr 0x4728203b endp 0x0 toggle 0x1 packetType 0xe1 length 0x7ff data 0x0
 [module usb] Done, now waiting for queue to process...
 [module usb] UHCI controller detected TD stall
 [module usb] UHCI transfer completed
+kmain: Memory management online with 31044 KB of physical memory
 kmain: All commands registered successfully.
 kmain: Shell ready
 

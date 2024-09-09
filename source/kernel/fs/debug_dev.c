@@ -6,7 +6,6 @@
 #include <kernel/debugdev.h> // Main header file
 
 static fsNode_t *debug_dev;
-static fsNode_t *output_dev;
 
 /* READ FUNCTIONS */
 uint32_t debug_read(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
@@ -35,11 +34,12 @@ uint32_t debug_write(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf) {
     timestamp[len] = 0;
 
     // Open the serial device and write to it
-    if (!output_dev) return 0;
+    fsNode_t *output = (fsNode_t*)node->impl_struct;
+    if (!output) return 0;
 
-    output_dev->write(output_dev, 0, len, (uint8_t*)timestamp);
-    output_dev->write(output_dev, 0, size_to_write, (uint8_t*)buffer_to_write);
-    output_dev->close(output_dev);
+    output->write(output, 0, len, (uint8_t*)timestamp);
+    output->write(output, 0, size_to_write, (uint8_t*)buffer_to_write);
+    output->close(output);
 
     kfree(buffer_to_write);
     return size;
@@ -58,7 +58,7 @@ void debug_close(fsNode_t *node) {
 
 /* INITIALIZATION FUNCTIONS */
 
-static fsNode_t *get_debug_device() {
+static fsNode_t *get_debug_device(fsNode_t *device) {
     if (debug_dev != NULL) return debug_dev;
     debug_dev = kmalloc(sizeof(fsNode_t));
     debug_dev->open = debug_open;
@@ -68,13 +68,14 @@ static fsNode_t *get_debug_device() {
     debug_dev->flags = VFS_CHARDEVICE;
 
     debug_dev->uid = debug_dev->gid = debug_dev->mask = debug_dev->impl = 0;
-    
+
+    debug_dev->impl_struct = (uint32_t*)device;
+
     strcpy(debug_dev->name, "Debug Output");
 
     return debug_dev;
 }
 
 void debugdev_init(fsNode_t *odev) {
-    vfsMount("/device/debug", get_debug_device());
-    output_dev = odev;
+    vfsMount("/device/debug", get_debug_device(odev));
 }

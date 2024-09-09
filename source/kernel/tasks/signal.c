@@ -117,10 +117,10 @@ void signal_handler(uintptr_t entrypoint, int signum, registers_t *r, uintptr_t 
     struct signal_config *config = (struct signal_config*)&currentProcess->signals[signum];
     currentProcess->blocked_signals |= config->mask | (config->flags & SA_NODEFER ? 0 : (1UL << signum));
 
-    asm volatile ("fxsave (%0)" :: "r"(&currentProcess->thread.fp_regs));
+    /*asm volatile ("fxsave (%0)" :: "r"(&currentProcess->thread.fp_regs));
     for (int i = 0; i < 64; i++) {
         PUSH(ret.esp, uint64_t, currentProcess->thread.fp_regs[i]);
-    }
+    }*/
 
     PUSH(ret.esp, uintptr_t, 0x516);
 
@@ -144,7 +144,7 @@ int handle_signal(process_t *proc, int signum, registers_t *r) {
         // No handler is configured, we're gonna have to do it ourselves
         char action = sig_defaults[signum];
         if (action == SIG_DISP_Term || action == SIG_DISP_Core) {
-            // The action to take is to exis tthe task
+            // The action to take is to exit the task
             task_exit(((128 + signum) << 8) | signum);
             __builtin_unreachable();
         } else if (action == SIG_DISP_Stop) {
@@ -187,6 +187,7 @@ int handle_signal(process_t *proc, int signum, registers_t *r) {
     
 
 ignore_signal:
+    serialPrintf("signal: Ignoring signal %i for process %d (%s)\n", signum, proc->id, proc->name);
     signal_maybeRestartSyscall(r, signum);
     return !PENDING;
 }
@@ -228,6 +229,7 @@ int send_signal(pid_t process, int signal, int force_root) {
         makeProcessReady(receiver);
     }
 
+    serialPrintf("signal: Signal %i send to process %d (%s)\n", signal, process, receiver->name);
 
     return 0;
 }
@@ -260,11 +262,11 @@ tryagain:
 // (ARCH-SPECIFIC) arch_return_from_signal_handler(registers_t *r) - Return from a signal handler
 int arch_return_from_signal_handler(registers_t *r) {
     // Start by restoring the FPU values
-    for (int i = 0; i < 64; i++) {
+    /*for (int i = 0; i < 64; i++) {
         POP(r->esp, uint64_t, currentProcess->thread.fp_regs[63-i]);
     }
 
-    asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
+    asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));*/
 
     // Next, restore signal information
     POP(r->esp, sigset_t, currentProcess->blocked_signals);
@@ -289,7 +291,7 @@ int arch_return_from_signal_handler(registers_t *r) {
     return originalSignal;
 }
 
-// return_from_signal_handler(registers_t *r) - Restores the pre-signal context
+// restore_from_signal_handler(registers_t *r) - Restores the pre-signal context
 void restore_from_signal_handler(registers_t *r) {
     int signum = arch_return_from_signal_handler(r);
     if (PENDING) {

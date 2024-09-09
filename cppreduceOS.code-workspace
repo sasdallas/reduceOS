@@ -62,7 +62,9 @@
 			"tree.h": "c",
 			"spinlock.h": "c",
 			"signal.h": "c",
-			"liballoc.h": "c"
+			"liballoc.h": "c",
+			"ioctl.h": "c",
+			"args.h": "c"
 		}
 	}
 }

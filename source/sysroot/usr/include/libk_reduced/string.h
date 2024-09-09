@@ -45,4 +45,5 @@ char *strtok_r(char *str, const char *delim, char **saveptr); // Thread-safe ver
 char *strncat(char *dest, const char *src, size_t n); // Concatenate two strings
 char *strstr(const char * h, const char * n); 
 void * memchr(const void * src, int c, size_t n);
+char *strdup(const char *s);
 #endif

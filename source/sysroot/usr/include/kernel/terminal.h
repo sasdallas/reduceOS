@@ -58,7 +58,7 @@ void terminalUpdateTopBarKernel(char *text); // Updates the top bar and prints o
 void updateTerminalColor_gfx(uint8_t fg, uint8_t bg); // Updates the color to specific FG and BG values
 char *getShell(); // getShell() - Returns the shell
 void updateShell(); // updateShell() - Update the shell to use CWD
-
+void setCursorEnabled(bool enabled);
 
 
 #endif

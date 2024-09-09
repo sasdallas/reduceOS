@@ -124,12 +124,13 @@ void module_parseCFG() {
     if (!modBoot) {
         if (doesNotNeedInitrd) {
             // Try the backup method, but be warned that if the devices are different some modules may not be loaded.
+            // If modules aren't loaded, they'll be handled differently.
             serialPrintf("module_parseCFG: WARNING!!!!! Pulling from backup device!!!\n");
             modBoot = open_file("/boot/conf/mod_boot.conf", 0);
         }
 
         if (!modBoot) {
-            panic("module", "module_parseCFG", "mod_boot.conf not found");
+            panic("reduceOS", "module", "The file 'mod_boot.conf' could not be found on any devices.");
         }
     }
 
@@ -209,10 +210,13 @@ void module_parseCFG() {
             strcpy(priority, token + (strchr(token, ' ')-token) + 1);
 
             // First, let's make sure the module exists.
-            char *fullpath = kmalloc(strlen("/boot/modules/") + strlen(filename));
-            if (doesNotNeedInitrd) strcpy(fullpath, "/boot/modules/");
-            else strcpy(fullpath, "/modules/");
-            strcpy(fullpath + strlen(fullpath), filename);
+            char *fullpath = kmalloc(strlen("/device/initrd/modules/") + strlen(filename));
+            if (doesNotNeedInitrd) {
+                sprintf(fullpath, "/device/initrd/modules/%s", filename);
+            }
+            else {
+                sprintf(fullpath, "/modules/%s", filename);
+            }
 
             serialPrintf("module_parseCFG: Loading module '%s' with priority %s...\n", fullpath, priority);
             fsNode_t *module = open_file(fullpath, 0);
@@ -220,8 +224,8 @@ void module_parseCFG() {
                 // This can happen if a module is added but the system wants to pull from the main EXT2 disk
                 // Open it via the initrd if possible
                 if (doesNotNeedInitrd) {
-                    serialPrintf("module_parseCFG: The module was not found on the main EXT2 disk. Using initial ramdisk.\n");
-                    snprintf(fullpath, strlen("/device/initrd/modules/") + strlen(filename) + 1, "/device/initrd/modules/%s", filename);
+                    serialPrintf("module_parseCFG: The module was not found on the initial ramdisk. Using EXT2 disk.\n");
+                    snprintf(fullpath, strlen("/boot/modules/") + strlen(filename) + 1, "/boot/modules/%s", filename);
                     module = open_file(fullpath, 0);
 
                     if (!module) {

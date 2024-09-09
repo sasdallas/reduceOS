@@ -8,6 +8,7 @@
 #include <libk_reduced/time.h>
 #include <libk_reduced/stdint.h>
 
+#include <kernel/args.h>
 #include <kernel/kernel.h> // Kernel header file
 #include <kernel/cmds.h>
 #include <kernel/process.h>
@@ -83,8 +84,9 @@ void kshell();
 // kmain() - The most important function in all of reduceOS. Jumped here by loadKernel.asm.
 void kmain(unsigned long addr, unsigned long loader_magic) {
     // Update global multiboot info.
-
     globalInfo = (multiboot_info*)addr;
+
+
     
     // Some extra stuff
     extern uint32_t text_start;
@@ -163,6 +165,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         pmm_deinitRegion(mod->mod_start, mod->mod_end - mod->mod_start);
     }
 
+    // While we're on the topic of multiboot, setup the argument parser
+    args_init((char*)globalInfo->m_cmdLine);
+
     // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit
 
     // Installs the GDT and IDT entries for BIOS32
@@ -170,20 +175,30 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("bios32 initialized successfully!\n");
 
     // ==== TERMINAL INITIALIZATION ====
-    vesaInit(); // Initialize VBE
-    
-    vbeSwitchBuffers();
-    changeTerminalMode(1); // Update terminal mode
-    
-    // Startup the terminal driver
-    initTerminal();
 
+    // Some computers (most) don't support our VESA VBE driver.
+    // We support the kernel argument --force_vga which will force VGA text mode, which half-works
+    
+    if (args_has("--force_vga")) {
+        changeTerminalMode(0);
+        initTerminal();
+        serialPrintf("kernel: WARNING! Forcing VGA terminal mode (specified by kernel arguments)\n");
+    } else {
+        vesaInit(); // Initialize VBE
+    
+        vbeSwitchBuffers();
+        changeTerminalMode(1); // Update terminal mode
+    
+        // Startup the terminal driver
+        initTerminal();
+    }
 
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
     terminalUpdateTopBarKernel("created by @sasdallas");
     
     // Next, update terminal color to the proper color and print loading text.
     updateTerminalColor_gfx(COLOR_WHITE, COLOR_CYAN);
+
     printf("reduceOS is loading, please wait...\n");
 
     // ==== PERIPHERAL/DRIVER INITIALIZATION ====
@@ -322,8 +337,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // We also need to mount the VESA VBE block device.
     vesa_createVideoDevice("fb0");
 
-    debug_print_vfs_tree(false);
-    
     printf("Mounted IDE nodes successfully.\n");
 
     // For compatibility with our tests, we need to set the ext2_root variable.
@@ -357,6 +370,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     printf("Debug symbols loaded.\n");
 
 
+    debug_print_vfs_tree(false);
+    
+
     // ==== FINAL INITIALIZATION ====
 
 
@@ -373,6 +389,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Start the module system
     module_init();
+
+    // Scan and initialize modules for kernelspace (no more command handler)
+    printf("Starting up modules...\n");
+    module_parseCFG();
+
 
     printf("Kernel loading completed.\n");
     useCommands();
@@ -391,10 +412,6 @@ void useCommands() {
     // Modules may want to use registerCommand
     printf("Preparing command handler...\n");
     initCommandHandler();
-
-    // Scan and initialize modules for kernelspace
-    printf("Starting up modules...\n");
-    module_parseCFG();
 
 
     printf("Finishing up...\n");
@@ -452,8 +469,9 @@ void useCommands() {
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
-    if (!strcmp(fs_root->name, "initrd")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
-     
+    if (args_has("--force_vga")) printf("WARNING: You are currently in VGA text mode. This mode is deprecated and unsupported!\n");
+    if (!strcmp(fs_root->name, "tarfs")) printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
+    
 
     tasking_start();
     signal_init();

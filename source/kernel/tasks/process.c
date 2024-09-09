@@ -1257,7 +1257,6 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     // Setup the process' stack
     
     // First part is to push the actual strings onto the stack.
-    // The process will not access this.
     char *argv_ptrs[argc];
     for (int i = 0; i < argc; i++) {
         int l = strlen(argv[i]);
@@ -1272,7 +1271,12 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     // Now we'll do the same thing with environments
 
     char *env_ptrs[envc];
+
+    int true_envc = 0;
+    
     for (int i = 0; i < envc; i++) {
+        if (envl[i]) true_envc++;
+        else break;
         int l = strlen(envl[i]);
         do {
             PUSH(currentProcess->image.userstack, char, (char)(envl[i][l]));
@@ -1280,6 +1284,7 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
         } while (l >= 0);
         env_ptrs[i] = (char*)currentProcess->image.userstack;
     }
+    
 
     // Next, we can push pointers to those strings we just pushed before.
     PUSH(currentProcess->image.userstack, int, 0);
@@ -1289,7 +1294,7 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
 
     // Same for envp
     PUSH(currentProcess->image.userstack, int, 0);
-    for (int i = envc; i > 0; i--) {
+    for (int i = true_envc; i > 0; i--) {
         PUSH(currentProcess->image.userstack, char*, env_ptrs[i-1]);
     }
 

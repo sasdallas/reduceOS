@@ -3,6 +3,7 @@
 #include "ps2.h"
 #include <kernel/keyboard.h>
 #include <kernel/isr.h>
+#include <kernel/signal.h>
 
 // Making life so much easier for me. Instead of manually switching between the scancodes in a switch() statement, just match them to this! So much easier.
 const char scancodeChars[] = {
@@ -84,6 +85,12 @@ static void keyboardHandler(registers_t *r) {
 
             default:
                 ch = scancodeChars[(int) scancode];
+
+                // This is a quick hack for SIGINT, you should use the PTY/TTY driver in the kernel
+                if (getKBCtrl() && ch == 'c') {
+                    if (currentProcess) send_signal(currentProcess->id, SIGINT, 1);
+                }
+
                 if (getKBCapsLock()) {
                     if (getKBShift()) { ch = keyboard_altChars(ch); } // If SHIFT key is also pressed, do nothing except convert to alternate chars.
                     else { ch = toupper(ch); } // Else, convert to upper case.

@@ -18,7 +18,9 @@ TARGET_DISABLED:
 MAKE_DIRS:
 	-mkdir -pv $(BUILDDIR)
 
-TEST_REDUCEOS:
+
+
+BUILD_NEWLIB:
 	@echo "Testing to see if we have executables for $(TARGET)-reduceOS..."
 ifeq ($(shell which $(TARGET)-reduceOS-gcc),)
 	@echo "It looks as though you don't have $(TARGET)-reduceOS ready."
@@ -29,16 +31,28 @@ ifeq ($(shell which $(TARGET)-reduceOS-gcc),)
 	sudo ln -sf $(shell which $(TARGET)-elf-as) $(dir $(shell which $(TARGET)-elf-as))/$(TARGET)-reduceOS-as
 	sudo ln -sf $(shell which $(TARGET)-elf-ranlib) $(dir $(shell which $(TARGET)-elf-ranlib))/$(TARGET)-reduceOS-ranlib
 	@echo "Done!"
-endif
-
-BUILD_NEWLIB:
 	@echo "-- Building newlib..."
 ifeq ($(wildcard $(BUILDDIR)/Makefile),)
 	(cd $(BUILDDIR) && ../$(SRCDIR)/configure --target=$(TARGET)-reduceOS --prefix /usr CFLAGS= CC=)
 endif
 	make -C $(BUILDDIR) all
 
-install: MAKE_DIRS TEST_REDUCEOS BUILD_NEWLIB
+	@echo "-- Removing executables..."
+	sudo rm $(dir $(shell which $(TARGET)-elf-gcc))/$(TARGET)-reduceOS-gcc
+	sudo rm $(dir $(shell which $(TARGET)-elf-gcc))/$(TARGET)-reduceOS-cc
+	sudo rm $(dir $(shell which $(TARGET)-elf-ar))/$(TARGET)-reduceOS-ar
+	sudo rm $(dir $(shell which $(TARGET)-elf-as))/$(TARGET)-reduceOS-as
+	sudo rm $(dir $(shell which $(TARGET)-elf-ranlib))/$(TARGET)-reduceOS-ranlib
+else
+	@echo "-- Building newlib..."
+ifeq ($(wildcard $(BUILDDIR)/Makefile),)
+	(cd $(BUILDDIR) && ../$(SRCDIR)/configure --target=$(TARGET)-reduceOS --prefix /usr CFLAGS= CC=)
+endif
+	make -C $(BUILDDIR) all
+endif
+	
+
+install: MAKE_DIRS BUILD_NEWLIB
 	@echo "-- Installing newlib headers..."
 	make -C $(BUILDDIR) DESTDIR=$(DESTDIR) install
 	@echo "-- Copying files..."

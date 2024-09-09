@@ -1,3 +1,0 @@
-==== PORT COM2 IDENTIFIED ====
-PORT MOUNTED AT /device/serial/COM2
-PAKTHELO

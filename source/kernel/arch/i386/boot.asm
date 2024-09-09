@@ -47,6 +47,8 @@ _start:
     mov esp, stack_top
     push ebp ; Stack trace
 
+    mov dword   [0xb8000], 0x07690748
+
     mov eax, KERNEL_MAGIC
     push eax
     push ebx
