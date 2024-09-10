@@ -21,6 +21,11 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     Image_Handle = ImageHandle;
 
     // Print loading text
+    EFI_LOADED_IMAGE *loadedImage = NULL;
+    EFI_STATUS status = uefi_call_wrapper(ST->BootServices->HandleProtocol, 3, ImageHandle, &LoadedImageProtocol, (void**)&loadedImage);
+    Print(L"Image base: 0x%lx\n", loadedImage->ImageBase);
+
+
     Print(L"Starting the Polyaniline bootloader...\n");
     Print(L"Initializing graphics subsystem...\n");
 

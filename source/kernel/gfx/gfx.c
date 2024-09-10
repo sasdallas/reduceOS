@@ -72,7 +72,12 @@ void gfxDrawLine(int x1, int y1, int x2, int y2, uint32_t color) {
     int dy = (y1 < y2) ? 1 : -1;
     
     // Calculate the slope of the line.
-    int slope = (y2-y1) / (x2-x1);
+    int slope;
+    if ((x2-x1) == 0 || (y2-y1) == 0) {
+        slope = 1;
+    } else {
+        slope = (y2-y1) / (x2-x1);
+    }
 
     // Start drawing.
     int x = x1;

@@ -46,7 +46,7 @@ EFI_GRAPHICS_OUTPUT_PROTOCOL *gop; // Graphics Output Protocol
 // Initialize the Graphics Output Protocol function
 int GOP_Init() {
     // todo: rewrite this!
-
+	Print(L"Initializing GOP\n");
     static EFI_GUID efi_graphics_output_protocol_guid = {0x9042a9de,0x23dc,0x4a38,  {0x96,0xfb,0x7a,0xde,0xd0,0x80,0x51,0x6a}};
 
     // Grab handle buffers

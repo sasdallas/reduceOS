@@ -24,6 +24,7 @@ char *initrd_filename = "RAMDISK.IMG";
 static int boot();
 
 void bootloader_main() {
+
     _clearScreen();
     draw_polyaniline_testTube();
     boot_printf("polyaniline v%s - codename %s\n", VERSION, CODENAME);

@@ -199,11 +199,12 @@ SetupPaging:
     ret
 
 BootError:
-    ; Print the string "ERR: " and the character in AL
+    ; Print the string "ERROR: " and the character in AL
     mov dword   [0xb8000], 0x4f524f45
-    mov dword   [0xb8004], 0x4f3a4f52
-    mov dword   [0xb8008], 0x4f204f20
-    mov byte    [0xb800a], al
+    mov dword   [0xb8004], 0x4f4f4f52
+    mov dword   [0xb8008], 0x4f3a4f52
+    mov dword   [0xb800c], 0x4f204f20
+    mov byte    [0xb800e], al
 .halt:
     hlt
     jmp .halt

@@ -460,7 +460,7 @@ void useCommands() {
     registerCommand("modinfo", (command*)modinfo);
     registerCommand("showmodes", (command*)showmodes);
     registerCommand("setmode", (command*)setmode);
-    
+    registerCommand("apricity", (command*)apricity);
 
 
     serialPrintf("kmain: All commands registered successfully.\n");

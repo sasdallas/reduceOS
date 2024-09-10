@@ -56,10 +56,12 @@ int GOP_Init() {
 
     EFI_STATUS status = uefi_call_wrapper(ST->BootServices->LocateHandleBuffer, 5, ByProtocol, &efi_graphics_output_protocol_guid, NULL, &handles_count, &handles);
     if (EFI_ERROR(status)) {
-        Print(L"terminal: uefi_call_wrapper(ST->BootServices->LocateHandleBuffer) failed");
+        Print(L"terminal: uefi_call_wrapper(ST->BootServices->LocateHandleBuffer) failed\n");
         for (;;);
     }
     
+	Print(L"Handle buffer located\n");
+
     
     status = uefi_call_wrapper(ST->BootServices->HandleProtocol, 3, handles[0], &efi_graphics_output_protocol_guid, (void**)&graphics);
     if (EFI_ERROR(status)) {
