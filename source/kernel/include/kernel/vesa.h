@@ -62,14 +62,14 @@ typedef struct {
 
 // Framebuffers (probably not a good idea but I could care less)
 extern uint8_t *vbeBuffer;
-extern uint32_t *framebuffer; // 2nd framebuffer.
+extern uint8_t *framebuffer; // 2nd framebuffer.
 extern uint32_t modeWidth;
 extern uint32_t modeHeight;
 extern uint32_t modePitch;
 extern uint32_t modeBpp;
 
 // Functions
-void vesaInit();
+int vesaInit();
 uint32_t RGB_VBE(uint8_t r, uint8_t g, uint8_t b);
 void vbePutPixel(int x, int y, uint32_t color);
 int vbeSwitchBuffers();

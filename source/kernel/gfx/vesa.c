@@ -25,7 +25,7 @@ uint8_t *vbeBuffer; // This is the buffer we will be drawing in
 int selectedMode = -1; // The current mode selected.
 uint32_t modeWidth, modeHeight, modeBpp, modePitch = 0; // The height and width of the mode
 
-uint32_t *framebuffer; // A seperate framebuffer.
+uint8_t *framebuffer; // A seperate framebuffer.
 
 
 bool VESA_Initialized = false;
@@ -208,57 +208,43 @@ uint32_t VGA_TO_VBE(uint8_t vgaColor) {
 }
 
 
-
+// vesaDoGOP() 
 
 
 // vesaInit() - Initializes VESA VBE.
-void vesaInit() {
+int vesaInit() {
     
-    if (VESA_Initialized) return; // Already done for us
+    if (VESA_Initialized) return -EALREADY; // Already done for us
 
     // First, get VBE info and check if supported.
     vbeGetInfo();
 
     if (!isVBESupported) {
         serialPrintf("vesaInit: VBE is not supported.\n");
-        return;
+        return -ENOTSUP;
     }
 
-    // There is a bug preventing us from checking some video modes - check vesaPrintModes() for the bug description.
-    // For now, just use 1024x768 with colordepth 32
-
-    // uint32_t mode = vbeGetMode(800, 600, 32);
-    // if (mode == -1) return; // No valid mode was found.
-    
-
-    // Bypass getting the mode and just set it like so.
+    // Search for 1024x768x32 and 800x600x32
     uint32_t mode = vbeGetMode(1024, 768, 32);
     if ((int)mode == -1) {
         mode = vbeGetMode(800, 600, 32);
         if ((int)mode == -1) {
-            // No mode, let's setup a temporary VGA graphics terminal and print fault
-            changeTerminalMode(0);
-            initTerminal();
-
-            printf("*** No suitable VESA VBE graphics mode could be found.\n");
-            printf("*** Tried: 1024x768x32, 800x600x32\n");
-            printf("\nThis is likely a bug with the driver. Please notify the creator.\n");
-            asm volatile ("hlt");
-            for (;;);
+            // No modes possible that we could find. Shame!
+            return -ENOENT;
         }
     }
     
+    // The rest of this is actually bug territory
+
     // Get a bit more information on the mode.
     vbeModeInfo_t *modeInfo = kmalloc(sizeof(vbeModeInfo_t));
     vbeGetModeInfo(mode, modeInfo);
 
     if ((int)modeInfo == NULL) {
-        changeTerminalMode(0);
-        initTerminal();
-
+        panic_prepare();
         printf("*** The call to VESA VBE hardware to get information on mode 0x%x failed.\n", mode);
-        printf("*** Unknown cause.\n");
-        printf("\nThis is likely a bug with the driver. Please notify the creator.\n");
+        printf("*** Unknown cause. (this is likely BIOS32 at fault)\n");
+        printf("\nThis is likely a bug with the driver. Please open an issue on GitHub!\n");
         asm volatile ("hlt");
         for (;;);
     }
@@ -282,8 +268,6 @@ void vesaInit() {
         // That didn't work...
         mode = vbeGetMode(800, 600, 32); // Try to grab it for 800x600x32
         if ((int)mode == -1) {
-            changeTerminalMode(0);
-            initTerminal();
             panic_prepare();
             printf("*** No suitable video mode could be found.\n");
             printf("*** Fallback options not available.\n");
@@ -293,8 +277,6 @@ void vesaInit() {
         }
         
         if (vbeSetMode(mode) == -1) {
-            changeTerminalMode(0);
-            initTerminal();
             panic_prepare();
             printf("*** No suitable video mode could be set (tried 800x600x32 and 1024x768x32).\n");
             printf("*** Fallback options not available.\n");
@@ -306,7 +288,7 @@ void vesaInit() {
     }
 
 
-    framebuffer = kmalloc(modeWidth*modeHeight*4); // The *4 is for the size of a uint32_t
+    framebuffer = kmalloc(modeWidth*modeHeight*4); // The *4 is for the size of a uint32_t. 
 
     serialPrintf("vesaInit: Allocated framebuffer to 0x%x - 0x%x\n", framebuffer, (int)framebuffer + (modeWidth*modeHeight*4));
     serialPrintf("vesaInit: vbeBuffer is from 0x%x - 0x%x\n", vbeBuffer, (int)vbeBuffer + (modeWidth*modeHeight*4));
@@ -317,18 +299,20 @@ void vesaInit() {
 
     // This will stop other functions from trying to initialize VESA.
     VESA_Initialized = true;
+
+    return 0;
 }
 
 
 
 // vbeSwitchBuffers() - Switches the framebuffers
 int vbeSwitchBuffers() {
-    if (!isVBESupported) return -1; // Not supported - TODO: Move me into VESA_Initialized.
-    if (!VESA_Initialized) return -1; // Framebuffer not initialized.
+    if (!VESA_Initialized) return -1; // Driver not initialized
     
     // Switch the framebuffers
+    // I don't know why, but this just feels faster?
     for (uint32_t i = 0; i < modeWidth * modeHeight; i++) {
-        ((uint32_t*)vbeBuffer)[i] = framebuffer[i];
+        ((uint32_t*)vbeBuffer)[i] = ((uint32_t*)framebuffer)[i];
     }
 
     return 0; // Updated buffers successfully.
@@ -340,8 +324,10 @@ int vbeSwitchBuffers() {
 // vbePutPixel(int x, int y, uint32_t color) - Puts a pixel on the screen.
 void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
-    uint32_t p = y * (modePitch/4) + x;
-    *(framebuffer + p) = color;
+    uint32_t p = x * 4 + y*modePitch;
+    framebuffer[p] = color & 255;
+    framebuffer[p + 1] = (color >> 8) & 255;
+    framebuffer[p + 2] = (color >> 16) & 255;
 
 }
 

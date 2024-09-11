@@ -69,13 +69,15 @@ void initSyscalls() {
 
 void syscallHandler(registers_t *regs) {
     // Set the current process's syscall_registers to the registers here
-    if (!currentProcess->syscall_registers) {
+    /*if (!currentProcess->syscall_registers) {
         // TODO: Not do this. Just set currentProcess->syscall_registers to regs. This is not freed. Need to remove.
         currentProcess->syscall_registers = kmalloc(sizeof(registers_t));
         memcpy(currentProcess->syscall_registers, regs, sizeof(registers_t));
     } else {
         memcpy(currentProcess->syscall_registers, regs, sizeof(registers_t));
-    }
+    }*/
+
+    currentProcess->syscall_registers = regs;
 
     uint32_t syscallNumber = regs->eax;
 

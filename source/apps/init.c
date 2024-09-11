@@ -21,9 +21,9 @@ int main(int argc, char **argv) {
 
     if (!cpid) {
         // We're the child process. Start execution
-        char *cargv[] = {"/sigsegv_test"};
+        char *cargv[] = {"/stage2"};
         int cargc = 1;
-        execve("/sigsegv_test", cargv, cargc);
+        execve("/stage2", cargv, cargc);
 
         fprintf(stderr, "child process execve failed or succeeded ig\n");
 

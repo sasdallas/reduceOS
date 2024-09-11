@@ -407,7 +407,8 @@ void pageFault(registers_t *reg) {
 
     // See syscall.c for an explanation on how this works
     // We'll map more stack and quietly return
-    if (reg->cs != 0x08 && (currentProcess->image.heap) && (faultAddress >= currentProcess->image.heap_start) && (faultAddress < currentProcess->image.heap_end)) {
+    if (reg->cs != 0x08 && currentProcess && (currentProcess->image.heap) && (faultAddress >= currentProcess->image.heap_start) && (faultAddress < currentProcess->image.heap_end)) {
+        serialPrintf("pageFault: Mapping more stack for process %s (fault: 0x%x)...\n", currentProcess->name, faultAddress);
         volatile process_t *volatile proc = currentProcess;
 
         if (proc->group != 0) {
@@ -418,19 +419,18 @@ void pageFault(registers_t *reg) {
 
         spinlock_lock(&proc->image.spinlock);
         for (uintptr_t i = faultAddress; i < proc->image.userstack; i += 0x1000) {
-            vmm_mapPhysicalAddress(proc->thread.page_directory, faultAddress, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
+            vmm_mapPhysicalAddress(proc->thread.page_directory, i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
         }
-
         proc->image.userstack = faultAddress;
-
         spinlock_release(&proc->image.spinlock);
 
-        // Literally just say screw the kernel and go back
         return;
     }
 
     // Only faults in the kernel are critical. If it was a usermode process, we don't care.
-    if (reg->cs != 0x08) {
+    // To prevent it from continuously faulting (because we'd just jump back to the same EIP), send SIGSEGV to kill it.
+    // If the process catches it, god help you.
+    if (reg->cs != 0x08 && currentProcess) {
         // stupid processes
         serialPrintf("pageFault: Current process attempted to access a bad memory address (0x%x)\n", faultAddress);
         send_signal(currentProcess->id, SIGSEGV, 1);
@@ -439,8 +439,6 @@ void pageFault(registers_t *reg) {
 
     
 continue_fault:
-    
-
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** Page fault at address 0x%x\n", faultAddress);

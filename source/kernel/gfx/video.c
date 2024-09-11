@@ -5,9 +5,10 @@
  * This driver handles interfacing with all video drivers in reduceOS. It supports multiple modes built-in.
  * 
  * Modes supported (listed in their hierarchical order):
- * - GRUB UEFI GOP framebuffer (disregarded if --force_vga is provided in kargs)
- * - VESA VBE standards (disregarded if --force_vga is provided in kargs)
- * - VGA Text Mode 
+ * - GRUB UEFI GOP framebuffer (disregarded if kargs)
+ * - VESA VBE standards (disregarded if kargs)
+ * - VGA Text Mode (can be forced with --force_vga)
+ * - Headless mode (can be forced with --headless)
  * 
  * A video driver may be loaded via the modules system - it can call the video_registerDriver function.
  * 
@@ -40,8 +41,9 @@ void vga_updateTextCursor(size_t y, size_t x);
 video_driver_info_t *vga_get_info();
 void vga_clearscreen(uint8_t fg, uint8_t bg);
 
+video_driver_t *headless_getDriver();
 video_driver_t *vga_getDriver();
-video_driver_t *vesa_getDriver();
+video_driver_t *vesa_getDriver(int useGOP);
 
 extern int VESA_Initialized;
 
@@ -50,27 +52,22 @@ extern int VESA_Initialized;
 void video_init() {
     // We should first setup the hashmap
     video_driver_hashmap = hashmap_create(10);
-    
-    /*for (uint32_t i = 0; i < (globalInfo->framebuffer_width * globalInfo->framebuffer_height) * 4; i += 0x1000) vmm_allocateRegion(globalInfo->framebuffer_addr + i, (0xFD000000 + i), 0x1000);
-    VESA_Initialized = 1;
-
-    modeWidth = globalInfo->framebuffer_width;
-    modeHeight = globalInfo->framebuffer_height;
-    modePitch = globalInfo->framebuffer_pitch;
-    modeBpp = globalInfo->framebuffer_bpp;
-    vbeBuffer = (uint8_t*)0xFD000000;
-
-    framebuffer = kmalloc(modeWidth * modeHeight * 4);*/
-
-
-
 
     // Let's figure out what we want to do. 
     // The current hierarchical list enables forcing VGA text mode and disregarding all other options, but just in case, go normal.
 
+    // Headless mode? You bet!
+    if (args_has("--headless")) {
+        // Force headless (serial communication) mode
+        video_driver_t *headless = headless_getDriver();
+
+        hashmap_set(video_driver_hashmap, headless->name, headless);
+        currentDriver = headless;
+        return;
+    }
+
     // Some computers (most) don't support our VESA VBE driver.
     // We support the kernel argument --force_vga which will force VGA text mode, which half-works
-    
     if (args_has("--force_vga")) {
         // Force VGA text mode
         video_driver_t *vga_mode = vga_getDriver();
@@ -83,9 +80,30 @@ void video_init() {
 
     // Else, let's go through and see what we got.
 
-    // Check to see if we have an available 
+    // Let's try to use GOP mode from GRUB.
+    if (globalInfo->framebuffer_addr) {
+        // First, what we're going to do might seem a little weird, but it should work.
+        // Map the framebuffer to 0xFD000000. This is usually the classic VBE address used - and GRUB will normally use this anyways.
+        // GCC will not accept int-to-pointer casts, and mapping it to a predefined kernel location is probably better regardless.
+        for (uint32_t i = 0; i < (globalInfo->framebuffer_width * globalInfo->framebuffer_height) * 4; i += 0x1000) vmm_allocateRegion(globalInfo->framebuffer_addr + i, (0xFD000000 + i), 0x1000);
 
-    video_driver_t *vbe_mode = vesa_getDriver();
+        VESA_Initialized = 1;
+        vbeBuffer   = (uint8_t*)0xFD000000;
+        modeWidth   = globalInfo->framebuffer_width;
+        modeHeight  = globalInfo->framebuffer_height;
+        modeBpp     = globalInfo->framebuffer_bpp;
+        modePitch   = globalInfo->framebuffer_pitch;
+        framebuffer = kmalloc(globalInfo->framebuffer_width * globalInfo->framebuffer_height * 4);
+
+        video_driver_t *gop_mode = vesa_getDriver(1); // Little bit hacky.
+        currentDriver = gop_mode;
+        hashmap_set(video_driver_hashmap, gop_mode->name, gop_mode);
+
+        return;
+    }
+
+    // Let's try to initialize VESA VBE mode.
+    video_driver_t *vbe_mode = vesa_getDriver(0); 
     currentDriver = vbe_mode;
     hashmap_set(video_driver_hashmap, vbe_mode->name, vbe_mode);
 
@@ -234,10 +252,19 @@ void vesa_update() {
 }
 
 // VESA initialization function
-video_driver_t *vesa_getDriver() {
+video_driver_t *vesa_getDriver(int useGOP) {
     // This serves as our initialization function too!
+    // useGOP specifies whether a framebuffer was setup for us, because the functions are the same.
+    // If useGOP was 1 and vesaInit fails, it did so because our code pre-emptively setup a framebuffer for it.
+    // We could also check the error code the function fails at.
+
     psfInit();
-    vesaInit();
+
+    if (vesaInit() && !useGOP) {
+        // No luck - return NULL.
+        return NULL;
+    }
+
     changeTerminalMode(1);
 
     video_driver_t *driver = kmalloc(sizeof(video_driver_t));
@@ -312,4 +339,42 @@ video_driver_t *vga_getDriver() {
     vga_mode->fontWidth = 1;
     strcpy(vga_mode->name, "VGA Text Mode");
     return vga_mode;
+}
+
+/** HEADLESS FUNCTIONS **/
+
+int lasty = 0;
+
+void headless_putchar(char ch, int x, int y, uint8_t color) {
+    // The terminal driver works by updating its own Y value
+    if (y > lasty) {
+        serialPrintf("\n"); // This should also handle the return carriage for serial emulators that need it
+    }
+
+    lasty = y;
+
+    serialWrite(NULL, ch);
+}
+
+video_driver_info_t *headless_get_info() {
+    video_driver_info_t *out = kmalloc(sizeof(video_driver_info_t));
+    out->allowsGraphics = 0;
+    out->screenBPP = 32;
+    out->screenWidth = 80;
+    out->screenHeight = 25;
+    out->screenPitch = 0;
+    out->videoBuffer = NULL;
+    return out;
+}
+
+video_driver_t *headless_getDriver() {
+    changeTerminalMode(0);
+
+    video_driver_t *driver = kmalloc(sizeof(video_driver_t));
+    driver->putchar     = headless_putchar;
+    driver->fontHeight  = 1;
+    driver->fontWidth   = 1;
+    driver->info        = headless_get_info();
+    strcpy(driver->name, "Headless Driver");
+    return driver;
 }

@@ -31,21 +31,13 @@ extern int terminalMode; // 0 signifies VGA mode, 1 signifies VESA VBE.
 // Function declarations
 
 void initTerminal(void); // initTerminal() - load the terminal
-void changeTerminalMode(int mode); // changeTerminalMode() - Update the terminal mode (0 = VGA, 1 = VESA)
-void updateTerminalColor(uint8_t color); // updateTerminalColor() - Change the terminal color. Requires a vgaColorEntry already setup.
-void terminalPutcharXY(unsigned char c, uint8_t color, size_t x, size_t y); // terminalPutcharXY() - Place an unsigned char at a certain X and Y. Not recommended, doesn't include scrolling stuff.
+void changeTerminalMode(int mode); // changeTerminalMode() - Update the terminal mode (0 = VGA, 1 = GFX Mode)
 void terminalGotoXY(size_t x, size_t y); // terminalGotoXY() - Change the position to X and Y
 void scrollTerminal(); // scrollTerminal() - I don't see how this could be used outside of terminal.c, but just in case. Scrolls the terminal down.
-void terminalDeleteLastLine(); // terminalDeleteLastLine() - Removes the last line placed by the terminal.
 void clearScreen(uint8_t fg, uint8_t bg); // clearScreen() - Clears the terminal screen.
-void clearScreen_VESA(uint8_t fg, uint8_t bg); // clearScreen_VESA() - Clears the screen for VESA
 void terminalPutchar(char c); // terminalPutchar() - Recommended function. Incorporates scrollTerminal and terminalDeleteLastLine.
-void terminalPutcharVESA(char c); // terminalPutcharVESA() - Putchar, but VESA. Automatically handled by terminalPutchar, no need to use.
 void terminalWrite(const char *data, size_t size); // terminalWrite() - This nor terminalWriteString is recommended for use. Use printf. It prints data using a for loop, but needs length.
-void terminalWriteString(const char* data); // terminalWriteString() - The exact same as terminalWrite but with strlen() included.
 void terminalBackspace(); // terminalBackspace() - Removes the last character printed.
-void terminalBackspaceVESA(); // terminalBackspaceVESA() - Removes the last character printed for VESA
-void terminalWriteStringXY(const char *data, size_t x, size_t y); // terminalWriteStringXY() - Moves the terminal to X and Y, prints the string, then moves back to the original position.
 void terminalMoveArrowKeys(int arrowKey); // terminalMoveArrowKeys() - used by keyboard.c, a function to move the cursor around
 void updateBottomText(char *bottomText); // updateBottomText() - A function to update that bottom bar of text
 void enableShell(char *shellToUse); // Enables a boundary that cannot be overwritten.
