@@ -327,8 +327,8 @@ int vbeSwitchBuffers() {
     if (!VESA_Initialized) return -1; // Framebuffer not initialized.
     
     // Switch the framebuffers
-    for (int i = 0; i < 1024*768; i++) {
-        ((uint32_t*)vbeBuffer)[i] = framebuffer[i]; // Is this is a bug? I don't like the typecast.
+    for (uint32_t i = 0; i < modeWidth * modeHeight; i++) {
+        ((uint32_t*)vbeBuffer)[i] = framebuffer[i];
     }
 
     return 0; // Updated buffers successfully.
@@ -342,6 +342,7 @@ void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
     uint32_t p = y * (modePitch/4) + x;
     *(framebuffer + p) = color;
+
 }
 
 uint32_t vbeGetPixel(int x, int y) {

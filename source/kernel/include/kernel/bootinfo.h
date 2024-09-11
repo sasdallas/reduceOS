@@ -52,7 +52,7 @@ typedef struct {
     uint32_t framebuffer_height;
     uint8_t framebuffer_bpp;
     uint8_t framebuffer_type;  // indexed = 0, RGB = 1, EGA = 2
-} multiboot_info;
+} __attribute__((packed)) multiboot_info;
 
 typedef struct {
 	uint32_t mod_start;

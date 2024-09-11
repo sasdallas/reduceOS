@@ -173,8 +173,8 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
 
 // VGA Text Mode Panic - Halts system and prints out less helpful info
 void vgaTextMode_Panic(char *caller, char *code, char *reason, registers_t *reg, uint32_t faultAddress) {
-    changeTerminalMode(0);
-    initTerminal();
+    //changeTerminalMode(0);
+    //initTerminal();
     clearScreen(COLOR_WHITE, COLOR_RED);
 
 

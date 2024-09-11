@@ -1,5 +1,8 @@
 // hashmap.h - Authored by klange, I deserve no credit. License information in misc/hashmap.c
 
+#ifndef HASHMAP_H
+#define HASHMAP_H
+
 #include <libk_reduced/stddef.h>
 #include <libk_reduced/string.h>
 #include <kernel/list.h>
@@ -40,3 +43,5 @@ extern unsigned int hashmap_string_hash(const void * key);
 extern int hashmap_string_comp(const void * a, const void * b);
 extern void * hashmap_string_dupe(const void * key);
 extern int hashmap_is_empty(hashmap_t * map);
+
+#endif

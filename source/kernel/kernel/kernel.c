@@ -8,6 +8,7 @@
 #include <libk_reduced/time.h>
 #include <libk_reduced/stdint.h>
 
+#include <kernel/video.h>
 #include <kernel/args.h>
 #include <kernel/kernel.h> // Kernel header file
 #include <kernel/cmds.h>
@@ -175,23 +176,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("bios32 initialized successfully!\n");
 
     // ==== TERMINAL INITIALIZATION ====
+    video_init();
 
-    // Some computers (most) don't support our VESA VBE driver.
-    // We support the kernel argument --force_vga which will force VGA text mode, which half-works
-    
-    if (args_has("--force_vga")) {
-        changeTerminalMode(0);
-        initTerminal();
-        serialPrintf("kernel: WARNING! Forcing VGA terminal mode (specified by kernel arguments)\n");
-    } else {
-        vesaInit(); // Initialize VBE
-    
-        vbeSwitchBuffers();
-        changeTerminalMode(1); // Update terminal mode
-    
-        // Startup the terminal driver
-        initTerminal();
-    }
+    initTerminal();
 
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
     terminalUpdateTopBarKernel("created by @sasdallas");
@@ -460,7 +447,6 @@ void useCommands() {
     registerCommand("modinfo", (command*)modinfo);
     registerCommand("showmodes", (command*)showmodes);
     registerCommand("setmode", (command*)setmode);
-    registerCommand("apricity", (command*)apricity);
 
 
     serialPrintf("kmain: All commands registered successfully.\n");

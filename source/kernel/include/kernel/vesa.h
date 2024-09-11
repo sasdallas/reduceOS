@@ -65,7 +65,8 @@ extern uint8_t *vbeBuffer;
 extern uint32_t *framebuffer; // 2nd framebuffer.
 extern uint32_t modeWidth;
 extern uint32_t modeHeight;
-
+extern uint32_t modePitch;
+extern uint32_t modeBpp;
 
 // Functions
 void vesaInit();

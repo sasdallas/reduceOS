@@ -1,12 +1,12 @@
 // ==========================================================
-// font.c - reduceOS font parser (supports bitmap and PSF)
+// font.c - reduceOS font parser (supports PSF)
 // ==========================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
 #include <kernel/font.h> // Main header file
+#include <kernel/video.h>
 #include <libk_reduced/stdio.h>
 
-/* TODO: REMOVE BITMAP FONT */
 
 // PSF (as mentioned in the header file) stands for 'PC screen font', which is the font used by Linux for its console.
 // The font is encoded with its own header and in unicode
@@ -87,9 +87,9 @@ void psfDrawChar(unsigned short int c, int cx, int cy, uint32_t fg, uint32_t bg)
         // Display a row.
         for (x = 0; x < font->width; x++) {
             if ((*((unsigned int*)glyph) & mask ? fg : bg) == bg) {
-                vbePutPixel(cx + x, cy + y, bg);
+                video_putpixel(cx + x, cy + y, bg);
             } else {
-                vbePutPixel(cx + x, cy + y, fg);
+                video_putpixel(cx + x, cy + y, fg);
             }
             mask >>= 1;
         }

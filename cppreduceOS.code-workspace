@@ -64,7 +64,10 @@
 			"signal.h": "c",
 			"liballoc.h": "c",
 			"ioctl.h": "c",
-			"args.h": "c"
+			"args.h": "c",
+			"*.elf": "c",
+			"fb.h": "c",
+			"bios32.h": "c"
 		}
 	}
 }

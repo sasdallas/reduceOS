@@ -6,10 +6,10 @@
 
 
 // YOU CAN MODIFY THE BELOW LINES
-#define CODENAME "Apricity"
-#define VERSION "1.3"
+#define CODENAME "Cherry Blossom"
+#define VERSION "1.4"
 
 // DO NOT MODIFY THE BELOW LINES!!!
-#define BUILD_NUMBER "9642"
-#define BUILD_DATE "09/09/24, 19:00:47"
+#define BUILD_NUMBER "9828"
+#define BUILD_DATE "09/10/24, 19:33:27"
 #define BUILD_CONFIGURATION "DEBUG"

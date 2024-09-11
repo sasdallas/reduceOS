@@ -1097,13 +1097,3 @@ int setmode(int argc, char *args[]) {
     
     return 0;
 }
-
-int apricity(int argc, char *args[]) {
-    printf("Apricity is the warmth of the sun in the winter\n");
-    sleep(1000);
-    printf("The most impressive release of reduceOS to this date\n");
-    sleep(1000);
-    printf("The journey is not over\n");
-    sleep(1000);
-    return 0;
-}
