@@ -97,7 +97,6 @@ void syscallHandler(registers_t *regs) {
     // Set EAX to the return value
     asm volatile ("mov %0, %%eax" :: "r"(returnValue));
     regs->eax = returnValue;
-    currentProcess->syscall_registers->eax = returnValue; // TODO: Need this?
 }
 
 

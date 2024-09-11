@@ -23,7 +23,7 @@ char keyboard_getKeyPressed();                  // keyboard_getKeyPressed() - Re
 bool getControl();                              // getControl() - Returns whether control is down
 void keyboard_clearBuffer();                    // keyboard_clearBuffer() - Clear the keyboard buffer
 char keyboard_altChars(char ch);                // keyboard_altChars() - Gets alternative characters 
-
+void keyboardRegisterKeyPress(char key);        // keyboard_registerKeyPress() - A key was pressed!
 /* BAD FUNCTIONS */
 void setKBShiftKey(bool state);                 // setKBShiftKey() - Sets whether the SHIFT key is pressed
 void setKBCapsLock(bool state);                 // setKBCapsLock() - Sets whether the CAPS LOCK key is pressed

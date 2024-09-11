@@ -4,6 +4,8 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use it.
 
 #include <kernel/serial.h> // Main header file
+#include <kernel/clock.h>
+#include <kernel/keyboard.h>
 #include <libk_reduced/stdio.h>
 
 // Variable declarations
@@ -34,9 +36,28 @@ static int serialIsTransmitEmpty() {
 // serialWrite(void *user, char c) - Writes character 'c' to serial when transmit is empty.
 void serialWrite(void *user, char c) {
     while (serialIsTransmitEmpty() == 0);
+    
+    // Monitors such as QEMU's and any authentic one will need a return carriage before a LF.
+    // This is a hack, but it works.
+    if (c == '\n') outportb(selected_com, '\r');
     outportb(selected_com, c);
 }
 
+
+void serialClock(unsigned long ticks, unsigned long subticks) {
+    // Reads if anything has been received, and if so, prints it out
+    if (serialHasReceived()) {
+
+        char c = serialRead();
+        if (c == '\r' || c == '\n') {
+            serialPrintf("\n"); // Because of the way teletypes work, pressing ENTER (or RETURN) will send the carriage return. 
+            keyboardRegisterKeyPress('\n');
+        } else {
+            serialPrintf("%c", c);
+            keyboardRegisterKeyPress(c);
+        }
+    }
+}
 
 
 
@@ -50,28 +71,8 @@ void serialPrintf(const char *str, ...) {
     va_start(ap, str);
     xvasprintf((xvas_callback)serialWrite, NULL, str, ap);
     va_end(ap);
-
-    // Just in case, check if they used a newline and if so drop a \r after it..
-    if (strchr((char*)str, '\n')) {
-        serialWrite(NULL, '\r');
-    }
 }
 
-// serialReadLine(bool printChars) - Reads a line from SERIAL_COM1
-void serialReadLine(bool printChars, char *bufferPtr) {
-    char *buffer = kmalloc(8); // prolly a security nightmare but lol idc
-    int bindex = 0;
-    char receivedChar = '\0';
-    while (receivedChar != 0xD) { // 0xD is a newline in serial
-        receivedChar = serialRead();
-        buffer[bindex] = receivedChar;
-        bindex++;
-        if (printChars) printf("%c", receivedChar);
-    }
-    if (printChars) serialPrintf("\n");
-    strcpy(bufferPtr, buffer);
-    return;
-}
 
 int testSerial() {
     // The first thing we need to do to test the serial chip is to set it in loopback mode.
@@ -112,6 +113,10 @@ void serialInit() {
 
     serialTestPassed = true;
     isSerialEnabled = true;
+
+    // Create the clock handler for output
+    clock_registerCallback(serialClock);
+
     printf("Serial logging initialized on COM1\n");
     serialPrintf("Serial logging started on COM1.\n");
 }

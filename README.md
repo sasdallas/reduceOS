@@ -41,10 +41,12 @@ Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesy
 # Real Hardware
 Scary! I wouldn't do this, but it's possible. Here are some issues I've encountered:
 
-- reduceOS will commonly fail to initialize a video driver. If this happens you'll see the message that says "BIOS call failed". To fix this, add `--force_vga` to the kernel (the only way you'll see the BIOS call failed message is with this anyways)
-- Occasionally module and debug symbols will fail to load. No way to fix this unless you patch the kernel.
-- reduceOS won't usually run on newer UEFI-only hardware. No fix.
+**reduceOS will commonly fail to initialize a video driver.** If this happens you'll see the message that says "BIOS call failed". To fix this, add `--force_vga` to the boot arguments in GRUB (the only way you'll see the BIOS call failed message is with this anyways)
+-  **IMPORTANT:** The kernel's bootloader will automatically ask GRUB for a framebuffer in 1024x768x32 mode. If GRUB provides this, it will set the mode and render it useless.
 
+**Occasionally module and debug symbols will fail to load.** No way to fix this unless you patch the kernel.
+
+If you manage to get reduceOS running, then tell me in our Discord server or in GitHub issues!
 
 # Kernel Drivers
 reduceOS operates on a semi-modular design, which allows for drivers/modules to be easily made and loaded.

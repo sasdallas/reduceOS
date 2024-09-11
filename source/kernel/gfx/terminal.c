@@ -199,6 +199,10 @@ void terminalPutchar(char c) {
             if (video_canHasGraphics()) clearTextCursor_vesa();
             terminalY += video_getFontHeight();
             terminalX = 0;
+
+            // Some drivers (e.g headless driver) necessitate being informed about a newline
+            // We can write a blank character to these drivers with our new Y.
+            if (!video_canHasGraphics()) video_putchar('\0', terminalX, terminalY, (video_canHasGraphics() ? terminalForeground : terminalColor));
             break;
         
         case '\b':

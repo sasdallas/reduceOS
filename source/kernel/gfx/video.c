@@ -348,7 +348,7 @@ int lasty = 0;
 void headless_putchar(char ch, int x, int y, uint8_t color) {
     // The terminal driver works by updating its own Y value
     if (y > lasty) {
-        serialPrintf("\n"); // This should also handle the return carriage for serial emulators that need it
+        serialPrintf("\r\n"); // This should also handle the return carriage for serial emulators that need it
     }
 
     lasty = y;
@@ -372,6 +372,7 @@ video_driver_t *headless_getDriver() {
 
     video_driver_t *driver = kmalloc(sizeof(video_driver_t));
     driver->putchar     = headless_putchar;
+    driver->getinfo     = headless_get_info;
     driver->fontHeight  = 1;
     driver->fontWidth   = 1;
     driver->info        = headless_get_info();
