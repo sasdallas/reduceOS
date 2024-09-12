@@ -23,6 +23,7 @@
 #include <kernel/pci.h>
 #include <kernel/keyboard.h>
 #include <kernel/processor.h>
+#include <kernel/video.h>
 
 extern fsNode_t *fatDriver;
 extern fsNode_t *ext2_root;
@@ -241,6 +242,12 @@ int color(int argc, char *args[]) {
     }
 
     instantUpdateTerminalColor(fg, bg);
+    return 0;
+}
+
+int clear(int argc, char *args[]) {
+    // Clear the screen
+    clearScreen(COLOR_WHITE, COLOR_CYAN);
     return 0;
 }
 
@@ -1089,10 +1096,47 @@ int setmode(int argc, char *args[]) {
     int y_res = (int)strtol(args[2], (char**)NULL, 10);
     int bpp = (int)strtol(args[3], (char**)NULL, 10);
 
+    // Try to find the mode.
     uint32_t mode = vbeGetMode(x_res, y_res, bpp);
+    if (mode == 0xFFFFFFFF) {
+        printf("Mode not found\n");
+        return -1;
+    }
+
     printf("Found mode 0x%x\n", mode);
 
+    // Get mode information
+    vbeModeInfo_t *modeInfo = kmalloc(sizeof(vbeModeInfo_t));
+    if (vbeGetModeInfo(mode, modeInfo)) {
+        printf("Failed to get mode info\n");
+        return -1;
+    }
+
+    // Map the framebuffer to 0xFD000000
+
+    for (int i = 0; i < (modeInfo->width * modeInfo->height * 4) + ((modeInfo->width * modeInfo->height * 4) % 4096); i += 0x1000) {
+        vmm_allocateRegionFlags((uintptr_t)(modeInfo->framebuffer+i), (uintptr_t)(0xFD000000 + i), 0x1000, 1, 1, 1);
+    } 
+
+    // Update mode variables (todo: do we need to do a spinlock or something?)
+
+    modeWidth = modeInfo->width;
+    modeHeight = modeInfo->height;
+    modeBpp = modeInfo->bpp;
+    modePitch = modeInfo->pitch;
+    vbeBuffer = (uint8_t*)0xFD000000;
+
+    // Remember, when we're messing with framebuffers and such we can't just expand our VBE buffer.
+    // We also have to expand the double buffer, and reallocate it because if not it will be expanded.
+    framebuffer = krealloc(framebuffer, modeWidth*modeHeight*4);
+
+    // We must also notify the video driver that we have changed things around.
+    video_change();
+
+
     vbeSetMode(mode);
+
+    clearScreen(COLOR_WHITE, COLOR_CYAN); // The system will be in a weird limbo state, clear the screen.
     printf("Done.\n");
     
     return 0;

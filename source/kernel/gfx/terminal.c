@@ -72,7 +72,7 @@ void scrollTerminal_vesa() {
         // Reading directly from vmem is very slow, but reading from our secondary buffer is not
         for (uint32_t y = video_getFontHeight(); y < sh; y++) {
             for (uint32_t x = 0; x < sw; x++) {
-                vbePutPixel(x, y - video_getFontHeight(), *(fb + (y*1024 + x))); // Copy the pixels one line below to the current line.
+                vbePutPixel(x, y - video_getFontHeight(), *(fb + (y*sw + x))); // Copy the pixels one line below to the current line.
             }    
         }
 
@@ -85,7 +85,7 @@ void scrollTerminal_vesa() {
 
 
         // Update terminalY to the new position after scrolling
-        terminalY = modeHeight - video_getFontHeight();
+        terminalY = sh - video_getFontHeight();
 
         kfree(inf);
     }

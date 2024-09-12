@@ -418,6 +418,7 @@ void useCommands() {
     registerCommand("about", (command*)about);
     registerCommand("version", (command*)about);
     registerCommand("color", (command*)color);
+    registerCommand("clear", (command*)clear);
     registerCommand("pagefault", (command*)doPageFault);
     registerCommand("read_floppy", (command*)read_floppy);
     registerCommand("test", (command*)test);

@@ -133,11 +133,12 @@ int vbeSetMode(uint32_t mode) {
 
 // vbeGetMode(uint32_t width, uint32_t height, uint32_t color_depth) - Returns the VBE mode with the parameters given.
 uint32_t vbeGetMode(uint32_t width, uint32_t height, uint32_t color_depth) {
+    // It is possible (and likely) that we are using GRUB's framebuffer and vbeInfo hasn't been setup
+    vbeGetInfo();
+
     // First, get the mode list from the VBE video mode pointer.
     uint16_t *modes = (uint16_t*)vbeInfo.videoModePtr;
     uint16_t currentMode = *modes++;
-
-    // This function has a potential bug, check vesaPrintModes() for the bug description.
 
     // Locate the mode.
     while (currentMode != 0xFFFF) {

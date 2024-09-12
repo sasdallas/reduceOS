@@ -22,6 +22,7 @@ int memoryInfo(int argc, char *args[]);
 int dump(int argc, char *args[]);
 int about(int argc, char *args[]);
 int color(int argc, char *args[]);
+int clear(int argc, char *args[]);
 int doPageFault(int argc, char *args[]);
 int read_floppy(int argc, char *args[]);
 

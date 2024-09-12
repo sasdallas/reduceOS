@@ -57,6 +57,7 @@ video_driver_info_t *video_getInfo();
 void video_update_screen();
 void video_cursor(size_t x, size_t y);
 void video_putpixel(int x, int y, uint32_t color);
+void video_change();
 
 void video_registerDriver(video_driver_t *driver, int isOptimal);
 video_driver_t *video_getDriver(char *drivername);

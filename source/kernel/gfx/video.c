@@ -185,6 +185,16 @@ int video_canHasGraphics() {
     }
 }
 
+void video_change() {
+    // This function is used to notify the current video driver of a change.
+    // We will reacquire it's information and store it.
+    if (currentDriver->getinfo) {
+        video_driver_info_t *info = currentDriver->getinfo();
+        kfree(currentDriver->info);
+        currentDriver->info = info;
+    }
+}
+
 /** VIDEO DRIVER REGISTRATION **/
 
 void video_registerDriver(video_driver_t *driver, int isOptimal) {
