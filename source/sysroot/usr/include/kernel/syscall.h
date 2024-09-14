@@ -19,6 +19,9 @@
 #define SYS_FD_VALIDATE(fd) (fd < currentProcess->file_descs->length && fd >= 0 && currentProcess->file_descs->nodes[fd])
 #define SYS_FD(fd) (currentProcess->file_descs->nodes[fd])
 
+// Stub system calls
+#define SYS_STUB() (serialPrintf("%s: Stub system call.\n", __FUNCTION__))
+
 // 5 DEFINE_SYSCALL macros (just function prototypes)
 #define DEFINE_SYSCALL0(func) int syscall_##func();
 #define DEFINE_SYSCALL1(func, p1) int syscall_##func(p1);

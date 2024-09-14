@@ -662,9 +662,12 @@ void R_InitSpriteLumps (void)
     
     numspritelumps = lastspritelump - firstspritelump + 1;
     spritewidth = Z_Malloc (numspritelumps*sizeof(*spritewidth), PU_STATIC, 0);
+    printf(".");
     spriteoffset = Z_Malloc (numspritelumps*sizeof(*spriteoffset), PU_STATIC, 0);
+    printf(".");
     spritetopoffset = Z_Malloc (numspritelumps*sizeof(*spritetopoffset), PU_STATIC, 0);
-	
+    printf(".");
+
     for (i=0 ; i< numspritelumps ; i++)
     {
 	if (!(i&63))

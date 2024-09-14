@@ -37,7 +37,6 @@ size_t printf_out(size_t size, uint8_t *buffer) {
 		terminalPutchar(buffer[i]);
 	}
 
-	terminalUpdateScreen();
 	return sizeToWrite;
 }
 

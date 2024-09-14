@@ -214,11 +214,14 @@ Z_Malloc
     rover = base;
     start = base->prev;
 	
+    int i = 0;
+
     do
     {
         if (rover == start)
         {
             // scanned all the way around the list
+            printf("*** Z_Malloc stopped on iteration %i\n");
             I_Error ("Z_Malloc: failed on allocation of %i bytes", size);
         }
 	
@@ -234,6 +237,8 @@ Z_Malloc
             {
                 // free the rover block (adding the size to base)
 
+                printf("Z_Malloc: Purge block on %i\n", i);
+
                 // the rover can be the base block
                 base = base->prev;
                 Z_Free ((byte *)rover+sizeof(memblock_t));
@@ -245,6 +250,8 @@ Z_Malloc
         {
             rover = rover->next;
         }
+        
+        i++;
 
     } while (base->tag != PU_FREE || base->size < size);
 

@@ -396,12 +396,14 @@ void ext2_refreshInode(ext2_t *fs, ext2_inode_t *inodet, uint32_t inode) {
     if (inoderet->deletion_time != 0) {
         serialPrintf("ext2_refreshInode: Deletion time is %i, refusing to read.\n", inoderet->deletion_time);
         kfree(buffer);
+        kfree(inoderet);
         return;
     }
 
 
     memcpy(inodet, inoderet, fs->superblock->extension.inode_struct_size);
     kfree(buffer);
+    kfree(inoderet);
 }
 
 // ext2_readInodeMetadata(ext2_t *fs, uint32_t inode) - Given an inode number, find the inode on the disk and read it.

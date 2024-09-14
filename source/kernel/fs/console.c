@@ -50,6 +50,7 @@ static int mini_cb_printf(void *user, char c) {
 
     if (c == '\n') data->previous_linefeed = 1;
     write_console(1, (uint8_t*)&c);
+    
     return 0;
 }
 
@@ -73,7 +74,7 @@ int console_printf(const char *fmt, ...) {
     if (*fmt == '\a') {
         fmt++;
     } else {
-        uint8_t seconds, minutes, hours, day, month;
+        /*uint8_t seconds, minutes, hours, day, month;
         int year;
 
         // Get timestamp
@@ -83,11 +84,12 @@ int console_printf(const char *fmt, ...) {
         int len = snprintf(timestamp, 99, "[%i/%i/%i %i:%i:%i] ", month, day, year, hours, minutes, seconds);   
         timestamp[len] = 0;
         _data.left_width = len;
-        write_console(len, (uint8_t*)timestamp);
+        write_console(len, (uint8_t*)timestamp);*/
     }
 
     int out = xvasprintf(mini_cb_printf, &_data, fmt, args);
     va_end(args);
+    terminalUpdateScreen();
     return out;
 }
 

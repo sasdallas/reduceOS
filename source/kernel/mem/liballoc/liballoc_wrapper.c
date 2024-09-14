@@ -58,7 +58,6 @@ void *liballoc_alloc(size_t pages) {
         vmm_mapPage(ptr + (i*4096), ptr + (i*4096));
     }
 
-
     return ptr;
 }
 

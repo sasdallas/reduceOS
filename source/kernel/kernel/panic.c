@@ -108,7 +108,7 @@ void panic_dumpPMM() {
                 addr += PAGE_SIZE;
             }
 
-            serialPrintf("dumpPMM: %i%% completed.\n", (pages / i));
+            serialPrintf("dumpPMM: %i%% completed.\n", (i != 0 ? ((i / pages) * 100) : (0)));
 
             printf(".");
         }
@@ -408,30 +408,13 @@ void pageFault(registers_t *reg) {
     // See syscall.c for an explanation on how this works
     // We'll map more stack and quietly return
     if (faultAddress < 0xC0000000 && faultAddress > 0xBFF00000) {
-        serialPrintf("Process page fault at 0x%x\n", faultAddress);
+        serialPrintf("Userstack page fault! Unimplemented - need to map more stack.\n", faultAddress);
         for (;;);
-        /*
-        serialPrintf("pageFault: Mapping more stack for process %s (fault: 0x%x)...\n", currentProcess->name, faultAddress);
-        volatile process_t *volatile proc = currentProcess;
-
-        if (proc->group != 0) {
-            proc = process_from_pid(proc->group);
-        }
-
-        if (!proc) goto continue_fault;
-
-        spinlock_lock(&proc->image.spinlock);
-        for (uintptr_t i = faultAddress; i < proc->image.userstack; i += 0x1000) {
-            vmm_mapPhysicalAddress(proc->thread.page_directory, i, i, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
-        }
-        proc->image.userstack = faultAddress;
-        spinlock_release(&proc->image.spinlock);
-        */
-
         return;
     }
 
     if (faultAddress > currentProcess->image.heap_start && faultAddress < currentProcess->image.heap_end) {
+       
         void *block = pmm_allocateBlock();
         vmm_allocateRegionFlags((uintptr_t)block, faultAddress, 0x1000, 1, 1, 1);
         return;

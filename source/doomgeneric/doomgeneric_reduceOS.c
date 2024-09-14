@@ -69,6 +69,7 @@ void DG_Init() {
 
 
 void DG_DrawFrame() {
+    I_Error("Unimplemented function DG_DrawFrame");
     int i = 0;
     for (uint32_t y = 0; y < height; y++) {
         for (uint32_t x = 0; x < width; x++) {

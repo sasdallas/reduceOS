@@ -271,6 +271,7 @@ int sys_fork(void) {
 
 // SYSCALL 7
 int sys_fstat(int file, void *st) {
+    SYS_STUB();
     return -1;
 }
 
@@ -281,6 +282,7 @@ int sys_getpid(void) {
 
 // SYSCALL 9
 int sys_isatty(int file) {
+    SYS_STUB();
     return 1;
 }
 
@@ -299,7 +301,8 @@ int sys_kill(int pid, int sig) {
 
 // SYSCALL 11
 int sys_link(char *old, char *new) {
-    return -1;
+    SYS_STUB();
+    return 0;
 }
 
 // SYSCALL 12
@@ -426,11 +429,13 @@ uint32_t sys_sbrk(uint32_t incr) {
 
 // SYSCALL 15
 int sys_stat(char *file, void *st) {
+    SYS_STUB();
     return 0; // Not implemented.
 }
 
 // SYSCALL 16
 int sys_times(void *buf) {
+    SYS_STUB();
     return -1;
 }
 
@@ -441,6 +446,7 @@ int sys_wait(int *status) {
 
 // SYSCALL 18
 int sys_unlink(char *name) {
+    SYS_STUB();
     return -ENOENT;
 }
 
@@ -503,5 +509,9 @@ int sys_mkdir(char *pathname, int mode) {
 
     syscall_validatePointer(pathname, "sys_mkdir");
     if (!pathname) return -EINVAL;
+
+    // For some reason, a call will be made to create a directory with the current .
+    if (!strcmp(pathname, ".")) return 0;
+
     return mkdirFilesystem(pathname, (uint16_t)mode);
 }

@@ -55,8 +55,8 @@
 #include <CoreFoundation/CFUserNotification.h>
 #endif
 
-#define DEFAULT_RAM 6 /* MiB */
-#define MIN_RAM     6  /* MiB */
+#define DEFAULT_RAM 32 /* MiB */
+#define MIN_RAM     32  /* MiB */
 
 
 typedef struct atexit_listentry_s atexit_listentry_t;
@@ -146,6 +146,7 @@ byte *I_ZoneBase (int *size)
 
     if (p > 0)
     {
+        printf("-mb specified - using %s ram\n", myargv[p+1]);
         default_ram = atoi(myargv[p+1]);
         min_ram = default_ram;
     }
@@ -153,6 +154,7 @@ byte *I_ZoneBase (int *size)
     {
         default_ram = DEFAULT_RAM;
         min_ram = MIN_RAM;
+        printf("-mb not specified - using default %i RAM\n", DEFAULT_RAM);
     }
 
     zonemem = AutoAllocMemory(size, default_ram, min_ram);

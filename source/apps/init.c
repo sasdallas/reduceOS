@@ -25,8 +25,6 @@ int main(int argc, char **argv) {
         int cargc = 1;
         execve("/stage2", cargv, cargc);
 
-        fprintf(stderr, "child process execve failed or succeeded ig\n");
-
         // Failed?
         exit(0);
     }
