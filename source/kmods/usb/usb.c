@@ -7,8 +7,9 @@
  * @todo At some point I would like to integrate this or a way to read function from this into kernel, making it easier (if not downright impossible) to write USB peripheral drivers 
  * 
  * @copyright
- * This file is part of the reduceOS C kernel, which is licensed under the terms of GPL.
- * Please credit me if this code is used.
+ * This file is part of reduceOS, which is created by Samuel.
+ * It is released under the terms of the BSD 3-clause license.
+ * Please see the LICENSE file in the main repository for more details.
  * 
  * Copyright (C) 2024 Samuel S.
  */

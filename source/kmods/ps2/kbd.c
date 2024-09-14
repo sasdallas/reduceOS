@@ -1,4 +1,15 @@
-// kbd.c - Keyboard part of the PS/2 driver
+/**
+ * @file source/kmods/ps2/kbd.c
+ * @brief Keyboard section of the PS/2 driver.
+ * 
+ * @copyright
+ * This file is part of reduceOS, which is created by Samuel.
+ * It is released under the terms of the BSD 3-clause license.
+ * Please see the LICENSE file in the main repository for more details.
+ * 
+ * Copyright (C) 2024 Samuel S.
+ */
+
 
 #include "ps2.h"
 #include <kernel/keyboard.h>

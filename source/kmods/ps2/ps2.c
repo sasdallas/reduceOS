@@ -5,8 +5,9 @@
  * This file controlls setting up and initializing the 8042 PS/2 driver
  * 
  * @copyright
- * This file is part of the reduceOS C kernel, which is licensed under the terms of GPL.
- * Please credit me if this code is used.
+ * This file is part of reduceOS, which is created by Samuel.
+ * It is released under the terms of the BSD 3-clause license.
+ * Please see the LICENSE file in the main repository for more details.
  * 
  * Copyright (C) 2024 Samuel S.
  */

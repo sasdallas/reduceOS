@@ -12,8 +12,9 @@
  * AHCI is meant to be the a the successor to IDE, which is integrated right into the reduceOS kernel.
  * 
  * @copyright
- * This file is part of the reduceOS C kernel, which is licensed under the terms of GPL.
- * Please credit me if this code is used.
+ * This file is part of reduceOS, which is created by Samuel.
+ * It is released under the terms of the BSD 3-clause license.
+ * Please see the LICENSE file in the main repository for more details.
  * 
  * Copyright (C) 2024 Samuel S.
  */
