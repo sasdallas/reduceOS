@@ -18,7 +18,7 @@ ASM_SOURCE_DIRECTORIES = assembly
 
 # Directories (EDIT ME)
 SOURCE_DIRECTORIES = kernel drivers gfx fs mem tasks misc
-SOURCE_SUBDIRECTORIES = mem/liballoc # We do this because shell find will pick up anything in subdirectories twice
+SOURCE_SUBDIRECTORIES = mem/liballoc kernel/doomgeneric # We do this because shell find will pick up anything in subdirectories twice
 
 
 # Before object files and other things are done, we need to include our architecture-specific Makefile.
@@ -106,7 +106,7 @@ PRINT_ASM_HEADER:
 # Actual compilation functions
 
 $(OUT_OBJ)/%.o: %.asm Makefile
-	$(NASM) -f elf32 -F dwarf -g $< -o $@
+	$(NASM) $(NASMFLAGS) $< -o $@
 
 $(OUT_OBJ)/%.o: %.S Makefile
 	$(CC) -m32 -c $< -o $@

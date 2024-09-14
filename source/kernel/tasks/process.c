@@ -10,7 +10,7 @@
 #include <kernel/elf.h>
 #include <kernel/clock.h>
 #include <kernel/signal.h>
-
+#include <libk_reduced/stdio.h>
 
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers" // Because of the way the spinlocks work, the volatile property is discarded.
                                                         // This is bad, and has been logged as a change to be made.
@@ -983,7 +983,8 @@ void task_exit(int retval) {
     // Before we switch to the next process we need to check if we just killed the init process.
     // Shoot first, ask questions later.
     if (currentProcess->id == 1) {
-        panic("reduceOS", "kernel", "A process critical to the system (the init process) has terminated unexpectedly.");
+        printf("The init process has died. System halted.\n");
+        //panic("reduceOS", "kernel", "A process critical to the system (the init process) has terminated unexpectedly.");
     }
 
     if (parent && !(parent->flags & PROCESS_FLAG_FINISHED)) {
@@ -1213,7 +1214,6 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     // Now, we should start parsing.
     uintptr_t heapBase = 0;
     uintptr_t execBase = -1;
-    uintptr_t usermodeBase = 0; // Should replace
     for (int i = 0; i < ehdr->e_phnum; i++) {
         Elf32_Phdr *phdr = elf_getPHDR(ehdr, i);
         if (phdr->p_type == PT_LOAD) {
@@ -1229,27 +1229,25 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
 
         if (phdr->p_vaddr < execBase) execBase = phdr->p_vaddr;
         if (phdr->p_vaddr + phdr->p_memsize > heapBase) heapBase = phdr->p_vaddr + phdr->p_memsize;
-
-        if (phdr->p_vaddr + phdr->p_filesize + PAGE_SIZE > usermodeBase) usermodeBase = phdr->p_vaddr + phdr->p_filesize + PAGE_SIZE;
     }
 
 
     // Create a usermode stack
-    void *usermodeStack = (void*)usermodeBase;
-    void *stackPhysical = pmm_allocateBlock(); // Allocate a physical block for the stack
+    // We'll use 0xC0000000 as the usermode stack. That should be far enough into memory that it will be fine.
+    // This allocation is done via PMM mapped memory. 
 
-    // Map the user process stack space
-    vmm_mapPhysicalAddress(addressSpace, (uint32_t)usermodeStack, (uint32_t)stackPhysical, PTE_PRESENT|PTE_WRITABLE|PTE_USER);
+    uintptr_t usermode_stack = 0xC0000000;
+    for (uintptr_t i = usermode_stack - 512 * 0x400 ; i < usermode_stack; i += 0x1000) {
+        void *block = kmalloc(4096);
+        vmm_allocateRegionFlags((uintptr_t)block, i, 0x1000, 1, 1, 1);
+    }
 
-    currentProcess->image.userstack = usermodeBase;
+    serialPrintf("usermode stack mapped from 0x%x to 0x%x\n", usermode_stack - 512 * 0x400, usermode_stack);
 
-
-  
-
-
+    currentProcess->image.userstack = usermode_stack - 16 * 0x400;
 
     // Setup values   
-    currentProcess->image.heap = (uint32_t)kmalloc(4096); // could result in potential fault
+    currentProcess->image.heap = heapBase;
     currentProcess->image.heap_start = currentProcess->image.heap;
     currentProcess->image.heap_end = currentProcess->image.heap;
     currentProcess->image.entrypoint = ehdr->e_entry;

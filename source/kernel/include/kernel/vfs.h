@@ -45,7 +45,7 @@ typedef void (*close_t)(struct fsNode*);
 typedef struct dirent * (*readdir_t)(struct fsNode*, uint32_t);
 typedef struct fsNode * (*finddir_t)(struct fsNode*, char *name);
 typedef int (*create_t) (struct fsNode *, char *name, uint16_t permission);
-typedef void (*mkdir_t) (struct fsNode *, char *name, uint16_t permission);
+typedef int (*mkdir_t) (struct fsNode *, char *name, uint16_t permission);
 typedef int (*unlink_t) (struct fsNode *, char *name);
 typedef int (*ioctl_t) (struct fsNode *, unsigned long request, void *argp);
 
@@ -122,5 +122,6 @@ fsNode_t *cloneFilesystemNode(fsNode_t *node);
 void vfs_lock(fsNode_t *node);
 int createFilesystem(char *name, uint16_t mode);
 int ioctlFilesystem(fsNode_t *node, unsigned long request, void *argp);
+int mkdirFilesystem(char *name, uint16_t mode);
 
 #endif

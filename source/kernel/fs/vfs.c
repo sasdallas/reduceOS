@@ -191,6 +191,55 @@ int createFilesystem(char *name, uint16_t mode) {
         return -EINVAL;
     }
 
+
+    kfree(path);
+    kfree(parent);
+    return ret;
+}
+
+// mkdirFilesystem(char *name, uint16_t mode) - Make directory
+int mkdirFilesystem(char *name, uint16_t mode) {
+    fsNode_t *parent;
+    char *path = vfs_canonicalizePath(cwd, name);
+
+    char *parent_path_tmp = kmalloc(strlen(path) + 5);
+    snprintf(parent_path_tmp, strlen(path) + 4, "%s/..", path);
+
+    char *parent_path = vfs_canonicalizePath(cwd, parent_path_tmp);
+
+    kfree(parent_path_tmp);
+
+    char *file_path = path + strlen(path) - 1;
+    while (file_path > path) {
+        if (*file_path == '/') {
+            file_path += 1;
+            break;
+        }
+
+        file_path--;
+    }
+
+    while (*file_path == '/') file_path++;
+
+    serialPrintf("mkdirFilesystem: Creating %s in %s\n", file_path, parent_path);
+    parent = open_file(parent_path, 0);
+    kfree(parent_path);
+
+    if (!parent) {
+        kfree(path);
+        return -ENOENT;
+    }
+
+    // TODO: Permissions
+
+    int ret = 0;
+    if (parent->mkdir) {
+        ret = parent->mkdir(parent, file_path, mode);
+    } else {
+        return -EINVAL;
+    }
+
+
     kfree(path);
     kfree(parent);
     return ret;

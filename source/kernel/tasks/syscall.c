@@ -7,6 +7,7 @@
 
 #include <kernel/syscall.h> // Main header file
 #include <kernel/process.h>
+#include <kernel/vfs.h>
 #include <kernel/signal.h>
 #include <libk_reduced/stdio.h>
 #include <libk_reduced/fcntl.h>
@@ -14,7 +15,7 @@
 #include <libk_reduced/signal.h>
 
 // List of system calls
-void *syscalls[22] = {
+void *syscalls[23] = {
     &sys_restart_syscall,
     &_exit,
     &sys_read,
@@ -36,13 +37,14 @@ void *syscalls[22] = {
     &sys_unlink,
     &sys_readdir,
     &sys_ioctl,
-    &sys_signal
+    &sys_signal,
+    &sys_mkdir
 };
 
-uint32_t syscallAmount = 22;
+uint32_t syscallAmount = 23;
 spinlock_t *write_lock;
 
-// DECLARATION OF TESTSYSTEM CALLS
+// DECLARATION OF TEST SYSTEM CALLS
 DECLARE_SYSCALL0(sys_restart_syscall, 0);
 DECLARE_SYSCALL1(_exit, 1, int);
 DECLARE_SYSCALL3(sys_read, 2, int, void*, size_t);
@@ -69,14 +71,6 @@ void initSyscalls() {
 
 void syscallHandler(registers_t *regs) {
     // Set the current process's syscall_registers to the registers here
-    /*if (!currentProcess->syscall_registers) {
-        // TODO: Not do this. Just set currentProcess->syscall_registers to regs. This is not freed. Need to remove.
-        currentProcess->syscall_registers = kmalloc(sizeof(registers_t));
-        memcpy(currentProcess->syscall_registers, regs, sizeof(registers_t));
-    } else {
-        memcpy(currentProcess->syscall_registers, regs, sizeof(registers_t));
-    }*/
-
     currentProcess->syscall_registers = regs;
 
     uint32_t syscallNumber = regs->eax;
@@ -105,9 +99,11 @@ void syscallHandler(registers_t *regs) {
 // syscall_validatePointer(void *ptr, const char *syscall) - Validate that a pointer is within range of the program's address space
 int syscall_validatePointer(void *ptr, const char *syscall) {
     if (ptr) {
-        if (!PTR_INRANGE(ptr)) { 
-            // Normally we could send a SIGSEGV to the process to say "that aint your memory son" but we don't have that.
-            // So just crash! I'm sure nothing could go wrong!
+        if (PTR_INRANGE(ptr)) {
+            // Let the panic handler take care of it
+        } else {
+            // Normally we could send a SIGSEGV to the process to say "that aint your memory son" but this is debugging stages.
+
             panic_prepare();
             disableHardwareInterrupts();
             printf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n", syscall, currentProcess->name, currentProcess->id);
@@ -125,9 +121,6 @@ int syscall_validatePointer(void *ptr, const char *syscall) {
 
             asm volatile ("hlt");
             for (;;);
-
-
-            //panic("syscall", "pointer vaildation", "Current process attempted to access memory outside of its address space.");
         }
 
         pte_t *page = vmm_getPage(ptr);
@@ -163,11 +156,12 @@ long sys_read(int file_desc, void *buf, size_t nbyte) {
         return -EBADF;
     }
 
+
     fsNode_t *node = currentProcess->file_descs->nodes[file_desc];
     int64_t out = readFilesystem(node, currentProcess->file_descs->fd_offsets[file_desc], nbyte, (uint8_t*)buf);
     if (out > 0) currentProcess->file_descs->fd_offsets[file_desc] += out;
 
-    return nbyte;
+    return out;
 }
 
 
@@ -175,11 +169,6 @@ long sys_read(int file_desc, void *buf, size_t nbyte) {
 long sys_write(int file_desc, char *buf, size_t nbyte) {
     if (!nbyte) return 0;
 
-    if (file_desc == 2) {
-        // stderr, force it
-        serialPrintf("%s", buf);
-        return nbyte;
-    }
 
     if (!SYS_FD_VALIDATE(file_desc)) {
         return -EBADF;
@@ -315,7 +304,33 @@ int sys_link(char *old, char *new) {
 
 // SYSCALL 12
 int sys_lseek(int file, int ptr, int dir) {
-    return 0;
+    // Validate the file descriptor
+    if (!SYS_FD_VALIDATE(file)) {
+        return -EBADF;
+    }
+
+    // dir will give us three possible parameters:
+    // SEEK_SET     will set the offset of the to ptr bytes
+    // SEEK_CUR     will increment the offset by ptr bytes
+    // SEEK_END     the offset is set to the end of the file plus ptr bytes
+
+    switch (dir) {
+        case SEEK_SET:
+            currentProcess->file_descs->fd_offsets[file] = ptr;
+            break;
+        case SEEK_CUR:
+            currentProcess->file_descs->fd_offsets[file] += ptr;
+            break;
+        case SEEK_END:
+            currentProcess->file_descs->fd_offsets[file] = currentProcess->file_descs->nodes[file]->length + ptr;
+            break;
+        default:
+            serialPrintf("sys_lseek: Unknown seek value requested: %i\n", dir);
+            return -EINVAL;
+    }
+
+
+    return currentProcess->file_descs->fd_offsets[file];
 }
 
 // SYSCALL 13
@@ -371,6 +386,7 @@ int sys_open(const char *name, int flags, int mode) {
     }
 
     int fd = process_addfd(currentProcess, node);
+
     if (flags & O_APPEND) {
         currentProcess->file_descs->fd_offsets[fd] = node->length;
     } else {
@@ -383,8 +399,7 @@ int sys_open(const char *name, int flags, int mode) {
 
 // SYSCALL 14
 // TODO: uint32_t is not the correct type for this, it's arch-specific I believe
-uint32_t sys_sbrk(uint32_t incr_uint) {
-    int incr = (int)incr_uint;
+uint32_t sys_sbrk(uint32_t incr) {
     process_t *proc = currentProcess;
 
     if (!proc) return -1;
@@ -394,27 +409,18 @@ uint32_t sys_sbrk(uint32_t incr_uint) {
 
     uintptr_t out = proc->image.heap; // Old heap value
 
-    if (incr < 0) {
+    /*if (incr < 0) {
         serialPrintf("sys_sbrk: WARNING! Support for negative SBRK is not implemented yet!\n");
     
         serialPrintf("sys_sbrk: If we were to do such a thing though, the heap would be set to %i\n", out + incr);
         goto end;
-    }
+    }*/
 
-
-    /* 
-        Here is how the reduceOS sbrk() handler works:
-            1. Increase the heap pointer and return the old one
-            2. The program will attempt to access invalid and unmapped memory
-            3. This is stupid but hilarious - the page fault handler recognizes this, quietly maps the address, then slinks away.
-    */
     proc->image.heap += incr;
-    proc->image.heap_end = proc->image.heap;
-    ASSERT(proc->image.heap_start, "sys_sbrk", "Current process does not have an available heap_start");
+    proc->image.heap_end += incr;
 
-end:
     spinlock_release(&proc->image.spinlock);
-    serialPrintf("sys_sbrk: Heap done - expanded: 0x%x - 0x%x\n", (uint32_t)out, (uint32_t)proc->image.heap_end);
+    serialPrintf("sys_sbrk: Heap done - expanded: 0x%x - 0x%x\n", (uint32_t)out, (uint32_t)out + incr);
     return (uint32_t)out;
 }
 
@@ -488,4 +494,14 @@ long sys_signal(long signum, uintptr_t handler) {
     serialPrintf("sys_signal: Handler is all setup.\n");
 
     return old_handler;
+}
+
+// SYSCALL 22
+int sys_mkdir(char *pathname, int mode) {
+    // TODO: Replace this with mode_t
+    // TODO: Even use the mode variable
+
+    syscall_validatePointer(pathname, "sys_mkdir");
+    if (!pathname) return -EINVAL;
+    return mkdirFilesystem(pathname, (uint16_t)mode);
 }

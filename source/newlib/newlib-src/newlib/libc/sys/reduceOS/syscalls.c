@@ -118,3 +118,8 @@ int unlink(char *name) {
 int wait(int *status) {
     return SYSCALL1(int, SYS_WAIT, status);
 }
+
+
+int mkdir(const char *pathname, mode_t mode) {
+    return SYSCALL2(int, SYS_MKDIR, (char*)pathname, mode);
+}

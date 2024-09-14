@@ -1181,6 +1181,8 @@ int ext2_read(fsNode_t *node, off_t offset, uint32_t size, uint8_t *buffer) {
 
     kfree(inode);
     kfree(buf);
+
+
     return sizeToRead;
 
 }

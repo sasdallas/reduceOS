@@ -12,7 +12,8 @@
 // See syscall.c for an explanation of why we need these macros.
 
 // Validating userspace pointers
-#define PTR_INRANGE(PTR) ((uintptr_t)PTR > currentProcess->image.entrypoint) // TODO: Check for over-access as well.
+// In this situation, even though the heap is not mapped, the page fault handler will take care of it.
+#define PTR_INRANGE(PTR) (((uintptr_t)PTR > currentProcess->image.entrypoint) || ((uintptr_t)PTR > currentProcess->image.heap_start && (uintptr_t)PTR < currentProcess->image.heap_end)) 
 
 // File descriptor validation
 #define SYS_FD_VALIDATE(fd) (fd < currentProcess->file_descs->length && fd >= 0 && currentProcess->file_descs->nodes[fd])
@@ -145,6 +146,7 @@ int sys_readdir(int fd, int cur_entry, struct dirent *entry);
 int sys_ioctl(int fd, unsigned long request, void *argp);
 long sys_signal(long signum, uintptr_t handler);
 void syscallHandler(registers_t *regs);
+int sys_mkdir(char *pathname, int mode);
 
 
 // Syscall definitions (only test system calls)

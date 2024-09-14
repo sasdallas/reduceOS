@@ -28,7 +28,7 @@
 #define SYS_READDIR     19
 #define SYS_IOCTL       20
 #define SYS_SIGNAL      21
-#define SYS_KILL        22
+#define SYS_MKDIR       22
 
 // System call macros
 

@@ -3,6 +3,7 @@
 # We'll add a few extra flags for the kernel
 LDFLAGS += -melf_i386
 CFLAGS += -m32
+NASMFLAGS += -f elf32 
 
 # We'll also add our directory to the kernel
 SOURCE_DIRECTORIES += arch

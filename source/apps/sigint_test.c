@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
     printf("But maybe you could press CTRL C, just for funsies.\n");
     fprintf(stderr, "Can't close me!\n");
 
-    signal(SIGINT, sig_handler);
+    signal(SIGINT, sig_handler); // will die
 
     for (;;);
 

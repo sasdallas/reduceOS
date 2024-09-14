@@ -67,7 +67,9 @@
 			"args.h": "c",
 			"*.elf": "c",
 			"fb.h": "c",
-			"bios32.h": "c"
+			"bios32.h": "c",
+			"*.def": "c",
+			"doomgeneric.h": "c"
 		}
 	}
 }

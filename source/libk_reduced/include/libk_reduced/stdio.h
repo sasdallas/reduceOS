@@ -16,6 +16,11 @@
 // Typedefs (NOT STANDARD)
 typedef int (*xvas_callback)(void *, char);
 
+// lseek() parameters
+#define SEEK_SET    0
+#define SEEK_CUR    1
+#define SEEK_END    2
+
 // Functions
 int printf(const char * __restrict, ...);
 int putchar(int);

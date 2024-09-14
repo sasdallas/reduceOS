@@ -23,7 +23,7 @@ void *kmalloc(size_t size){
     } else {
         // There's a *very* slim window when this could happen. Therefore, just place it at the end...
         // TODO: Fix this abomination.
-        if ((placement_address && 0x00000FFF)) {
+        if ((placement_address & 0x00000FFF)) {
             placement_address = ALIGN_PAGE(placement_address);
         }
 

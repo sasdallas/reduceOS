@@ -407,7 +407,10 @@ void pageFault(registers_t *reg) {
 
     // See syscall.c for an explanation on how this works
     // We'll map more stack and quietly return
-    if (reg->cs != 0x08 && currentProcess && (currentProcess->image.heap) && (faultAddress >= currentProcess->image.heap_start) && (faultAddress < currentProcess->image.heap_end)) {
+    if (faultAddress < 0xC0000000 && faultAddress > 0xBFF00000) {
+        serialPrintf("Process page fault at 0x%x\n", faultAddress);
+        for (;;);
+        /*
         serialPrintf("pageFault: Mapping more stack for process %s (fault: 0x%x)...\n", currentProcess->name, faultAddress);
         volatile process_t *volatile proc = currentProcess;
 
@@ -423,7 +426,14 @@ void pageFault(registers_t *reg) {
         }
         proc->image.userstack = faultAddress;
         spinlock_release(&proc->image.spinlock);
+        */
 
+        return;
+    }
+
+    if (faultAddress > currentProcess->image.heap_start && faultAddress < currentProcess->image.heap_end) {
+        void *block = pmm_allocateBlock();
+        vmm_allocateRegionFlags((uintptr_t)block, faultAddress, 0x1000, 1, 1, 1);
         return;
     }
 
@@ -438,7 +448,6 @@ void pageFault(registers_t *reg) {
     }
 
     
-continue_fault:
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** Page fault at address 0x%x\n", faultAddress);
