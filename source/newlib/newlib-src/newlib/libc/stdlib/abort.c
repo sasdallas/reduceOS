@@ -42,21 +42,18 @@ ANSI C requires <<abort>>.
 Supporting OS subroutines required: <<_exit>> and optionally, <<write>>.
 */
 
+#include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <signal.h>
 
-void
-abort (void)
-{
+void abort(void) {
 #ifdef ABORT_MESSAGE
-  write (2, "Abort called\n", sizeof ("Abort called\n")-1);
+    write(2, "Abort called\n", sizeof("Abort called\n") - 1);
 #endif
 
-  while (1)
-    {
-      raise (SIGABRT);
-      _exit (1);
+    while (1) {
+        raise(SIGABRT);
+        _exit(1);
     }
 }
 

@@ -1,12 +1,11 @@
-#include <unistd.h>
+#include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 #include <sys/wait.h>
-#include <signal.h>
+#include <unistd.h>
 
-
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     // Step one is to setup the file descriptor outputs
     open("/device/console", 0);
     open("/device/console", 1);
@@ -21,27 +20,13 @@ int main(int argc, char **argv) {
 
     if (!cpid) {
         // We're the child process. Start execution
-        char *cargv[] = {"/stage2"};
+        char* cargv[] = {"/stage2"};
         int cargc = 1;
         execve("/stage2", cargv, cargc);
 
-        // Failed?
-        exit(0);
+        for (;;);
     }
 
-    int pid = 0;
-    do {
-        pid = wait(NULL);
-        if (pid == -1 && errno == ECHILD) {
-            break;
-        }
-
-        if (pid == cpid) {
-            break;
-        }
-    } while ((pid > 0) || (pid == -1 && errno == EINTR));
-
-    
     printf("The child process finished or was terminated.\n");
     for (;;);
 }

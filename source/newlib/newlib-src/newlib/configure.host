@@ -569,7 +569,7 @@ case "${host}" in
 	sys_dir=z8ksim
 	;;
   i[3-7]86-*-reduceOS*)
-  	newlib_cflags="${newlib_cflags} -DSIGNAL_PROVIDED"
+  	newlib_cflags="${newlib_cflags} -DSIGNAL_PROVIDED -DABORT_MESSAGE"
 	sys_dir=reduceOS
 	;;
 esac

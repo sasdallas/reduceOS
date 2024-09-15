@@ -361,11 +361,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     printf("Starting up modules...\n");
     module_parseCFG();
 
-    // Startup tasking, signals, and TTY
-    tasking_start();
-    signal_init();
-    tty_init();
-
     printf("Kernel loading completed.\n");
     useCommands();
 }
@@ -436,6 +431,11 @@ void useCommands() {
         printf("WARNING: You are currently in VGA text mode. This mode is deprecated and unsupported!\n");
     if (!strcmp(fs_root->name, "tarfs"))
         printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
+
+    // Startup tasking, signals, and TTY
+    tasking_start();
+    signal_init();
+    tty_init();
 
     // Try to start the init process, if available
     //char *argv[] = {"/init"};

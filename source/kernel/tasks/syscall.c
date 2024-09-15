@@ -4,45 +4,23 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 // TODO: Better naming conventions, cleaning up code, and fixing an awful definition system.
 
-
-#include <kernel/syscall.h> // Main header file
 #include <kernel/process.h>
-#include <kernel/vfs.h>
 #include <kernel/signal.h>
-#include <libk_reduced/stdio.h>
-#include <libk_reduced/fcntl.h>
+#include <kernel/syscall.h> // Main header file
+#include <kernel/vfs.h>
 #include <libk_reduced/errno.h>
+#include <libk_reduced/fcntl.h>
 #include <libk_reduced/signal.h>
+#include <libk_reduced/stdio.h>
 
 // List of system calls
-void *syscalls[23] = {
-    &sys_restart_syscall,
-    &_exit,
-    &sys_read,
-    &sys_write,
-    &sys_close,
-    &sys_execve,
-    &sys_fork,
-    &sys_fstat,
-    &sys_getpid,
-    &sys_isatty,
-    &sys_kill,
-    &sys_link,
-    &sys_lseek,
-    &sys_open,
-    &sys_sbrk,
-    &sys_stat,
-    &sys_times,
-    &sys_wait,
-    &sys_unlink,
-    &sys_readdir,
-    &sys_ioctl,
-    &sys_signal,
-    &sys_mkdir
-};
+void* syscalls[23] = {
+    &sys_restart_syscall, &_exit,      &sys_read,   &sys_write,   &sys_close, &sys_execve, &sys_fork, &sys_fstat,
+    &sys_getpid,          &sys_isatty, &sys_kill,   &sys_link,    &sys_lseek, &sys_open,   &sys_sbrk, &sys_stat,
+    &sys_times,           &sys_wait,   &sys_unlink, &sys_readdir, &sys_ioctl, &sys_signal, &sys_mkdir};
 
 uint32_t syscallAmount = 23;
-spinlock_t *write_lock;
+spinlock_t* write_lock;
 
 // DECLARATION OF TEST SYSTEM CALLS
 DECLARE_SYSCALL0(sys_restart_syscall, 0);
@@ -51,16 +29,12 @@ DECLARE_SYSCALL3(sys_read, 2, int, void*, size_t);
 DECLARE_SYSCALL3(sys_write, 3, int, char*, size_t);
 // END DECLARATION OF TEST SYSTEM CALLS
 
-
-
 // reduceOS uses interrupt 0x80, and on call of this interrupt, syscallHandler() is called.
 // A normal system call would be pretty long for the kernel to call every time, so macros in syscall.h are created.
 // These macros declare a function - syscall_<function> - that can automate this process.
 
-
 // Function prototypes
 void syscallHandler();
-
 
 // initSyscalls() - Registers interrupt handler 0x80 to allow system calls to happen (interrupt marked as usermode in IDT init).
 void initSyscalls() {
@@ -68,8 +42,7 @@ void initSyscalls() {
     write_lock = spinlock_init();
 }
 
-
-void syscallHandler(registers_t *regs) {
+void syscallHandler(registers_t* regs) {
     // Set the current process's syscall_registers to the registers here
     currentProcess->syscall_registers = regs;
 
@@ -81,23 +54,22 @@ void syscallHandler(registers_t *regs) {
     }
 
     // Get the function.
-    syscall_func *fn = syscalls[syscallNumber];
-    
+    syscall_func* fn = syscalls[syscallNumber];
+
     int returnValue;
 
     // Call the system call from the table (TODO: >6 parameter system calls)
     returnValue = fn(regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
 
     // Set EAX to the return value
-    asm volatile ("mov %0, %%eax" :: "r"(returnValue));
+    asm volatile("mov %0, %%eax" ::"r"(returnValue));
     regs->eax = returnValue;
 }
-
 
 /* SYSTEM CALL HELPERS */
 
 // syscall_validatePointer(void *ptr, const char *syscall) - Validate that a pointer is within range of the program's address space
-int syscall_validatePointer(void *ptr, const char *syscall) {
+int syscall_validatePointer(void* ptr, const char* syscall) {
     if (ptr) {
         if (PTR_INRANGE(ptr)) {
             // Let the panic handler take care of it
@@ -106,24 +78,25 @@ int syscall_validatePointer(void *ptr, const char *syscall) {
 
             panic_prepare();
             disableHardwareInterrupts();
-            printf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n", syscall, currentProcess->name, currentProcess->id);
+            printf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n", syscall,
+                   currentProcess->name, currentProcess->id);
             printf("*** The attempted access violation happened at 0x%x\n", ptr);
 
-            serialPrintf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n", syscall, currentProcess->name, currentProcess->id);
+            serialPrintf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n",
+                         syscall, currentProcess->name, currentProcess->id);
             serialPrintf("*** The attempted access violation happened at 0x%x\n", ptr);
-        
 
             panic_dumpPMM();
-            registers_t *reg = (registers_t*)((uint8_t*)&end);
-            asm volatile ("mov %%ebp, %0" :: "r"(reg->ebp));
+            registers_t* reg = (registers_t*)((uint8_t*)&end);
+            asm volatile("mov %%ebp, %0" ::"r"(reg->ebp));
             reg->eip = NULL; // TODO: Use read_eip()?
             panic_stackTrace(7, reg);
 
-            asm volatile ("hlt");
+            asm volatile("hlt");
             for (;;);
         }
 
-        pte_t *page = vmm_getPage(ptr);
+        pte_t* page = vmm_getPage(ptr);
         if (!page) return 1;
         if (!pte_ispresent(*page) || !pte_iswritable(*page) || (*page & PTE_USER) == PTE_USER) return 1;
     }
@@ -149,35 +122,27 @@ void _exit(int status) {
 
 // SYSCALL 2 (https://man7.org/linux/man-pages/man2/read.2.html)
 // NOTE: Should return a ssize_t but long works I think
-long sys_read(int file_desc, void *buf, size_t nbyte) {
+long sys_read(int file_desc, void* buf, size_t nbyte) {
     if (!nbyte) return 0;
 
-    if (!SYS_FD_VALIDATE(file_desc)) {
-        return -EBADF;
-    }
+    if (!SYS_FD_VALIDATE(file_desc)) { return -EBADF; }
 
-
-    fsNode_t *node = currentProcess->file_descs->nodes[file_desc];
+    fsNode_t* node = currentProcess->file_descs->nodes[file_desc];
     int64_t out = readFilesystem(node, currentProcess->file_descs->fd_offsets[file_desc], nbyte, (uint8_t*)buf);
     if (out > 0) currentProcess->file_descs->fd_offsets[file_desc] += out;
 
     return out;
 }
 
-
 // SYSCALL 3 (https://man7.org/linux/man-pages/man2/write.2.html)
-long sys_write(int file_desc, char *buf, size_t nbyte) {
+long sys_write(int file_desc, char* buf, size_t nbyte) {
     if (!nbyte) return 0;
 
-
-    if (!SYS_FD_VALIDATE(file_desc)) {
-        return -EBADF;
-    }
-
+    if (!SYS_FD_VALIDATE(file_desc)) { return -EBADF; }
 
     //syscall_validatePointer(buf, "sys_write");
 
-    fsNode_t *node = currentProcess->file_descs->nodes[file_desc];
+    fsNode_t* node = currentProcess->file_descs->nodes[file_desc];
     int64_t out = writeFilesystem(node, currentProcess->file_descs->fd_offsets[file_desc], nbyte, (uint8_t*)buf);
     if (out > 0) currentProcess->file_descs->fd_offsets[file_desc] += out;
     return out;
@@ -190,8 +155,7 @@ long sys_write(int file_desc, char *buf, size_t nbyte) {
     We will not declare the below system calls besides in the list.
  */
 
-
-// SYSCALL 4 
+// SYSCALL 4
 int sys_close(int fd) {
     if (currentProcess->file_descs->nodes[fd]) {
         closeFilesystem(currentProcess->file_descs->nodes[fd]);
@@ -203,7 +167,7 @@ int sys_close(int fd) {
 }
 
 // SYSCALL 5
-int sys_execve(char *name, char **argv, char **env) {
+int sys_execve(char* name, char** argv, char** env) {
     // serialPrintf("sys_execve: executing %s\n", name);
 
     bool use_env = ((int)env > 0x1) ? true : false; // BUG: Sometimes env will be 0x1.
@@ -220,13 +184,10 @@ int sys_execve(char *name, char **argv, char **env) {
     }
 
     if (use_env && env) {
-        while (env[envc]) {
-            envc++;
-        }
+        while (env[envc]) { envc++; }
     }
 
-
-    char **argv_ = kmalloc(sizeof(char*) * (argc + 1));
+    char** argv_ = kmalloc(sizeof(char*) * (argc + 1));
     for (int j = 0; j < argc; j++) {
         argv_[j] = kmalloc(strlen(argv[j]) + 1);
         memcpy((void*)argv_[j], (void*)argv[j], strlen(argv[j]) + 1);
@@ -234,7 +195,7 @@ int sys_execve(char *name, char **argv, char **env) {
 
     argv_[argc] = NULL;
 
-    char **envp;
+    char** envp;
     if (use_env && env && envc) {
         // Fill it
         envp = kmalloc(sizeof(char*) * (envc + 1));
@@ -255,30 +216,25 @@ int sys_execve(char *name, char **argv, char **env) {
         }
     }
 
-
     currentProcess->cmdline = argv_;
     serialPrintf("ready to go, starting execution...\n");
 
-    char *env_empty[] = {NULL};
+    char* env_empty[] = {NULL};
 
     return createProcess(name, 1, argv, (use_env) ? envp : env_empty, 1);
 }
 
 // SYSCALL 6
-int sys_fork(void) {
-    return fork();
-}
+int sys_fork(void) { return fork(); }
 
 // SYSCALL 7
-int sys_fstat(int file, void *st) {
+int sys_fstat(int file, void* st) {
     SYS_STUB();
     return -1;
 }
 
 // SYSCALL 8
-int sys_getpid(void) {
-    return currentProcess->id;
-}
+int sys_getpid(void) { return currentProcess->id; }
 
 // SYSCALL 9
 int sys_isatty(int file) {
@@ -293,14 +249,14 @@ int sys_kill(int pid, int sig) {
     } else if (pid == 0) {
         panic("syscall", "sys_kill", "group_send_signal unimplemented");
     } else {
-        serialPrintf("sys_kill: Sending signal...\n");
+        serialPrintf("sys_kill: Sending signal %i to pid %i...\n", sig, pid);
         return send_signal(pid, sig, 0);
     }
     __builtin_unreachable();
 }
 
 // SYSCALL 11
-int sys_link(char *old, char *new) {
+int sys_link(char* old, char* new) {
     SYS_STUB();
     return 0;
 }
@@ -308,9 +264,7 @@ int sys_link(char *old, char *new) {
 // SYSCALL 12
 int sys_lseek(int file, int ptr, int dir) {
     // Validate the file descriptor
-    if (!SYS_FD_VALIDATE(file)) {
-        return -EBADF;
-    }
+    if (!SYS_FD_VALIDATE(file)) { return -EBADF; }
 
     // dir will give us three possible parameters:
     // SEEK_SET     will set the offset of the to ptr bytes
@@ -332,13 +286,12 @@ int sys_lseek(int file, int ptr, int dir) {
             return -EINVAL;
     }
 
-
     return currentProcess->file_descs->fd_offsets[file];
 }
 
 // SYSCALL 13
-int sys_open(const char *name, int flags, int mode) {
-    fsNode_t *node = open_file(name, flags);
+int sys_open(const char* name, int flags, int mode) {
+    fsNode_t* node = open_file(name, flags);
 
     // sys_open can take a variety of flags, but right now we'll only focus on a few
     // O_CREAT      will create the file if it doesn't exist
@@ -353,12 +306,11 @@ int sys_open(const char *name, int flags, int mode) {
         return -EEXIST;
     }
 
-
     // If the node does not exist and O_CREAT was specified, try to create the file
     if (!node && (flags & O_CREAT)) {
         int result = createFilesystem((char*)name, mode);
         if (!result) {
-            node =  open_file((char*)name, flags);
+            node = open_file((char*)name, flags);
         } else {
             serialPrintf("sys_open: O_CREAT specified but did not succeed\n");
             return result;
@@ -374,7 +326,6 @@ int sys_open(const char *name, int flags, int mode) {
             return -ENOTDIR;
         }
     }
-
 
     if (!node) {
         // Not found
@@ -396,19 +347,17 @@ int sys_open(const char *name, int flags, int mode) {
         currentProcess->file_descs->fd_offsets[fd] = 0;
     }
 
-
     return fd;
 }
 
 // SYSCALL 14
 // TODO: uint32_t is not the correct type for this, it's arch-specific I believe
 uint32_t sys_sbrk(uint32_t incr) {
-    process_t *proc = currentProcess;
+    process_t* proc = currentProcess;
 
     if (!proc) return -1;
 
     spinlock_lock(&proc->image.spinlock);
-    
 
     uintptr_t out = proc->image.heap; // Old heap value
 
@@ -428,36 +377,35 @@ uint32_t sys_sbrk(uint32_t incr) {
 }
 
 // SYSCALL 15
-int sys_stat(char *file, void *st) {
+int sys_stat(char* file, void* st) {
     SYS_STUB();
     return 0; // Not implemented.
 }
 
 // SYSCALL 16
-int sys_times(void *buf) {
+int sys_times(void* buf) {
     SYS_STUB();
     return -1;
 }
 
 // SYSCALL 17
-int sys_wait(int *status) {
-    return waitpid(-1, status, WNOKERN);
-}
+int sys_wait(int* status) { return waitpid(-1, status, WNOKERN); }
 
 // SYSCALL 18
-int sys_unlink(char *name) {
+int sys_unlink(char* name) {
     SYS_STUB();
     return -ENOENT;
 }
 
 // SYSCALL 19
-int sys_readdir(int fd, int cur_entry, struct dirent *entry) {
+int sys_readdir(int fd, int cur_entry, struct dirent* entry) {
     // Check the file descriptor
     if (SYS_FD_VALIDATE(fd)) {
         syscall_validatePointer(entry, "sys_readdir");
 
         if (!entry) return -EINVAL; // not the correct error code
-        struct dirent *kentry = readDirectoryFilesystem(SYS_FD(fd), (uint32_t)cur_entry); // TODO: readdirFilesystem takes in a uint32_t, probably not good
+        struct dirent* kentry = readDirectoryFilesystem(
+            SYS_FD(fd), (uint32_t)cur_entry); // TODO: readdirFilesystem takes in a uint32_t, probably not good
 
         if (kentry) {
             memcpy(entry, kentry, sizeof *entry);
@@ -472,7 +420,7 @@ int sys_readdir(int fd, int cur_entry, struct dirent *entry) {
 }
 
 // SYSCALL 20
-int sys_ioctl(int fd, unsigned long request, void *argp) {
+int sys_ioctl(int fd, unsigned long request, void* argp) {
     if (SYS_FD_VALIDATE(fd)) {
         if (argp) syscall_validatePointer(argp, "sys_ioctl"); // argp can be 0
 
@@ -481,7 +429,6 @@ int sys_ioctl(int fd, unsigned long request, void *argp) {
 
     return -EBADF;
 }
-
 
 // SYSCALL 21
 long sys_signal(long signum, uintptr_t handler) {
@@ -503,7 +450,7 @@ long sys_signal(long signum, uintptr_t handler) {
 }
 
 // SYSCALL 22
-int sys_mkdir(char *pathname, int mode) {
+int sys_mkdir(char* pathname, int mode) {
     // TODO: Replace this with mode_t
     // TODO: Even use the mode variable
 

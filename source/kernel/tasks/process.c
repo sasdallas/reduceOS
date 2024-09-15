@@ -11,11 +11,11 @@
 #include <kernel/signal.h>
 #include <libk_reduced/stdio.h>
 
-#pragma GCC diagnostic ignored                                                                                         \
-    "-Wdiscarded-qualifiers" // Because of the way the spinlocks work, the volatile property is discarded.             \
-                             // This is bad, and has been logged as a change to be made.                               \
-                             // For now, I'm focused on making reduceOS warning-free.                                  \
-                             // Is this cheating? Yes.
+// Because of the way the spinlocks work, the volatile property is discarded.
+// This is bad, and has been logged as a change to be made.
+// For now, I'm focused on making reduceOS warning-free.
+// Is this cheating? Yes.
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
 
 #pragma GCC diagnostic ignored "-Wunused-value" // envp will break this code.
 
