@@ -21,12 +21,12 @@ int main(int argc, char** argv) {
     if (!cpid) {
         // We're the child process. Start execution
         char* cargv[] = {"/stage2"};
-        int cargc = 1;
-        execve("/stage2", cargv, cargc);
-
-        for (;;);
+        int res = execve("/stage2", cargv, 1);
+        if (res != 0) {
+            printf("error: child failed\n");
+            exit(91);
+        }
+    } else {
+        printf("The child process finished or was terminated.\n");
     }
-
-    printf("The child process finished or was terminated.\n");
-    for (;;);
 }

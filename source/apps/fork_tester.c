@@ -5,6 +5,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+void sig_handler(int signum) { write(2, "SIGCHLD", 7); }
+
 int main(int argc, char** argv) {
     // Step one is to setup the file descriptor outputs
     open("/device/console", 0);
@@ -18,12 +20,13 @@ int main(int argc, char** argv) {
     // Fork our current process and try to run /stage2
     int cpid = fork();
 
+    signal(SIGCHLD, sig_handler);
+
     if (!cpid) {
-        printf("We are the child process\n");
-        return 0;
+        write(2, "We are the child process\n", strlen("We are the child process\n"));
+        exit(0);
     }
 
     printf("We are the main process\n");
-    for (;;);
     return 0;
 }

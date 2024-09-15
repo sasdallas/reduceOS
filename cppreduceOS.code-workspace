@@ -72,7 +72,9 @@
 			"doomgeneric.h": "c",
 			"ringbuffer.h": "c",
 			"termios.h": "c",
-			"video.h": "c"
+			"video.h": "c",
+			"types.h": "c",
+			"_timespec.h": "c"
 		}
 	}
 }

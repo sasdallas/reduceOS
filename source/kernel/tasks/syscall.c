@@ -14,12 +14,12 @@
 #include <libk_reduced/stdio.h>
 
 // List of system calls
-void* syscalls[23] = {
-    &sys_restart_syscall, &_exit,      &sys_read,   &sys_write,   &sys_close, &sys_execve, &sys_fork, &sys_fstat,
-    &sys_getpid,          &sys_isatty, &sys_kill,   &sys_link,    &sys_lseek, &sys_open,   &sys_sbrk, &sys_stat,
-    &sys_times,           &sys_wait,   &sys_unlink, &sys_readdir, &sys_ioctl, &sys_signal, &sys_mkdir};
+void* syscalls[24] = {
+    &sys_restart_syscall, &_exit,      &sys_read,   &sys_write,   &sys_close, &sys_execve, &sys_fork,  &sys_fstat,
+    &sys_getpid,          &sys_isatty, &sys_kill,   &sys_link,    &sys_lseek, &sys_open,   &sys_sbrk,  &sys_stat,
+    &sys_times,           &sys_wait,   &sys_unlink, &sys_readdir, &sys_ioctl, &sys_signal, &sys_mkdir, &sys_waitpid};
 
-uint32_t syscallAmount = 23;
+uint32_t syscallAmount = 24;
 spinlock_t* write_lock;
 
 // DECLARATION OF TEST SYSTEM CALLS
@@ -462,3 +462,6 @@ int sys_mkdir(char* pathname, int mode) {
 
     return mkdirFilesystem(pathname, (uint16_t)mode);
 }
+
+// SYSCALL 23
+int sys_waitpid(pid_t pid, int* status, int options) { return waitpid(pid, status, options); }

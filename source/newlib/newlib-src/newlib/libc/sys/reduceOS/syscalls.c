@@ -82,10 +82,7 @@ caddr_t sbrk(int incr) {
     return ret;
 }
 
-int stat(const char* __restrict __path, struct stat* __restrict st) {
-    st->st_mode = S_IFCHR;
-    return 0;
-}
+int stat(const char* __restrict __path, struct stat* __restrict st) { return SYSCALL2(int, SYS_STAT, __path, st); }
 
 clock_t times(struct tms* buf) { return SYSCALL1(clock_t, SYS_TIMES, buf); }
 
@@ -101,3 +98,5 @@ int unlink(char* name) {
 int wait(int* status) { return SYSCALL1(int, SYS_WAIT, status); }
 
 int mkdir(const char* pathname, mode_t mode) { return SYSCALL2(int, SYS_MKDIR, (char*)pathname, mode); }
+
+int waitpid(pid_t pid, int* status, int options) { return SYSCALL3(int, SYS_WAITPID, pid, status, options); }

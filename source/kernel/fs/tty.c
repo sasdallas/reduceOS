@@ -863,6 +863,5 @@ void tty_init() {
     tty_dev->length = 1;
     vfsMount("/device/tty", tty_dev);
 
-    // Kernel TTY cannot be created yet because we don't have process scheduling running
     // The kernel should handle this by creating its own node, such as a serial thread.
 }

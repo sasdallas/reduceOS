@@ -741,6 +741,7 @@ int waitpid(int pid, int* status, int options) {
             candidate->status &= ~0xFF;
             int pid = candidate->id;
             if (is_parent && (candidate->flags & PROCESS_FLAG_FINISHED)) {
+                // THIS IS A POTENTIAL BUG BECAUSE THE RUNNING FLAG IS NEVER CLEARED???
                 while (*((volatile int*)&candidate->flags) & PROCESS_FLAG_RUNNING);
                 proc->time_children += candidate->time_children + candidate->time_total;
                 proc->time_sys_children += candidate->time_sys_children + candidate->time_sys;
@@ -753,7 +754,7 @@ int waitpid(int pid, int* status, int options) {
                 return 0;
             }
 
-            serialPrintf("No candidate was found.\n");
+            serialPrintf("waitpid: No candidate was found.\n");
 
             // Wait
             if (sleep_on_unlocking(proc->waitQueue, &proc->wait_lock) != 0) { return -2; }
@@ -929,7 +930,8 @@ void task_exit(int retval) {
 
     if (parent && !(parent->flags & PROCESS_FLAG_FINISHED)) {
         spinlock_lock(&parent->wait_lock);
-        serialPrintf("task_exit: Sending SIGCHLD...\n");
+        serialPrintf("task_exit: Sending SIGCHLD to process %i after process %i (%s) terminated...\n", parent->id,
+                     currentProcess->id, currentProcess->name);
         send_signal(parent->group, SIGCHLD, 1);
         wakeup_queue(parent->waitQueue);
         spinlock_release(&parent->wait_lock);

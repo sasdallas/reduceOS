@@ -33,7 +33,7 @@ void isrExceptionHandler(registers_t* reg) {
     }
 
     // Userspace exceptions are not our fault
-    if (reg->cs != 0x08 && currentProcess && !handled) {
+    if (reg->cs != 0x08 && !handled) {
         serialPrintf("[i386] WARNING: A fault was detected in the current process %s. %s - exception number %i\n",
                      currentProcess->name, exception_messages[reg->int_no], reg->int_no);
 
