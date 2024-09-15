@@ -5,34 +5,31 @@
 
 // Scheduler implementation: https://github.com/klange/toaruos/blob/master/kernel/sys/process.c
 
-
-#include <kernel/process.h> // Main header file
-#include <kernel/elf.h>
 #include <kernel/clock.h>
+#include <kernel/elf.h>
+#include <kernel/process.h> // Main header file
 #include <kernel/signal.h>
 #include <libk_reduced/stdio.h>
 
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers" // Because of the way the spinlocks work, the volatile property is discarded.
-                                                        // This is bad, and has been logged as a change to be made.
-                                                        // For now, I'm focused on making reduceOS warning-free.
-                                                        // Is this cheating? Yes. 
+#pragma GCC diagnostic ignored                                                                                         \
+    "-Wdiscarded-qualifiers" // Because of the way the spinlocks work, the volatile property is discarded.             \
+                             // This is bad, and has been logged as a change to be made.                               \
+                             // For now, I'm focused on making reduceOS warning-free.                                  \
+                             // Is this cheating? Yes.
 
-#pragma GCC diagnostic ignored "-Wunused-value"         // envp will break this code.
+#pragma GCC diagnostic ignored "-Wunused-value" // envp will break this code.
 
 /************************ VARIABLES ************************/
 
-process_t *currentProcess;                  // The current process running.
-process_t *previousProcess;                 // The previous process
-tree_t *process_tree;                       // Stores the parent-child process relationships
-list_t *process_list;                       // Stores all existing processes
-list_t *process_queue;                      // Scheduler ready queue
-list_t *sleep_queue;                        // Ordered list of processes waiting to be awoken by timeouts
-list_t *reap_queue;                         // Processes that couldn't be cleaned up and need to be deleted.
+process_t* currentProcess;  // The current process running.
+process_t* previousProcess; // The previous process
+tree_t* process_tree;       // Stores the parent-child process relationships
+list_t* process_list;       // Stores all existing processes
+list_t* process_queue;      // Scheduler ready queue
+list_t* sleep_queue;        // Ordered list of processes waiting to be awoken by timeouts
+list_t* reap_queue;         // Processes that couldn't be cleaned up and need to be deleted.
 
-
-process_t *idleTask;                        // The kernel's idling task
-
-
+process_t* idleTask; // The kernel's idling task
 
 // Spinlocks
 static spinlock_t tree_lock = SPINLOCK_RELEASED;
@@ -41,7 +38,6 @@ static spinlock_t wait_lock_tmp = SPINLOCK_RELEASED;
 static spinlock_t sleep_lock = SPINLOCK_RELEASED;
 static spinlock_t reap_lock = SPINLOCK_RELEASED;
 static spinlock_t switch_lock = SPINLOCK_RELEASED; // Controls who gets to switch page directories
-
 
 /************************* TIMING **************************/
 
@@ -72,9 +68,7 @@ void updateProcessTimesOnExit() {
 /*********************** SWITCHING ************************/
 
 // process_switchContext(thread_t *thread) - Performs a context switch
-void process_switchContext(thread_t *thread) {
-    start_process(thread->context.sp, thread->context.ip);
-}
+void process_switchContext(thread_t* thread) { start_process(thread->context.sp, thread->context.ip); }
 
 // process_switchNext() - Restore the context of the next available process's kernel thread
 void process_switchNext() {
@@ -82,21 +76,16 @@ void process_switchNext() {
     updateProcessTimes();
 
     // Get the next avialable process, discarding anything marked as finished
-    do {
-        currentProcess = process_getNextReadyProcess();
-    } while (currentProcess->flags & PROCESS_FLAG_FINISHED);
-
+    do { currentProcess = process_getNextReadyProcess(); } while (currentProcess->flags & PROCESS_FLAG_FINISHED);
 
     currentProcess->time_in = clock_getTimer();
     currentProcess->time_switch = currentProcess->time_in;
-
-
 
     // Restore paging and task switch context
     spinlock_lock(&switch_lock);
     vmm_switchDirectory(currentProcess->thread.page_directory);
     spinlock_release(&switch_lock);
-    
+
     setKernelStack(currentProcess->image.stack);
 
     if (currentProcess->flags & PROCESS_FLAG_FINISHED) {
@@ -106,18 +95,18 @@ void process_switchNext() {
     // Mark the process as running or started
     __sync_or_and_fetch(&currentProcess->flags, PROCESS_FLAG_STARTED);
 
-    asm volatile ("" ::: "memory");
+    asm volatile("" ::: "memory");
 
     load_context(&currentProcess->thread.context);
 }
-
 
 // process_switchTask(uint8_t reschedule) - Yields the current process and allows the next to run
 void process_switchTask(uint8_t reschedule) {
     if (!currentProcess) return; // Scheduler disabled
 
     if (currentProcess == idleTask) {
-        panic("scheduler", "process_switchTask", "Context switch from idleTask triggered from somewhere other than pre-emption source.");
+        panic("scheduler", "process_switchTask",
+              "Context switch from idleTask triggered from somewhere other than pre-emption source.");
     }
 
     // If a process got to switchTask but was not marked as running, it must be exiting.
@@ -127,25 +116,20 @@ void process_switchTask(uint8_t reschedule) {
     }
 
     // Save the FPU registers (TODO: move this to fpu.c)
-    asm volatile ("fxsave (%0)" :: "r"(&currentProcess->thread.fp_regs));
-    
+    asm volatile("fxsave (%0)" ::"r"(&currentProcess->thread.fp_regs));
+
     if (save_context(&currentProcess->thread.context) == 1) {
         // Returning from a task switch.
-        asm volatile ("fxrstor (%0)" :: "r"(&currentProcess->thread.fp_regs));
+        asm volatile("fxrstor (%0)" ::"r"(&currentProcess->thread.fp_regs));
         return;
-    } 
-
-    // If this is a normal yield, we nede to reschedule.
-    if (reschedule) {
-        makeProcessReady(currentProcess);
     }
 
-
+    // If this is a normal yield, we nede to reschedule.
+    if (reschedule) { makeProcessReady(currentProcess); }
 
     // switch_next() will not return
     process_switchNext();
-} 
-
+}
 
 // scheduler_init() - Initialize the scheduler datastructures
 void scheduler_init() {
@@ -157,8 +141,8 @@ void scheduler_init() {
 }
 
 // isValidProcess(process_t *process) - Determines if a process is alive and valid
-int isValidProcess(process_t *process) {
-    foreach(lnode, process_list) {
+int isValidProcess(process_t* process) {
+    foreach (lnode, process_list) {
         if (lnode->value == process) return 1;
     }
 
@@ -171,21 +155,18 @@ pid_t getNextPID() {
     return __sync_fetch_and_add(&_next_pid, 1);
 }
 
-
 // kidle() - Kernel idle task
 static void kidle() {
     while (1) {
-        asm volatile (
-		    "sti\n"
-		    "hlt\n"
-		    "cli\n"
-	    );
+        asm volatile("sti\n"
+                     "hlt\n"
+                     "cli\n");
         process_switchNext();
     }
 }
 
 // process_releaseDirectory(thread_t *thread) - Release a process's paging data
-void process_releaseDirectory(thread_t *thread) {
+void process_releaseDirectory(thread_t* thread) {
     serialPrintf("Releasing process directory for thread 0x%x\n", thread);
     spinlock_lock(thread->pd_lock);
     thread->refcount--;
@@ -196,23 +177,17 @@ void process_releaseDirectory(thread_t *thread) {
     }
 }
 
-
-
-
 // spawn_kidle(int bsp) - Spawns the kernel's idle process
-process_t *spawn_kidle(int bsp) {
-    process_t *idle = kcalloc(1, sizeof(process_t));
+process_t* spawn_kidle(int bsp) {
+    process_t* idle = kcalloc(1, sizeof(process_t));
     idle->id = -1;
     idle->flags = PROCESS_FLAG_IS_TASKLET | PROCESS_FLAG_STARTED | PROCESS_FLAG_RUNNING;
-    
-    
+
     // Create a stack for the image and map it to kernel (non-user)
     idle->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE; // WARNING: BUG HERE - THIS IS NOT ALIGNED
-    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
-                                idle->image.stack, 
-                                (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack),
-                                PTE_PRESENT);
-    
+    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack,
+                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack), PTE_PRESENT);
+
     // Setup thread context
     idle->thread.context.ip = (uint32_t)&kidle;
     idle->thread.context.sp = idle->image.stack;
@@ -238,9 +213,8 @@ process_t *spawn_kidle(int bsp) {
     return idle;
 }
 
-
-process_t *spawn_init() {
-    process_t *init = kcalloc(1, sizeof(process_t));
+process_t* spawn_init() {
+    process_t* init = kcalloc(1, sizeof(process_t));
     tree_set_root(process_tree, (void*)init);
 
     // Setup process
@@ -269,11 +243,9 @@ process_t *spawn_init() {
     init->image.heap_start = 0;
     init->image.heap_end = 0;
     init->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
-    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
-                                init->image.stack, 
-                                (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), init->image.stack),
-                                PTE_PRESENT);
-    
+    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), init->image.stack,
+                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), init->image.stack), PTE_PRESENT);
+
     // Setup flags
     init->flags = PROCESS_FLAG_STARTED | PROCESS_FLAG_RUNNING;
 
@@ -291,7 +263,6 @@ process_t *spawn_init() {
     init->sleepNode.value = init;
 
     init->timedSleepNode = NULL;
-
 
     // Setup the file descriptors
     init->file_descs = kmalloc(sizeof(fd_table_t));
@@ -312,8 +283,8 @@ process_t *spawn_init() {
 }
 
 // spawn_process(volatile process_t *parent, int flags) - Spawn a process
-process_t *spawn_process(volatile process_t *parent, int flags) {
-    process_t *proc = kcalloc(1, sizeof(process_t));
+process_t* spawn_process(volatile process_t* parent, int flags) {
+    process_t* proc = kcalloc(1, sizeof(process_t));
 
     // Setup values to be like the parents'
     proc->id = getNextPID();
@@ -338,10 +309,8 @@ process_t *spawn_process(volatile process_t *parent, int flags) {
     proc->image.heap_end = parent->image.heap_end;
     proc->image.heap_start = parent->image.heap_start;
     proc->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
-    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
-                                proc->image.stack, 
-                                (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
-                                PTE_PRESENT); 
+    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack,
+                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack), PTE_PRESENT);
     proc->image.shm_heap = NULL; // Unused
 
     proc->wd_node = kmalloc(sizeof(fsNode_t));
@@ -374,11 +343,11 @@ process_t *spawn_process(volatile process_t *parent, int flags) {
         spinlock_lock(parent->file_descs->fd_lock);
         proc->file_descs->length = parent->file_descs->length;
         proc->file_descs->max_fds = parent->file_descs->max_fds;
-    
+
         // Allocate memory for lists
-        proc->file_descs->nodes =       kmalloc(proc->file_descs->max_fds * sizeof(fsNode_t*));
-        proc->file_descs->modes =       kmalloc(proc->file_descs->max_fds * sizeof(int));
-        proc->file_descs->fd_offsets =  kmalloc(proc->file_descs->max_fds * sizeof(uint64_t));
+        proc->file_descs->nodes = kmalloc(proc->file_descs->max_fds * sizeof(fsNode_t*));
+        proc->file_descs->modes = kmalloc(proc->file_descs->max_fds * sizeof(int));
+        proc->file_descs->fd_offsets = kmalloc(proc->file_descs->max_fds * sizeof(uint64_t));
 
         // Copy over the file descriptors
         for (uint32_t i = 0; i < proc->file_descs->length; i++) {
@@ -392,7 +361,7 @@ process_t *spawn_process(volatile process_t *parent, int flags) {
     }
 
     // Setup tree node and insert it
-    tree_node_t *entry = tree_node_create(proc);
+    tree_node_t* entry = tree_node_create(proc);
     proc->tree_entry = entry;
 
     spinlock_lock(&tree_lock);
@@ -402,14 +371,12 @@ process_t *spawn_process(volatile process_t *parent, int flags) {
     return proc;
 }
 
-
 // process_reap(process_t *proc) - Frees & releases the process
-void process_reap(process_t *proc) {
+void process_reap(process_t* proc) {
     // Remap the stack bottom to be writable
-    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), 
-                                proc->image.stack, 
-                                (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
-                                PTE_PRESENT | PTE_WRITABLE);
+    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack,
+                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
+                           PTE_PRESENT | PTE_WRITABLE);
 
     // Free the stack
     kfree((void*)(proc->image.stack - KSTACK_SIZE));
@@ -417,22 +384,22 @@ void process_reap(process_t *proc) {
 
     kfree(proc->name);
     if (proc->description) kfree(proc->description);
-    kfree(proc); 
+    kfree(proc);
 }
 
 // (static) process_isOwned(process_t *proc) - Returns whether the process is a previous/current process
-static int process_isOwned(process_t *proc) {
+static int process_isOwned(process_t* proc) {
     if (currentProcess == proc || previousProcess == proc) return 1;
     return 0;
 }
 
 // process_reapLater(process_t *proc) - Marks the process to be deleted later
-void process_reapLater(process_t *proc) {
+void process_reapLater(process_t* proc) {
     spinlock_lock(&reap_lock);
 
     while (reap_queue->head) {
         // Check if anything can be deleted from the reap queue while we're here
-        process_t *proc = reap_queue->head->value;
+        process_t* proc = reap_queue->head->value;
         if (!process_isOwned(proc)) {
             kfree(list_dequeue(reap_queue));
             process_reap(proc);
@@ -446,10 +413,10 @@ void process_reapLater(process_t *proc) {
 }
 
 // process_delete(process_t *proc) - Remove a process from the valid process list
-void process_delete(process_t *proc) {
+void process_delete(process_t* proc) {
     ASSERT((proc != currentProcess), "process_delete", "Attempted to delete current process");
 
-    tree_node_t *entry = proc->tree_entry;
+    tree_node_t* entry = proc->tree_entry;
     if (!entry) {
         serialPrintf("process_delete: Tried to delete process but the object is corrupt (could not get tree entry).\n");
         return;
@@ -461,7 +428,6 @@ void process_delete(process_t *proc) {
         return;
     }
 
-
     // Remove it from the tree
     spinlock_lock(&tree_lock);
     int has_children = entry->children->length;
@@ -471,7 +437,7 @@ void process_delete(process_t *proc) {
 
     if (has_children) {
         // Wakeup init process
-        process_t *init = process_tree->root->value;
+        process_t* init = process_tree->root->value;
         wakeup_queue(init->waitQueue);
     }
 
@@ -488,7 +454,7 @@ void process_delete(process_t *proc) {
 }
 
 // makeProcessReady(volatile process_t *proc) - Place an available process in the ready queue
-void makeProcessReady(volatile process_t *proc) {
+void makeProcessReady(volatile process_t* proc) {
     if (proc->sleepNode.owner != NULL) {
         serialPrintf("a mimir\n");
         if (proc->sleepNode.owner == sleep_queue) {
@@ -505,7 +471,6 @@ void makeProcessReady(volatile process_t *proc) {
         }
     }
 
-    
     spinlock_lock(&process_queue_lock);
     if (proc->schedulerNode.owner) {
         // Only one ready queue - process was already ready??
@@ -514,13 +479,12 @@ void makeProcessReady(volatile process_t *proc) {
     }
 
     list_append(process_queue, (node_t*)&proc->schedulerNode);
-    
 
     spinlock_release(&process_queue_lock);
 }
 
 // process_getNextReadyProcess() - Pops the next available process from the queue
-volatile process_t *process_getNextReadyProcess() {
+volatile process_t* process_getNextReadyProcess() {
     spinlock_lock(&process_queue_lock);
 
     if (!process_queue->head) {
@@ -528,35 +492,29 @@ volatile process_t *process_getNextReadyProcess() {
             panic("scheduler", "get_next_ready", "Process queue has length but the head is NULL");
         }
 
-
         spinlock_release(&process_queue_lock);
         return idleTask; // No processes to run
     }
 
-    node_t *np = list_dequeue(process_queue);
-    
-    volatile process_t *next = np->value;
-    
+    node_t* np = list_dequeue(process_queue);
+
+    volatile process_t* next = np->value;
+
     spinlock_release(&process_queue_lock);
-    
-    if (!(next->flags & PROCESS_FLAG_FINISHED)) {
-        __sync_or_and_fetch(&next->flags, PROCESS_FLAG_RUNNING);
-    }
+
+    if (!(next->flags & PROCESS_FLAG_FINISHED)) { __sync_or_and_fetch(&next->flags, PROCESS_FLAG_RUNNING); }
 
     return next;
 }
 
 // wakeup_queue(list_t *queue) - Signal a semaphore
-int wakeup_queue(list_t *queue) {
+int wakeup_queue(list_t* queue) {
     int awoken_processes = 0;
     spinlock_lock(&wait_lock_tmp);
     while (queue->length > 0) {
-        node_t *node = list_pop(queue);
+        node_t* node = list_pop(queue);
         spinlock_release(&wait_lock_tmp);
-        if (!(((process_t*)node->value)->flags & PROCESS_FLAG_FINISHED)) {
-            
-            makeProcessReady(node->value);
-        }
+        if (!(((process_t*)node->value)->flags & PROCESS_FLAG_FINISHED)) { makeProcessReady(node->value); }
         spinlock_lock(&wait_lock_tmp);
         awoken_processes++;
     }
@@ -565,21 +523,17 @@ int wakeup_queue(list_t *queue) {
     return awoken_processes;
 }
 
-
 /* TODO: Implement wakeup_queue_interrupted */
 
-
 // wakeup_queue_one(list_t *queue) - Only doing one iteration/pass
-int wakeup_queue_one(list_t *queue) {
+int wakeup_queue_one(list_t* queue) {
     int awoken_processes = 0;
     spinlock_lock(&wait_lock_tmp);
 
     if (queue->length > 0) {
-        node_t *node = list_pop(queue);
+        node_t* node = list_pop(queue);
         spinlock_release(&wait_lock_tmp);
-        if (!(((process_t*)node->value)->flags & PROCESS_FLAG_FINISHED)) {
-            makeProcessReady(node->value);
-        }
+        if (!(((process_t*)node->value)->flags & PROCESS_FLAG_FINISHED)) { makeProcessReady(node->value); }
         spinlock_lock(&wait_lock_tmp);
         awoken_processes++;
     }
@@ -588,9 +542,8 @@ int wakeup_queue_one(list_t *queue) {
     return awoken_processes;
 }
 
-
 // sleep_on(list_t *queue) - Wait for a binary semaphore
-int sleep_on(list_t *queue) {
+int sleep_on(list_t* queue) {
     if (currentProcess->sleepNode.owner) {
         process_switchTask(0);
         return 0;
@@ -604,49 +557,43 @@ int sleep_on(list_t *queue) {
     return !!(currentProcess->flags & PROCESS_FLAG_SLEEPINT);
 }
 
-
-
-
 // sleep_on_unlocking(list_t *queue, spinlock_t *release) - Wait for a binary semaphore on unlocking
-int sleep_on_unlocking(list_t *queue, spinlock_t *release) {
+int sleep_on_unlocking(list_t* queue, spinlock_t* release) {
     __sync_and_and_fetch(&currentProcess->flags, ~(PROCESS_FLAG_SLEEPINT));
     spinlock_lock(&wait_lock_tmp);
     list_append(queue, (node_t*)&currentProcess->sleepNode);
     spinlock_release(&wait_lock_tmp);
-    
+
     spinlock_release(release);
 
     process_switchTask(0);
     return !!(currentProcess->flags & PROCESS_FLAG_SLEEPINT);
 }
 
-
 // process_isReady(process_t *proc) - Indicates whether a process is ready to be run but not currently running
-int process_isReady(process_t *proc) {
+int process_isReady(process_t* proc) {
     return (proc->schedulerNode.owner != NULL && !(proc->flags & PROCESS_FLAG_RUNNING));
 }
 
 // Function prototype
-int process_alert_node_locked(process_t *process, void *value);
+int process_alert_node_locked(process_t* process, void* value);
 
 // wakeup_sleepers(unsigned long seconds, unsigned long subseconds) - Reschedule all processes whose timed waits have expired
 void wakeup_sleepers(unsigned long seconds, unsigned long subseconds) {
     if (!currentProcess) return; // Process scheduler not online
     spinlock_lock(&sleep_lock);
     if (sleep_queue->length) {
-        sleeper_t *proc = ((sleeper_t*)sleep_queue->head->value);
+        sleeper_t* proc = ((sleeper_t*)sleep_queue->head->value);
         while (proc && (proc->end_tick < seconds || (proc->end_tick == seconds && proc->end_subtick <= subseconds))) {
             // Timeouts have expired, mark the processes as ready and clear their sleep nodes.
             if (proc->is_fswait) {
                 proc->is_fswait = -1;
                 process_alert_node_locked(proc->process, proc);
             } else {
-                process_t *process = proc->process;
+                process_t* process = proc->process;
                 process->sleepNode.owner = NULL;
                 process->timedSleepNode = NULL;
-                if (!process_isReady(process)) {
-                    makeProcessReady(process);
-                }
+                if (!process_isReady(process)) { makeProcessReady(process); }
             }
 
             kfree(proc);
@@ -657,16 +604,14 @@ void wakeup_sleepers(unsigned long seconds, unsigned long subseconds) {
                 break; // We're done
             }
         }
-    } 
-
+    }
 
     // All done, release the spinlock.
     spinlock_release(&sleep_lock);
 }
 
-
 // sleep_until(process_t *process, unsigned long seconds, unsigned long subseconds) - Suspend process until the given time
-void sleep_until(process_t *process, unsigned long seconds, unsigned long subseconds) {
+void sleep_until(process_t* process, unsigned long seconds, unsigned long subseconds) {
     spinlock_lock(&sleep_lock);
     if (currentProcess->sleepNode.owner) {
         // We're already sleeping. Sweet dreams!
@@ -675,10 +620,10 @@ void sleep_until(process_t *process, unsigned long seconds, unsigned long subsec
     }
 
     process->sleepNode.owner = sleep_queue;
-    
-    node_t *before = NULL;
-    foreach(node, sleep_queue) {
-        sleeper_t *candidate = ((sleeper_t*)node->value);
+
+    node_t* before = NULL;
+    foreach (node, sleep_queue) {
+        sleeper_t* candidate = ((sleeper_t*)node->value);
         if (!candidate) {
             serialPrintf("sleep_until: Null candidate\n");
             continue;
@@ -691,7 +636,7 @@ void sleep_until(process_t *process, unsigned long seconds, unsigned long subsec
     }
 
     // Create a sleeper_t object, append it to the list, and then return.
-    sleeper_t *proc = kmalloc(sizeof(sleeper_t));
+    sleeper_t* proc = kmalloc(sizeof(sleeper_t));
     proc->process = process;
     proc->end_tick = seconds;
     proc->end_subtick = subseconds;
@@ -702,18 +647,18 @@ void sleep_until(process_t *process, unsigned long seconds, unsigned long subsec
 }
 
 // process_compare(void *proc_v, void *pid_v) - Compare a process and a PID
-uint8_t process_compare(void *proc_v, void *pid_v) {
+uint8_t process_compare(void* proc_v, void* pid_v) {
     pid_t pid = (*(pid_t*)pid_v);
-    process_t *proc = (process_t*)proc_v;
+    process_t* proc = (process_t*)proc_v;
     return (uint8_t)(proc->id == pid);
 }
 
 // process_from_pid(pid_t pid) - Gets a process by its PID
-process_t *process_from_pid(pid_t pid) {
+process_t* process_from_pid(pid_t pid) {
     if (pid < 0) return NULL; // users
 
     spinlock_lock(&tree_lock);
-    tree_node_t *entry = tree_find(process_tree, &pid, process_compare);
+    tree_node_t* entry = tree_find(process_tree, &pid, process_compare);
     spinlock_release(&tree_lock);
     if (entry) return (process_t*)entry->value;
     return NULL;
@@ -725,7 +670,7 @@ void tasking_start() {
     idleTask = spawn_kidle(1);
 }
 
-static int wait_candidate(volatile process_t *parent, int pid, int options, volatile process_t *proc) {
+static int wait_candidate(volatile process_t* parent, int pid, int options, volatile process_t* proc) {
     if (!proc) return 0;
 
     if (options & WNOKERN) {
@@ -748,22 +693,22 @@ static int wait_candidate(volatile process_t *parent, int pid, int options, vola
 }
 
 // waitpid(int pid, int *status, int options) - Waits for a process to finish/suspend
-int waitpid(int pid, int *status, int options) {
-    volatile process_t * volatile proc = (process_t*)currentProcess;
+int waitpid(int pid, int* status, int options) {
+    volatile process_t* volatile proc = (process_t*)currentProcess;
     serialPrintf("waitpid: Call received.\n");
 
     do {
         serialPrintf("waitpid: Looping...\n");
-        volatile process_t *candidate = NULL;
+        volatile process_t* candidate = NULL;
         int has_children = 0;
         int is_parent = 0;
 
         spinlock_lock(&proc->wait_lock);
-        
+
         // Find out if there is anything to reap
-        foreach(node, proc->tree_entry->children) {
+        foreach (node, proc->tree_entry->children) {
             if (!node->value) continue;
-            volatile process_t * volatile child = ((tree_node_t*)node->value)->value;
+            volatile process_t* volatile child = ((tree_node_t*)node->value)->value;
 
             if (wait_candidate(proc, pid, options, child)) {
                 has_children = 1;
@@ -796,7 +741,7 @@ int waitpid(int pid, int *status, int options) {
             candidate->status &= ~0xFF;
             int pid = candidate->id;
             if (is_parent && (candidate->flags & PROCESS_FLAG_FINISHED)) {
-                while (*((volatile int *)&candidate->flags) & PROCESS_FLAG_RUNNING);
+                while (*((volatile int*)&candidate->flags) & PROCESS_FLAG_RUNNING);
                 proc->time_children += candidate->time_children + candidate->time_total;
                 proc->time_sys_children += candidate->time_sys_children + candidate->time_sys;
                 process_delete((process_t*)candidate);
@@ -811,15 +756,13 @@ int waitpid(int pid, int *status, int options) {
             serialPrintf("No candidate was found.\n");
 
             // Wait
-            if (sleep_on_unlocking(proc->waitQueue, &proc->wait_lock) != 0) {
-                return -2;
-            }
+            if (sleep_on_unlocking(proc->waitQueue, &proc->wait_lock) != 0) { return -2; }
         }
     } while (1);
 }
 
 // process_timeout_sleep(process_t *process, int timeout) - Put a process to sleep
-int process_timeout_sleep(process_t *process, int timeout) {
+int process_timeout_sleep(process_t* process, int timeout) {
     // Calculate the time to sleep
     unsigned long s, ss;
     rtc_getDateTime((uint8_t*)&s, NULL, NULL, NULL, NULL, NULL);
@@ -828,16 +771,14 @@ int process_timeout_sleep(process_t *process, int timeout) {
     ss += timeout * 1000;
 
     // Find the process
-    node_t *before = NULL;
+    node_t* before = NULL;
     foreach (node, sleep_queue) {
-        sleeper_t *candidate = ((sleeper_t*)node->value);
-        if (candidate->end_tick > s || (candidate->end_tick == s && candidate->end_subtick > ss)) {
-            break;
-        }
+        sleeper_t* candidate = ((sleeper_t*)node->value);
+        if (candidate->end_tick > s || (candidate->end_tick == s && candidate->end_subtick > ss)) { break; }
         before = node;
     }
 
-    sleeper_t *proc = kmalloc(sizeof(sleeper_t));
+    sleeper_t* proc = kmalloc(sizeof(sleeper_t));
     proc->process = process;
     proc->end_tick = s;
     proc->end_subtick = ss;
@@ -849,9 +790,8 @@ int process_timeout_sleep(process_t *process, int timeout) {
     return 0;
 }
 
-
 // process_awaken_from_fswait(process_t *process, int index) - Awaken from process_timeout_sleep
-int process_awaken_from_fswait(process_t *process, int index) {
+int process_awaken_from_fswait(process_t* process, int index) {
     spinlock_lock(&sleep_lock);
     process->awoken_index = index;
     list_free(process->nodeWaits);
@@ -859,7 +799,7 @@ int process_awaken_from_fswait(process_t *process, int index) {
     process->nodeWaits = NULL;
 
     if (process->timeoutNode && process->timeoutNode->owner == sleep_queue) {
-        sleeper_t *proc = process->timeoutNode->value;
+        sleeper_t* proc = process->timeoutNode->value;
         if (proc->is_fswait != -1) {
             list_delete(sleep_queue, process->timeoutNode);
             kfree(process->timeoutNode->value);
@@ -872,10 +812,10 @@ int process_awaken_from_fswait(process_t *process, int index) {
     makeProcessReady(process);
     spinlock_release(&process->sched_lock);
     return 0;
-} 
+}
 
 // process_awaken_signal(process_t *process) - too lazy
-void process_awaken_signal(process_t *process) {
+void process_awaken_signal(process_t* process) {
     spinlock_lock(&sleep_lock);
     spinlock_lock(&process->sched_lock);
 
@@ -888,9 +828,10 @@ void process_awaken_signal(process_t *process) {
     spinlock_release(&sleep_lock);
 }
 
-int process_alert_node_locked(process_t *process, void *value) {
+int process_alert_node_locked(process_t* process, void* value) {
     if (!isValidProcess(process)) {
-        serialPrintf("process_alert_node_locked: process pid=%d %s attempted to alert invalid process %#zx\n", currentProcess->id, currentProcess->name, (uintptr_t)process);
+        serialPrintf("process_alert_node_locked: process pid=%d %s attempted to alert invalid process %#zx\n",
+                     currentProcess->id, currentProcess->name, (uintptr_t)process);
         return 0;
     }
 
@@ -902,10 +843,8 @@ int process_alert_node_locked(process_t *process, void *value) {
     }
 
     int index = 0;
-    foreach(node, process->nodeWaits) {
-        if (value == node->value) {
-            return process_awaken_from_fswait(process, index);
-        }
+    foreach (node, process->nodeWaits) {
+        if (value == node->value) { return process_awaken_from_fswait(process, index); }
 
         index++;
     }
@@ -915,7 +854,7 @@ int process_alert_node_locked(process_t *process, void *value) {
 }
 
 // process_alert_node(process_t *process, void *value) - Alert the process
-int process_alert_node(process_t *process, void *value) {
+int process_alert_node(process_t* process, void* value) {
     spinlock_lock(&sleep_lock);
     int result = process_alert_node_locked(process, value);
     spinlock_release(&sleep_lock);
@@ -923,13 +862,15 @@ int process_alert_node(process_t *process, void *value) {
 }
 
 // process_get_parent(process_t *process) - Returns the parent of a process
-process_t *process_get_parent(process_t *process) {
-    process_t *result = NULL;
+process_t* process_get_parent(process_t* process) {
+    process_t* result = NULL;
     spinlock_lock(&tree_lock);
 
-    tree_node_t *entry = process->tree_entry;
-    if (entry->parent) result = entry->parent->value;
-    else serialPrintf("process_get_parent: No parent for this process was found.\n");
+    tree_node_t* entry = process->tree_entry;
+    if (entry->parent)
+        result = entry->parent->value;
+    else
+        serialPrintf("process_get_parent: No parent for this process was found.\n");
 
     spinlock_release(&tree_lock);
     return result;
@@ -960,30 +901,29 @@ void task_exit(int retval) {
                     closeFilesystem(currentProcess->file_descs->nodes[fd]);
                     // VFS currently doesn't take care of freeing
                     kfree(currentProcess->file_descs->nodes[fd]);
-                } 
+                }
 
                 kfree(currentProcess->file_descs->nodes);
                 kfree(currentProcess->file_descs->fd_offsets);
                 kfree(currentProcess->file_descs->modes);
                 kfree(currentProcess->file_descs);
                 currentProcess->file_descs = NULL;
-            }  
+            }
         } else {
             // One does, dang..
             spinlock_release(currentProcess->file_descs->fd_lock);
         }
     }
 
-
     updateProcessTimes();
 
-    process_t *parent = process_get_parent((process_t*)currentProcess);
+    process_t* parent = process_get_parent((process_t*)currentProcess);
     __sync_or_and_fetch(&currentProcess->flags, PROCESS_FLAG_FINISHED);
 
     // Before we switch to the next process we need to check if we just killed the init process.
     // Shoot first, ask questions later.
     if (currentProcess->id == 1) {
-        printf("The init process has died. System halted.\n");
+        // Uhh, did we just kill the init process?
         //panic("reduceOS", "kernel", "A process critical to the system (the init process) has terminated unexpectedly.");
     }
 
@@ -998,33 +938,32 @@ void task_exit(int retval) {
     process_switchNext();
 }
 
-#define PUSH(stack, type, item) stack -= sizeof(type); \
-							*((type *) stack) = item
-
+#define PUSH(stack, type, item)                                                                                        \
+    stack -= sizeof(type);                                                                                             \
+    *((type*)stack) = item
 
 // fork() - Fork the current process and creates a child process. Will return the PID of the child to the parent, and 0 to the child.
 pid_t fork() {
 
     uint32_t *sp, bp;
-    process_t *parent = currentProcess;
-    
+    process_t* parent = currentProcess;
+
     // Clone the page directory and set it up
-    pagedirectory_t *directory = cloneDirectory(parent->thread.page_directory);
+    pagedirectory_t* directory = cloneDirectory(parent->thread.page_directory);
 
     // Create a new process and setup its thread page directory
-    process_t *new_proc = spawn_process(parent, 0);
+    process_t* new_proc = spawn_process(parent, 0);
     new_proc->thread.page_directory = directory;
     new_proc->thread.refcount = 1;
     new_proc->thread.pd_lock = spinlock_init();
- 
-    memcpy(new_proc->signals, parent->signals, sizeof(struct signal_config) * (NUMSIGNALS-1));
-    new_proc->blocked_signals = parent->blocked_signals;
 
+    memcpy(new_proc->signals, parent->signals, sizeof(struct signal_config) * (NUMSIGNALS - 1));
+    new_proc->blocked_signals = parent->blocked_signals;
 
     // Create system call registers
     registers_t r;
     memcpy(&r, parent->syscall_registers, sizeof(registers_t));
-    
+
     // Setup SP and BP
     sp = &(new_proc->image.stack);
     bp = (uint32_t)sp;
@@ -1044,7 +983,6 @@ pid_t fork() {
 
     new_proc->thread.context.ip = (uint32_t)&resume_usermode;
 
-    
     // Save the context to the parent, but ONLY copy the saved part of the context over.
     save_context(&parent->thread.context);
     memcpy(new_proc->thread.context.saved, parent->thread.context.saved, sizeof(parent->thread.context.saved));
@@ -1058,15 +996,15 @@ pid_t fork() {
 // clone() - create a new thread/process (likely bugged and probably will not work)
 pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     uintptr_t sp, bp;
-    process_t *parent = (process_t*)currentProcess;
-    process_t *new_proc = spawn_process(currentProcess, 1);
+    process_t* parent = (process_t*)currentProcess;
+    process_t* new_proc = spawn_process(currentProcess, 1);
 
     // BUG: These are supposed to refer to each other, right?
     new_proc->thread.page_directory = currentProcess->thread.page_directory;
     new_proc->thread.refcount = currentProcess->thread.refcount;
     new_proc->thread.pd_lock = currentProcess->thread.pd_lock;
 
-    memcpy(new_proc->signals, parent->signals, sizeof(struct signal_config) * (NUMSIGNALS-1));
+    memcpy(new_proc->signals, parent->signals, sizeof(struct signal_config) * (NUMSIGNALS - 1));
     new_proc->blocked_signals = parent->blocked_signals;
 
     spinlock_lock(new_proc->thread.pd_lock);
@@ -1079,7 +1017,6 @@ pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     sp = new_proc->image.stack;
     bp = sp;
     r.edi = arg; // Different calling conventions
-
 
     // Push them onto the stack
     PUSH(new_stack, uintptr_t, (uintptr_t)0);
@@ -1104,12 +1041,9 @@ pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     return new_proc->id;
 }
 
-
-
 // spawn_worker_thread(void (*entrypoint)(void *argp), const char *name, void *argp) - Spawn a worker thread
-process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name, void *argp) {
-    process_t *proc = kcalloc(1, sizeof(process_t));
-
+process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name, void* argp) {
+    process_t* proc = kcalloc(1, sizeof(process_t));
 
     // Setup basic fields
     proc->flags = PROCESS_FLAG_IS_TASKLET | PROCESS_FLAG_STARTED;
@@ -1131,7 +1065,7 @@ process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name,
     // Setup the image stack
     proc->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
     PUSH(proc->image.stack, uintptr_t, (uintptr_t)entrypoint);
-    PUSH(proc->image.stack, void *, argp);
+    PUSH(proc->image.stack, void*, argp);
 
     // Setup the context
     proc->thread.context.sp = proc->image.stack;
@@ -1147,7 +1081,7 @@ process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name,
 
     // Timing value
     gettimeofday(&proc->start, NULL);
-    tree_node_t *entry = tree_node_create(proc);
+    tree_node_t* entry = tree_node_create(proc);
     proc->tree_entry = entry;
 
     // Final initialization
@@ -1161,33 +1095,28 @@ process_t *spawn_worker_thread(void (*entrypoint)(void *argp), const char *name,
     return proc;
 }
 
-
-
-
-
-pagedirectory_t *cloneDirectory(pagedirectory_t *in) {
-    pagedirectory_t *out = pmm_allocateBlock();
+pagedirectory_t* cloneDirectory(pagedirectory_t* in) {
+    pagedirectory_t* out = pmm_allocateBlock();
     memcpy(out, in, sizeof(pagedirectory_t));
     return out;
 }
 
-
 // createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc) - Creates a process from filepath, maps it into memory, and sets it up
-int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc) {
+int createProcess(char* filepath, int argc, char* argv[], char* envl[], int envc) {
     // First, get the file
-    fsNode_t *file = open_file(filepath, 0);
+    fsNode_t* file = open_file(filepath, 0);
     if (!file) {
         return -1; // Not found
     }
 
-    char *buffer = kmalloc(file->length);
+    char* buffer = kmalloc(file->length);
     uint32_t ret = file->read(file, 0, file->length, (uint8_t*)buffer);
     if (ret != file->length) {
         return -2; // Read error
     }
 
     // We basically have to take over ELF parsing.
-    Elf32_Ehdr *ehdr = (Elf32_Ehdr*)buffer;
+    Elf32_Ehdr* ehdr = (Elf32_Ehdr*)buffer;
     if (elf_isCompatible(ehdr)) {
         kfree(buffer);
         return -3; // Not compatible
@@ -1197,10 +1126,6 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
         return -3; // Not compatible
     }
 
-    
-
-
-
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
     currentProcess->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
     currentProcess->thread.refcount = 1;
@@ -1208,37 +1133,36 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     vmm_switchDirectory(currentProcess->thread.page_directory);
     spinlock_release(&switch_lock);
 
-    pagedirectory_t *addressSpace = currentProcess->thread.page_directory;
-
+    pagedirectory_t* addressSpace = currentProcess->thread.page_directory;
 
     // Now, we should start parsing.
     uintptr_t heapBase = 0;
     uintptr_t execBase = -1;
     for (int i = 0; i < ehdr->e_phnum; i++) {
-        Elf32_Phdr *phdr = elf_getPHDR(ehdr, i);
+        Elf32_Phdr* phdr = elf_getPHDR(ehdr, i);
         if (phdr->p_type == PT_LOAD) {
             // We have to load it into memory
-            uint32_t memory_blocks = (phdr->p_memsize + 4096) - ((phdr->p_memsize + 4096) % 4096); // Round up, else page fault will occur.
-            void *mem = pmm_allocateBlocks(memory_blocks / 4096);
+            uint32_t memory_blocks = (phdr->p_memsize + 4096)
+                                     - ((phdr->p_memsize + 4096) % 4096); // Round up, else page fault will occur.
+            void* mem = pmm_allocateBlocks(memory_blocks / 4096);
             for (uint32_t blk = 0; blk < memory_blocks; blk += 4096) {
-                vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr +  blk, (uint32_t)mem + blk, PTE_PRESENT | PTE_WRITABLE | PTE_USER);
+                vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr + blk, (uint32_t)mem + blk,
+                                       PTE_PRESENT | PTE_WRITABLE | PTE_USER);
             }
             memcpy((void*)phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
         }
-
 
         if (phdr->p_vaddr < execBase) execBase = phdr->p_vaddr;
         if (phdr->p_vaddr + phdr->p_memsize > heapBase) heapBase = phdr->p_vaddr + phdr->p_memsize;
     }
 
-
     // Create a usermode stack
     // We'll use 0xC0000000 as the usermode stack. That should be far enough into memory that it will be fine.
-    // This allocation is done via PMM mapped memory. 
+    // This allocation is done via PMM mapped memory.
 
     uintptr_t usermode_stack = 0xC0000000;
-    for (uintptr_t i = usermode_stack - 512 * 0x400 ; i < usermode_stack; i += 0x1000) {
-        void *block = kmalloc(4096);
+    for (uintptr_t i = usermode_stack - 512 * 0x400; i < usermode_stack; i += 0x1000) {
+        void* block = kmalloc(4096);
         vmm_allocateRegionFlags((uintptr_t)block, i, 0x1000, 1, 1, 1);
     }
 
@@ -1246,16 +1170,16 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
 
     currentProcess->image.userstack = usermode_stack - 16 * 0x400;
 
-    // Setup values   
+    // Setup values
     currentProcess->image.heap = heapBase;
     currentProcess->image.heap_start = currentProcess->image.heap;
     currentProcess->image.heap_end = currentProcess->image.heap;
     currentProcess->image.entrypoint = ehdr->e_entry;
 
     // Setup the process' stack
-    
+
     // First part is to push the actual strings onto the stack.
-    char *argv_ptrs[argc];
+    char* argv_ptrs[argc];
     for (int i = 0; i < argc; i++) {
         int l = strlen(argv[i]);
         do {
@@ -1265,16 +1189,17 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
         argv_ptrs[i] = (char*)currentProcess->image.userstack;
     }
 
-
     // Now we'll do the same thing with environments
 
-    char *env_ptrs[envc];
+    char* env_ptrs[envc];
 
     int true_envc = 0;
-    
+
     for (int i = 0; i < envc; i++) {
-        if (envl[i]) true_envc++;
-        else break;
+        if (envl[i])
+            true_envc++;
+        else
+            break;
         int l = strlen(envl[i]);
         do {
             PUSH(currentProcess->image.userstack, char, (char)(envl[i][l]));
@@ -1282,21 +1207,14 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
         } while (l >= 0);
         env_ptrs[i] = (char*)currentProcess->image.userstack;
     }
-    
 
     // Next, we can push pointers to those strings we just pushed before.
     PUSH(currentProcess->image.userstack, int, 0);
-    for (int i = argc; i > 0; i--) {
-        PUSH(currentProcess->image.userstack, char*, argv_ptrs[i-1]);
-    }
+    for (int i = argc; i > 0; i--) { PUSH(currentProcess->image.userstack, char*, argv_ptrs[i - 1]); }
 
     // Same for envp
     PUSH(currentProcess->image.userstack, int, 0);
-    for (int i = true_envc; i > 0; i--) {
-        PUSH(currentProcess->image.userstack, char*, env_ptrs[i-1]);
-    }
-
-
+    for (int i = true_envc; i > 0; i--) { PUSH(currentProcess->image.userstack, char*, env_ptrs[i - 1]); }
 
     PUSH(currentProcess->image.userstack, int, argc);
     PUSH(currentProcess->image.userstack, int, envc);
@@ -1308,11 +1226,8 @@ int createProcess(char *filepath, int argc, char *argv[], char *envl[], int envc
     return 0;
 }
 
-
-
-
 // process_addfd(process_t *proc, fsNode_t *node) - Creates a new file descriptor and return its ID
-unsigned long process_addfd(process_t *proc, fsNode_t *node) {
+unsigned long process_addfd(process_t* proc, fsNode_t* node) {
     spinlock_lock(proc->file_descs->fd_lock);
 
     // Fill in the gaps
@@ -1333,7 +1248,8 @@ unsigned long process_addfd(process_t *proc, fsNode_t *node) {
         proc->file_descs->max_fds *= 2;
         proc->file_descs->nodes = krealloc(proc->file_descs->nodes, sizeof(fsNode_t*) * proc->file_descs->max_fds);
         proc->file_descs->modes = krealloc(proc->file_descs->modes, sizeof(int) * proc->file_descs->max_fds);
-        proc->file_descs->fd_offsets = krealloc(proc->file_descs->fd_offsets, sizeof(uint64_t) * proc->file_descs->max_fds);
+        proc->file_descs->fd_offsets = krealloc(proc->file_descs->fd_offsets,
+                                                sizeof(uint64_t) * proc->file_descs->max_fds);
     }
 
     proc->file_descs->nodes[proc->file_descs->length] = node;
@@ -1344,10 +1260,10 @@ unsigned long process_addfd(process_t *proc, fsNode_t *node) {
     return proc->file_descs->length - 1;
 }
 
-
 // process_movefd(process_t *proc, long src, long dest) - Move a file descriptor around
-long process_movefd(process_t *proc, long src, long dest) {
-    if ((size_t)src >= proc->file_descs->length || (dest != -1 && (size_t)dest >= proc->file_descs->length)) return -1; // Invalid parameters
+long process_movefd(process_t* proc, long src, long dest) {
+    if ((size_t)src >= proc->file_descs->length || (dest != -1 && (size_t)dest >= proc->file_descs->length))
+        return -1; // Invalid parameters
 
     if (dest == -1) {
         // If dest is specified as -1, we just need to make a new fd

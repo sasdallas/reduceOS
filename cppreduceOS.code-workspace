@@ -69,7 +69,10 @@
 			"fb.h": "c",
 			"bios32.h": "c",
 			"*.def": "c",
-			"doomgeneric.h": "c"
+			"doomgeneric.h": "c",
+			"ringbuffer.h": "c",
+			"termios.h": "c",
+			"video.h": "c"
 		}
 	}
 }
