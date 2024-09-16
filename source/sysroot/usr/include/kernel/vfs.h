@@ -10,6 +10,8 @@
 // Includes
 #include <kernel/hashmap.h>      // Mount hashmap
 #include <kernel/tree.h>         // Mountpoint tree
+#include <libk_reduced/stat.h>
+
 #include <libk_reduced/stdint.h> // Integer declarations
 
 // Definitions (TODO: Shouldn't these be bitmasks?)
@@ -44,6 +46,7 @@ typedef int (*mkdir_t)(struct fsNode*, char* name, uint16_t permission);
 typedef int (*unlink_t)(struct fsNode*, char* name);
 typedef int (*ioctl_t)(struct fsNode*, unsigned long request, void* argp);
 typedef int (*readlink_t)(struct fsNode*, char* buf, size_t size);
+typedef int (*getsize_t)(struct fsNode*);
 
 // Actual typedef structures.
 typedef struct fsNode {
@@ -69,6 +72,7 @@ typedef struct fsNode {
     unlink_t unlink;     // Unlink function (deletion)
     ioctl_t ioctl;       // I/O control function
     readlink_t readlink; // Symlink read
+    getsize_t getsize;   // Size can be dynamic.
 
     struct fsNode* ptr; // Used by mountpoints and symlinks.
     int references; // Child processes (and other cores if SMP is added) will sometimes hold access to the same node. This stores the reference count.
@@ -132,5 +136,7 @@ void vfs_lock(fsNode_t* node);
 int createFilesystem(char* name, uint16_t mode);
 int ioctlFilesystem(fsNode_t* node, unsigned long request, void* argp);
 int mkdirFilesystem(char* name, uint16_t mode);
+
+int vfs_statNode(fsNode_t *node, struct stat *out);
 
 #endif

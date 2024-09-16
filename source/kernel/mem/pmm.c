@@ -5,6 +5,7 @@
 // Some code was sourced from JamesM's Kernel Development Tutorials. Please credit him as well.
 
 #include <kernel/pmm.h> // Main header file
+#include <kernel/debug.h>
 #include <libk_reduced/stdio.h>
 
 // (from JamesM's kernel dev tutorials)
@@ -212,6 +213,13 @@ void *pmm_allocateBlock() {
     uint32_t addr = frame * 4096;
     pmm_usedBlocks++;
 
+    if (addr == 0x0) {
+        // try again, buddy. this is a rare bug that can happen, not sure why.
+        heavy_dprintf("physical memory block failed allocation due to trip condition. retrying...\n"); 
+        return pmm_allocateBlock();
+    }
+
+    heavy_dprintf("physical memory block 0x%x allocated\n", addr);
     return (void*)addr;
 }
 

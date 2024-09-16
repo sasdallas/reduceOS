@@ -24,6 +24,8 @@ bool getControl();                              // getControl() - Returns whethe
 void keyboard_clearBuffer();                    // keyboard_clearBuffer() - Clear the keyboard buffer
 char keyboard_altChars(char ch);                // keyboard_altChars() - Gets alternative characters 
 void keyboardRegisterKeyPress(char key);        // keyboard_registerKeyPress() - A key was pressed!
+void keyboard_devinit();
+
 /* BAD FUNCTIONS */
 void setKBShiftKey(bool state);                 // setKBShiftKey() - Sets whether the SHIFT key is pressed
 void setKBCapsLock(bool state);                 // setKBCapsLock() - Sets whether the CAPS LOCK key is pressed

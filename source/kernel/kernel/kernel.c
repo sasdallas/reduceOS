@@ -98,7 +98,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Deallocate the kernel's region.
     uint32_t kernelStart = (uint32_t)&text_start;
     uint32_t kernelEnd = (uint32_t)&bss_end;
-    pmm_deinitRegion(0x100000, (kernelEnd - kernelStart));
+    pmm_deinitRegion(kernelStart, (kernelEnd - kernelStart));
+    pmm_deinitRegion(0x0, 4096);
 
     // Before anything else is allocated, we need to deinitialize a few other regions.
     // Here is the list:
@@ -148,7 +149,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Initialize VMM
     updateBottomText("Initializing virtual memory management...");
     vmmInit();
-    serialPrintf("Initialized memory management successfully.\n");
+    serialPrintf("kernel: Memory management online.\n");
 
     // Deinitialize multiboot modules
     multiboot_mod_t* mod;
@@ -164,7 +165,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Installs the GDT and IDT entries for BIOS32
     bios32_init();
-    serialPrintf("bios32 initialized successfully!\n");
+    serialPrintf("kernel: bios32 initialized successfully!\n");
 
     // ==== TERMINAL INITIALIZATION ====
     video_init();
@@ -185,11 +186,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     updateBottomText("Initializing PIT...");
     pitInit();
 
-    // Initialize Keyboard
+    // Initialize keyboard
     updateBottomText("Initializing keyboard...");
     keyboardInitialize();
     setKBHandler(true);
-    serialPrintf("Keyboard handler initialized.\n");
+    serialPrintf("kernel: Keyboard handler initialized.\n");
 
     // Setup the DMA pool
     // I can hear the page fault ready to happen because DMA wasn't properly allocated.
@@ -197,12 +198,12 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Initialize the floppy drive (will do IRQ waiting loop occasionally - NEED to fix)
     floppy_init();
-    serialPrintf("Initialized floppy drive successfully.\n");
+    serialPrintf("kernel: Initialized floppy drive successfully.\n");
 
     // Probe for PCI devices
     updateBottomText("Probing PCI...");
     initPCI();
-    serialPrintf("initPCI: PCI probe completed\n");
+    serialPrintf("kernel: PCI probe completed\n");
 
     // Initialize debug symbols (note that this just allocates memory for the structures)
     ksym_init();
@@ -238,6 +239,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialdev_init();       // /device/serial/COMx
     modfs_init(globalInfo); // /device/modules/modx
     console_init();         // /device/console
+    keyboard_devinit();     // /device/keyboard
 
     fsNode_t* comPort = open_file("/device/serial/COM1", 0);
     debugdev_init(comPort); // /device/debug

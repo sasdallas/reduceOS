@@ -24,9 +24,11 @@ int main(int argc, char** argv) {
         int res = execve("/stage2", cargv, 1);
         if (res != 0) {
             printf("error: child failed\n");
-            exit(91);
+            exit(0);
         }
     } else {
         printf("The child process finished or was terminated.\n");
     }
+
+    for (;;);
 }

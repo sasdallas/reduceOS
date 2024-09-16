@@ -74,7 +74,9 @@
 			"termios.h": "c",
 			"video.h": "c",
 			"types.h": "c",
-			"_timespec.h": "c"
+			"_timespec.h": "c",
+			"time.h": "c",
+			"stat.h": "c"
 		}
 	}
 }

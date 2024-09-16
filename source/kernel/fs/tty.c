@@ -455,6 +455,25 @@ void pty_slave_close(fsNode_t* node) {
 }
 
 /**
+ * @brief Gets the available space in an input buffer
+ */
+int pty_available_input(fsNode_t *node) {
+    pty_t *pty = (pty_t*)node->impl_struct;
+    if (!pty || !pty->in) return 0;
+    return ringbuffer_unread(pty->in);
+}
+
+/**
+ * @brief Gets the available space in an output buffer
+ */
+int pty_available_output(fsNode_t *node) {
+    pty_t *pty = (pty_t*)node->impl_struct;
+    if (!pty || !pty->out) return 0;
+    return ringbuffer_unread(pty->out);
+}
+
+
+/**
  * @brief ioctl method for the TTY device
  * 
  * Can return multiple bits of information on a TTY device
@@ -664,6 +683,7 @@ static fsNode_t* tty_createPTYMaster(pty_t* pty) {
     out->read = pty_master_read;
     out->write = pty_master_write;
     out->ioctl = tty_ioctl;
+    out->getsize = pty_available_output;
 
     out->impl_struct = (uint32_t*)pty;
     return out;
@@ -690,6 +710,7 @@ static fsNode_t* tty_createPTYSlave(pty_t* pty) {
     out->read = pty_slave_read;
     out->write = pty_slave_write;
     out->ioctl = tty_ioctl;
+    out->getsize = pty_available_input;
 
     return out;
 }

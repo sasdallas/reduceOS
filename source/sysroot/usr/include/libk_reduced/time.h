@@ -17,7 +17,6 @@
 typedef unsigned long long time_t;
 typedef unsigned long long suseconds_t;
 
-
 // This is a structure containing actual time data (does conform to C standard)
 typedef struct tm {
     int tm_sec;
@@ -30,34 +29,41 @@ typedef struct tm {
     int tm_yday;
     int tm_isdst;
 
-    const char *_tm_zone_name;
+    const char* _tm_zone_name;
     int _tm_zone_offset;
+};
+
+// Structure for the times() syscall
+typedef struct tms {
+    unsigned long tms_utime;
+    unsigned long tms_stime;
+    unsigned long tms_cutime;
+    unsigned long tms_cstime;
 };
 
 // Seconds/microseconds timeval
 struct timeval {
-    time_t tv_sec;          // Seconds
-    suseconds_t tv_usec;    // Microseconds
+    time_t tv_sec;       // Seconds
+    suseconds_t tv_usec; // Microseconds
 };
 
 struct timezone {
-    int tz_minuteswest;     // Minutes west of Greenwich
-    int tz_dsttime;         // Type of Daylight Savings Time correction
+    int tz_minuteswest; // Minutes west of Greenwich
+    int tz_dsttime;     // Type of Daylight Savings Time correction
 };
-
 
 // Functions
 
-size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);
-time_t mktime(struct tm *tm);
-struct tm *localtime_r(const time_t *ptr, struct tm *timeValue);
-struct tm *gmtime_r(const time_t *ptr, struct tm *timeValue);
-struct tm *localtime(const time_t *ptr);
-struct tm *gmtime(const time_t *ptr);
-int gettimeofday(struct timeval *t, void *z);
-time_t time(time_t *out);
+size_t strftime(char* s, size_t max, const char* format, const struct tm* tm);
+time_t mktime(struct tm* tm);
+struct tm* localtime_r(const time_t* ptr, struct tm* timeValue);
+struct tm* gmtime_r(const time_t* ptr, struct tm* timeValue);
+struct tm* localtime(const time_t* ptr);
+struct tm* gmtime(const time_t* ptr);
+int gettimeofday(struct timeval* t, void* z);
+time_t time(time_t* out);
 double difftime(time_t a, time_t b);
-char * asctime(const struct tm *tm);
+char* asctime(const struct tm* tm);
 bool localtime_isYearLeap(int year);
 long localtime_getDaysInMonth(int month, int year);
 uint64_t now();

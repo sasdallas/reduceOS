@@ -4,14 +4,18 @@
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 // TODO: Better naming conventions, cleaning up code, and fixing an awful definition system.
 
+#include <kernel/clock.h>
 #include <kernel/process.h>
 #include <kernel/signal.h>
 #include <kernel/syscall.h> // Main header file
 #include <kernel/vfs.h>
+#include <kernel/debug.h>
 #include <libk_reduced/errno.h>
 #include <libk_reduced/fcntl.h>
 #include <libk_reduced/signal.h>
 #include <libk_reduced/stdio.h>
+#include <libk_reduced/time.h>
+#include <libk_reduced/stat.h>
 
 // List of system calls
 void* syscalls[24] = {
@@ -48,6 +52,9 @@ void syscallHandler(registers_t* regs) {
 
     uint32_t syscallNumber = regs->eax;
 
+    heavy_dprintf("handle syscall START - num %i...\n", syscallNumber);
+
+
     // Check if system call number is valid.
     if (syscallNumber >= syscallAmount) {
         return; // Requested call number >= available system calls
@@ -60,6 +67,8 @@ void syscallHandler(registers_t* regs) {
 
     // Call the system call from the table (TODO: >6 parameter system calls)
     returnValue = fn(regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
+
+    heavy_dprintf("handle syscall STOP - ret %i...\n", returnValue);
 
     // Set EAX to the return value
     asm volatile("mov %0, %%eax" ::"r"(returnValue));
@@ -228,9 +237,16 @@ int sys_execve(char* name, char** argv, char** env) {
 int sys_fork(void) { return fork(); }
 
 // SYSCALL 7
-int sys_fstat(int file, void* st) {
-    SYS_STUB();
-    return -1;
+int sys_fstat(int file, uintptr_t *st) {
+    syscall_validatePointer(st, "sys_fstat");
+    if (!st) return -EINVAL; // stupidity
+
+    // Check that the file descriptor exists, return whatever VFS thinks is good.
+    if (SYS_FD_VALIDATE(file)) {
+        return vfs_statNode(SYS_FD(file), (struct stat *)st);
+    }
+
+    return -EBADF;
 }
 
 // SYSCALL 8
@@ -352,7 +368,7 @@ int sys_open(const char* name, int flags, int mode) {
 
 // SYSCALL 14
 // TODO: uint32_t is not the correct type for this, it's arch-specific I believe
-uint32_t sys_sbrk(uint32_t incr) {
+uint32_t sys_sbrk(int incr) {
     process_t* proc = currentProcess;
 
     if (!proc) return -1;
@@ -361,31 +377,49 @@ uint32_t sys_sbrk(uint32_t incr) {
 
     uintptr_t out = proc->image.heap; // Old heap value
 
-    /*if (incr < 0) {
-        serialPrintf("sys_sbrk: WARNING! Support for negative SBRK is not implemented yet!\n");
-    
-        serialPrintf("sys_sbrk: If we were to do such a thing though, the heap would be set to %i\n", out + incr);
-        goto end;
-    }*/
+
+    // Make sure something isn't going on
+    if (proc->image.heap + incr < proc->image.heap_start) {
+        panic("reduceOS", "DEBUG SYSCALL", "The process' heap expanded to below its start.");
+    }
 
     proc->image.heap += incr;
     proc->image.heap_end += incr;
 
     spinlock_release(&proc->image.spinlock);
-    serialPrintf("sys_sbrk: Heap done - expanded: 0x%x - 0x%x\n", (uint32_t)out, (uint32_t)out + incr);
+    serialPrintf("sys_sbrk: Heap done - new value: 0x%x - 0x%x\n", proc->image.heap_start, (uint32_t)out + incr);
     return (uint32_t)out;
 }
 
 // SYSCALL 15
-int sys_stat(char* file, void* st) {
-    SYS_STUB();
-    return 0; // Not implemented.
+int sys_stat(char* file, uintptr_t *st) {
+    syscall_validatePointer(st, "sys_fstat");
+    syscall_validatePointer(file, "sys_fstat");
+
+    if (!st || !file) return -EINVAL; // stupidity
+
+    // Open the file, stat it, and return
+    fsNode_t *node = open_file(file, 0);
+    int result = vfs_statNode(node, (struct stat *)st);
+    if (node) {
+        closeFilesystem(node);
+    }
+
+    return result;
 }
 
 // SYSCALL 16
-int sys_times(void* buf) {
-    SYS_STUB();
-    return -1;
+unsigned long sys_times(struct tms* buf) {
+    if (buf) {
+        syscall_validatePointer(buf, "sys_times");
+
+        buf->tms_utime = (currentProcess->time_total - currentProcess->time_sys) / clock_getTSCSpeed();
+        buf->tms_stime = currentProcess->time_sys / clock_getTSCSpeed();
+        buf->tms_cutime = (currentProcess->time_children - currentProcess->time_sys_children) / clock_getTSCSpeed();
+        buf->tms_cstime = currentProcess->time_sys_children / clock_getTSCSpeed();
+    }
+
+    return clock_getTimer() / clock_getTSCSpeed();
 }
 
 // SYSCALL 17

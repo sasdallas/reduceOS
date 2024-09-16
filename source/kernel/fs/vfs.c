@@ -8,6 +8,7 @@
 
 #include <kernel/vfs.h> // Main header file
 #include <libk_reduced/stdio.h>
+#include <libk_reduced/stat.h>
 #include <libk_reduced/errno.h>
 
 fsNode_t *fs_root = 0; // Root of the filesystem
@@ -806,4 +807,41 @@ void change_cwd(const char *newdir) {
 // get_cwd() - Returns the current working directory
 char *get_cwd() {
     return cwd;
+}
+
+
+
+// vfs_statNode(fsNode_t *node, struct stat *st) - Stat node (TOARU)
+int vfs_statNode(fsNode_t *node, struct stat *st) {
+    if (!node) {
+        // not much we can do here?
+        return -ENOENT;
+    }
+
+#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
+    st->st_dev = (uint16_t)(((uint64_t)node->device & 0xFFFF0) >> 8);
+    st->st_ino = node->inode;
+
+    // Setup some flags
+    uint32_t flags = 0;
+	if (node->flags & VFS_FILE)        { flags |= _IFREG; }
+	if (node->flags & VFS_DIRECTORY)   { flags |= _IFDIR; }
+	if (node->flags & VFS_CHARDEVICE)  { flags |= _IFCHR; }
+	if (node->flags & VFS_BLOCKDEVICE) { flags |= _IFBLK; }
+	if (node->flags & VFS_PIPE)        { flags |= _IFIFO; }
+	if (node->flags & VFS_SYMLINK)     { flags |= _IFLNK; }
+	// if (node->flags & VFS_SOCKET)      { flags |= _IFSOCK; }
+
+	st->st_mode  = node->mask | flags;
+	// st->st_nlink = node->links;
+	st->st_uid   = node->uid;
+	st->st_gid   = node->gid;
+	st->st_rdev  = 0;
+	st->st_size  = node->length;
+
+	st->st_blksize = 512; /* whatever */ 
+
+    if (node->getsize) st->st_size = node->getsize(node);
+
+    return 0;
 }

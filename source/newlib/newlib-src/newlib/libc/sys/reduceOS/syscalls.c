@@ -4,44 +4,34 @@
 #include <sys/time.h>
 #include <sys/times.h>
 #include <sys/types.h>
+#include "sys/ioctl.h"
 #include "sys/syscall.h"
 
 #include <errno.h>
 #undef errno
 extern int errno;
 
-register char* stack_ptr asm("esp");
-
 void _exit() {
     SYSCALL1(int, SYS_EXIT, 0);
     __builtin_unreachable();
 }
 
-int close(int file) { return -1; }
+int close(int file) { return SYSCALL1(int, SYS_CLOSE, file); }
 
-int execve(char* name, char** argv, char** env) {
-    int ret = SYSCALL3(int, SYS_EXECVE, name, argv, env);
-    return ret;
-}
+int execve(char* name, char** argv, char** env) { return SYSCALL3(int, SYS_EXECVE, name, argv, env); }
 
-int fork() {
-    int ret = SYSCALL0(int, SYS_FORK);
-    return ret;
-}
+int fork() { return SYSCALL0(int, SYS_FORK); }
 
-int fstat(int file, struct stat* st) {
-    st->st_mode = S_IFCHR;
-    return 0;
-}
+int fstat(int file, struct stat* st) { return SYSCALL2(int, SYS_FSTAT, file, st); }
 
-int getpid() {
-    int ret = SYSCALL0(int, SYS_GETPID);
-    return ret;
-}
+int getpid() { return SYSCALL0(int, SYS_GETPID); }
 
 int isatty(int file) {
-    int ret = SYSCALL0(int, SYS_ISATTY);
-    return ret;
+    // No system calls
+    int dtype = ioctl(file, 0x4F00, NULL); // 0x4F00 = IOCTLDTYPE
+    if (dtype == IOCTL_DTYPE_TTY) return 1;
+    errno = EINVAL;
+    return 0;
 }
 
 int link(char* old, char* new) {
@@ -74,17 +64,12 @@ int write(int file, char* ptr, int len) {
 caddr_t sbrk(int incr) {
     uint32_t ret;
     asm volatile("int $0x80" : "=a"(ret) : "a"(SYS_SBRK), "b"(incr));
-    if (ret < 0x1000) {
-        write(2, "newlib: SBRK error!", strlen("newlib: SBRK error!"));
-        abort();
-    }
-
     return ret;
 }
 
 int stat(const char* __restrict __path, struct stat* __restrict st) { return SYSCALL2(int, SYS_STAT, __path, st); }
 
-clock_t times(struct tms* buf) { return SYSCALL1(clock_t, SYS_TIMES, buf); }
+clock_t times(struct tms* buf) { return SYSCALL1(unsigned long, SYS_TIMES, buf); }
 
 int unlink(char* name) {
     int ret = SYSCALL1(int, SYS_UNLINK, name);

@@ -16,7 +16,9 @@
 #include <kernel/terminal.h>
 #include <kernel/process.h>
 #include <kernel/signal.h>
+#include <kernel/debug.h>
 #include <libk_reduced/stdio.h>
+
 
 #include <libk_reduced/time.h>
 
@@ -33,6 +35,10 @@ void panic_dumpPMM() {
         printf("\nThis is a RELEASE build of reduceOS - therefore, to retain the security of your disks, memory dumps have been disabled.\n");
         return;
     }
+
+    // This function is annoying, not gonna use it fn
+    printf("\nCannot dump physical memory - it doesn't work.\n");
+    return;
 
 
     // BUG: We can't dump memory unless the system has around 512MB of RAM, else EXT2 driver hits an OOM.
@@ -348,6 +354,8 @@ void panicReg(char *caller, char *code, char *reason, registers_t *reg) {
     serialPrintf("panic type: %s.\n", code);
 
 
+    
+
     setKBHandler(false);
     clearScreen(COLOR_WHITE, COLOR_RED);
     
@@ -398,6 +406,17 @@ void pageFault(registers_t *reg) {
     uint32_t faultAddress;
     asm volatile("mov %%cr2, %0" : "=r" (faultAddress));
 
+    // Get the flags
+    int present = !(reg->err_code & 0x1); // Page not present?
+    int rw = reg->err_code & 0x2; // Was this a write operation?
+    int user = reg->err_code & 0x4; // Were we in user-mode?
+    int reserved = reg->err_code & 0x8; // Were the reserved bits of page entry overwritten?
+
+    // Notify our debugger friends. Hi from the kernel!
+    heavy_dprintf("*** PAGE FAULT 0x%x\n", faultAddress);
+    heavy_dprintf("*** Flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0", (reserved) ? "reserved " : "\0");
+    if (reg->cs == 0x08) heavy_dprintf("*** KERNEL MODE EXCEPTION (CS = 0x08)\n");
+
     // Magic signal address
     if (faultAddress == 0x516)  {
         serialPrintf("Returning from a signal handler\n");
@@ -414,11 +433,22 @@ void pageFault(registers_t *reg) {
     }
 
     if (faultAddress > currentProcess->image.heap_start && faultAddress < currentProcess->image.heap_end) {
-       
+        heavy_dprintf("*** FAULT ADDRESS IN HEAP OF PROCESS, MAP MORE PAGES\n");
         void *block = pmm_allocateBlock();
+        
+        if (!block) {
+            // crap
+            heavy_dprintf("*** HEAP ALLOCATION FAILED - NO FREE PMM BLOCKS (did you not clean up?)\n");
+            serialPrintf("pageFault: No free blocks\n");
+            panic("reduceOS", "kernel", "The kernel failed to manage the current process and ran out of memory.");
+        }
+
         vmm_allocateRegionFlags((uintptr_t)block, faultAddress, 0x1000, 1, 1, 1);
         return;
     }
+
+    
+
 
     // Only faults in the kernel are critical. If it was a usermode process, we don't care.
     // To prevent it from continuously faulting (because we'd just jump back to the same EIP), send SIGSEGV to kill it.
@@ -426,22 +456,32 @@ void pageFault(registers_t *reg) {
     if (reg->cs != 0x08 && currentProcess) {
         // stupid processes
         serialPrintf("pageFault: Current process attempted to access a bad memory address (0x%x)\n", faultAddress);
+
+        heavy_dprintf("Bad memory address in current process - pid %i name %s\n", currentProcess->id, currentProcess->name);
+        heavy_dprintf("\theap 0x%x - 0x%x\n", currentProcess->image.heap_start, currentProcess->image.heap_end);
+        heavy_dprintf("\tsending signal SIGSEGV\n");
+
         send_signal(currentProcess->id, SIGSEGV, 1);
         return;
     }
 
-    
+    // Serial should output before it is displayed to prevent more faults.
+        
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** Page fault at address 0x%x\n", faultAddress);
-    
-    setKBHandler(false);
+    serialPrintf("*** Flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0", (reserved) ? "reserved " : "\0");
 
-    // Get the flags
-    int present = !(reg->err_code & 0x1); // Page not present?
-    int rw = reg->err_code & 0x2; // Was this a write operation?
-    int user = reg->err_code & 0x4; // Were we in user-mode?
-    int reserved = reg->err_code & 0x8; // Were the reserved bits of page entry overwritten?
+    serialPrintf("\nerr_code %d\n", reg->err_code);
+    serialPrintf("REGISTER DUMP:\n");
+    serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
+    serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
+    serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->cs, reg->ss, reg->eflags, reg->useresp);
+
+
+
+
+    setKBHandler(false);
 
     clearScreen(COLOR_WHITE, COLOR_RED);
 
@@ -469,16 +509,7 @@ void pageFault(registers_t *reg) {
     printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     printf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->cs, reg->ss, reg->eflags, reg->useresp);
 
-    serialPrintf("*** Flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0", (reserved) ? "reserved " : "\0");
     
-    
-    serialPrintf("\nerr_code %d\n", reg->err_code);
-    serialPrintf("REGISTER DUMP:\n");
-    serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
-    serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
-    serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->cs, reg->ss, reg->eflags, reg->useresp);
-
-
     // DUMP PMM FIRST
     // This is because page faults will sometimes hang stackTrace
     serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
