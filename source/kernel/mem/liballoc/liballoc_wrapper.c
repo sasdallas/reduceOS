@@ -13,7 +13,6 @@ spinlock_t lock = SPINLOCK_RELEASED; // Memory lock (we dont use spinlock_init b
 
 // liballoc requires four functions to be declared before it can operate - here they are:
 
-
 // liballoc_lock() - Locks the memory data structures (TODO: Should we disable interrupts? Idk if this spinlock is doing anything lol)
 int liballoc_lock() {
     spinlock_lock(&lock);
@@ -38,12 +37,13 @@ void *liballoc_alloc(size_t pages) {
         printf("*** The system has run out of memory.\n");
         printf("\nThis error indicates that your system has fully run out of memory and can no longer continue its operation.\n");
         printf("Please either do not open many resource intensive applications, or potentially use a larger pagefile\n"); // Good luck with that 
+        printf("There is also the potential of an operating system bug causing this. If you have the proper amount of RAM as detailed in reduceOS system requirements, start an issue on GitHub.\n");
         printf("\nStack dump:\n");
         panic_dumpStack(NULL);
         printf("\n");
         registers_t *reg = (registers_t*)((uint8_t*)&end);
         asm volatile ("mov %%ebp, %0" :: "r"(reg->ebp));
-        reg->eip = NULL; // TODO: Use read_eip()?
+        reg->eip = NULL;
         panic_stackTrace(7, reg);
 
         disableHardwareInterrupts();
@@ -54,6 +54,7 @@ void *liballoc_alloc(size_t pages) {
 
     
     // Now, we can map the pages (basically identity mapping) to the ptr.
+    // This is not a good idea, and will screw everything up.
     for (size_t i = 0; i < pages; i++) {
         vmm_mapPage(ptr + (i*4096), ptr + (i*4096));
     }
@@ -63,17 +64,13 @@ void *liballoc_alloc(size_t pages) {
 
 // liballoc_free(void *addr, size_t pages) - Frees pages
 int liballoc_free(void *addr, size_t pages) {
-    // Free the blocks of memory first
-    pmm_freeBlocks(addr, pages);
+    // The PMM is identity mapped for now, so we don't need to get phys. addr.
+    if (addr) {
+        for (uint32_t i = (uint32_t)addr; i < (uint32_t)(addr + (pages * PAGE_SIZE)); i += 0x1000) {
+            vmm_allocateRegionFlags(i, i, 0x1000, 0, 0, 0);
+        }
 
-    // Get the page directory for our virtual address
-    pde_t *entry = vmm_getPageTable((void*)addr);
-    pagetable_t *pageTable = (pagetable_t*)VIRTUAL_TO_PHYS(entry);
-
-    // Now, we iterate through the table and find anything relating to our frames
-    for (size_t i = 0; i < pages; i++) {
-        pte_t *entry = vmm_tableLookupEntry(pageTable, (uint32_t)addr + (i*4096));
-        vmm_freePage(entry);
+        pmm_freeBlocks(addr, pages * PAGE_SIZE);
     }
 
     return 0;

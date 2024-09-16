@@ -433,7 +433,7 @@ void pageFault(registers_t *reg) {
     }
 
     if (faultAddress > currentProcess->image.heap_start && faultAddress < currentProcess->image.heap_end) {
-        heavy_dprintf("*** FAULT ADDRESS IN HEAP OF PROCESS, MAP MORE PAGES\n");
+        heavy_dprintf("*** Process heap page fault. Trying to allocate more pages...\n");
         void *block = pmm_allocateBlock();
         
         if (!block) {

@@ -18,11 +18,15 @@
 
 // STUB FILE! ONLY FOR HEAVY DEBUGGING!
 
-
 void heavy_dprintf(const char *fmt, ...) {
+
+    // This will crash if the machine doesn't have COM2...
+#if 0
     uint16_t oldCOM = serial_getCOM();
+    
     if (serial_changeCOM(SERIAL_COM2) == -1) {
         // Must be disabled
+        has_com = 0;
         return;
     }
 
@@ -32,4 +36,5 @@ void heavy_dprintf(const char *fmt, ...) {
     va_end(ap);
     
     serial_changeCOM(oldCOM);
+#endif
 }

@@ -14,11 +14,6 @@ bool isSerialEnabled = false;
 
 uint16_t selected_com = SERIAL_COM1;
 
-// gross...
-int has_com1 = 0;
-int has_com2 = 0;
-int has_com3 = 0;
-int has_com4 = 0;
 
 // Functions
 
@@ -127,62 +122,18 @@ void serialInit() {
 }
 
 
-// GROSS
-static int serial_isCOMOK(uint16_t com) {
-    switch (com) {
-        case SERIAL_COM1:
-            return has_com1;
-        case SERIAL_COM2:
-            return has_com2;
-        case SERIAL_COM3:
-            return has_com3;
-        case SERIAL_COM4:
-            return has_com4;
-        default:
-            serialPrintf("serial_isCOMOK: Unadded COM type 0x%x\n", com);
-            return 0;
-    }
-}
-
-static void serial_setCOM(uint16_t com, int value) {
-    // Update COM status
-    switch (com) {
-        case SERIAL_COM1:
-            has_com1 = value;
-            break;
-        case SERIAL_COM2:
-            has_com2 = value;
-            break;
-        case SERIAL_COM3:
-            has_com3 = value;
-            break;
-        case SERIAL_COM4:
-            has_com4 = value;
-            break;
-        default:
-            break;
-    }
-
-}
-
 // serial_changeCOM(uint16_t com) - Change the COM port to one's liking (0 = success, anything else is fail)
 int serial_changeCOM(uint16_t com) {
+    uint16_t oldCOM = selected_com;
+    selected_com = com;
 
-    // WE ONLY DO THESE TERRIBLE HACKS BECAUSE OF THE FACT THAT THE SERIAL PORT WILL LOCK UP
-    // IF IT IS TESTED TOO MUCH
-
-    if (serial_isCOMOK(com) == -1) return -1;
-
-    if (serial_isCOMOK(com) == 0) {
-        // Run a test
-        if (testSerial() == -1) {
-            serial_setCOM(com, -1);
-            return -1;
-        }
+    // Run a test
+    if (testSerial() == -1) {
+        selected_com = oldCOM;
+        return -1;
     }
 
-    serial_setCOM(com, 1);
-    selected_com = com;
+    
 
     return 0;
 }
