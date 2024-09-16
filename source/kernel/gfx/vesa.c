@@ -296,6 +296,7 @@ int vesaInit() {
 
     // Because framebuffer is big and stupid pmm will get confused and try to still allocate memory INSIDE of it
     // So we need to fix that by telling PMM to go pound sand and deinitialize the region
+    // TODO: Believe this was fixed.
     pmm_deinitRegion((uintptr_t)framebuffer, modeWidth*modeHeight*4);
 
     // This will stop other functions from trying to initialize VESA.

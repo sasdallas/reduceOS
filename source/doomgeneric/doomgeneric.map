@@ -8474,7 +8474,7 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
 .plt.sec
  *(.plt.sec)
 
-.text           0x0000000008000090    0x364e9
+.text           0x0000000008000090    0x364f9
  *(.text.unlikely .text.*_unlikely .text.unlikely.*)
  .text.unlikely
                 0x0000000008000090        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
@@ -9609,178 +9609,178 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .text          0x000000000802a470     0x1916 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
                 0x000000000802a470                __ssvfscanf_r
  *fill*         0x000000000802bd86        0xa 
- .text          0x000000000802bd90      0x249 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+ .text          0x000000000802bd90      0x259 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
                 0x000000000802bd90                _exit
                 0x000000000802bda0                close
-                0x000000000802bdb0                execve
-                0x000000000802bdd0                fork
-                0x000000000802bde0                fstat
-                0x000000000802be00                getpid
-                0x000000000802be10                isatty
-                0x000000000802be50                link
-                0x000000000802be60                lseek
-                0x000000000802be80                open
-                0x000000000802beb0                read
-                0x000000000802bed0                write
-                0x000000000802bef0                sbrk
-                0x000000000802bf10                stat
-                0x000000000802bf30                times
-                0x000000000802bf50                unlink
-                0x000000000802bf80                wait
-                0x000000000802bfa0                mkdir
-                0x000000000802bfc0                waitpid
- *fill*         0x000000000802bfd9        0x7 
- .text          0x000000000802bfe0       0x5a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
-                0x000000000802bfe0                _system_r
-                0x000000000802c010                system
- *fill*         0x000000000802c03a        0x6 
- .text          0x000000000802c040       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
-                0x000000000802c040                _unlink_r
- *fill*         0x000000000802c079        0x7 
- .text          0x000000000802c080     0x2512 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
-                0x000000000802c080                _vfprintf_r
-                0x000000000802e4b0                vfprintf
- *fill*         0x000000000802e592        0xe 
- .text          0x000000000802e5a0      0x16f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
-                0x000000000802e5a0                vsnprintf
-                0x000000000802e660                _vsnprintf_r
- *fill*         0x000000000802e70f        0x1 
- .text          0x000000000802e710      0x139 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
-                0x000000000802e710                __swbuf_r
-                0x000000000802e830                __swbuf
- *fill*         0x000000000802e849        0x7 
- .text          0x000000000802e850       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
-                0x000000000802e850                _wctomb_r
-                0x000000000802e870                __ascii_wctomb
- *fill*         0x000000000802e8a4        0xc 
- .text          0x000000000802e8b0       0x41 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
-                0x000000000802e8b0                _write_r
- *fill*         0x000000000802e8f1        0xf 
- .text          0x000000000802e900      0x12a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
-                0x000000000802e900                __swsetup_r
- *fill*         0x000000000802ea2a        0x6 
- .text          0x000000000802ea30      0x127 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
-                0x000000000802ea30                __call_exitprocs
- *fill*         0x000000000802eb57        0x9 
- .text          0x000000000802eb60       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
-                0x000000000802eb60                _close_r
- *fill*         0x000000000802eb99        0x7 
- .text          0x000000000802eba0     0x13e3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
-                0x000000000802eda0                _dtoa_r
- *fill*         0x000000000802ff83        0xd 
- .text          0x000000000802ff90       0xb3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
-                0x000000000802ff90                __sflags
- *fill*         0x0000000008030043        0xd 
- .text          0x0000000008030050      0x9e1 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
-                0x0000000008030160                __gethex
- *fill*         0x0000000008030a31        0xf 
- .text          0x0000000008030a40      0x31d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
-                0x0000000008030a40                __match
-                0x0000000008030a90                __hexnan
- *fill*         0x0000000008030d5d        0x3 
- .text          0x0000000008030d60       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
-                0x0000000008030d60                _isatty_r
- *fill*         0x0000000008030d99        0x7 
- .text          0x0000000008030da0       0x32 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
-                0x0000000008030da0                iswspace
- *fill*         0x0000000008030dd2        0xe 
- .text          0x0000000008030de0       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
-                0x0000000008030de0                _link_r
- *fill*         0x0000000008030e19        0x7 
- .text          0x0000000008030e20       0x48 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
-                0x0000000008030e20                __localeconv_l
-                0x0000000008030e30                _localeconv_r
-                0x0000000008030e50                localeconv
- *fill*         0x0000000008030e68        0x8 
- .text          0x0000000008030e70       0x41 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
-                0x0000000008030e70                _lseek_r
- *fill*         0x0000000008030eb1        0xf 
- .text          0x0000000008030ec0      0x111 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
-                0x0000000008030ec0                _mbrtowc_r
-                0x0000000008030f50                mbrtowc
- .text          0x0000000008030fd1       0x52 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
-                0x0000000008030fd1                memcmp
- *fill*         0x0000000008031023        0xd 
- .text          0x0000000008031030      0xf7b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
-                0x0000000008031030                _Balloc
-                0x00000000080310c0                _Bfree
-                0x00000000080310e0                __multadd
-                0x00000000080311b0                __s2b
-                0x00000000080312a0                __hi0bits
-                0x0000000008031320                __lo0bits
-                0x00000000080313a0                __i2b
-                0x0000000008031430                __multiply
-                0x0000000008031640                __pow5mult
-                0x0000000008031750                __lshift
-                0x0000000008031890                __mcmp
-                0x00000000080318e0                __mdiff
-                0x0000000008031b30                __ulp
-                0x0000000008031bb0                __b2d
-                0x0000000008031cf0                __d2b
-                0x0000000008031e10                __ratio
-                0x0000000008031eb0                _mprec_log10
-                0x0000000008031ee0                __copybits
-                0x0000000008031f40                __any_on
- *fill*         0x0000000008031fab        0x5 
- .text          0x0000000008031fb0       0x41 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
-                0x0000000008031fb0                _read_r
- *fill*         0x0000000008031ff1        0xf 
- .text          0x0000000008032000       0xd8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
-                0x0000000008032000                __sccl
- *fill*         0x00000000080320d8        0x8 
- .text          0x00000000080320e0        0x7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
-                0x00000000080320e0                nanf
- *fill*         0x00000000080320e7        0x9 
- .text          0x00000000080320f0       0x82 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
-                0x00000000080320f0                _sprintf_r
-                0x0000000008032130                sprintf
- *fill*         0x0000000008032172        0xe 
- .text          0x0000000008032180      0x281 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
-                0x0000000008032370                _strtoul_r
-                0x00000000080323b0                strtoul_l
-                0x00000000080323d0                strtoul
- *fill*         0x0000000008032401        0xf 
- .text          0x0000000008032410     0x1076 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
-                0x0000000008032410                __ssprint_r
-                0x00000000080325c0                _svfiprintf_r
- *fill*         0x0000000008033486        0xa 
- .text          0x0000000008033490     0x169d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
-                0x0000000008033490                _sungetc_r
-                0x0000000008033550                __ssrefill_r
-                0x00000000080335b0                _sfread_r
-                0x0000000008033690                __ssvfiscanf_r
- *fill*         0x0000000008034b2d        0x3 
- .text          0x0000000008034b30      0x219 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
-                0x0000000008034b30                __submore
-                0x0000000008034be0                _ungetc_r
-                0x0000000008034d30                ungetc
- *fill*         0x0000000008034d49        0x7 
- .text          0x0000000008034d50     0x1442 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
-                0x0000000008034e20                __sprint_r
-                0x0000000008034e50                _vfiprintf_r
-                0x00000000080360b0                vfiprintf
- *fill*         0x0000000008036192        0xe 
- .text          0x00000000080361a0      0x136 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
-                0x00000000080361a0                __fputwc
-                0x0000000008036240                _fputwc_r
-                0x0000000008036280                fputwc
- *fill*         0x00000000080362d6        0xa 
- .text          0x00000000080362e0       0xf3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
-                0x00000000080362e0                _wcrtomb_r
-                0x0000000008036360                wcrtomb
- *fill*         0x00000000080363d3        0xd 
- .text          0x00000000080363e0      0x152 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
-                0x00000000080363e0                __divdi3
- *fill*         0x0000000008036532        0xe 
- .text          0x0000000008036540       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/crtend.o
+                0x000000000802bdc0                execve
+                0x000000000802bde0                fork
+                0x000000000802bdf0                fstat
+                0x000000000802be10                getpid
+                0x000000000802be20                isatty
+                0x000000000802be60                link
+                0x000000000802be70                lseek
+                0x000000000802be90                open
+                0x000000000802bec0                read
+                0x000000000802bee0                write
+                0x000000000802bf00                sbrk
+                0x000000000802bf20                stat
+                0x000000000802bf40                times
+                0x000000000802bf60                unlink
+                0x000000000802bf90                wait
+                0x000000000802bfb0                mkdir
+                0x000000000802bfd0                waitpid
+ *fill*         0x000000000802bfe9        0x7 
+ .text          0x000000000802bff0       0x5a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+                0x000000000802bff0                _system_r
+                0x000000000802c020                system
+ *fill*         0x000000000802c04a        0x6 
+ .text          0x000000000802c050       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
+                0x000000000802c050                _unlink_r
+ *fill*         0x000000000802c089        0x7 
+ .text          0x000000000802c090     0x2512 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+                0x000000000802c090                _vfprintf_r
+                0x000000000802e4c0                vfprintf
+ *fill*         0x000000000802e5a2        0xe 
+ .text          0x000000000802e5b0      0x16f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+                0x000000000802e5b0                vsnprintf
+                0x000000000802e670                _vsnprintf_r
+ *fill*         0x000000000802e71f        0x1 
+ .text          0x000000000802e720      0x139 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+                0x000000000802e720                __swbuf_r
+                0x000000000802e840                __swbuf
+ *fill*         0x000000000802e859        0x7 
+ .text          0x000000000802e860       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
+                0x000000000802e860                _wctomb_r
+                0x000000000802e880                __ascii_wctomb
+ *fill*         0x000000000802e8b4        0xc 
+ .text          0x000000000802e8c0       0x41 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
+                0x000000000802e8c0                _write_r
+ *fill*         0x000000000802e901        0xf 
+ .text          0x000000000802e910      0x12a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+                0x000000000802e910                __swsetup_r
+ *fill*         0x000000000802ea3a        0x6 
+ .text          0x000000000802ea40      0x127 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+                0x000000000802ea40                __call_exitprocs
+ *fill*         0x000000000802eb67        0x9 
+ .text          0x000000000802eb70       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
+                0x000000000802eb70                _close_r
+ *fill*         0x000000000802eba9        0x7 
+ .text          0x000000000802ebb0     0x13e3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
+                0x000000000802edb0                _dtoa_r
+ *fill*         0x000000000802ff93        0xd 
+ .text          0x000000000802ffa0       0xb3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
+                0x000000000802ffa0                __sflags
+ *fill*         0x0000000008030053        0xd 
+ .text          0x0000000008030060      0x9e1 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+                0x0000000008030170                __gethex
+ *fill*         0x0000000008030a41        0xf 
+ .text          0x0000000008030a50      0x31d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+                0x0000000008030a50                __match
+                0x0000000008030aa0                __hexnan
+ *fill*         0x0000000008030d6d        0x3 
+ .text          0x0000000008030d70       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
+                0x0000000008030d70                _isatty_r
+ *fill*         0x0000000008030da9        0x7 
+ .text          0x0000000008030db0       0x32 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
+                0x0000000008030db0                iswspace
+ *fill*         0x0000000008030de2        0xe 
+ .text          0x0000000008030df0       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
+                0x0000000008030df0                _link_r
+ *fill*         0x0000000008030e29        0x7 
+ .text          0x0000000008030e30       0x48 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
+                0x0000000008030e30                __localeconv_l
+                0x0000000008030e40                _localeconv_r
+                0x0000000008030e60                localeconv
+ *fill*         0x0000000008030e78        0x8 
+ .text          0x0000000008030e80       0x41 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
+                0x0000000008030e80                _lseek_r
+ *fill*         0x0000000008030ec1        0xf 
+ .text          0x0000000008030ed0      0x111 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+                0x0000000008030ed0                _mbrtowc_r
+                0x0000000008030f60                mbrtowc
+ .text          0x0000000008030fe1       0x52 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
+                0x0000000008030fe1                memcmp
+ *fill*         0x0000000008031033        0xd 
+ .text          0x0000000008031040      0xf7b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+                0x0000000008031040                _Balloc
+                0x00000000080310d0                _Bfree
+                0x00000000080310f0                __multadd
+                0x00000000080311c0                __s2b
+                0x00000000080312b0                __hi0bits
+                0x0000000008031330                __lo0bits
+                0x00000000080313b0                __i2b
+                0x0000000008031440                __multiply
+                0x0000000008031650                __pow5mult
+                0x0000000008031760                __lshift
+                0x00000000080318a0                __mcmp
+                0x00000000080318f0                __mdiff
+                0x0000000008031b40                __ulp
+                0x0000000008031bc0                __b2d
+                0x0000000008031d00                __d2b
+                0x0000000008031e20                __ratio
+                0x0000000008031ec0                _mprec_log10
+                0x0000000008031ef0                __copybits
+                0x0000000008031f50                __any_on
+ *fill*         0x0000000008031fbb        0x5 
+ .text          0x0000000008031fc0       0x41 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
+                0x0000000008031fc0                _read_r
+ *fill*         0x0000000008032001        0xf 
+ .text          0x0000000008032010       0xd8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
+                0x0000000008032010                __sccl
+ *fill*         0x00000000080320e8        0x8 
+ .text          0x00000000080320f0        0x7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
+                0x00000000080320f0                nanf
+ *fill*         0x00000000080320f7        0x9 
+ .text          0x0000000008032100       0x82 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
+                0x0000000008032100                _sprintf_r
+                0x0000000008032140                sprintf
+ *fill*         0x0000000008032182        0xe 
+ .text          0x0000000008032190      0x281 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+                0x0000000008032380                _strtoul_r
+                0x00000000080323c0                strtoul_l
+                0x00000000080323e0                strtoul
+ *fill*         0x0000000008032411        0xf 
+ .text          0x0000000008032420     0x1076 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+                0x0000000008032420                __ssprint_r
+                0x00000000080325d0                _svfiprintf_r
+ *fill*         0x0000000008033496        0xa 
+ .text          0x00000000080334a0     0x169d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+                0x00000000080334a0                _sungetc_r
+                0x0000000008033560                __ssrefill_r
+                0x00000000080335c0                _sfread_r
+                0x00000000080336a0                __ssvfiscanf_r
+ *fill*         0x0000000008034b3d        0x3 
+ .text          0x0000000008034b40      0x219 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+                0x0000000008034b40                __submore
+                0x0000000008034bf0                _ungetc_r
+                0x0000000008034d40                ungetc
+ *fill*         0x0000000008034d59        0x7 
+ .text          0x0000000008034d60     0x1442 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+                0x0000000008034e30                __sprint_r
+                0x0000000008034e60                _vfiprintf_r
+                0x00000000080360c0                vfiprintf
+ *fill*         0x00000000080361a2        0xe 
+ .text          0x00000000080361b0      0x136 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+                0x00000000080361b0                __fputwc
+                0x0000000008036250                _fputwc_r
+                0x0000000008036290                fputwc
+ *fill*         0x00000000080362e6        0xa 
+ .text          0x00000000080362f0       0xf3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+                0x00000000080362f0                _wcrtomb_r
+                0x0000000008036370                wcrtomb
+ *fill*         0x00000000080363e3        0xd 
+ .text          0x00000000080363f0      0x152 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+                0x00000000080363f0                __divdi3
+ *fill*         0x0000000008036542        0xe 
+ .text          0x0000000008036550       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/crtend.o
  *(.gnu.warning)
 
-.fini           0x0000000008036579        0x8
+.fini           0x0000000008036589        0x8
  *(SORT_NONE(.fini))
- .fini          0x0000000008036579        0x0 /usr/lib/gcc/i686-reduceOS/12.2.0/crti.o
-                0x0000000008036579                _fini
- .fini          0x0000000008036579        0x5 /usr/lib/gcc/i686-reduceOS/12.2.0/crtbegin.o
- .fini          0x000000000803657e        0x3 /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
+ .fini          0x0000000008036589        0x0 /usr/lib/gcc/i686-reduceOS/12.2.0/crti.o
+                0x0000000008036589                _fini
+ .fini          0x0000000008036589        0x5 /usr/lib/gcc/i686-reduceOS/12.2.0/crtbegin.o
+ .fini          0x000000000803658e        0x3 /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
                 [!provide]                        PROVIDE (__etext = .)
                 [!provide]                        PROVIDE (_etext = .)
                 [!provide]                        PROVIDE (etext = .)
@@ -11522,7 +11522,7 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x0000000000000000    0xe83ea
+.debug_info     0x0000000000000000    0xe83e4
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x0000000000000000       0x24 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/crt0.o
  .debug_info    0x0000000000000024      0x101 build/main.o
@@ -11670,44 +11670,44 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_info    0x00000000000cc2a0      0xde6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtol.o)
  .debug_info    0x00000000000cd086     0x14e0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfprintf.o)
  .debug_info    0x00000000000ce566     0x148f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
- .debug_info    0x00000000000cf9f5      0x9a6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
- .debug_info    0x00000000000d039b      0x9a2 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
- .debug_info    0x00000000000d0d3d      0x901 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
- .debug_info    0x00000000000d163e     0x1696 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
- .debug_info    0x00000000000d2cd4      0xac3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
- .debug_info    0x00000000000d3797      0x9d8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
- .debug_info    0x00000000000d416f      0xc2b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
- .debug_info    0x00000000000d4d9a      0x951 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
- .debug_info    0x00000000000d56eb      0x958 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
- .debug_info    0x00000000000d6043      0x999 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
- .debug_info    0x00000000000d69dc      0x900 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
- .debug_info    0x00000000000d72dc       0xf4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
- .debug_info    0x00000000000d73d0     0x1374 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
- .debug_info    0x00000000000d8744      0x914 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
- .debug_info    0x00000000000d9058     0x127f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
- .debug_info    0x00000000000da2d7      0x3d4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
- .debug_info    0x00000000000da6ab      0x900 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
- .debug_info    0x00000000000dafab       0xd8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
- .debug_info    0x00000000000db083      0x916 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
- .debug_info    0x00000000000db999      0xc5e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
- .debug_info    0x00000000000dc5f7      0x948 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
- .debug_info    0x00000000000dcf3f      0xc9b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
- .debug_info    0x00000000000ddbda       0x24 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
- .debug_info    0x00000000000ddbfe     0x1b4d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
- .debug_info    0x00000000000df74b      0x94b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
- .debug_info    0x00000000000e0096      0x115 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
- .debug_info    0x00000000000e01ab       0xd1 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
- .debug_info    0x00000000000e027c      0xa0a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
- .debug_info    0x00000000000e0c86      0xde8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
- .debug_info    0x00000000000e1a6e     0x1164 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
- .debug_info    0x00000000000e2bd2     0x1891 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
- .debug_info    0x00000000000e4463      0xa96 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
- .debug_info    0x00000000000e4ef9     0x1957 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
- .debug_info    0x00000000000e6850      0xb9e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
- .debug_info    0x00000000000e73ee      0xc94 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
- .debug_info    0x00000000000e8082      0x368 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+ .debug_info    0x00000000000cf9f5      0x9a0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+ .debug_info    0x00000000000d0395      0x9a2 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+ .debug_info    0x00000000000d0d37      0x901 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
+ .debug_info    0x00000000000d1638     0x1696 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+ .debug_info    0x00000000000d2cce      0xac3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+ .debug_info    0x00000000000d3791      0x9d8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+ .debug_info    0x00000000000d4169      0xc2b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
+ .debug_info    0x00000000000d4d94      0x951 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
+ .debug_info    0x00000000000d56e5      0x958 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+ .debug_info    0x00000000000d603d      0x999 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+ .debug_info    0x00000000000d69d6      0x900 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
+ .debug_info    0x00000000000d72d6       0xf4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
+ .debug_info    0x00000000000d73ca     0x1374 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
+ .debug_info    0x00000000000d873e      0x914 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
+ .debug_info    0x00000000000d9052     0x127f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+ .debug_info    0x00000000000da2d1      0x3d4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+ .debug_info    0x00000000000da6a5      0x900 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
+ .debug_info    0x00000000000dafa5       0xd8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
+ .debug_info    0x00000000000db07d      0x916 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
+ .debug_info    0x00000000000db993      0xc5e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
+ .debug_info    0x00000000000dc5f1      0x948 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
+ .debug_info    0x00000000000dcf39      0xc9b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+ .debug_info    0x00000000000ddbd4       0x24 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
+ .debug_info    0x00000000000ddbf8     0x1b4d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+ .debug_info    0x00000000000df745      0x94b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
+ .debug_info    0x00000000000e0090      0x115 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
+ .debug_info    0x00000000000e01a5       0xd1 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
+ .debug_info    0x00000000000e0276      0xa0a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
+ .debug_info    0x00000000000e0c80      0xde8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+ .debug_info    0x00000000000e1a68     0x1164 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+ .debug_info    0x00000000000e2bcc     0x1891 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+ .debug_info    0x00000000000e445d      0xa96 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+ .debug_info    0x00000000000e4ef3     0x1957 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+ .debug_info    0x00000000000e684a      0xb9e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+ .debug_info    0x00000000000e73e8      0xc94 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+ .debug_info    0x00000000000e807c      0x368 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
 
-.debug_abbrev   0x0000000000000000    0x1bec0
+.debug_abbrev   0x0000000000000000    0x1be9b
  *(.debug_abbrev)
  .debug_abbrev  0x0000000000000000       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/crt0.o
  .debug_abbrev  0x0000000000000014       0xb3 build/main.o
@@ -11855,44 +11855,44 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_abbrev  0x0000000000015fb7      0x2df /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtol.o)
  .debug_abbrev  0x0000000000016296      0x3d2 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfprintf.o)
  .debug_abbrev  0x0000000000016668      0x3c4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
- .debug_abbrev  0x0000000000016a2c      0x1d7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
- .debug_abbrev  0x0000000000016c03      0x27f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
- .debug_abbrev  0x0000000000016e82      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
- .debug_abbrev  0x00000000000170a9      0x459 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
- .debug_abbrev  0x0000000000017502      0x2bc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
- .debug_abbrev  0x00000000000177be      0x27d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
- .debug_abbrev  0x0000000000017a3b      0x270 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
- .debug_abbrev  0x0000000000017cab      0x21c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
- .debug_abbrev  0x0000000000017ec7      0x235 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
- .debug_abbrev  0x00000000000180fc      0x265 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
- .debug_abbrev  0x0000000000018361      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
- .debug_abbrev  0x0000000000018588       0x73 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
- .debug_abbrev  0x00000000000185fb      0x327 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
- .debug_abbrev  0x0000000000018922      0x1fc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
- .debug_abbrev  0x0000000000018b1e      0x385 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
- .debug_abbrev  0x0000000000018ea3      0x1ae /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
- .debug_abbrev  0x0000000000019051      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
- .debug_abbrev  0x0000000000019278       0x96 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
- .debug_abbrev  0x000000000001930e      0x229 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
- .debug_abbrev  0x0000000000019537      0x2a7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
- .debug_abbrev  0x00000000000197de      0x23c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
- .debug_abbrev  0x0000000000019a1a      0x25b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
- .debug_abbrev  0x0000000000019c75       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
- .debug_abbrev  0x0000000000019c89      0x471 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
- .debug_abbrev  0x000000000001a0fa      0x217 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
- .debug_abbrev  0x000000000001a311       0x9a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
- .debug_abbrev  0x000000000001a3ab       0x77 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
- .debug_abbrev  0x000000000001a422      0x25f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
- .debug_abbrev  0x000000000001a681      0x2de /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
- .debug_abbrev  0x000000000001a95f      0x2f7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
- .debug_abbrev  0x000000000001ac56      0x443 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
- .debug_abbrev  0x000000000001b099      0x2bd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
- .debug_abbrev  0x000000000001b356      0x43e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
- .debug_abbrev  0x000000000001b794      0x35c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
- .debug_abbrev  0x000000000001baf0      0x256 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
- .debug_abbrev  0x000000000001bd46      0x17a /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+ .debug_abbrev  0x0000000000016a2c      0x1b2 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+ .debug_abbrev  0x0000000000016bde      0x27f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+ .debug_abbrev  0x0000000000016e5d      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
+ .debug_abbrev  0x0000000000017084      0x459 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+ .debug_abbrev  0x00000000000174dd      0x2bc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+ .debug_abbrev  0x0000000000017799      0x27d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+ .debug_abbrev  0x0000000000017a16      0x270 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
+ .debug_abbrev  0x0000000000017c86      0x21c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
+ .debug_abbrev  0x0000000000017ea2      0x235 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+ .debug_abbrev  0x00000000000180d7      0x265 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+ .debug_abbrev  0x000000000001833c      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
+ .debug_abbrev  0x0000000000018563       0x73 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
+ .debug_abbrev  0x00000000000185d6      0x327 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
+ .debug_abbrev  0x00000000000188fd      0x1fc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
+ .debug_abbrev  0x0000000000018af9      0x385 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+ .debug_abbrev  0x0000000000018e7e      0x1ae /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+ .debug_abbrev  0x000000000001902c      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
+ .debug_abbrev  0x0000000000019253       0x96 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
+ .debug_abbrev  0x00000000000192e9      0x229 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
+ .debug_abbrev  0x0000000000019512      0x2a7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
+ .debug_abbrev  0x00000000000197b9      0x23c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
+ .debug_abbrev  0x00000000000199f5      0x25b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+ .debug_abbrev  0x0000000000019c50       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
+ .debug_abbrev  0x0000000000019c64      0x471 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+ .debug_abbrev  0x000000000001a0d5      0x217 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
+ .debug_abbrev  0x000000000001a2ec       0x9a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
+ .debug_abbrev  0x000000000001a386       0x77 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
+ .debug_abbrev  0x000000000001a3fd      0x25f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
+ .debug_abbrev  0x000000000001a65c      0x2de /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+ .debug_abbrev  0x000000000001a93a      0x2f7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+ .debug_abbrev  0x000000000001ac31      0x443 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+ .debug_abbrev  0x000000000001b074      0x2bd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+ .debug_abbrev  0x000000000001b331      0x43e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+ .debug_abbrev  0x000000000001b76f      0x35c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+ .debug_abbrev  0x000000000001bacb      0x256 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+ .debug_abbrev  0x000000000001bd21      0x17a /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
 
-.debug_line     0x0000000000000000    0x39de5
+.debug_line     0x0000000000000000    0x39df3
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x0000000000000000       0x47 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/crt0.o
  .debug_line    0x0000000000000047       0xd9 build/main.o
@@ -12040,44 +12040,44 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_line    0x000000000002cd5e      0x341 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtol.o)
  .debug_line    0x000000000002d09f     0x16b6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfprintf.o)
  .debug_line    0x000000000002e755     0x11be /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
- .debug_line    0x000000000002f913      0x2db /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
- .debug_line    0x000000000002fbee       0xf7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
- .debug_line    0x000000000002fce5       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
- .debug_line    0x000000000002fd92     0x1894 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
- .debug_line    0x0000000000031626      0x22d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
- .debug_line    0x0000000000031853      0x1d5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
- .debug_line    0x0000000000031a28       0xf5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
- .debug_line    0x0000000000031b1d       0xaf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
- .debug_line    0x0000000000031bcc      0x213 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
- .debug_line    0x0000000000031ddf      0x1b8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
- .debug_line    0x0000000000031f97       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
- .debug_line    0x0000000000032044       0x48 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
- .debug_line    0x000000000003208c     0x12e7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
- .debug_line    0x0000000000033373       0xfe /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
- .debug_line    0x0000000000033471      0x913 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
- .debug_line    0x0000000000033d84      0x369 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
- .debug_line    0x00000000000340ed       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
- .debug_line    0x000000000003419a       0x9b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
- .debug_line    0x0000000000034235       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
- .debug_line    0x00000000000342e2       0xfe /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
- .debug_line    0x00000000000343e0       0xb3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
- .debug_line    0x0000000000034493      0x1a8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
- .debug_line    0x000000000003463b       0x71 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
- .debug_line    0x00000000000346ac     0x1438 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
- .debug_line    0x0000000000035ae4       0xaf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
- .debug_line    0x0000000000035b93      0x15f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
- .debug_line    0x0000000000035cf2       0x5b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
- .debug_line    0x0000000000035d4d      0x108 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
- .debug_line    0x0000000000035e55      0x329 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
- .debug_line    0x000000000003617e      0xe00 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
- .debug_line    0x0000000000036f7e     0x14dd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
- .debug_line    0x000000000003845b      0x313 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
- .debug_line    0x000000000003876e     0x10cb /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
- .debug_line    0x0000000000039839      0x217 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
- .debug_line    0x0000000000039a50      0x1e5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
- .debug_line    0x0000000000039c35      0x1b0 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+ .debug_line    0x000000000002f913      0x2e9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+ .debug_line    0x000000000002fbfc       0xf7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+ .debug_line    0x000000000002fcf3       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
+ .debug_line    0x000000000002fda0     0x1894 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+ .debug_line    0x0000000000031634      0x22d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+ .debug_line    0x0000000000031861      0x1d5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+ .debug_line    0x0000000000031a36       0xf5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
+ .debug_line    0x0000000000031b2b       0xaf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
+ .debug_line    0x0000000000031bda      0x213 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+ .debug_line    0x0000000000031ded      0x1b8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+ .debug_line    0x0000000000031fa5       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
+ .debug_line    0x0000000000032052       0x48 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
+ .debug_line    0x000000000003209a     0x12e7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
+ .debug_line    0x0000000000033381       0xfe /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
+ .debug_line    0x000000000003347f      0x913 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+ .debug_line    0x0000000000033d92      0x369 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+ .debug_line    0x00000000000340fb       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
+ .debug_line    0x00000000000341a8       0x9b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
+ .debug_line    0x0000000000034243       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
+ .debug_line    0x00000000000342f0       0xfe /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
+ .debug_line    0x00000000000343ee       0xb3 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
+ .debug_line    0x00000000000344a1      0x1a8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+ .debug_line    0x0000000000034649       0x71 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
+ .debug_line    0x00000000000346ba     0x1438 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+ .debug_line    0x0000000000035af2       0xaf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
+ .debug_line    0x0000000000035ba1      0x15f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
+ .debug_line    0x0000000000035d00       0x5b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
+ .debug_line    0x0000000000035d5b      0x108 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
+ .debug_line    0x0000000000035e63      0x329 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+ .debug_line    0x000000000003618c      0xe00 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+ .debug_line    0x0000000000036f8c     0x14dd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+ .debug_line    0x0000000000038469      0x313 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+ .debug_line    0x000000000003877c     0x10cb /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+ .debug_line    0x0000000000039847      0x217 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+ .debug_line    0x0000000000039a5e      0x1e5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+ .debug_line    0x0000000000039c43      0x1b0 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
 
-.debug_frame    0x0000000000000000     0xab1c
+.debug_frame    0x0000000000000000     0xab34
  *(.debug_frame)
  .debug_frame   0x0000000000000000       0x34 build/main.o
  .debug_frame   0x0000000000000034       0x24 build/dummy.o
@@ -12211,41 +12211,41 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_frame   0x0000000000009694       0xc0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtol.o)
  .debug_frame   0x0000000000009754       0x44 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfprintf.o)
  .debug_frame   0x0000000000009798       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
- .debug_frame   0x00000000000097ec      0x260 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
- .debug_frame   0x0000000000009a4c       0x64 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
- .debug_frame   0x0000000000009ab0       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
- .debug_frame   0x0000000000009aec       0xa0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
- .debug_frame   0x0000000000009b8c       0x74 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
- .debug_frame   0x0000000000009c00       0x64 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
- .debug_frame   0x0000000000009c64       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
- .debug_frame   0x0000000000009cb8       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
- .debug_frame   0x0000000000009cf4       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
- .debug_frame   0x0000000000009d30       0x44 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
- .debug_frame   0x0000000000009d74       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
- .debug_frame   0x0000000000009db0       0xa0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
- .debug_frame   0x0000000000009e50       0x50 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
- .debug_frame   0x0000000000009ea0       0xa4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
- .debug_frame   0x0000000000009f44       0x8c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
- .debug_frame   0x0000000000009fd0       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
- .debug_frame   0x000000000000a00c       0x40 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
- .debug_frame   0x000000000000a04c       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
- .debug_frame   0x000000000000a088       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
- .debug_frame   0x000000000000a0dc       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
- .debug_frame   0x000000000000a118       0x7c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
- .debug_frame   0x000000000000a194      0x3d8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
- .debug_frame   0x000000000000a56c       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
- .debug_frame   0x000000000000a5a8       0x50 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
- .debug_frame   0x000000000000a5f8       0x24 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
- .debug_frame   0x000000000000a61c       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
- .debug_frame   0x000000000000a670       0xb0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
- .debug_frame   0x000000000000a720       0x70 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
- .debug_frame   0x000000000000a790       0xe4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
- .debug_frame   0x000000000000a874       0x94 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
- .debug_frame   0x000000000000a908       0xf8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
- .debug_frame   0x000000000000aa00       0xa0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
- .debug_frame   0x000000000000aaa0       0x7c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+ .debug_frame   0x00000000000097ec      0x278 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+ .debug_frame   0x0000000000009a64       0x64 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+ .debug_frame   0x0000000000009ac8       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
+ .debug_frame   0x0000000000009b04       0xa0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+ .debug_frame   0x0000000000009ba4       0x74 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+ .debug_frame   0x0000000000009c18       0x64 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+ .debug_frame   0x0000000000009c7c       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
+ .debug_frame   0x0000000000009cd0       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
+ .debug_frame   0x0000000000009d0c       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+ .debug_frame   0x0000000000009d48       0x44 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+ .debug_frame   0x0000000000009d8c       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
+ .debug_frame   0x0000000000009dc8       0xa0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
+ .debug_frame   0x0000000000009e68       0x50 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
+ .debug_frame   0x0000000000009eb8       0xa4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+ .debug_frame   0x0000000000009f5c       0x8c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+ .debug_frame   0x0000000000009fe8       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
+ .debug_frame   0x000000000000a024       0x40 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
+ .debug_frame   0x000000000000a064       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
+ .debug_frame   0x000000000000a0a0       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
+ .debug_frame   0x000000000000a0f4       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
+ .debug_frame   0x000000000000a130       0x7c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+ .debug_frame   0x000000000000a1ac      0x3d8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+ .debug_frame   0x000000000000a584       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
+ .debug_frame   0x000000000000a5c0       0x50 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
+ .debug_frame   0x000000000000a610       0x24 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
+ .debug_frame   0x000000000000a634       0x54 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
+ .debug_frame   0x000000000000a688       0xb0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+ .debug_frame   0x000000000000a738       0x70 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+ .debug_frame   0x000000000000a7a8       0xe4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+ .debug_frame   0x000000000000a88c       0x94 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+ .debug_frame   0x000000000000a920       0xf8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+ .debug_frame   0x000000000000aa18       0xa0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+ .debug_frame   0x000000000000aab8       0x7c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
 
-.debug_str      0x0000000000000000    0x21365
+.debug_str      0x0000000000000000    0x2135b
  *(.debug_str)
  .debug_str     0x0000000000000000       0xa9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/crt0.o
  .debug_str     0x00000000000000a9     0x5d2f build/main.o
@@ -12529,68 +12529,68 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
                                         0x8a5 (size before relaxing)
  .debug_str     0x0000000000020da8      0x117 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
                                         0x8cb (size before relaxing)
- .debug_str     0x0000000000020ebf       0x91 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
-                                        0x34f (size before relaxing)
- .debug_str     0x0000000000020f50        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+ .debug_str     0x0000000000020ebf       0x87 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+                                        0x345 (size before relaxing)
+ .debug_str     0x0000000000020f46        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
                                         0x4c8 (size before relaxing)
- .debug_str     0x0000000000020f5a      0x4bf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
- .debug_str     0x0000000000020f5a       0x1b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+ .debug_str     0x0000000000020f50      0x4bf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
+ .debug_str     0x0000000000020f50       0x1b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
                                         0x8f8 (size before relaxing)
- .debug_str     0x0000000000020f75        0xd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+ .debug_str     0x0000000000020f6b        0xd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
                                         0x50d (size before relaxing)
- .debug_str     0x0000000000020f82        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+ .debug_str     0x0000000000020f78        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
                                         0x4f4 (size before relaxing)
- .debug_str     0x0000000000020f8a       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
+ .debug_str     0x0000000000020f80       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
                                         0x6f2 (size before relaxing)
- .debug_str     0x0000000000020f9b      0x4c8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
- .debug_str     0x0000000000020f9b      0x4ed /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
- .debug_str     0x0000000000020f9b       0x27 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+ .debug_str     0x0000000000020f91      0x4c8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
+ .debug_str     0x0000000000020f91      0x4ed /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+ .debug_str     0x0000000000020f91       0x27 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
                                         0x4fd (size before relaxing)
- .debug_str     0x0000000000020fc2      0x4b8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
- .debug_str     0x0000000000020fc2        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
+ .debug_str     0x0000000000020fb8      0x4b8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
+ .debug_str     0x0000000000020fb8        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
                                          0xf4 (size before relaxing)
- .debug_str     0x0000000000020fca       0xa6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
+ .debug_str     0x0000000000020fc0       0xa6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
                                         0x7eb (size before relaxing)
- .debug_str     0x0000000000021070        0x5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
+ .debug_str     0x0000000000021066        0x5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
                                         0x4b6 (size before relaxing)
- .debug_str     0x0000000000021075       0x98 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+ .debug_str     0x000000000002106b       0x98 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
                                         0x8a1 (size before relaxing)
- .debug_str     0x000000000002110d        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+ .debug_str     0x0000000000021103        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
                                         0x216 (size before relaxing)
- .debug_str     0x0000000000021115      0x4ba /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
- .debug_str     0x0000000000021115      0x106 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
- .debug_str     0x0000000000021115      0x4b6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
- .debug_str     0x0000000000021115       0x1a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
+ .debug_str     0x000000000002110b      0x4ba /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
+ .debug_str     0x000000000002110b      0x106 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
+ .debug_str     0x000000000002110b      0x4b6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
+ .debug_str     0x000000000002110b       0x1a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
                                         0x709 (size before relaxing)
- .debug_str     0x000000000002112f      0x4cd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
- .debug_str     0x000000000002112f        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+ .debug_str     0x0000000000021125      0x4cd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
+ .debug_str     0x0000000000021125        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
                                         0x6e6 (size before relaxing)
- .debug_str     0x0000000000021137       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
+ .debug_str     0x000000000002112d       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
                                          0xab (size before relaxing)
- .debug_str     0x0000000000021176       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+ .debug_str     0x000000000002116c       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
                                         0x7a4 (size before relaxing)
- .debug_str     0x00000000000211af      0x4c6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
- .debug_str     0x00000000000211af        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
+ .debug_str     0x00000000000211a5      0x4c6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
+ .debug_str     0x00000000000211a5        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
                                          0xfa (size before relaxing)
- .debug_str     0x00000000000211b8        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
+ .debug_str     0x00000000000211ae        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
                                          0xfc (size before relaxing)
- .debug_str     0x00000000000211b8        0xb /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
+ .debug_str     0x00000000000211ae        0xb /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
                                         0x4fd (size before relaxing)
- .debug_str     0x00000000000211c3       0x13 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+ .debug_str     0x00000000000211b9       0x13 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
                                         0x730 (size before relaxing)
- .debug_str     0x00000000000211d6        0xe /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+ .debug_str     0x00000000000211cc        0xe /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
                                         0x81e (size before relaxing)
- .debug_str     0x00000000000211e4       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+ .debug_str     0x00000000000211da       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
                                         0x87e (size before relaxing)
- .debug_str     0x00000000000211fd       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+ .debug_str     0x00000000000211f3       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
                                         0x519 (size before relaxing)
- .debug_str     0x000000000002120e       0x21 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+ .debug_str     0x0000000000021204       0x21 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
                                         0x860 (size before relaxing)
- .debug_str     0x000000000002122f       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+ .debug_str     0x0000000000021225       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
                                         0x53d (size before relaxing)
- .debug_str     0x0000000000021243        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+ .debug_str     0x0000000000021239        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
                                         0x6e6 (size before relaxing)
- .debug_str     0x000000000002124b      0x11a /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+ .debug_str     0x0000000000021241      0x11a /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
                                         0x1e2 (size before relaxing)
 
 .debug_loc
@@ -13162,7 +13162,7 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
                                          0xf4 (size before relaxing)
 
 .debug_loclists
-                0x0000000000000000    0x29f49
+                0x0000000000000000    0x29f5e
  *(.debug_loclists)
  .debug_loclists
                 0x0000000000000000       0x2a build/main.o
@@ -13417,71 +13417,71 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_loclists
                 0x000000000001cd5d     0x160e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
  .debug_loclists
-                0x000000000001e36b      0x221 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+                0x000000000001e36b      0x236 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
  .debug_loclists
-                0x000000000001e58c       0x51 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+                0x000000000001e5a1       0x51 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
  .debug_loclists
-                0x000000000001e5dd       0x1d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
+                0x000000000001e5f2       0x1d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
  .debug_loclists
-                0x000000000001e5fa     0x22d5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+                0x000000000001e60f     0x22d5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
  .debug_loclists
-                0x00000000000208cf      0x14a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+                0x00000000000208e4      0x14a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
  .debug_loclists
-                0x0000000000020a19       0x77 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+                0x0000000000020a2e       0x77 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
  .debug_loclists
-                0x0000000000020a90       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
+                0x0000000000020aa5       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
  .debug_loclists
-                0x0000000000020acc       0x38 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
+                0x0000000000020ae1       0x38 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
  .debug_loclists
-                0x0000000000020b04       0x2e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+                0x0000000000020b19       0x2e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
  .debug_loclists
-                0x0000000000020b32      0x193 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+                0x0000000000020b47      0x193 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
  .debug_loclists
-                0x0000000000020cc5       0x1d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
+                0x0000000000020cda       0x1d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
  .debug_loclists
-                0x0000000000020ce2     0x1eb7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
+                0x0000000000020cf7     0x1eb7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
  .debug_loclists
-                0x0000000000022b99       0x78 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
+                0x0000000000022bae       0x78 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
  .debug_loclists
-                0x0000000000022c11      0xf20 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+                0x0000000000022c26      0xf20 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
  .debug_loclists
-                0x0000000000023b31      0x52a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+                0x0000000000023b46      0x52a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
  .debug_loclists
-                0x000000000002405b       0x1d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
+                0x0000000000024070       0x1d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
  .debug_loclists
-                0x0000000000024078       0x15 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
+                0x000000000002408d       0x15 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
  .debug_loclists
-                0x000000000002408d       0x26 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
+                0x00000000000240a2       0x26 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
  .debug_loclists
-                0x00000000000240b3       0x47 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
+                0x00000000000240c8       0x47 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
  .debug_loclists
-                0x00000000000240fa       0x2f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
+                0x000000000002410f       0x2f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
  .debug_loclists
-                0x0000000000024129       0xbf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+                0x000000000002413e       0xbf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
  .debug_loclists
-                0x00000000000241e8     0x156f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+                0x00000000000241fd     0x156f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
  .debug_loclists
-                0x0000000000025757       0x38 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
+                0x000000000002576c       0x38 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
  .debug_loclists
-                0x000000000002578f      0x15f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
+                0x00000000000257a4      0x15f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
  .debug_loclists
-                0x00000000000258ee       0x7d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
+                0x0000000000025903       0x7d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
  .debug_loclists
-                0x000000000002596b      0x36d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+                0x0000000000025980      0x36d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
  .debug_loclists
-                0x0000000000025cd8     0x110e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+                0x0000000000025ced     0x110e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
  .debug_loclists
-                0x0000000000026de6     0x1053 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+                0x0000000000026dfb     0x1053 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
  .debug_loclists
-                0x0000000000027e39      0x123 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+                0x0000000000027e4e      0x123 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
  .debug_loclists
-                0x0000000000027f5c     0x1c09 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+                0x0000000000027f71     0x1c09 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
  .debug_loclists
-                0x0000000000029b65      0x113 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+                0x0000000000029b7a      0x113 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
  .debug_loclists
-                0x0000000000029c78       0xaa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+                0x0000000000029c8d       0xaa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
  .debug_loclists
-                0x0000000000029d22      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+                0x0000000000029d37      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
 
 .debug_macro    0x0000000000000000    0x13bf7
  *(.debug_macro)
@@ -13692,7 +13692,7 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  *(.debug_names)
 
 .debug_rnglists
-                0x0000000000000000     0x13af
+                0x0000000000000000     0x13c3
  *(.debug_rnglists)
  .debug_rnglists
                 0x0000000000000000       0x13 build/main.o
@@ -13815,43 +13815,43 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_rnglists
                 0x0000000000000be1      0x148 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
  .debug_rnglists
-                0x0000000000000d29       0xc0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+                0x0000000000000d29       0xd4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
  .debug_rnglists
-                0x0000000000000de9       0x16 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+                0x0000000000000dfd       0x16 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
  .debug_rnglists
-                0x0000000000000dff       0xf5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+                0x0000000000000e13       0xf5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
  .debug_rnglists
-                0x0000000000000ef4       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+                0x0000000000000f08       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
  .debug_rnglists
-                0x0000000000000f0d       0x1b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+                0x0000000000000f21       0x1b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
  .debug_rnglists
-                0x0000000000000f28       0x20 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+                0x0000000000000f3c       0x20 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
  .debug_rnglists
-                0x0000000000000f48       0x16 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+                0x0000000000000f5c       0x16 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
  .debug_rnglists
-                0x0000000000000f5e       0x36 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+                0x0000000000000f72       0x36 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
  .debug_rnglists
-                0x0000000000000f94       0x1c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+                0x0000000000000fa8       0x1c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
  .debug_rnglists
-                0x0000000000000fb0       0x21 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+                0x0000000000000fc4       0x21 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
  .debug_rnglists
-                0x0000000000000fd1       0x68 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+                0x0000000000000fe5       0x68 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
  .debug_rnglists
-                0x0000000000001039       0x36 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+                0x000000000000104d       0x36 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
  .debug_rnglists
-                0x000000000000106f       0x35 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+                0x0000000000001083       0x35 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
  .debug_rnglists
-                0x00000000000010a4      0x1bc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+                0x00000000000010b8      0x1bc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
  .debug_rnglists
-                0x0000000000001260       0x1c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+                0x0000000000001274       0x1c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
  .debug_rnglists
-                0x000000000000127c       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+                0x0000000000001290       0xad /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
  .debug_rnglists
-                0x0000000000001329       0x26 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+                0x000000000000133d       0x26 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
  .debug_rnglists
-                0x000000000000134f       0x3b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+                0x0000000000001363       0x3b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
  .debug_rnglists
-                0x000000000000138a       0x25 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+                0x000000000000139e       0x25 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
 
 .debug_str_offsets
  *(.debug_str_offsets)

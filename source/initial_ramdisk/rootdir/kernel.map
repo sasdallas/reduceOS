@@ -680,7 +680,7 @@ e4524ff7 a MULTIBOOT_CHECKSUM
 00100000 t multiboot_header
 1badb002 a MULTIBOOT_MAGIC
 001bf920 B newline
-001bc240 d _next_pid.2597
+001bc240 d _next_pid.2622
 001c8f64 B nframes
 0012b2bd T now
 00114f2c T nulldev_init

@@ -23,7 +23,7 @@ typedef struct {
 typedef int mod_init_func(int argc, char** args);
 
 // Definitions
-#define MODULE_ADDR_START   0xD0000000
+#define MODULE_ADDR_START   0xA0000000
 
 // Errors
 #define MODULE_OK           0  // Success!

@@ -9,3 +9,4 @@ deployment_scripts
 serial_out.txt
 cppreduceOS.code-workspace
 source/newlib/newlib-build/**
+obj/**
