@@ -117,15 +117,11 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     // Initialize serial logging
     serialInit();
-    serialPrintf("====================================================================================================="
-                 "=======================\n");
+    serialPrintf("============================================================================================================================\n");
     serialPrintf("\treduceOS v%s %s - written by sasdallas\n", VERSION, CODENAME);
-    serialPrintf("\tNew kernel, same trash.\n");
     serialPrintf("\tBuild %s-%s, compiled on %s\n", BUILD_NUMBER, BUILD_CONFIGURATION, BUILD_DATE);
-    serialPrintf("====================================================================================================="
-                 "=======================\n\n");
-    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: "
-                 "0x%x - 0x%x\n",
+    serialPrintf("============================================================================================================================\n\n");
+    serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n",
                  &text_start, &bss_end, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);
     serialPrintf("Loader magic: 0x%x\n\n", loader_magic);
     serialPrintf("Serial logging initialized!\n");
@@ -142,12 +138,9 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     acpiInit();
 
     // Initialize all the basic CPU features
-    updateBottomText("Initializing HAL...");
     cpuInit();
-    printf("HAL initialization completed.\n");
 
     // Initialize VMM
-    updateBottomText("Initializing virtual memory management...");
     vmmInit();
     serialPrintf("kernel: Memory management online.\n");
 
@@ -243,8 +236,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     fsNode_t* comPort = open_file("/device/serial/COM1", 0);
     debugdev_init(comPort); // /device/debug
-
     console_setOutput(printf_output);
+
     printf("done\n");
 
     serial_changeCOM(SERIAL_COM1); // Bochs bugs out without this
@@ -265,6 +258,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
         multiboot_mod_t* mod = (multiboot_mod_t*)modnode->impl_struct;
         if (strstr((char*)mod->cmdline, "type=initrd") != NULL) {
+            // There should be a way to dynamically do this.
             modnode->close(modnode);
             initrd = open_file(mntpoint, 0);
             kfree(mntpoint);
@@ -277,6 +271,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         i++;
     }
 
+    // Initial ramdisk contains kernel symbol map (essential for module loads)
+    // Perhaps there could be an option to disable this?
     if (initrd == NULL) { panic("kernel", "kmain", "Initial ramdisk not found."); }
 
     printf("Located initial ramdisk successfully.\n");
@@ -342,7 +338,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     printf("Debug symbols loaded.\n");
 
-    debug_print_vfs_tree(false);
 
     // ==== FINAL INITIALIZATION ====
 

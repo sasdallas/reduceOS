@@ -195,4 +195,4 @@ extern int     tcgetattr(int, struct termios *);
 extern int     tcgetsid(int);
 extern int     tcsendbreak(int, int);
 extern int     tcsetattr(int, int, struct termios *);
-#endif /* ndef _KERNEL_ */
+#endif

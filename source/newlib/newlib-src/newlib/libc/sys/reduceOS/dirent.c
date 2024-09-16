@@ -1,3 +1,5 @@
+// Did not write this file - sourced from Linux newlib sources.
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>

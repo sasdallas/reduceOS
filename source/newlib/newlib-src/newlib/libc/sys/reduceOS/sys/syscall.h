@@ -29,6 +29,9 @@
 #define SYS_MKDIR           22
 #define SYS_WAITPID         23
 
+// System calls will return a negative errno
+#define __sets_errno(...) long ret = __VA_ARGS__; if (ret < 0) { errno = -ret; ret = -1; } return ret
+
 // System call macros
 
 #define SYSCALL0(TYPE, NUM)                                                                                            \

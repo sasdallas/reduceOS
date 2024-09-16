@@ -380,14 +380,14 @@ uint32_t sys_sbrk(int incr) {
 
     // Make sure something isn't going on
     if (proc->image.heap + incr < proc->image.heap_start) {
-        panic("reduceOS", "DEBUG SYSCALL", "The process' heap expanded to below its start.");
+        panic("reduceOS", "DEBUG SYSCALL", "The process heap expanded to below its start.");
     }
 
     proc->image.heap += incr;
     proc->image.heap_end += incr;
 
     spinlock_release(&proc->image.spinlock);
-    serialPrintf("sys_sbrk: Heap done - new value: 0x%x - 0x%x\n", proc->image.heap_start, (uint32_t)out + incr);
+    serialPrintf("sys_sbrk: Heap done - new value: 0x%x - 0x%x, update by %i\n", proc->image.heap_start, (uint32_t)out + incr, incr);
     return (uint32_t)out;
 }
 

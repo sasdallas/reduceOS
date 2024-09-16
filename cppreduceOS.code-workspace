@@ -76,7 +76,8 @@
 			"types.h": "c",
 			"_timespec.h": "c",
 			"time.h": "c",
-			"stat.h": "c"
+			"stat.h": "c",
+			"*.s": "c"
 		}
 	}
 }
