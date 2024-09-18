@@ -68,6 +68,12 @@ void syscallHandler(registers_t* regs) {
     // Call the system call from the table (TODO: >6 parameter system calls)
     returnValue = fn(regs->ebx, regs->ecx, regs->edx, regs->esi, regs->edi, regs->ebp);
 
+
+    // Check if we need to restart the system call 
+    if (returnValue == -ERESTARTSYS) {
+        panic("reduceOS", "Debug", "-ERESTARTSYS received - do we restart?");
+    }
+
     heavy_dprintf("handle syscall STOP - ret %i...\n", returnValue);
 
     // Set EAX to the return value
@@ -118,7 +124,7 @@ int syscall_validatePointer(void* ptr, const char* syscall) {
 // SYSCALL 0 (https://man7.org/linux/man-pages/man2/restart_syscall.2.html)
 long sys_restart_syscall() {
     serialPrintf("restart_syscall: doing things lol\n");
-    return 0; // This is supposed to return the system call number being restarted
+    return currentProcess->interrupted_syscall; // This is supposed to return the system call number being restarted
 }
 
 // SYSCALL 1 (https://linux.die.net/man/2/exit)

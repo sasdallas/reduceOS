@@ -46,7 +46,7 @@ typedef void (*sighandler_t)(int); // TODO: Probably don't define this here...
  * 
  */
 sighandler_t signal(int signum, sighandler_t handler) {
-    return SYSCALL2(sighandler_t, SYS_SIGNAL, signum, handler);
+    SYSCALL2(sighandler_t, SYS_SIGNAL, signum, handler);
 }
 
 /**
@@ -58,12 +58,6 @@ sighandler_t signal(int signum, sighandler_t handler) {
  * @return 0 on success, -1 on failure.
  */
 int kill(int pid, int sig) {
-    int ret = SYSCALL2(int, SYS_KILL, pid, sig);
-    if (ret != 0) {
-        errno = ret*ret;
-        return -1;
-    }
-
-    return 0;
+    __sets_errno(SYSCALL2(int, SYS_KILL, pid, sig));
 }
 
