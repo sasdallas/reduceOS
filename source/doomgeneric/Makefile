@@ -59,9 +59,10 @@ $(OBJDIR)/%.o:	%.c
 print:
 	@echo OBJS: $(OBJS)
 
-install:
+
 ifeq ($(shell which $(TARGET)-reduceOS-gcc),)
+install:	
 	@echo "No GCC runtime"
 else
-	$(OUTPUT)
+install: $(OUTPUT)
 endif

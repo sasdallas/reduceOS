@@ -28,6 +28,7 @@
 
 // Libk includes
 #include <libk_reduced/stdio.h>
+#include <libk_reduced/errno.h>
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
@@ -79,6 +80,21 @@ static inline void mem_invalidatePage(uintptr_t addr) {
 static inline void mem_load_pdbr(uintptr_t addr) {
     asm volatile ("mov %%cr3, %0" :: "r"(addr));
 }
+
+
+/**
+ * @brief Switch the memory management directory
+ * @param pagedir The page directory to switch to
+ * @note This will also reload the PDBR.
+ * @returns -EINVAL on invalid, 0 on success.
+ */
+int mem_switchDirectory(pagedirectory_t *pagedir) {
+    if (!pagedir) return -EINVAL;
+
+    mem_load_pdbr((uintptr_t)pagedir);
+    mem_currentDirectory = pagedir;
+    return 0; 
+}  
 
 
 /**
