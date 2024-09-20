@@ -7,6 +7,7 @@
 #include <kernel/ext2.h>    // Main header file
 #include <kernel/ide_ata.h> // IDE/ATA driver
 #include <kernel/vfs.h>
+#include <kernel/mem.h>
 
 #pragma GCC diagnostic ignored "-Wempty-body" // Don't want to mess with the func that uses this
 
@@ -1090,8 +1091,9 @@ int ext2_read(fsNode_t* node, off_t offset, uint32_t size, uint8_t* buffer) {
     if (offset + size > inode->size) {
         serialPrintf("ext2_read: WARNING: Truncating size from %i to %i\n", offset + size, inode->size);
         end = inode->size; // Offset + size is too big
-    } else
+    } else {
         end = offset + size;
+   }
 
     // Calculate the blocks we need to read, relative to end and offset.
     uint32_t startBlock = offset / fs->block_size;
@@ -1157,27 +1159,9 @@ void ext2_deleteInode(ext2_t* fs, ext2_inode_t* inode, uint32_t inodeNumber) {
     // (1) Iterate through each block given to the inode and free it (updating BGDs)
     // (2) Set dtime on the inode
     // (3) Free the inode in the bitmap
+    panic("reduceOS", "ext2", "Deletion is deprecated. Notify author.");
 
-    uint32_t endBlock = inode->size / fs->block_size;
-    uint32_t endSize = end - endBlock * fs->block_size;
 
-    if (endBlock == 0) {
-        ext2_freeInodeBlock(fs, inode, inodeNumber, 0);
-    } else {
-        uint32_t blockOffset;
-
-        for (blockOffset = 0; blockOffset < endBlock; blockOffset++) {
-            ext2_freeInodeBlock(fs, inode, inodeNumber, blockOffset);
-        }
-
-        if (endSize) { ext2_freeInodeBlock(fs, inode, inodeNumber, endBlock); }
-    }
-
-    // Done freeing the blocks, now we should actually delete the inode
-
-    inode->deletion_time = 1; // Signifies that we did delete it
-    ext2_writeInodeMetadata(fs, inode, inodeNumber);
-    //ext2_freeInode(fs, inodeNumber); // Mark the inode as free
 }
 
 // ext2_unlink(fsNode_t *file, char *name) - VFS node unlink function (sort of like delete)

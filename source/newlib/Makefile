@@ -36,6 +36,11 @@ ifeq ($(wildcard $(BUILDDIR)/Makefile),)
 	(cd $(BUILDDIR) && ../$(SRCDIR)/configure --target=$(TARGET)-reduceOS --prefix /usr CFLAGS= CC=)
 endif
 	make -C $(BUILDDIR) all
+	make -C $(BUILDDIR) DESTDIR=$(DESTDIR) install
+ifeq ($(NEWLIB_INSTALL_GLOBAL_HEADERS),TRUE)
+	sudo make -C $(BUILDDIR) install
+endif
+
 
 	@echo "-- Removing executables..."
 	sudo rm $(dir $(shell which $(TARGET)-elf-gcc))/$(TARGET)-reduceOS-gcc
@@ -49,20 +54,18 @@ ifeq ($(wildcard $(BUILDDIR)/Makefile),)
 	(cd $(BUILDDIR) && ../$(SRCDIR)/configure --target=$(TARGET)-reduceOS --prefix /usr CFLAGS= CC=)
 endif
 	make -C $(BUILDDIR) all
+	make -C $(BUILDDIR) DESTDIR=$(DESTDIR) install
+ifeq ($(NEWLIB_INSTALL_GLOBAL_HEADERS),TRUE)
+	sudo make -C $(BUILDDIR) install
+endif
 endif
 	
 
 install: MAKE_DIRS BUILD_NEWLIB
-	@echo "-- Installing newlib headers..."
-	make -C $(BUILDDIR) DESTDIR=$(DESTDIR) install
 	@echo "-- Copying files..."
 	-mkdir -p $(DESTDIR)$(LIBDIR)
 	cp -rp $(DESTDIR)/usr/$(TARGET)-reduceOS/include/* $(DESTDIR)$(INCLUDE_DIR)/
 	cp -rp $(DESTDIR)/usr/$(TARGET)-reduceOS/lib/* $(DESTDIR)$(LIBDIR)
-# The user might want to install the headers into their actual system
-ifeq ($(NEWLIB_INSTALL_GLOBAL_HEADERS),TRUE)
-	sudo make -C $(BUILDDIR) install
-endif
 
 clean:
 	@echo "-- Cleaning up newlib..."

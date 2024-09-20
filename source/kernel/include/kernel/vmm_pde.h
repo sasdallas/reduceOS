@@ -30,10 +30,7 @@ enum PAGING_PDE_FLAGS {
     PDE_FRAME = 0x7FFFF000
 };
 
-// pagedirectory_t
-typedef struct {
-    pde_t entries[1024];
-} pagedirectory_t;
+
 
 // Functions
 void pde_addattrib(pde_t *entry, uint32_t attribute);

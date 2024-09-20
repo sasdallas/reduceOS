@@ -35,7 +35,7 @@ void *kmalloc(size_t size){
         // There's a *very* slim window when this could happen. Therefore, just place it at the end...
         // TODO: Fix this abomination.
         if ((placement_address & 0x00000FFF)) {
-            placement_address = ALIGN_PAGE(placement_address);
+            placement_address = MEM_ALIGN_PAGE(placement_address);
         }
 
         uint32_t ret = placement_address;

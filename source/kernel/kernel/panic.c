@@ -94,7 +94,7 @@ void panic_dumpPMM() {
         for (int i = 0; i < pages; i += pages_per_loop) {
             
             pagedirectory_t *pageDirectory = vmm_getCurrentDirectory();
-            pde_t *entry = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)addr)];
+            pde_t *entry = &pageDirectory->entries[MEM_PAGEDIR_INDEX((uint32_t)addr)];
             if (!entry) {
                 printf("Error when trying to dump page %i (get page table error)\n", i);
                 break;

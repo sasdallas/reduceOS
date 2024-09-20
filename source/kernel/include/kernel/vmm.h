@@ -15,14 +15,14 @@
 #include <kernel/terminal.h>
 #include <kernel/serial.h>
 #include <kernel/pmm.h> // Physical memory management
-
-
+#include <kernel/arch/i386/page.h>
 
 // Typedefs
 typedef uint32_t virtual_address;
 
 // Definitions
 #define PAGE_SIZE 4096 // Page size
+
 
 
 

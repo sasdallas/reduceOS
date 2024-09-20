@@ -15,6 +15,12 @@ uint32_t currentPDBR = 0; // Current page directory base register address
 bool pagingEnabled = false;
 
 
+#define ALIGN_PAGE(addr) (((uint32_t)addr & 0xFFFFF000) + 4096)
+#define PAGEDIR_INDEX(x) (((x) >> 22) & 0x3ff) // Returns the index of x within the PDE
+#define PAGETBL_INDEX(x) (((x) >> 12) & 0x3ff) // Returns the index of x within the PTE
+#define VIRTUAL_TO_PHYS(addr) (*addr & ~0xFFF) // Returns the physical address of addr.
+
+
 // vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr) - Look up an entry within the page table.
 pte_t *vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr) {
     if (table) return &table->entries[PAGETBL_INDEX(virtual_addr)];

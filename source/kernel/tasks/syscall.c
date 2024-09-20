@@ -102,10 +102,12 @@ int syscall_validatePointer(void* ptr, const char* syscall) {
             serialPrintf("*** The attempted access violation happened at 0x%x\n", ptr);
 
             panic_dumpPMM();
+            /*
             registers_t* reg = (registers_t*)((uint8_t*)&end);
             asm volatile("mov %%ebp, %0" ::"r"(reg->ebp));
             reg->eip = NULL; // TODO: Use read_eip()?
             panic_stackTrace(7, reg);
+            */
 
             asm volatile("hlt");
             for (;;);

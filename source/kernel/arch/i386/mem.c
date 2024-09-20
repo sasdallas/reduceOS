@@ -98,13 +98,13 @@ uintptr_t mem_getPhysicalAddress(pagedirectory_t *dir, uintptr_t virtaddr) {
     uintptr_t addr = virtaddr; // You can do any modifications needed to addr
 
     // Calculate the PDE index
-    pde_t *pde = &dir->entries[PAGEDIR_INDEX(virtaddr)];
+    pde_t *pde = &dir->entries[MEM_PAGEDIR_INDEX(virtaddr)];
     if (!pde || !pde_ispresent(*pde)) return NULL;
     
 
     // Calculate the PTE index
-    pagetable_t *table = (pagetable_t*)VIRTUAL_TO_PHYS(pde);
-    pte_t *page = &table->entries[PAGETBL_INDEX(virtaddr)];
+    pagetable_t *table = (pagetable_t*)MEM_VIRTUAL_TO_PHYS(pde);
+    pte_t *page = &table->entries[MEM_PAGETBL_INDEX(virtaddr)];
     if (!page || !pte_ispresent(*page)) return NULL;
     
     
@@ -136,7 +136,7 @@ pte_t mem_getPage(pagedirectory_t *dir, uintptr_t virtaddr, uintptr_t flags) {
     uintptr_t addr = virtaddr; // You can do any modifications needed to addr
 
     // Calculate the PDE index
-    pde_t *pde = &dir->entries[PAGEDIR_INDEX(virtaddr)];
+    pde_t *pde = &dir->entries[MEM_PAGEDIR_INDEX(virtaddr)];
     if (!pde || !pde_ispresent(*pde)) {
         // The user might want us to create this directory.
         if (!(flags & MEM_CREATE)) goto bad_page;
@@ -148,7 +148,7 @@ pte_t mem_getPage(pagedirectory_t *dir, uintptr_t virtaddr, uintptr_t flags) {
         memset(table, 0, sizeof(pagetable_t));
 
         // Create a new entry
-        pte_t *e = &directory->entries[PAGEDIR_INDEX(virtaddr)];
+        pte_t *e = &directory->entries[MEM_PAGEDIR_INDEX(virtaddr)];
 
         // Map it in the table
         // TODO: Do we need to check flags?
@@ -160,8 +160,8 @@ pte_t mem_getPage(pagedirectory_t *dir, uintptr_t virtaddr, uintptr_t flags) {
 
     // Calculate the PTE index
     // Table allocation isn't necessary
-    pagetable_t *table = (pagetable_t*)VIRTUAL_TO_PHYS(pde);
-    pte_t *page = &table->entries[PAGETBL_INDEX(virtaddr)];
+    pagetable_t *table = (pagetable_t*)MEM_VIRTUAL_TO_PHYS(pde);
+    pte_t *page = &table->entries[MEM_PAGETBL_INDEX(virtaddr)];
 
 
     return *page;
