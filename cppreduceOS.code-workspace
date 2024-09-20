@@ -77,7 +77,9 @@
 			"_timespec.h": "c",
 			"time.h": "c",
 			"stat.h": "c",
-			"*.s": "c"
+			"*.s": "c",
+			"vmm_pte.h": "c",
+			"vmm_pde.h": "c"
 		}
 	}
 }

@@ -12,6 +12,9 @@
 
 #pragma GCC diagnostic ignored "-Wunused-value"
 
+extern uint32_t end;
+extern bool pagingEnabled;
+
 uint32_t placement_address = (uint32_t)&end;
 int liballoc_enabled = 0;
 

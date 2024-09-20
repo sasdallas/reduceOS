@@ -33,6 +33,12 @@ enum PTE_FLAGS {
     PTE_FRAME = 0x7FFFF000
 };
 
+// pagetable_t
+typedef struct {
+    pte_t entries[1024]; // x86 architecture specifies 1024 entries per page table 
+} pagetable_t;
+
+
 
 // Functions
 void pte_addattrib(pte_t *entry, uint32_t attribute);

@@ -21,25 +21,10 @@
 // Typedefs
 typedef uint32_t virtual_address;
 
-
-// pagetable_t
-typedef struct {
-    pte_t entries[1024]; // x86 architecture specifies 1024 entries per page table 
-} pagetable_t;
-
-// pagedirectory_t
-typedef struct {
-    pde_t entries[1024];
-} pagedirectory_t;
-
 // Definitions
 #define PAGE_SIZE 4096 // Page size
 
 
-// Macros
-#define PAGEDIR_INDEX(x) (((x) >> 22) & 0x3ff) // Returns the index of x within the PDE
-#define PAGETBL_INDEX(x) (((x) >> 12) & 0x3ff) // Returns the index of x within the PTE
-#define VIRTUAL_TO_PHYS(addr) (*addr & ~0xFFF) // Returns the physical address of addr.
 
 // Functions
 pte_t *vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr); // Look up an entry within the page table

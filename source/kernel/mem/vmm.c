@@ -15,7 +15,6 @@ uint32_t currentPDBR = 0; // Current page directory base register address
 bool pagingEnabled = false;
 
 
-
 // vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr) - Look up an entry within the page table.
 pte_t *vmm_tableLookupEntry(pagetable_t *table, uint32_t virtual_addr) {
     if (table) return &table->entries[PAGETBL_INDEX(virtual_addr)];
@@ -227,20 +226,17 @@ void vmm_allocateRegion(uintptr_t physical_address, uintptr_t virtual_address, s
 void *vmm_getPhysicalAddress(pagedirectory_t *dir, uint32_t virt) {
     pde_t *pagedir = dir->entries;
     if (pagedir[virt >> 22] == 0) return 0;
-    return (void*)((uint32_t*)(pagedir[virt >> 22] & ~0xFFF))[virt << 10 >> 10 >> 12];
+    return (void*)(((uint32_t*)(pagedir[virt >> 22] & ~0xFFF))[virt << 10 >> 10 >> 12] + (virt & 0xFFF));
 }
 
 // vmm_mapPhysicalAddress(pagedirectory_t *dir, uint32_t virt, uint32_t phys, uint32_t flags) - Maps a physical address to a virtual address
 void vmm_mapPhysicalAddress(pagedirectory_t *dir, uint32_t virt, uint32_t phys, uint32_t flags) {
     pde_t *pagedir = dir->entries;
     if (pagedir[virt >> 22] == 0) {
-        vmm_createPageTable(dir, virt, flags); // Recursion possibility
+        vmm_createPageTable(dir, virt, flags);
     }
 
     ((uint32_t*)(pagedir[virt >> 22] & ~0xFFF))[virt << 10 >> 10 >> 12] = phys | flags;
-
-    pmm_deinitRegion(virt, 4096);
-    pmm_deinitRegion(phys, 4096);
 }
 
 // vmm_createPageTable(pagedirectory_t *dir, uint32_t virt, uint32_t flags) - Creates a page table

@@ -26,7 +26,7 @@ extern uint32_t text_start;
 extern uint32_t bss_end;
 extern multiboot_info *globalInfo;
 extern char ch;
-
+extern uint32_t end;
 
 // This function will dump physical memory to disk
 void panic_dumpPMM() {
