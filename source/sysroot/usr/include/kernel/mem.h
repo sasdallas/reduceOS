@@ -24,9 +24,12 @@
 
 // Flags for the architecture memory mapper
 // By default, if created, a page will be given user-mode and write access.
-#define MEM_CREATE      0x01    // Create the page. Commonly used with mem_getPage during mappings
-#define MEM_KERNEL      0x02    // The page is kernel-mode only
-#define MEM_READONLY    0x04    // The page is read-only
+#define MEM_CREATE              0x01    // Create the page. Commonly used with mem_getPage during mappings
+#define MEM_KERNEL              0x02    // The page is kernel-mode only
+#define MEM_READONLY            0x04    // The page is read-only
+#define MEM_WRITETHROUGH        0x08    // The page is marked as writethrough
+#define MEM_NOT_CACHEABLE       0x10    // The page is not cacheable
+#define MEM_NOALLOC             0x20    // Do not allocate the page and instead use what was given
 // PAT support will add more bits
 
 
@@ -38,8 +41,7 @@
 
 // Memory management functions
 uintptr_t mem_getPhysicalAddress(pagedirectory_t *dir, uintptr_t virtaddr);
-
-
+void mem_outofmemory(int pages, char *seq);
 
 
 

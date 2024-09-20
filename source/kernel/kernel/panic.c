@@ -267,7 +267,7 @@ void panic_dumpStack(registers_t *r) {
     printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     printf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);
 
-    serialPrintf("REGISTER DUMP:\n");
+    serialPrintf("\nREGISTER DUMP:\n");
     serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
     serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     serialPrintf("cs=0x%x, ss=0x%x\n", reg->cs, reg->ss);

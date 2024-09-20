@@ -268,7 +268,11 @@ static int elf_parsePHDR(Elf32_Ehdr *ehdr, char *buffer) {
                 // We need to load it into memory
                 serialPrintf("elf_loadExecutable: PHDR #%i - offset 0x%x vaddr 0x%x paddr 0x%x filesize 0x%x memsize 0x%x\n", i, phdr->p_offset, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesize, phdr->p_memsize);
                 uint32_t length = phdr->p_filesize + (4096 - (phdr->p_filesize % 4096));
-                for (uint32_t i = phdr->p_vaddr; i < phdr->p_vaddr + length; i += 0x1000) vmm_mapPage((void*)(physicalLocation + (uint32_t)(i-phdr->p_vaddr)), (uint32_t*)i);
+                
+                for (uint32_t i = phdr->p_vaddr; i < phdr->p_vaddr + length; i += 0x1000) {
+                    vmm_allocateRegionFlags((uintptr_t)(physicalLocation + (uint32_t)(i-phdr->p_vaddr)), (uintptr_t)i, PAGE_SIZE, 1, 1, 1);     
+                }
+
                 memcpy((void*)phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
                 break;
             default:

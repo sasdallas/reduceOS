@@ -364,11 +364,6 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
 void useCommands() {
     serialPrintf("kmain: Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
-    
-    vmm_allocateRegion(0x12345678, 0x12345678, PAGE_SIZE * 4);
-    serialPrintf("physical address of vmm: 0x%x\nphysical address of mem: 0x%x\n", 
-            vmm_getPhysicalAddress(vmm_getCurrentDirectory(), 0x12345678), 
-            mem_getPhysicalAddress(vmm_getCurrentDirectory(), 0x12345678));
 
     // Make sure the keyboard buffer is clear
     keyboard_clearBuffer();

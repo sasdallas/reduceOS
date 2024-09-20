@@ -8,7 +8,6 @@
 #include <kernel/debug.h>
 #include <libk_reduced/stdio.h>
 
-// (from JamesM's kernel dev tutorials)
 #define INDEX_BIT(a) (a/(8*4))
 #define OFFSET_BIT(a) (a%(8*4))
 
@@ -215,7 +214,7 @@ void *pmm_allocateBlock() {
 
     if (addr == 0x0) {
         // try again, buddy. this is a rare bug that can happen, not sure why.
-        heavy_dprintf("physical memory block failed allocation due to trip condition. retrying...\n"); 
+        serialPrintf("pmm_allocateBlock: bug triggered, reallocating...\n"); 
         return pmm_allocateBlock();
     }
 
@@ -235,7 +234,7 @@ void pmm_freeBlock(void *block) {
 
 // pmm_allocateBlocks(size_t size) - Allocates size amount of blocks
 void *pmm_allocateBlocks(size_t size) {
-    if (size > 4096) {
+    if (size >= 4096) {
         serialPrintf("pmm_allocateBlocks: Warning, a potential block overrun might happen - size is 0x%x\n", size);
         panic("pmm", "pmm_allocateBlocks", "A function may have attempted to pass in bytes instead of blocks.");
     }
