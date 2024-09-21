@@ -27,7 +27,9 @@ MAKE_OUTPUT_DIRS:
 $(OUT_FONT)/%.o: %.psf | $(OUT_FONT)
 	$(OBJCOPY) -O elf32-i386 -B i386 -I binary $< $@
 
-install: $(FONT_OBJS)
+
+
+install: PRINT_HEADER MAKE_OUTPUT_DIRS $(FONT_OBJS)
 	@echo "-- Installing fonts..."
 	-mkdir -p $(DESTDIR)$(PREFIX)/fonts/
 	-cp -r $(OUT_FONT)/*.o $(DESTDIR)$(PREFIX)/fonts/ 
