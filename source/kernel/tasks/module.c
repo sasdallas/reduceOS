@@ -23,25 +23,23 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
         return MODULE_PARAM_ERROR;
     }
 
+    int error;
+
 
     // A bit hacky, but it works lol
-    // We'll allocate physical memory using our PMM, then map it into the last_load_address
-    // Round the length to the nearest 4096
-    uint64_t length = (modfile->length + 4096) - ((modfile->length + 4096) % 4096);
-    void *mem = pmm_allocateBlocks(length/4096);
+    uint32_t length = (modfile->length + 0x1000) & ~0xFFF;
 
-    uint32_t i;
-    void *paddr;
-    void *vaddr;
-    for (i = 0, paddr=mem, vaddr=(void*)last_load_address; i < length / 0x1000; i++, paddr += 0x1000, vaddr += 0x1000) {
-        vmm_allocateRegionFlags((uintptr_t)paddr, (uintptr_t)vaddr, 0x1000, 1, 1, 0);
+    for (uintptr_t i = last_load_address; i < last_load_address + length; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, i, MEM_CREATE);
+        mem_allocatePage(page, MEM_KERNEL);
     }
+
 
     // Read in the module
     uint32_t retval = modfile->read(modfile, 0, modfile->length, (uint8_t*)last_load_address);
     if (retval != modfile->length) {
-        pmm_freeBlocks(mem, length);
-        return MODULE_READ_ERROR;
+        error = MODULE_READ_ERROR;
+        goto _unmap_module;
     }
 
 
@@ -49,22 +47,23 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     void *ret = elf_loadFileFromBuffer((void*)last_load_address);
     if (ret != 0x0) {
         serialPrintf("module_load: Could not load module\n");
-        return MODULE_LOAD_ERROR;
+        error = MODULE_LOAD_ERROR;
+        goto _unmap_module;
     }
 
     // Find the metadata symbol
     struct Metadata *data = elf_findSymbol((Elf32_Ehdr*)last_load_address, "data");
     if (data == NULL) {
-        pmm_freeBlocks(mem, length);
-        return MODULE_META_ERROR;
+        error = MODULE_META_ERROR;
+        goto _unmap_module;
     }
 
     // Check if data exists
     if (hashmap_has(module_hashmap, data->name)) {
         // Unmap the module
         serialPrintf("module_load: Module already loaded into memory\n");
-        pmm_freeBlocks(mem, length);
-        return MODULE_EXISTS_ERROR;
+        error = MODULE_EXISTS_ERROR;
+        goto _unmap_module;
     }
 
 
@@ -74,8 +73,8 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     if (status != 0) {
         // Module failed to initialize, log the error and free it
         serialPrintf("module_load: Module '%s' failed to load correctly.\n", data->name);
-        pmm_freeBlocks(mem, length);
-        return MODULE_INIT_ERROR;
+        error = MODULE_INIT_ERROR;
+        goto _unmap_module;
     }
 
     // We did it! Construct a loaded module first
@@ -88,7 +87,16 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     hashmap_set(module_hashmap, data->name, (void*)loadedModule);
     last_load_address += length;
     if (mdataout != NULL) memcpy(mdataout, data, sizeof(struct Metadata));
+
     return MODULE_OK;
+
+_unmap_module:
+    for (uintptr_t i = last_load_address; i < last_load_address + length; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, i, 0);
+        mem_freePage(page);
+    }
+
+    return error;
 }
 
 static void module_handleFaultPriority(char *filename, char *priority) {

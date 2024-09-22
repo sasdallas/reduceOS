@@ -29,32 +29,17 @@ int liballoc_unlock() {
 
 // liballoc_alloc(size_t pages) - Allocates pages
 void *liballoc_alloc(size_t pages) {
-    // Allocate some physical memory for the pages
-    void *ptr = pmm_allocateBlocks(pages + 1); // one extra to stop stupid liballoc from doing stupid things
-    if (!ptr) {
-        mem_outofmemory(pages + 1, "liballoc allocation");
-    } 
-
-    
-    // Now, we can map the pages (basically identity mapping) to the ptr.
-    // This is not a good idea, and will screw everything up.
-    for (size_t i = 0; i < pages; i++) {
-        vmm_allocateRegionFlags((uintptr_t)(ptr + (i*4096)), (uintptr_t)(ptr + (i*4096)), PAGE_SIZE, 1, 1, 0);
-    }
-
-    return ptr;
+    // sbrk ourselves
+    serialPrintf("need to allocate %i pages\n", pages);
+    void *addr = mem_sbrk(pages * PAGE_SIZE);
+    memset(addr, 0x0, pages * PAGE_SIZE);
+    return addr;
 }
 
 // liballoc_free(void *addr, size_t pages) - Frees pages
 int liballoc_free(void *addr, size_t pages) {
-    // The PMM is identity mapped for now, so we don't need to get phys. addr.
-    if (addr) {
-        for (uint32_t i = (uint32_t)addr; i < (uint32_t)(addr + (pages * PAGE_SIZE)); i += 0x1000) {
-            vmm_allocateRegionFlags(i, i, 0x1000, 0, 0, 0);
-        }
-
-        pmm_freeBlocks(addr, pages * PAGE_SIZE);
-    }
+    // Un-sbrk ourselves
+    mem_sbrk(-(pages * PAGE_SIZE));
 
     return 0;
 }

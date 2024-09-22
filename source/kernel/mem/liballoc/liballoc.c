@@ -48,6 +48,8 @@
 #define LIBALLOC_MAGIC	0xc001c0de
 #define LIBALLOC_DEAD	0xdeaddead
 
+#define DEBUG
+
 #if defined DEBUG || defined INFO
 #include <kernel/serial.h>
 
@@ -202,7 +204,7 @@ static struct liballoc_major *allocate_new_page( unsigned int size )
 		if ( st < l_pageCount ) st = l_pageCount;
 		
 		maj = (struct liballoc_major*)liballoc_alloc( st );
-
+	
 		if ( maj == NULL ) 
 		{
 			l_warningCount += 1;
@@ -223,7 +225,7 @@ static struct liballoc_major *allocate_new_page( unsigned int size )
 		l_allocated += maj->size;
 
 		#ifdef DEBUG
-		serialPrintf( "liballoc: Resource allocated %x of %i pages (%i bytes) for %i size.\n", maj, st, maj->size, size );
+		serialPrintf( "liballoc: Resource allocated %x of %i pages (%x bytes - %i x %i) for %i size.\n", maj, st, maj->size, st, l_pageSize, size );
 
 		serialPrintf( "liballoc: Total memory usage = %i KB\n",  (int)((l_allocated / (1024))) );
 		FLUSH();

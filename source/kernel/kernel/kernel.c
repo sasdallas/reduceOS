@@ -89,17 +89,23 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     extern uint32_t bss_end;
 
     // ==== MEMORY MANAGEMENT INITIALIZATION ====
+
+    mem_init();
+
     // This has to be done before ANYTHING else, because lack of PMM will break a lot of stuff.
-    pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
+    //pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
+
 
     // Initialize the memory map
-    pmm_initializeMemoryMap(globalInfo);
+    //pmm_initializeMemoryMap(globalInfo);
 
     // Deallocate the kernel's region.
+    /*
     uint32_t kernelStart = (uint32_t)&text_start;
     uint32_t kernelEnd = (uint32_t)&bss_end;
     pmm_deinitRegion(kernelStart, (kernelEnd - kernelStart));
     pmm_deinitRegion(0x0, 4096);
+    */
 
     // Before anything else is allocated, we need to deinitialize a few other regions.
     // Here is the list:
@@ -107,10 +113,15 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         - ACPI (0x000E0000 - 0x000FFFFF)
     */
 
-    pmm_deinitRegion(0x000E0000, 0x000FFFFF - 0x000E0000);
+    // pmm_deinitRegion(0x000E0000, 0x000FFFFF - 0x000E0000);
+
 
     // Even though paging hasn't been initialized, liballoc can use PMM blocks.
     enable_liballoc();
+
+    
+    
+    
 
     // Initialize PC Screen Font for later
     psfInit();
@@ -126,6 +137,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     serialPrintf("Loader magic: 0x%x\n\n", loader_magic);
     serialPrintf("Serial logging initialized!\n");
 
+    
+
     if (loader_magic != 0x43D8C305) {
         serialPrintf("loader magic: 0x%x addr: 0x%x\n", loader_magic, addr);
         panic("kernel", "kmain", "loader_magic != 0x43D8C305");
@@ -135,21 +148,14 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     clock_init();
 
     // Now initialize ACPI, has to be done before VMM (it will allocate regions I think)
-    acpiInit();
+    // acpiInit();
 
     // Initialize all the basic CPU features
     cpuInit();
 
     // Initialize VMM
-    vmmInit();
-    serialPrintf("kernel: Memory management online.\n");
-
-    // Deinitialize multiboot modules
-    multiboot_mod_t* mod;
-    uint32_t i2;
-    for (i2 = 0, mod = (multiboot_mod_t*)globalInfo->m_modsAddr; i2 < globalInfo->m_modsCount; i2++, mod++) {
-        pmm_deinitRegion(mod->mod_start, mod->mod_end - mod->mod_start);
-    }
+    // vmmInit();
+    
 
     // While we're on the topic of multiboot, setup the argument parser
     args_init((char*)globalInfo->m_cmdLine);
@@ -257,6 +263,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         }
 
         multiboot_mod_t* mod = (multiboot_mod_t*)modnode->impl_struct;
+        serialPrintf("mod cmdline %s\n", mod->cmdline);
         if (strstr((char*)mod->cmdline, "type=initrd") != NULL) {
             // There should be a way to dynamically do this.
             modnode->close(modnode);
@@ -329,6 +336,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
         debugsymbols = open_file("/device/initrd/kernel.map", 0);
     }
 
+
     // Bind debug symbols. REQUIRED for ELF loading.
     if (debugsymbols) {
         ksym_bind_symbols(debugsymbols);
@@ -354,17 +362,15 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Start the module system
     module_init();
 
-    // Scan and initialize modules for kernelspace (no more command handler)
+    // Scan and initialize modules for kernelspace 
     printf("Starting up modules...\n");
-    module_parseCFG();
+    if (!args_has("--no_modules")) module_parseCFG();
 
     printf("Kernel loading completed.\n");
     useCommands();
 }
 
 void useCommands() {
-    serialPrintf("kmain: Memory management online with %i KB of physical memory\n", pmm_getPhysicalMemorySize());
-
     // Make sure the keyboard buffer is clear
     keyboard_clearBuffer();
 
@@ -428,6 +434,8 @@ void useCommands() {
         printf("WARNING: You are currently in VGA text mode. This mode is deprecated and unsupported!\n");
     if (!strcmp(fs_root->name, "tarfs"))
         printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
+
+    if (args_has("--no_tasking")) kshell(); // if you use this, I am sorry
 
     // Startup tasking, signals, and TTY
     tasking_start();

@@ -11,7 +11,7 @@
 
 // Variables
 pagedirectory_t *currentDirectory = 0; // Current page directory 
-uint32_t currentPDBR = 0; // Current page directory base register address
+uint32_t currentPDBR = 0; // Current page directory base register address, unused.
 bool pagingEnabled = false;
 
 
@@ -133,7 +133,7 @@ pte_t *vmm_getPage(void *virtual_address) {
     // Get the page directory
     pagedirectory_t *pageDirectory = vmm_getCurrentDirectory();
 
-    // Get th epage table
+    // Get the page table
     pde_t *entry = &pageDirectory->entries[PAGEDIR_INDEX((uint32_t)virtual_address)];
     if ((*entry & PTE_PRESENT) != PTE_PRESENT) return NULL; // Table does not exist
 
@@ -155,7 +155,7 @@ void vmm_enablePaging() {
     asm volatile ("mov %0, %%cr4" :: "r"(cr4));
 
     asm volatile ("mov %%cr0, %0" : "=r"(cr0));
-    cr0 = cr0 | 0x80000000;
+    cr0 = cr0 | 0x80010001;
 
     asm volatile ("mov %0, %%cr0" :: "r"(cr0));
 
@@ -311,12 +311,10 @@ void vmmInit() {
     pagetable_t *table2 = (pagetable_t*)pmm_allocateBlock();
     if (!table2) return; // failed to get the block
 
-    // Allocate a third for our big boy kernel
+    // Allocate a third for our big kernel
     pagetable_t *table3 = (pagetable_t*)pmm_allocateBlock();
     if (!table3) return; // failed to get the block
 
-
-    // Why do we do this instead of calling vmm_allocateRegion? Well that is a very simple question, and here is my answer:
     pagetable_t *table4 = (pagetable_t*)pmm_allocateBlock();
     if (!table4) return; // failed to get the block
 
@@ -339,16 +337,6 @@ void vmmInit() {
         table->entries[PAGETBL_INDEX(virt)] = page;
     }
     
-    // Remove the user flag for the first 4KB, for debugging, as if a pointer goes to 0x0, we'll know
-    /*pte_t page = 0;
-    pte_setframe(&page, 0x0);
-    //if (pte_ispresent(page)) pte_delattrib(&page, PTE_PRESENT);
-    //if (pte_iswritable(page)) pte_delattrib(&page, PTE_WRITABLE);
-    pte_addattrib(&page, PTE_PRESENT);
-    pte_addattrib(&page, PTE_WRITABLE);
-    pte_delattrib(&page, PTE_USER);
-
-    table->entries[PAGETBL_INDEX(0x00000000)] = page;*/
 
 
     for (int i = 0, frame=0x400000, virt=0x00400000; i < 1024; i++, frame += 4096, virt += 4096) {
@@ -426,9 +414,6 @@ void vmmInit() {
 
     // Switch to the page directory.
     vmm_switchDirectory(dir);
-
-    
-
 
     // Enable paging!
     vmm_enablePaging();

@@ -154,7 +154,7 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
         }
 
         // Try to get the symbol
-        ksym_symbol_t *sym = kmalloc(sizeof(ksym_symbol_t));
+        ksym_symbol_t *sym = kmalloc(sizeof(ksym_symbol_t)); // !!!! THIS IS SO BAD WE SHOULD NOT BE DOING THIS
         int err = ksym_find_best_symbol(stk->eip, sym);
         if (err == -1) {
             printf("Frame %i: 0x%x (exception occurred before ksym_init)\n", frame, stk->eip);
@@ -170,6 +170,7 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
             serialPrintf("FRAME %i: IP 0x%x (err = %i, unknown)\n", frame, stk->eip, err);
         }
 
+        kfree(sym->symname); // ugh...
         kfree(sym);
 
         stk = stk->ebp;
@@ -211,16 +212,16 @@ void vgaTextMode_Panic(char *caller, char *code, char *reason, registers_t *reg,
         printf("*** Page fault at address 0x%x\n", faultAddress);
         printf("*** Flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0 ", (reserved) ? "reserved " : "\0");
     }
-
-    printf("\nThis error occurred before the graphics driver could initialize.\nAs such, all debug info will be printed to serial console.\n");
-
     if (reg) {
         serialPrintf("\nerr_code %d\n", reg->err_code);
         serialPrintf("REGISTER DUMP:\n");
         serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
         serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
-        serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->ss, reg->eflags, reg->useresp);
+        serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->cs, reg->ss, reg->eflags, reg->useresp);
     }
+
+    // JUST DO THE STACK TRACE
+    if (reg) panic_stackTrace(7, reg);
 
     printf("The system has been halted. Attach debugger now to view context.\n");
     asm volatile ("hlt");
@@ -407,15 +408,11 @@ void pageFault(registers_t *reg) {
     asm volatile("mov %%cr2, %0" : "=r" (faultAddress));
 
     // Get the flags
-    int present = !(reg->err_code & 0x1); // Page not present?
-    int rw = reg->err_code & 0x2; // Was this a write operation?
-    int user = reg->err_code & 0x4; // Were we in user-mode?
-    int reserved = reg->err_code & 0x8; // Were the reserved bits of page entry overwritten?
+    int present =   reg->err_code & 0x1;  // Page not present?
+    int rw =        reg->err_code & 0x2;  // Was this a write operation?
+    int user =      reg->err_code & 0x4;  // Were we in user-mode?
+    int reserved =  reg->err_code & 0x8;  // Were the reserved bits of page entry overwritten?
 
-    // Notify our debugger friends. Hi from the kernel!
-    heavy_dprintf("*** PAGE FAULT 0x%x\n", faultAddress);
-    heavy_dprintf("*** Flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0", (reserved) ? "reserved " : "\0");
-    if (reg->cs == 0x08) heavy_dprintf("*** KERNEL MODE EXCEPTION (CS = 0x08)\n");
 
     // Magic signal address
     if (faultAddress == 0x516)  {
@@ -470,16 +467,13 @@ void pageFault(registers_t *reg) {
     serialPrintf("===========================================================\n");
     serialPrintf("panic() called! FATAL ERROR!\n");
     serialPrintf("*** Page fault at address 0x%x\n", faultAddress);
-    serialPrintf("*** Flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0", (reserved) ? "reserved " : "\0");
+    serialPrintf("*** Flags: %s%s%s%s\n", (present) ? "present, " : "not present, ", (rw) ? "write error, " : "read error, ", (user) ? "usermode, " : "kernel mode, ", (reserved) ? "reserved bits set, " : "\0");
 
     serialPrintf("\nerr_code %d\n", reg->err_code);
     serialPrintf("REGISTER DUMP:\n");
     serialPrintf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
     serialPrintf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     serialPrintf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->cs, reg->ss, reg->eflags, reg->useresp);
-
-
-
 
     setKBHandler(false);
 
@@ -501,7 +495,7 @@ void pageFault(registers_t *reg) {
     printf("\n");
     printf("The error encountered was:\n");
     printf("*** Page fault at address 0x%x\n", faultAddress);
-    printf("*** Flags: %s%s%s%s\n", (present) ? "present " : "\0", (rw) ? "read-only " : "\0", (user) ? "user-mode " : "\0 ", (reserved) ? "reserved " : "\0");
+    printf("*** Flags: %s%s%s%s\n", (present) ? "present, " : "not present, ", (rw) ? "write error, " : "read error, ", (user) ? "usermode, " : "kernel mode, ", (reserved) ? "reserved bits set, " : "\0");
     printf("\nStack dump:\n\n");
     
     printf("Error Code: %d\n", reg->err_code);

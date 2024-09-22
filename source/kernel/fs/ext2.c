@@ -1237,7 +1237,7 @@ int ext2_unlink(fsNode_t* file, char* name) {
 
 // ext2_getRoot(ext2_t *fs, ext2_inode_t *inode) - Returns the VFS node for the driver
 fsNode_t* ext2_getRoot(ext2_t* fs, ext2_inode_t* inode) {
-    fsNode_t* node = pmm_allocateBlocks(sizeof(fsNode_t));
+    fsNode_t* node = kmalloc(sizeof(fsNode_t));
 
     node->uid = node->gid = 0;
 

@@ -49,17 +49,15 @@ void pmm_initializeMemoryMap(multiboot_info *info) {
     }
 }
 
-// pmmInit(uint32_t physMemorySize) - Initializes frames and nframes
-void pmmInit(uint32_t physMemorySize) {
+// pmmInit(uint32_t physMemorySize, void *frame_addr) - Initializes frames and nframes
+void pmmInit(uint32_t physMemorySize, void *frame_addr) {
     pmm_memorySize = physMemorySize;
     pmm_maxBlocks = (pmm_memorySize * 1024) / 4096;
     pmm_usedBlocks = pmm_maxBlocks;
 
-    nframes = pmm_maxBlocks;
-    frames = kmalloc(nframes);  // TODO: Find a better way to do this, liballoc forwarder will toss it into a page near the heap.
-                                // This page is never kept track of and QUITE important, since it holds the core allocation framework.
-                                // Maybe map to &end and just deinitialize region?
-                                
+    nframes = pmm_maxBlocks;       
+    frames = frame_addr;
+
     // All memory is in use by default.
     memset(frames, 0xF, pmm_maxBlocks / 8);
 }
@@ -80,36 +78,6 @@ bool pmm_testFrame(int frame) {
 }
 
 
-// setFrame(uint32_t addr) - Setting a bit in the frames bitset. (stupid paging code OBSOLETE)
-void setFrame(uint32_t addr) {
-    uint32_t frame = addr / 4096; // Get the frame's actual address (aligned by 4k)
-    uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
-    uint32_t offset = OFFSET_BIT(frame);
-
-    frames[index] |= (0x1 << offset);
-}
-
-
-// clearFrame(uint32_t addr) - Clear a bit in the frames bitset (stupid paging code OBSOLETE)
-void clearFrame(uint32_t addr) {
-    // Same as setFrame, but with a few differences.
-    uint32_t frame = addr / 4096; // Get the frame's actual address (aligned by 4k)
-    uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
-    uint32_t offset = OFFSET_BIT(frame);
-
-    // Now clear the bit.
-    frames[index] &= ~(0x1 << offset);
-}
-
-// testFrame(uint32_t addr) - Test if a frame is set (stupid paging code OBSOLETE)
-uint32_t testFrame(uint32_t addr) {
-    // Same as all previous functions, but we return a value.
-    uint32_t frame = addr / 4096; // Get the frame's actual address (aligned by 4k)
-    uint32_t index = INDEX_BIT(frame); // Get the index and offset of the frame.
-    uint32_t offset = OFFSET_BIT(frame);
-
-    return (frames[index] & (0x1 << offset)); // Return if the frame is set
-}
 
 
 // pmm_firstFrame() - Find the first free frame
@@ -118,11 +86,11 @@ uint32_t pmm_firstFrame() {
     for (uint32_t i = 0; i < INDEX_BIT(nframes); i++) {
         // Only continue if we have enough memory.
         if (frames[i] != 0xFFFFFFFF) {
-            // Cool! We know at least one bit is free, let's test all 32 (8*4, remember?).
+            // Cool! We know at least one bit is free, let's test all of them.
             for (uint32_t x = 0; x < 32; x++) {
                 uint32_t test = 0x1 << x;
                 if (!(frames[i] & test)) {
-                    return i * 4 * 8 + x; // We did it, we found a frame!
+                    return i * 4 * 8 + x;
                 }
             }
         }
@@ -175,7 +143,6 @@ void pmm_initRegion(uintptr_t base, size_t size) {
 
     pmm_setFrame(0); // First block is always set.
 
-    // serialPrintf("pmm_initRegion: Region at 0x%x (size 0x%x) initialized. Blocks used: %i. Free blocks: %i\n", base, size, blocks, (pmm_maxBlocks - pmm_usedBlocks));
 }
 
 // pmm_deinitRegion(uintptr_t base, size_t size) - Marks a region as unusable memory (e.g. kernel region)
@@ -191,7 +158,6 @@ void pmm_deinitRegion(uintptr_t base, size_t size) {
 
     pmm_setFrame(0);
 
-    // serialPrintf("pmm_deinitRegion: Region at 0x%x (size 0x%x) deinitialized. Blocks used: %i. Free blocks: %i\n", base, size, pmm_usedBlocks, (pmm_maxBlocks - pmm_usedBlocks));
 }
 
 // pmm_allocateBlock() - Allocates a block

@@ -185,7 +185,7 @@ bool acpiParseRSDP(uint8_t *ptr) {
         // (for debugging purposes)
         serialPrintf("acpiParseRSDP: found ACPI version 1.0, parsing RSDT...\n");
 
-        vmm_allocateRegion(header->rsdtAddress, header->rsdtAddress, (uint32_t)(header->rsdtAddress + (sizeof(char)*4)));
+        vmm_allocateRegionFlags(header->rsdtAddress, header->rsdtAddress, (uint32_t)(header->rsdtAddress + (sizeof(char)*4)), 1, 0, 0);
 
         uint32_t addr = *(uint32_t*)(ptr + 16);
 
@@ -200,8 +200,8 @@ bool acpiParseRSDP(uint8_t *ptr) {
         uint32_t rsdtAddress = *(uint32_t*)(ptr + 16);
         uint64_t xsdtAddress = *(uint64_t*)(ptr + 24);
         
-        vmm_allocateRegion(rsdtAddress, rsdtAddress, (uint32_t)(rsdtAddress + (sizeof(char) * 4)));
-        vmm_allocateRegion(xsdtAddress, xsdtAddress, (uint32_t)(xsdtAddress + (sizeof(char) * 4)));
+        vmm_allocateRegionFlags(rsdtAddress, rsdtAddress, (uint32_t)(rsdtAddress + (sizeof(char) * 4)), 1, 0, 0);
+        vmm_allocateRegionFlags(xsdtAddress, xsdtAddress, (uint32_t)(xsdtAddress + (sizeof(char) * 4)), 1, 0, 0);
 
         if (xsdtAddress) {
             // Parse the XSDT.

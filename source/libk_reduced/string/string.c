@@ -71,8 +71,8 @@ void* memmove(void* destination, const void* source, size_t n) {
 // Three parameters - buffer, value, amount of times to set
 
 void* memset(void *buf, char c, size_t n) {
-    unsigned char *temp = (unsigned char *)buf;
-    for (; n != 0; n--) temp[n-1] = c;
+	size_t i = 0;
+	for (; i < n; i++) ((char*)buf)[i] = c;
     return buf;
 }
 

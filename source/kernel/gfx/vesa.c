@@ -11,6 +11,7 @@
 #include <kernel/vesa.h> // Main header file
 #include <kernel/vfs.h>
 #include <kernel/fb.h>
+#include <kernel/args.h>
 #include <kernel/syscall.h>
 #include <libk_reduced/errno.h>
 #include <libk_reduced/stdio.h>
@@ -311,6 +312,9 @@ int vesaInit() {
 int vbeSwitchBuffers() {
     if (!VESA_Initialized) return -1; // Driver not initialized
     
+    if (args_has("--force_no_framebuffer")) return 0;
+
+
     // Switch the framebuffers
     // I don't know why, but this just feels faster?
     for (uint32_t i = 0; i < modeWidth * modeHeight; i++) {
@@ -327,6 +331,14 @@ int vbeSwitchBuffers() {
 void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
     uint32_t p = x * 4 + y*modePitch;
+    
+    if (args_has("--force_no_framebuffer")) {
+        vbeBuffer[p] = color & 255;
+        vbeBuffer[p + 1] = (color >> 8) & 255;
+        vbeBuffer[p + 2] = (color >> 16) & 255;
+        return;
+    }
+
     framebuffer[p] = color & 255;
     framebuffer[p + 1] = (color >> 8) & 255;
     framebuffer[p + 2] = (color >> 16) & 255;
@@ -334,6 +346,7 @@ void vbePutPixel(int x, int y, uint32_t color) {
 }
 
 uint32_t vbeGetPixel(int x, int y) {
+    if (args_has("--force_no_framebuffer")) return *(vbeBuffer + (y * (modePitch / 4) + x));
     return *(framebuffer + (y * (modePitch/4) + x));
 }
 

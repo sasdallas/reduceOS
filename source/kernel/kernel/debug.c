@@ -26,7 +26,7 @@ void heavy_dprintf(const char *fmt, ...) {
     
     if (serial_changeCOM(SERIAL_COM2) == -1) {
         // Must be disabled
-        has_com = 0;
+        
         return;
     }
 

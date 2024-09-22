@@ -42,9 +42,16 @@ typedef struct {
 
 
 // Functions
+
+// Some functions need to be given to our arch-specific memory handler.
+void pmm_setFrame(int frame);
+void pmm_clearFrame(int frame);
+bool pmm_testFrame(int frame);
+uint32_t pmm_firstFrame();
+
 void pmm_printMemoryMap(multiboot_info *info); // Print the memory map
 void pmm_initializeMemoryMap(multiboot_info *info); // Initialize the memory map
-void pmmInit(uint32_t physMemorySize); // Initialize PMM
+void pmmInit(uint32_t physMemorySize, void *frame_addr); // Initialize PMM
 void pmm_initRegion(uintptr_t base, size_t size); // Initialize a region as available memory
 void pmm_deinitRegion(uintptr_t base, size_t size); // Deinitialize a region as unusable memory.
 void *pmm_allocateBlock(); // Allocates a block

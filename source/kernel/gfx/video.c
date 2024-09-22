@@ -94,7 +94,12 @@ void video_init() {
         modeHeight  = globalInfo->framebuffer_height;
         modeBpp     = globalInfo->framebuffer_bpp;
         modePitch   = globalInfo->framebuffer_pitch;
-        framebuffer = kmalloc(globalInfo->framebuffer_width * globalInfo->framebuffer_height * 4);
+        //framebuffer = kmalloc(globalInfo->framebuffer_width * globalInfo->framebuffer_height * 4);
+
+        framebuffer = (uint8_t*)0xB0000000;
+        void *blocks = pmm_allocateBlocks((globalInfo->framebuffer_width * globalInfo->framebuffer_height) / 4096);
+        for (uint32_t i = 0; i < (globalInfo->framebuffer_width * globalInfo->framebuffer_height) * 4; i += 0x1000) vmm_allocateRegion((uintptr_t)blocks + i, (0xB0000000 + i), 0x1000);
+
 
         video_driver_t *gop_mode = vesa_getDriver(1); // Little bit hacky.
         currentDriver = gop_mode;

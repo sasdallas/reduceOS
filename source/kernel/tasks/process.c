@@ -171,7 +171,7 @@ void process_releaseDirectory(thread_t* thread) {
     spinlock_lock(thread->pd_lock);
     thread->refcount--;
     if (thread->refcount < 1) {
-        pmm_freeBlock(thread->page_directory);
+        kfree(thread->page_directory);
     } else {
         spinlock_release(thread->pd_lock);
     }
@@ -185,8 +185,8 @@ process_t* spawn_kidle(int bsp) {
 
     // Create a stack for the image and map it to kernel (non-user)
     idle->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE; // WARNING: BUG HERE - THIS IS NOT ALIGNED
-    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack,
-                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack), PTE_PRESENT);
+    /*vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack,
+                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack), PTE_PRESENT);*/
 
     // Setup thread context
     idle->thread.context.ip = (uint32_t)&kidle;
@@ -1098,7 +1098,7 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
 }
 
 pagedirectory_t* cloneDirectory(pagedirectory_t* in) {
-    pagedirectory_t* out = pmm_allocateBlock();
+    pagedirectory_t* out = kmalloc(sizeof(pagedirectory_t));
     memcpy(out, in, sizeof(pagedirectory_t));
     return out;
 }

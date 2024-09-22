@@ -32,6 +32,8 @@ void *kmalloc(size_t size){
 
         return out;
     } else {
+        panic("reduceOS", "trap", "deprecated secondary kmalloc");
+
         // There's a *very* slim window when this could happen. Therefore, just place it at the end...
         // TODO: Fix this abomination.
         if ((placement_address & 0x00000FFF)) {

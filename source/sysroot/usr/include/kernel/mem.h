@@ -31,6 +31,7 @@
 #define MEM_WRITETHROUGH        0x08    // The page is marked as writethrough
 #define MEM_NOT_CACHEABLE       0x10    // The page is not cacheable
 #define MEM_NOALLOC             0x20    // Do not allocate the page and instead use what was given
+#define MEM_NOT_PRESENT         0x40    // The page is not present in memory
 
 // errno doesn't have specifications for MEM, and this is kernel only.
 // These are the possible error values
@@ -50,13 +51,13 @@ uintptr_t mem_getPhysicalAddress(pagedirectory_t *dir, uintptr_t virtaddr);
 /**
  * @brief Returns the page entry requested as a PTE
  * @param dir The directory to search. Specify NULL for current directory
- * @param virtaddr The virtual address of the page
+ * @param addr The virtual address of the page
  * @param flags The flags of the page to look for
  * 
  * @warning Specifying MEM_CREATE will only create needed structures, it will NOT allocate the page!
  *          Please use a function such as mem_allocatePage to do that.
  */
-pte_t mem_getPage(pagedirectory_t *dir, uintptr_t virtaddr, uintptr_t flags);
+pte_t *mem_getPage(pagedirectory_t *dir, uintptr_t addr, uintptr_t flags);
 
 /**
  * @brief Switch the memory management directory
@@ -85,9 +86,48 @@ void mem_allocatePage(pte_t *page, uint32_t flags);
  */
 void mem_outofmemory(int pages, char *seq);
 
+/**
+ * @brief Get the current page directory
+ */
+pagedirectory_t *mem_getCurrentDirectory();
+
+/**
+ * @brief Clone a page directory.
+ * 
+ * This is a full PROPER page directory clone. The old one just memcpyd the pagedir.
+ * That's like 50% fine and 50% completely boinked (or 100%, honestly none of this vmm should work).
+ * This function does it properly and clones the page directory, its tables, and their respective entries fully.
+ * 
+ * @param pd_in The source page directory. Keep as NULL to clone the current page directory.
+ * @param pd_out The output page directory.
+ * @returns 0 on success, anything else is failure (usually an errno)
+ */
+int mem_clone(pagedirectory_t *pd_in, pagedirectory_t *pd_out);
+
+/**
+ * @brief Initialize the memory management subsystem
+ * 
+ * This function will identity map the kernel into memory and setup page tables.
+ */
+void mem_init();
+
+/**
+ * @brief Free a page
+ * 
+ * @param page The page to free 
+ */
+void mem_freePage(pte_t *page);
 
 
-// Functions
+/**
+ * @brief Expand/shrink the kernel heap
+ * 
+ * @param b The amount of bytes to allocate, needs to a multiple of PAGE_SIZE
+ * @returns Address of the start of the bytes 
+ */
+void *mem_sbrk(int b);
+
+// Functions (liballoc)
 void enable_liballoc();
 void *kmalloc(size_t size);
 void *krealloc(void *a, size_t b);

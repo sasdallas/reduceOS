@@ -80,6 +80,8 @@ static int executeCommandAsFile(int argc, char **argv) {
     char *env[] = {NULL};
     int ret = createProcess(argv[0], argc, argv, env, 1);
 
+    kfree(file);
+
     return ret;
 }
 
