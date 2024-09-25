@@ -15,12 +15,9 @@
 extern uint32_t end;
 extern bool pagingEnabled;
 
-uint32_t placement_address = (uint32_t)&end;
 int liballoc_enabled = 0;
 
-
 void enable_liballoc() { liballoc_enabled = 1; }
-
 
 void *kmalloc(size_t size){
 
@@ -33,22 +30,13 @@ void *kmalloc(size_t size){
         return out;
     } else {
         panic("reduceOS", "trap", "deprecated secondary kmalloc");
-
-        // There's a *very* slim window when this could happen. Therefore, just place it at the end...
-        // TODO: Fix this abomination.
-        if ((placement_address & 0x00000FFF)) {
-            placement_address = MEM_ALIGN_PAGE(placement_address);
-        }
-
-        uint32_t ret = placement_address;
-        placement_address += size;
-        return (void*)ret;
+        __builtin_unreachable();
     }
 }
 
 
 void *krealloc(void *a, size_t b) {
-    void *out =  liballoc_krealloc(a, b);
+    void *out = liballoc_krealloc(a, b);
 
     heavy_dprintf("kernel reallocate %i bytes from 0x%x to 0x%x\n", b, a, out);
 

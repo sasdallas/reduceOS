@@ -172,7 +172,7 @@ pte_t *mem_getPage(pagedirectory_t *dir, uintptr_t addr, uintptr_t flags) {
         pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
         if (!table) mem_outofmemory(1, "PDE allocation in get page");
 
-        memset(table, 0, sizeof(pagetable_t));
+        serialPrintf("mem: created pde at 0x%x\n", table);
 
         // Create a new entry
         pde_t *e = &directory->entries[MEM_PAGEDIR_INDEX(virtaddr)];
@@ -218,10 +218,12 @@ void mem_allocatePage(pte_t *page, uint32_t flags) {
         serialPrintf("mem: NOALLOC specified (debug)\n");
     }
 
+    if (flags & MEM_FREE_PAGE) {
+        *page = 0;
+        return;
+    }
 
     // Let's setup the bits
-    //pte_addattrib(page, PTE_PRESENT);
-    //pte_addattrib(page, PTE_WRITABLE);
     *page = (flags & MEM_NOT_PRESENT) ? (*page & ~PTE_PRESENT) : (*page | PTE_PRESENT);
     *page = (flags & MEM_KERNEL) ? (*page & ~PTE_USER) : (*page | PTE_USER);
     *page = (flags & MEM_READONLY) ? (*page & ~PTE_WRITABLE) : (*page | PTE_WRITABLE);
@@ -239,7 +241,7 @@ void mem_freePage(pte_t *page) {
     // Get the physical address and free it
     uintptr_t paddr = pte_getframe(*page);
     if (paddr) pmm_freeBlock((void*)paddr);
-    mem_allocatePage(0, MEM_NOT_PRESENT | MEM_NOALLOC);
+    mem_allocatePage(0, MEM_FREE_PAGE);
 }
 
 /**
@@ -364,14 +366,22 @@ void mem_init() {
 
     // Deinitialize heap
     extern uint32_t text_start; // This is the start of the kernel's page
-    pmm_deinitRegion((uintptr_t)&text_start, (uint32_t)mem_heapStart - (uint32_t)&text_start);
+    pmm_deinitRegion((uint32_t)&text_start, (uint32_t)mem_heapStart - (uint32_t)&text_start);
+
+    // HACKS!
+    pmm_deinitRegion(0xA0000,   0xB0000);     // VGA video memory (in some cases), still used by QEMU
+    pmm_deinitRegion(0x25b000,  0xF0000);
+    pmm_deinitRegion(0x320000,  0x40000);
+    pmm_deinitRegion(0x2e0000,  0x0C000);
 
     // Now, it's identity mapping time. We need to map the kernel and the extra stuff we tossed in.
     // This is a little complicated, but it's not too hard.
 
     // Get a page directory
-    pagedirectory_t *dir = pmm_allocateBlocks(6);
-    memset(dir, 0x0, PAGE_SIZE * 6);
+    pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlocks(6);
+    memset(dir, 0x0, sizeof(pagedirectory_t));
+
+    
     
 
     // Calculate how many pages we need to allocate.
@@ -388,8 +398,9 @@ void mem_init() {
     uintptr_t table_frame = 0x0; // The frame that the table should be put in
 
     for (int i = 0; i < initial_loop_cycles; i++) {
-        pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
+        pagetable_t *table = (pagetable_t*)pmm_allocateBlock(); 
         memset(table, 0x0, sizeof(pagetable_t));
+
 
         for (int page = 0; page < 1024; page++) {
             // This seems like a bad way to map..
@@ -420,12 +431,20 @@ void mem_init() {
         if (pages_mapped == (int)kern_pages) break;
     }
     
+    // Give some breathing room
+    mem_heapStart += 0x1000;
+
 
     // Final prep work
     isrRegisterInterruptHandler(14, (ISR)pageFault);
     mem_switchDirectory(dir);
     vmm_switchDirectory(dir);
     vmm_enablePaging();
+
+    serialPrintf("mem: The memory allocation system has initialized. Statistics:\n");
+    serialPrintf("\tHeap initialized to 0x%x, and addresses 0x%x - 0x%x were mapped\n", mem_heapStart, &text_start, heap_start_aligned);
+    serialPrintf("\tAvailable physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
+    serialPrintf("\tHas crashed yet: not yet\n");
 }
 
 /**
@@ -450,7 +469,6 @@ void *mem_sbrk(int b) {
 
     // Do they want to shrink the kernel heap?
     if (b < 0) {
-        /*
         // just reverse everything lol
         for (char *i = mem_heapStart; i > mem_heapStart - b; i -= 0x1000) {
             pte_t *page = mem_getPage(NULL, (uintptr_t)i, 0);
@@ -465,14 +483,14 @@ void *mem_sbrk(int b) {
 
         serialPrintf("mem: sbrk shrunk heap from 0x%x to 0x%x (b was %i)\n", oldStart, mem_heapStart, b);
         return oldStart;
-        */
-
-       return mem_heapStart;
+        
+        return mem_heapStart;
     }
 
     // Let's allocate some pages
     for (char *i = mem_heapStart; i < mem_heapStart + b; i += 0x1000) {
-        if (pte_ispresent(*(mem_getPage(NULL, (uintptr_t)i, 0)))) {
+        pte_t *existing_page = (mem_getPage(NULL, (uintptr_t)i, 0));
+        if (existing_page && pte_ispresent(*existing_page)) {
             serialPrintf("mem: WARNING! Expanding into unknown memory region at 0x%x!\n", i);
 
             // hey look, free memory!
@@ -488,5 +506,10 @@ void *mem_sbrk(int b) {
     mem_heapStart += b;
 
     serialPrintf("mem: Successfully allocated 0x%x - 0x%x with a b request of 0x%x\n", oldStart, mem_heapStart, b);
+    serialPrintf("mem: Physical memory blocks given:\n");
+    for (char *i = oldStart; i < mem_heapStart; i += 0x1000) {
+        serialPrintf("\t0x%x: 0x%x\n", i, mem_getPhysicalAddress(NULL, (uintptr_t)i));
+    }
+
     return oldStart;
 }

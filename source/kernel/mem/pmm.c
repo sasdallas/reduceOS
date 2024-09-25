@@ -148,7 +148,10 @@ void pmm_initRegion(uintptr_t base, size_t size) {
 // pmm_deinitRegion(uintptr_t base, size_t size) - Marks a region as unusable memory (e.g. kernel region)
 void pmm_deinitRegion(uintptr_t base, size_t size) {
     // maybe bugged? dunno
-    int align = base / 4096;
+    if (!size) return; // ok buddy
+
+    int align = 0x0;
+    if (base > 0x0) align = base / 4096;
     int blocks = size / 4096;
 
     for (; blocks > 0; blocks--) {

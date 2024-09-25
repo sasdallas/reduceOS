@@ -364,7 +364,7 @@ void terminalUpdateTopBar(char *text) {
 
 // terminalUpdateTopBarKernel(char *text) - Prints out kernel version and codename too 
 void terminalUpdateTopBarKernel(char *text) {
-    char *buffer = kmalloc(strlen(text) + strlen(VERSION) + strlen(CODENAME));
-    sprintf(buffer, "reduceOS v%s %s - %s", VERSION, CODENAME, text);
-    terminalUpdateTopBar(buffer);
+    char buffer[256]; // stack smashing :sob:
+    sprintf((char*)&buffer, "reduceOS v%s %s - %s", VERSION, CODENAME, text);
+    terminalUpdateTopBar((char*)&buffer);
 }

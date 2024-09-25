@@ -178,14 +178,14 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
 }
 
 
-// VGA Text Mode Panic - Halts system and prints out less helpful info
-void vgaTextMode_Panic(char *caller, char *code, char *reason, registers_t *reg, uint32_t faultAddress) {
+// no mode/VGA mode Panic - Halts system and prints out less helpful info
+void badvideo_panic(char *caller, char *code, char *reason, registers_t *reg, uint32_t faultAddress) {
     //changeTerminalMode(0);
     //initTerminal();
     clearScreen(COLOR_WHITE, COLOR_RED);
 
 
-    serialPrintf("\nWARNING: Exception occurred within VGA text mode, before VBE initialization.\n");
+    serialPrintf("\nWARNING: Exception occurred in a limited mode, before video driver initialization or in VGA text mode.\n");
     serialPrintf("As such, debug info will only be printed to console.\n");
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
     
@@ -279,6 +279,7 @@ void panic_dumpStack(registers_t *r) {
 void panic_prepare() {
     serialPrintf("===========================================================\n");
     serialPrintf("A fatal error in reduceOS has occurred.\n");
+    serialPrintf("This error is critical and the system has been shut down to prevent further damage.\n\n");
 
     setKBHandler(false);
     clearScreen(COLOR_WHITE, COLOR_RED);
@@ -305,9 +306,9 @@ void panic(char *caller, char *code, char *reason) {
     setKBHandler(false);
     clearScreen(COLOR_WHITE, COLOR_RED);
 
-    // Make sure we're not in VGA text mode
+    // Make sure we're not in no mode/VGA mode
     if (terminalMode == 0) {
-        vgaTextMode_Panic(caller, code, reason, NULL, NULL);
+        badvideo_panic(caller, code, reason, NULL, NULL);
     }
 
     terminalUpdateTopBarKernel("Kernel Panic");
@@ -480,9 +481,9 @@ void pageFault(registers_t *reg) {
     clearScreen(COLOR_WHITE, COLOR_RED);
 
 
-    // Make sure we're not in VGA text mode
+    // Make sure we're not in no mode/VGA mode
     if (terminalMode == 0) {
-        vgaTextMode_Panic(NULL, NULL, NULL, reg, faultAddress);
+        badvideo_panic(NULL, NULL, NULL, reg, faultAddress);
     }
 
     terminalUpdateTopBarKernel("Kernel Panic");

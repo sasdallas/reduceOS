@@ -115,7 +115,7 @@ void serialInit() {
     isSerialEnabled = true;
 
     // Create the clock handler for output
-    clock_registerCallback(serialClock);
+    // clock_registerCallback(serialClock);
 
     printf("Serial logging initialized on COM1\n");
     serialPrintf("Serial logging started on COM1.\n");

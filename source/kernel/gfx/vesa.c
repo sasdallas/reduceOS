@@ -312,7 +312,7 @@ int vesaInit() {
 int vbeSwitchBuffers() {
     if (!VESA_Initialized) return -1; // Driver not initialized
     
-    if (args_has("--force_no_framebuffer")) return 0;
+    //if (args_has("--force_no_framebuffer")) return 0;
 
 
     // Switch the framebuffers
@@ -332,12 +332,12 @@ void vbePutPixel(int x, int y, uint32_t color) {
     // Get the location of the pixel.
     uint32_t p = x * 4 + y*modePitch;
     
-    if (args_has("--force_no_framebuffer")) {
+    /*if (args_has("--force_no_framebuffer")) {
         vbeBuffer[p] = color & 255;
         vbeBuffer[p + 1] = (color >> 8) & 255;
         vbeBuffer[p + 2] = (color >> 16) & 255;
         return;
-    }
+    }*/
 
     framebuffer[p] = color & 255;
     framebuffer[p + 1] = (color >> 8) & 255;

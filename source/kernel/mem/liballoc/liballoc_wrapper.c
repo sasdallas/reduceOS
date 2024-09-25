@@ -30,9 +30,13 @@ int liballoc_unlock() {
 // liballoc_alloc(size_t pages) - Allocates pages
 void *liballoc_alloc(size_t pages) {
     // sbrk ourselves
-    serialPrintf("need to allocate %i pages\n", pages);
+    serialPrintf("liballoc: need to allocate %i pages\n", pages);
     void *addr = mem_sbrk(pages * PAGE_SIZE);
     memset(addr, 0x0, pages * PAGE_SIZE);
+
+    // switch buffers immediately (DEBUG!!!)
+    vbeSwitchBuffers();
+
     return addr;
 }
 

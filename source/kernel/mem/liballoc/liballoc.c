@@ -1,5 +1,8 @@
 #include <kernel/liballoc.h>
 
+/** i hate you gcc **/
+#pragma GCC diagnostic ignored "-Wframe-address"
+
 /**  Durand's Amazing Super Duper Memory functions.  */
 
 #define VERSION 	"1.1"
@@ -265,7 +268,7 @@ void *PREFIX(malloc)(size_t req_size)
 		l_warningCount += 1;
 		#if defined DEBUG || defined INFO
 		serialPrintf( "liballoc: WARNING: alloc( 0 ) called from %x\n",
-							__builtin_return_address(0) );
+							__builtin_return_address(1) );
 		FLUSH();
 		#endif
 		liballoc_unlock();
@@ -304,7 +307,7 @@ void *PREFIX(malloc)(size_t req_size)
 
 	#ifdef DEBUG
 	serialPrintf( "liballoc: %x PREFIX(malloc)( %i ): ", 
-					__builtin_return_address(0),
+					__builtin_return_address(1),
 					size );
 	FLUSH();
 	#endif
@@ -602,7 +605,7 @@ void PREFIX(free)(void *ptr)
 		l_warningCount += 1;
 		#if defined DEBUG || defined INFO
 		serialPrintf( "liballoc: WARNING: PREFIX(free)( NULL ) called from %x\n",
-							__builtin_return_address(0) );
+							__builtin_return_address(1) );
 		FLUSH();
 		#endif
 		return;
@@ -642,7 +645,7 @@ void PREFIX(free)(void *ptr)
 			#if defined DEBUG || defined INFO
 			serialPrintf( "liballoc: ERROR: multiple PREFIX(free)() attempt on %x from %x.\n", 
 									ptr,
-									__builtin_return_address(0) );
+									__builtin_return_address(1) );
 			FLUSH();
 			#endif
 		}
@@ -651,7 +654,7 @@ void PREFIX(free)(void *ptr)
 			#if defined DEBUG || defined INFO
 			serialPrintf( "liballoc: ERROR: Bad PREFIX(free)( %x ) called from %x\n",
 								ptr,
-								__builtin_return_address(0) );
+								__builtin_return_address(1) );
 			FLUSH();
 			#endif
 		}
@@ -789,7 +792,7 @@ void*   PREFIX(realloc)(void *p, size_t size)
 				#if defined DEBUG || defined INFO
 				serialPrintf( "liballoc: ERROR: multiple PREFIX(free)() attempt on %x from %x.\n", 
 										ptr,
-										__builtin_return_address(0) );
+										__builtin_return_address(1) );
 				FLUSH();
 				#endif
 			}
@@ -798,7 +801,7 @@ void*   PREFIX(realloc)(void *p, size_t size)
 				#if defined DEBUG || defined INFO
 				serialPrintf( "liballoc: ERROR: Bad PREFIX(free)( %x ) called from %x\n",
 									ptr,
-									__builtin_return_address(0) );
+									__builtin_return_address(1) );
 				FLUSH();
 				#endif
 			}

@@ -166,6 +166,7 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     bios32_init();
     serialPrintf("kernel: bios32 initialized successfully!\n");
 
+
     // ==== TERMINAL INITIALIZATION ====
     video_init();
 

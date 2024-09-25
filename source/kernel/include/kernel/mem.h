@@ -25,6 +25,7 @@
 
 // Flags for the architecture memory mapper
 // By default, if created, a page will be given user-mode and write access.
+// These flags are gross..
 #define MEM_CREATE              0x01    // Create the page. Commonly used with mem_getPage during mappings
 #define MEM_KERNEL              0x02    // The page is kernel-mode only
 #define MEM_READONLY            0x04    // The page is read-only
@@ -32,6 +33,8 @@
 #define MEM_NOT_CACHEABLE       0x10    // The page is not cacheable
 #define MEM_NOALLOC             0x20    // Do not allocate the page and instead use what was given
 #define MEM_NOT_PRESENT         0x40    // The page is not present in memory
+#define MEM_FREE_PAGE           0x80
+
 
 // errno doesn't have specifications for MEM, and this is kernel only.
 // These are the possible error values
