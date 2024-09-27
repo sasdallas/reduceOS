@@ -83,7 +83,7 @@ void process_switchNext() {
 
     // Restore paging and task switch context
     spinlock_lock(&switch_lock);
-    vmm_switchDirectory(currentProcess->thread.page_directory);
+    mem_switchDirectory(currentProcess->thread.page_directory);
     spinlock_release(&switch_lock);
 
     setKernelStack(currentProcess->image.stack);
@@ -1098,8 +1098,8 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
 }
 
 pagedirectory_t* cloneDirectory(pagedirectory_t* in) {
-    pagedirectory_t* out = kmalloc(sizeof(pagedirectory_t));
-    memcpy(out, in, sizeof(pagedirectory_t));
+    pagedirectory_t* out = pmm_allocateBlock();
+    mem_clone(NULL, out);
     return out;
 }
 
@@ -1132,7 +1132,7 @@ int createProcess(char* filepath, int argc, char* argv[], char* envl[], int envc
     currentProcess->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
     currentProcess->thread.refcount = 1;
     spinlock_release(currentProcess->thread.pd_lock);
-    vmm_switchDirectory(currentProcess->thread.page_directory);
+    mem_switchDirectory(currentProcess->thread.page_directory);
     spinlock_release(&switch_lock);
 
     pagedirectory_t* addressSpace = currentProcess->thread.page_directory;

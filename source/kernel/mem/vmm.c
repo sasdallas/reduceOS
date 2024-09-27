@@ -226,6 +226,7 @@ void vmm_allocateRegion(uintptr_t physical_address, uintptr_t virtual_address, s
     if (size < 1) return; // Size 0. I hate users.
 
     vmm_allocateRegionFlags(physical_address, virtual_address, size, 1, 1, 1);
+    pmm_deinitRegion(physical_address, size); // ugh
 }
 
 // vmm_getPhysicalAddress(pagedirectory_t *dir, uint32_t virt) - Returns the physical address of a virtual address from a specific address space

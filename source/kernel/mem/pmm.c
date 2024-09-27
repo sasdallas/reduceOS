@@ -187,7 +187,7 @@ void *pmm_allocateBlock() {
         return pmm_allocateBlock();
     }
 
-    heavy_dprintf("physical memory block 0x%x allocated\n", addr);
+    //heavy_dprintf("physical memory block 0x%x allocated\n", addr);
     return (void*)addr;
 }
 
@@ -225,6 +225,7 @@ void *pmm_allocateBlocks(size_t size) {
 
     uint32_t addr = frame * 4096;
     pmm_usedBlocks += size;
+
     return (void*)addr;
 }
 

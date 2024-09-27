@@ -425,6 +425,7 @@ void useCommands() {
     registerCommand("modinfo", (command*)modinfo);
     registerCommand("showmodes", (command*)showmodes);
     registerCommand("setmode", (command*)setmode);
+    registerCommand("leak", (command*)leak_memory);
 
     serialPrintf("kmain: All commands registered successfully.\n");
 
@@ -446,6 +447,8 @@ void useCommands() {
     // Try to start the init process, if available
     //char *argv[] = {"/init"};
     //system("/init", 1, argv);
+
+
 
     kshell();
 }

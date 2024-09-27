@@ -138,6 +138,9 @@ void updateTextCursor_vesa() {
     if (!terminalEnabled) return;
     if (!cursorEnabled) return;
 
+    // If we're in the middle of a terminal scroll, don't bother
+    if (terminalY >= video_getScreenHeight() - psfGetFontHeight()) return;
+
     // This function is called by pitTicks on a reasonable level
     if (blinkTime > 500) {
         if (blinkedLast) {

@@ -329,37 +329,6 @@ int read_floppy(int argc, char *args[]) {
 }
 
 int readSectorTest(int argc, char *args[]) {
-    // BUGGED: Cannot read/write
-    // Read a sector from a disk using LBA (after checking if a disk exists with proper capacity).
-    int drive = -1;
-    for (int i = 0; i < 4; i++) { 
-        if (ideDevices[i].reserved == 1 && ideDevices[i].size > 1) {
-            printf("Found IDE device with %i KB\n", ideDevices[i].size);
-            drive = i;
-            break;
-        }
-    }
-
-    if (drive == -1) {
-        printf("No drives found or capacity too low to read sector.\n");
-        return -1;
-    }
-
-    // write message to drive
-    const uint32_t LBA = 0;
-    const uint8_t NO_OF_SECTORS = 1;
-    char *wbuf = "Hello!";
-
-    // write message to drive
-    ideWriteSectors((int)drive, NO_OF_SECTORS, LBA, (uint32_t)&wbuf);
-    printf("Wrote data.\n");
-    
-
-    char buf[512];
-    // read message from drive
-    memset(buf, 0, sizeof(buf));
-    ideReadSectors((int)drive, NO_OF_SECTORS, LBA, (uint32_t)buf);
-    printf("Read data: %s\n", buf);
     return 0;
 }
 
@@ -389,7 +358,102 @@ int serviceBIOS32(int argc, char *args[]) {
 
 
 int memoryInfo(int argc, char *args[]) {
-    printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
+
+    if (argc == 2) {
+        // Let's assume they want info on a memory address
+        char *straddr = args[1];
+        uintptr_t addr = (uintptr_t)strtol(straddr, NULL, 16);
+
+        if (addr == 0x0 && strcmp(straddr, "0x0")) {
+            printf("Invalid memory address specified.\n");
+            return 0;
+        }
+
+        if (addr & 0xFFF) {
+            printf("Cannot check a non-aligned memory address. Align your memory address to the nearest block.\n");
+            printf("Try again with \"memory 0x%x\"\n", addr & ~0xFFF);
+            return 0;
+        }
+
+        printf("Information on memory address at 0x%x:\n\n", addr);
+
+        pte_t *page = mem_getPage(NULL, addr, 0x0);
+        printf("Page data on address:\n");
+        if (!page || !pte_ispresent(*page)) {
+            printf("A page for memory address 0x%x could not be found or was not marked present.\n", addr);
+            goto _pmm;
+        }
+        
+        printf("\tRaw value: 0x%x\n", *page);
+        printf("\tWrite status: %s\n", (pte_iswritable(*page)) ? "WRITABLE" : "READ-ONLY");        
+        printf("\tUsermode: %s\n", (*page & PTE_USER) ? "USERMODE ACCESSIBLE" : "KERNEL MODE");
+        printf("\tWritethrough: %s\n", (*page & PTE_WRITETHROUGH) ? "YES" : "NO");
+        printf("\tCacheable: %s\n", (*page & PTE_NOT_CACHEABLE) ? "NO": "YES");
+        printf("\n\tFrame allocated to address: 0x%x\n", pte_getframe(*page));
+
+        _pmm:
+        printf("\nPhysical memory data on address:\n");
+        int frame = addr / 4096; // best guess lmao
+        if (pmm_testFrame(frame)) {
+            printf("This block is allocated.\n");
+        } else {
+            printf("This block is free\n");
+        }
+        return 0;
+    } else if (argc > 2) {
+        printf("Usage: memory <optional: address>\n");
+        return 0;
+    }
+
+    printf("Physical memory management statistics:\n");
+    printf("\tMemory size: 0x%x / %i KB\n", pmm_getPhysicalMemorySize(), pmm_getPhysicalMemorySize());
+    printf("\tUsed blocks: %i blocks\n", pmm_getUsedBlocks());
+    printf("\tFree blocks: %i blocks\n", pmm_getFreeBlocks());
+    printf("\n");
+    pmm_printMemoryMap(globalInfo);
+    
+
+
+
+    printf("\nVirtual memory manager statistics:\n");
+    printf("\tCurrently using page directory 0x%x (matches with VMM directory: %s)\n", mem_getCurrentDirectory(), (mem_getCurrentDirectory() == vmm_getCurrentDirectory()) ? "YES" : "NO");
+extern char *mem_heapStart;
+    printf("\tKernel heap: 0x%x\n", mem_heapStart);
+    printf("\nVirtual memory manager mappings:\n");
+
+    uint32_t region_start = 0;
+    uint32_t region_end = 0;
+    uint32_t kernel_end = 0x0;
+    for (uint32_t i = 0x0; i < 0xFFFFF000; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, i, 0);
+        if (page && pte_ispresent(*page)) {
+            if (region_start == 0) {
+                region_start = i;
+            }
+
+            region_end = i;
+        } else if (region_start && region_end) {
+            // math is my greatest enemy, there's a bug in this code
+            if (region_start == 0x1000) {
+                region_start = 0x0;   
+            }
+
+            printf("\tMapping from 0x%x - 0x%x, type is ", region_start, region_end);
+
+            // Try to determine the memory type
+            if (region_start == 0x0) { printf("Kernel Memory\n"); kernel_end = region_end; }
+            else if ((region_start - kernel_end) <= 0xF000) printf("Kernel Heap Memory\n");
+            else if (region_start == 0xA0000000) printf("Module Memory\n");
+            else if (region_start == 0xB0000000) printf("Secondary Video Framebuffer\n");
+            else if (region_start == 0xFD000000) printf("Video Memory\n");
+            else printf("Unknown\n");
+
+            region_start = 0;
+            region_end = 0;
+        }
+    }
+
+
     return 0;
 }
 
@@ -1139,5 +1203,36 @@ int setmode(int argc, char *args[]) {
     clearScreen(COLOR_WHITE, COLOR_CYAN); // The system will be in a weird limbo state, clear the screen.
     printf("Done.\n");
     
+    return 0;
+}
+
+int leak_memory(int argc, char *args[]) {
+    if (argc != 2 && argc != 3) {
+        printf("Usage: leak <KB to leak> <optional: use SBRK, specify nothing>\n");
+        return 0;
+    }
+
+    bool use_sbrk = (argc == 3);
+
+    char *kbstr = args[1];
+    int kbs = (int)strtol(kbstr, NULL, 10);
+    if (!kbs) {
+        printf("Invalid amount of kilobytes to leak.\n");
+        return 0;
+    }
+
+
+
+    // Leak memory in a loop, to simulate an actual "leak"
+    printf("Leaking memory, please wait...\n");
+    for (int i = 0; i < kbs; (use_sbrk ? i += 4 : i++)) {
+        if (use_sbrk) {
+            mem_sbrk(0x1000); // 4 KB allocation per loop
+        } else {
+            kmalloc(1024); // 1 KB allocation per loop
+        }
+    }
+
+    printf("Leak completed\n");
     return 0;
 }

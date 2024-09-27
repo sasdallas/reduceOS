@@ -267,7 +267,7 @@ void *PREFIX(malloc)(size_t req_size)
 	{
 		l_warningCount += 1;
 		#if defined DEBUG || defined INFO
-		serialPrintf( "liballoc: WARNING: alloc( 0 ) called from %x\n",
+		serialPrintf( "liballoc: WARNING: alloc( 0 ) called from %x (%s)\n",
 							__builtin_return_address(1) );
 		FLUSH();
 		#endif

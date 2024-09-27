@@ -1240,14 +1240,47 @@ int cpu_tests() {
     return 0;
 }
 
+int mem_tests() {
+    printf("\tTesting sbrk by 0x1000...");
+    char *new_start = mem_sbrk(0x1000);
+    char *expected_free_start = new_start + 0x1000; // SBRK will always return the previous start of the heap.
+    printf("PASS\n");
 
+    printf("\tTesting sbrk by -0x1000...");
+    char *free_start = mem_sbrk(-0x1000);
+    if (free_start != expected_free_start) {
+        printf("FAIL (expected 0x%x, got 0x%x)\n", expected_free_start, free_start);
+        goto _fail;
+    }
+    printf("PASS\n");
+
+    // i can't think of tests sorry
+    printf("\tCloning directory...");
+    pagedirectory_t *out = pmm_allocateBlock();
+    int ret = mem_clone(NULL, out);
+    if (ret != 0) { printf("FAIL (return %i)\n", ret); goto _fail; }
+    if (!out) { printf("FAIL (NULL)\n"); goto _fail; }
+    if ((uint32_t)out & 0xFFF) { printf("FAIL (NOT ALIGNED)\n"); goto _fail; }
+    printf("PASS\n");
+
+    printf("\tSwitching to cloned directory...");
+    // oh boy
+    mem_switchDirectory(out);
+    printf("PASS\n");
+
+    return 0;
+
+
+_fail:
+    return -1;
+}
 
 
 // This function serves as a function to test multiple modules of the OS.
 int test(int argc, char *args[]) {
     if (argc != 2) {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, ext2, bitmap\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, bitmap, badapple, cpu, mem\n");
         return 0;
     } 
 
@@ -1307,9 +1340,14 @@ int test(int argc, char *args[]) {
 
         if (vfs_tests() == 0) printf("=== TESTS COMPLETED ===\n");
         else printf("=== TESTS FAILED ===\n");
+    } else if (!strcmp(args[1], "mem")) {
+        printf("=== TESTING MEM ===\n");
+
+        if (mem_tests() == 0) printf("=== TESTS COMPLETED ===\n");
+        else printf("=== TESTS FAILED ===\n");
     } else {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, bitmap, badapple, cpu\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, bitmap, badapple, cpu, mem\n");
     }
 
     return 0;

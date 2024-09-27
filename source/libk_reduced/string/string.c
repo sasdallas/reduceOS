@@ -325,7 +325,7 @@ long strtol(const char *nptr, char **endptr, int base) {
 	}
 	if (any < 0) {
 		acc = neg ? LONG_MIN : LONG_MAX;
-		panic("string.c", "strtol", "Out of range exception");
+		return 0;
 	} else if (neg)
 		acc = -acc;
 	if (endptr != 0)

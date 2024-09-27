@@ -154,7 +154,7 @@ dmaPool_t *dmaPool = 0;
 
 // dma_initPool(int pool_size) - Initialize a DMA pool of memory, that processes can pull from for their channels
 void dma_initPool(int pool_size) {
-    dmaPool = pmm_allocateBlocks((sizeof(dmaPool_t) + pool_size) / 4096);    
+    dmaPool = kmalloc((sizeof(dmaPool_t) + pool_size));    
     
     dmaPool->next = (uint8_t*)&dmaPool[1];
     dmaPool->end = dmaPool->next + pool_size;

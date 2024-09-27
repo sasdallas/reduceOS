@@ -35,6 +35,10 @@ void args_init(char *arguments) {
     while (token != NULL) {
 
         
+        // Interesting bug where GRUB will append a \024 character. Remove that.
+        if (token[strlen(token)-1] == '\024')  token[strlen(token)-1] = '\0';
+
+        
         /**
          * Kernel arguments can be passed in two ways:
          * argument (just this)
@@ -56,8 +60,10 @@ void args_init(char *arguments) {
             // we'll just remove the ' and " - this is normally pretty bad, but idc
             for (int i = 0; i < strlen(value); i++) if (value[i] == '\'') value[i] = '\0';
             for (int i = 0; i < strlen(value); i++) if (value[i] == '\"') value[i] = '\0';
+
             hashmap_set(kernel_arguments, key, value);
         } else {
+            
             hashmap_set(kernel_arguments, token, "N/A"); // should replace the N/A with something actually funny
         }
 

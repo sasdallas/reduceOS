@@ -34,7 +34,7 @@
 
 static pagedirectory_t *mem_currentDirectory    = 0; // Current page directory 
 static uint32_t         mem_currentPDBR         = 0; // Current page directory base register address. This should be the same as pagedirectory_t.
-static char*            mem_heapStart           = 0; // The start of our heap. Expanded using mem_sbrk
+char*                   mem_heapStart           = 0; // The start of our heap. Expanded using mem_sbrk
 
 
 extern uint32_t end;
@@ -96,6 +96,8 @@ int mem_switchDirectory(pagedirectory_t *pagedir) {
 
     mem_load_pdbr((uintptr_t)pagedir);
     mem_currentDirectory = pagedir;
+
+    vmm_switchDirectory(pagedir); // Temporary!
     return 0; 
 }  
 
@@ -161,12 +163,11 @@ pte_t *mem_getPage(pagedirectory_t *dir, uintptr_t addr, uintptr_t flags) {
     // Calculate the PDE index
     pde_t *pde = &directory->entries[MEM_PAGEDIR_INDEX(virtaddr)];
     if (!pde || !pde_ispresent(*pde)) {
-        serialPrintf("mem: pde not present, creating a new one at vaddr 0x%x...\n", virtaddr);
-
         // The user might want us to create this directory.
         if (!(flags & MEM_CREATE)) goto bad_page;
 
-        
+        serialPrintf("mem: pde not present, creating a new one at vaddr 0x%x...\n", virtaddr);
+
 
         // Create a new table
         pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
@@ -192,7 +193,6 @@ pte_t *mem_getPage(pagedirectory_t *dir, uintptr_t addr, uintptr_t flags) {
 
     
 bad_page:
-    serialPrintf("[i386] mem: page at 0x%x not found with flags 0x%x\n", virtaddr, flags);
     return NULL;
 }
 
@@ -256,19 +256,46 @@ pagedirectory_t *mem_getCurrentDirectory() {
  * @brief Clone a page directory.
  * 
  * This is a full PROPER page directory clone. The old one just memcpyd the pagedir.
- * That's like 50% fine and 50% completely boinked (or 100%, honestly none of this vmm should work).
  * This function does it properly and clones the page directory, its tables, and their respective entries fully.
  * 
  * @param pd_in The source page directory. Keep as NULL to clone the current page directory.
- * @param pd_out The output page directory.
+ * @param pd_out The output page directory. MUST BE ALIGNED!
  * @returns 0 on success, anything else is failure (usually an errno)
  */
 int mem_clone(pagedirectory_t *pd_in, pagedirectory_t *pd_out) {
     pagedirectory_t *source = pd_in;
     if (source == NULL) source = mem_getCurrentDirectory(); // NULL specified, use current directory
-    if (pd_out == NULL) return -EINVAL; // stupid users
+    if (pd_out == NULL) return -EINVAL;
+    else if ((uint32_t)pd_out & 0xFFF) return -EINVAL;      // Not aligned, idiot!
 
-    // stub
+    serialPrintf("mem: Output PD is 0x%x\n", pd_out);
+
+    // Begin by copying PTs
+    for (int ptidx = 0; ptidx < 1024; ptidx++) {
+        if (pde_ispresent(source->entries[ptidx])) {
+            // Allocate a new PMM block
+            pagetable_t *dest_pt = (pagetable_t*)pmm_allocateBlock();
+            memset(dest_pt, 0, sizeof(pagetable_t));
+
+            pde_t *pd_entry = &(pd_out->entries[ptidx]);       
+            
+            // Probably bad!
+            pde_addattrib(pd_entry, PDE_PRESENT);
+            pde_addattrib(pd_entry, PDE_WRITABLE);
+            pde_addattrib(pd_entry, PDE_USER);
+            pde_setframe(pd_entry, (uint32_t)dest_pt);
+
+            pde_t *src_pd = &(source->entries[ptidx]);
+            pagetable_t *src_pt = (pagetable_t*)MEM_VIRTUAL_TO_PHYS(src_pd);
+    
+
+            // Copy pages
+            memcpy((void*)dest_pt, (void*)src_pt, sizeof(pagetable_t));
+        }
+    }
+
+
+
     return 0;
 }
 
@@ -370,7 +397,7 @@ void mem_init() {
 
     // HACKS!
     pmm_deinitRegion(0xA0000,   0xB0000);     // VGA video memory (in some cases), still used by QEMU
-    pmm_deinitRegion(0x25b000,  0xF0000);
+    pmm_deinitRegion(0x250000,  0x10000);
     pmm_deinitRegion(0x320000,  0x40000);
     pmm_deinitRegion(0x2e0000,  0x0C000);
 
@@ -447,6 +474,8 @@ void mem_init() {
     serialPrintf("\tHas crashed yet: not yet\n");
 }
 
+
+
 /**
  * @brief Expand/shrink the kernel heap
  * 
@@ -507,9 +536,9 @@ void *mem_sbrk(int b) {
 
     serialPrintf("mem: Successfully allocated 0x%x - 0x%x with a b request of 0x%x\n", oldStart, mem_heapStart, b);
     serialPrintf("mem: Physical memory blocks given:\n");
-    for (char *i = oldStart; i < mem_heapStart; i += 0x1000) {
+    /*for (char *i = oldStart; i < mem_heapStart; i += 0x1000) {
         serialPrintf("\t0x%x: 0x%x\n", i, mem_getPhysicalAddress(NULL, (uintptr_t)i));
-    }
+    }*/
 
     return oldStart;
 }

@@ -49,5 +49,6 @@ int startThread(int argc, char *args[]);
 int modinfo(int argc, char *args[]);
 int showmodes(int argc, char *args[]);
 int setmode(int argc, char *args[]);
+int leak_memory(int argc, char *args[]);
 
 #endif
