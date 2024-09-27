@@ -15,7 +15,7 @@
 #define ALIGN (sizeof(size_t))
 #define MAX(X, Y)  ((X > Y) ? X : Y)
 
-#ifdef PLATFORM_BIOS
+#ifdef BIOS_PLATFORM
 
 // memcmp() - Comparing addresses/values in memory
 // Three parameters - objects 1 and 2(const void*) and the amount of bytes to compare(size_t)

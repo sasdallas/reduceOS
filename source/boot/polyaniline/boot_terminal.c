@@ -303,7 +303,7 @@ void setColor(uint8_t color) {
  */
 
 
-#ifdef PLATFORM_EFI
+#ifdef EFI_PLATFORM
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
