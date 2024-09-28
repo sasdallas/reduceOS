@@ -36,9 +36,12 @@
 #define MEM_FREE_PAGE           0x80
 
 
-// errno doesn't have specifications for MEM, and this is kernel only.
-// These are the possible error values
-#define MEM_ERR_PRESENT -1      // The page isn't present in memory
+// Memory regions. Very important!
+// Some of these may be hardcoded in other areas of the code. I'm trying to fix that.
+#define IDENTITY_MAP_REGION     0xD0000000      // 512 MB of mapped PMM. It says identity but not really, just mapping from 0x0 - 0x40000000
+#define IDENTITY_MAP_MAXSIZE    0x20000000      // Max of 512 MB
+#define FRAMEBUFFER_REGION      0xFD000000
+#define FRAMEBUFFER2_REGION     0xB0000000
 
 
 /******************* FUNCTIONS *******************/
@@ -70,6 +73,8 @@ pte_t *mem_getPage(pagedirectory_t *dir, uintptr_t addr, uintptr_t flags);
  */
 int mem_switchDirectory(pagedirectory_t *pagedir);
 
+
+
 /**
  * @brief Allocate a page using the physical memory manager
  * 
@@ -81,6 +86,11 @@ int mem_switchDirectory(pagedirectory_t *pagedir);
  */
 void mem_allocatePage(pte_t *page, uint32_t flags);
 
+/**
+ * @brief Remap a physical memory manager address to the identity mapped region
+ * @param frame_address The address of the frame to remap
+ */
+uintptr_t mem_remapPhys(uintptr_t frame_address);
 
 /**
  * @brief Die in the cold winter
@@ -98,14 +108,12 @@ pagedirectory_t *mem_getCurrentDirectory();
  * @brief Clone a page directory.
  * 
  * This is a full PROPER page directory clone. The old one just memcpyd the pagedir.
- * That's like 50% fine and 50% completely boinked (or 100%, honestly none of this vmm should work).
  * This function does it properly and clones the page directory, its tables, and their respective entries fully.
  * 
  * @param pd_in The source page directory. Keep as NULL to clone the current page directory.
- * @param pd_out The output page directory.
- * @returns 0 on success, anything else is failure (usually an errno)
+ * @returns The page directory on success
  */
-int mem_clone(pagedirectory_t *pd_in, pagedirectory_t *pd_out);
+pagedirectory_t *mem_clone(pagedirectory_t *pd_in);
 
 /**
  * @brief Initialize the memory management subsystem

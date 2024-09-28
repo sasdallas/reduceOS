@@ -8,8 +8,10 @@
 
 // Functions
 
-// void interruptCompleted(uint32_t intNo) - Notifies HAL interrupt is done.
-void interruptCompleted(uint32_t intNo) {
+/** INTERRUPT FUNCTIONS **/
+
+// void hal_interruptCompleted(uint32_t intNo) - Notifies HAL interrupt is done.
+void hal_interruptCompleted(uint32_t intNo) {
     // Do we need to send EOI to second PIC?
     if (intNo >= 40) outportb(0xA0, 0x20);
     
@@ -19,13 +21,13 @@ void interruptCompleted(uint32_t intNo) {
 }
 
 
-// void setVector(int intNo, uint32_t vect) - Sets a new interrupt vector.
-void setVector(int intNo, uint32_t vect) {
+// void hal_setInterruptVector(int intNo, uint32_t vect) - Sets a new interrupt vector.
+void hal_setInterruptVector(int intNo, uint32_t vect) {
     idtInstallIR(intNo,  0x8E, 0x08, (uint32_t)vect);
 }
 
 // void setVector_flags(int intNo, uint32_t vect, int flags) - Sets a new interrupt vector using flags.
-void setVector_flags(int intNo, uint32_t vect, int flags) {
+void hal_setInterruptVectorFlags(int intNo, uint32_t vect, int flags) {
     idtInstallIR(intNo, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32 | flags, 0x8, vect);
 }
 
@@ -39,6 +41,8 @@ void enableHardwareInterrupts() {
 void disableHardwareInterrupts() {
     asm ("cli");
 }
+
+/** I/O PORT MANIPULATION **/
 
 // uint8_t inportb(uint16_t port) - Read data from device through port mapped IO
 uint8_t inportb(uint16_t port) {
@@ -64,13 +68,6 @@ void outportw(uint16_t port, uint16_t data) {
     asm volatile ("outw %%eax, %%dx" :: "Nd"(port), "a"(data));
 }
 
-// void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) - Returns an assembly cpuid instruction's results.
-void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
-	asm volatile("cpuid"
-				: "=a"(*eax), "=b"(*ebx), "=c"(*ecx), "=d"(*edx)
-				: "0"(type)); // Add type to eax
-}
-
 // uint32_t inportl(uint16_t port) - Reads data from device via port mapped IO
 uint32_t inportl(uint16_t port) {
     uint32_t ret;
@@ -81,6 +78,16 @@ uint32_t inportl(uint16_t port) {
 // void outportl(uint16_t port, uint8_t value) - Write byte to device via port mapped IO
 void outportl(uint16_t port, uint32_t value) {
     asm volatile ("outl %1, %0" :: "dN"(port), "a"(value));
+}
+
+
+/** MISCALLANEOUS HAL FUNCTIONS **/
+
+// void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) - Returns an assembly cpuid instruction's results.
+void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) {
+	asm volatile("cpuid"
+				: "=a"(*eax), "=b"(*ebx), "=c"(*ecx), "=d"(*edx)
+				: "0"(type)); // Add type to eax
 }
 
 

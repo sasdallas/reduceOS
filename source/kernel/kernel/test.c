@@ -1256,9 +1256,7 @@ int mem_tests() {
 
     // i can't think of tests sorry
     printf("\tCloning directory...");
-    pagedirectory_t *out = pmm_allocateBlock();
-    int ret = mem_clone(NULL, out);
-    if (ret != 0) { printf("FAIL (return %i)\n", ret); goto _fail; }
+    pagedirectory_t *out = mem_clone(NULL);
     if (!out) { printf("FAIL (NULL)\n"); goto _fail; }
     if ((uint32_t)out & 0xFFF) { printf("FAIL (NOT ALIGNED)\n"); goto _fail; }
     printf("PASS\n");

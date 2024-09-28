@@ -51,7 +51,7 @@
 #define LIBALLOC_MAGIC	0xc001c0de
 #define LIBALLOC_DEAD	0xdeaddead
 
-#define DEBUG
+// #define DEBUG
 
 #if defined DEBUG || defined INFO
 #include <kernel/serial.h>

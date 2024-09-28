@@ -3,7 +3,6 @@
 // ==================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-/* Developer note: When reduceOS switched to multiboot, I totally forgot about this file. I'm not sure if this is why paging is failing, but it would be pretty funny if so. */
 
 #include <kernel/gdt.h> // Main header file
 

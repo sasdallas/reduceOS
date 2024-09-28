@@ -86,18 +86,35 @@ static inline void mem_load_pdbr(uintptr_t addr) {
 
 
 /**
+ * @brief Remap a physical memory manager address to the identity mapped region
+ * @param frame_address The address of the frame to remap
+ */
+uintptr_t mem_remapPhys(uintptr_t frame_address) {
+    if ((uintptr_t)frame_address > IDENTITY_MAP_MAXSIZE) mem_outofmemory(0, "N/A. Maximum size of physical memory reached (512MB)");
+
+    return ((uintptr_t)frame_address) | IDENTITY_MAP_REGION;
+}
+
+
+
+/**
  * @brief Switch the memory management directory
  * @param pagedir The page directory to switch to
- * @note This will also reload the PDBR.
+ * 
+ * @warning Anything greater than IDENTITY_MAP_MAXSIZE will be truncated.
+ * 
  * @returns -EINVAL on invalid, 0 on success.
  */
 int mem_switchDirectory(pagedirectory_t *pagedir) {
     if (!pagedir) return -EINVAL;
 
-    mem_load_pdbr((uintptr_t)pagedir);
-    mem_currentDirectory = pagedir;
+    pagedirectory_t *pd_to_load = pagedir;
+    if ((uintptr_t)pd_to_load > IDENTITY_MAP_MAXSIZE) pd_to_load = (pagedirectory_t*)((uint32_t)pd_to_load & ~IDENTITY_MAP_REGION);
 
-    vmm_switchDirectory(pagedir); // Temporary!
+    mem_load_pdbr((uintptr_t)pd_to_load);
+    mem_currentDirectory = pd_to_load;
+
+    vmm_switchDirectory(pd_to_load); // Temporary!
     return 0; 
 }  
 
@@ -124,10 +141,10 @@ uintptr_t mem_getPhysicalAddress(pagedirectory_t *dir, uintptr_t virtaddr) {
     }
 
     // Calculate the PTE index
-    pagetable_t *table = (pagetable_t*)MEM_VIRTUAL_TO_PHYS(pde);
+    pagetable_t *table = (pagetable_t*)mem_remapPhys(MEM_VIRTUAL_TO_PHYS(pde));
     pte_t *page = &table->entries[MEM_PAGETBL_INDEX(virtaddr)];
     if (!page || !pte_ispresent(*page)) {
-        serialPrintf("mem: pte not found at 0x%x\n", page);
+        serialPrintf("mem: pte not found at 0x%x\n", virtaddr);
         return NULL;
     }
     
@@ -161,7 +178,7 @@ pte_t *mem_getPage(pagedirectory_t *dir, uintptr_t addr, uintptr_t flags) {
     uintptr_t virtaddr = addr; // You can do any modifications needed to addr
 
     // Calculate the PDE index
-    pde_t *pde = &directory->entries[MEM_PAGEDIR_INDEX(virtaddr)];
+    pde_t *pde = &(directory->entries[MEM_PAGEDIR_INDEX(virtaddr)]);
     if (!pde || !pde_ispresent(*pde)) {
         // The user might want us to create this directory.
         if (!(flags & MEM_CREATE)) goto bad_page;
@@ -170,28 +187,28 @@ pte_t *mem_getPage(pagedirectory_t *dir, uintptr_t addr, uintptr_t flags) {
 
 
         // Create a new table
-        pagetable_t *table = (pagetable_t*)pmm_allocateBlock();
-        if (!table) mem_outofmemory(1, "PDE allocation in get page");
+        void *block = pmm_allocateBlock();
+        if (!block) mem_outofmemory(1, "PDE allocation in get page");
 
-        serialPrintf("mem: created pde at 0x%x\n", table);
+        // Zero it
+        memset((void*)mem_remapPhys((uintptr_t)block), 0, PAGE_SIZE);
+
+        serialPrintf("mem: pde created at 0x%x\n", block);
 
         // Create a new entry
-        pde_t *e = &directory->entries[MEM_PAGEDIR_INDEX(virtaddr)];
-
-        pde_addattrib(e, PDE_PRESENT);
-        pde_addattrib(e, PDE_WRITABLE);
-        pde_addattrib(e, PDE_USER);
-        pde_setframe(e, (uint32_t)table);
+        pde_addattrib(pde, PDE_PRESENT);
+        pde_addattrib(pde, PDE_WRITABLE);
+        pde_addattrib(pde, PDE_USER);
+        pde_setframe(pde, (uint32_t)block);
     }
 
     // Calculate the PTE index
     // Table allocation isn't necessary
-    pagetable_t *table = (pagetable_t*)MEM_VIRTUAL_TO_PHYS(pde);
+    pagetable_t *table = (pagetable_t*)mem_remapPhys(MEM_VIRTUAL_TO_PHYS(pde));
 
-    return &table->entries[MEM_PAGETBL_INDEX(virtaddr)];
+    return &(table->entries[MEM_PAGETBL_INDEX(virtaddr)]);
 
 
-    
 bad_page:
     return NULL;
 }
@@ -209,8 +226,6 @@ void mem_allocatePage(pte_t *page, uint32_t flags) {
     // MEM_NOALLOC specifies we shouldn't allocate something for the page.
     if (!(flags & MEM_NOALLOC)) {
         void *block = pmm_allocateBlock();
-        
-
         if (!block) mem_outofmemory(1, "page allocation");
 
         pte_setframe(page, (uint32_t)block);
@@ -241,7 +256,7 @@ void mem_freePage(pte_t *page) {
     // Get the physical address and free it
     uintptr_t paddr = pte_getframe(*page);
     if (paddr) pmm_freeBlock((void*)paddr);
-    mem_allocatePage(0, MEM_FREE_PAGE);
+    mem_allocatePage(page, MEM_FREE_PAGE);
 }
 
 /**
@@ -253,50 +268,140 @@ pagedirectory_t *mem_getCurrentDirectory() {
 
 
 /**
+ * @brief Internal function to handle usermode copies
+ * 
+ * @param dest The destination page directory
+ * @param pd_idx The index (of the entry) within the page directory
+ * @param src_pt The source page table
+ * 
+ * @warning This relies on use of sbrk()
+ * @returns The block address of the table.
+ */
+void *mem_copyUserPT(pagedirectory_t *dest, uint32_t pd_idx, pagetable_t *src_pt) {
+    // This function is useful because it allows usermode pages to be handled entirely by the kernel
+    // We can employ CoW and update reference counts for tables, or whatever else should be done
+    // For now, I'm lazy, let's just clone it normally
+
+    // Allocate a new page table
+    void *block = pmm_allocateBlock();
+    if (!block) mem_outofmemory(1, "table allocation when cloning");
+
+    pagetable_t *table = (pagetable_t*)mem_remapPhys((uintptr_t)block);
+
+    for (int i = 0; i < 1024; i++) {
+        if (!pte_getframe(src_pt->entries[i])) continue; // No frame address is even registered
+
+        pte_t *src_page = &src_pt->entries[i];
+        pte_t *dest_page = &table->entries[i];
+
+        // Allocate a new frame to hold the data
+        uintptr_t src_addr = (pd_idx << 22) | (i << 12);
+        uintptr_t dest_addr = src_addr;
+
+        // Setup its frame
+        pte_setframe(dest_page, src_addr); 
+
+        // Now that we're ready to go, grab a page from the memory system for our dest pd.
+        // The page itself is discarded, it is simply created.
+        pte_t *new_page = mem_getPage(dest, dest_addr, MEM_CREATE);
+        if (new_page == NULL) panic("reduceOS", "memory", "Clone failed: Failed to create a page in destination page");
+        mem_allocatePage(new_page, 0);
+
+        // Ugly, but it works
+        if (*src_page & PTE_PRESENT)        pte_addattrib(dest_page, PTE_PRESENT);
+        if (*src_page & PTE_WRITABLE)       pte_addattrib(dest_page, PTE_WRITABLE);
+        if (*src_page & PTE_USER)           pte_addattrib(dest_page, PTE_USER);
+        if (*src_page & PTE_WRITETHROUGH)   pte_addattrib(dest_page, PTE_WRITETHROUGH);
+        if (*src_page & PTE_NOT_CACHEABLE)  pte_addattrib(dest_page, PTE_NOT_CACHEABLE);
+        if (*src_page & PTE_ACCESSED)       pte_addattrib(dest_page, PTE_ACCESSED);
+        if (*src_page & PTE_DIRTY)          pte_addattrib(dest_page, PTE_DIRTY);
+
+        // Create a temporary page. When we copy the contents, the data will be written to the frame, which is shared by both temp & dest pages
+        // We can do this by mem_sbrking. TODO: THIS IS NOT A GOOD IDEA!
+        void *temporary_vaddr = mem_sbrk(PAGE_SIZE);
+
+        pte_t *temp_page = mem_getPage(NULL, (uintptr_t)temporary_vaddr, 0);
+        uintptr_t orig_paddr = mem_getPhysicalAddress(NULL, (uintptr_t)temporary_vaddr);
+
+        if (!temp_page) panic("reduceOS", "memory", "Clone failed: sbrk() did not succeed or failed to return a proper value");
+        pte_setframe(temp_page, mem_getPhysicalAddress(dest, dest_addr));
+        
+        // Copy the data of the usermode page into this new page
+        memcpy((void*)temporary_vaddr, (void*)src_addr, PAGE_SIZE);
+        
+        // Reset the old frame
+        pte_setframe(temp_page, orig_paddr);
+
+        // Undo sbrk(). We have to reset the old frame because it will be freed in the physical memory manager.
+        mem_sbrk(-PAGE_SIZE);
+    }
+
+    return block;
+}
+
+/**
  * @brief Clone a page directory.
  * 
  * This is a full PROPER page directory clone. The old one just memcpyd the pagedir.
  * This function does it properly and clones the page directory, its tables, and their respective entries fully.
  * 
  * @param pd_in The source page directory. Keep as NULL to clone the current page directory.
- * @param pd_out The output page directory. MUST BE ALIGNED!
- * @returns 0 on success, anything else is failure (usually an errno)
+ * @returns The page directory on success
  */
-int mem_clone(pagedirectory_t *pd_in, pagedirectory_t *pd_out) {
+pagedirectory_t *mem_clone(pagedirectory_t *pd_in) {
     pagedirectory_t *source = pd_in;
     if (source == NULL) source = mem_getCurrentDirectory(); // NULL specified, use current directory
-    if (pd_out == NULL) return -EINVAL;
-    else if ((uint32_t)pd_out & 0xFFF) return -EINVAL;      // Not aligned, idiot!
-
-    serialPrintf("mem: Output PD is 0x%x\n", pd_out);
-
-    // Begin by copying PTs
-    for (int ptidx = 0; ptidx < 1024; ptidx++) {
-        if (pde_ispresent(source->entries[ptidx])) {
-            // Allocate a new PMM block
-            pagetable_t *dest_pt = (pagetable_t*)pmm_allocateBlock();
-            memset(dest_pt, 0, sizeof(pagetable_t));
-
-            pde_t *pd_entry = &(pd_out->entries[ptidx]);       
-            
-            // Probably bad!
-            pde_addattrib(pd_entry, PDE_PRESENT);
-            pde_addattrib(pd_entry, PDE_WRITABLE);
-            pde_addattrib(pd_entry, PDE_USER);
-            pde_setframe(pd_entry, (uint32_t)dest_pt);
-
-            pde_t *src_pd = &(source->entries[ptidx]);
-            pagetable_t *src_pt = (pagetable_t*)MEM_VIRTUAL_TO_PHYS(src_pd);
     
+    void *pd_block = pmm_allocateBlock();
+    if (!pd_block) mem_outofmemory(1, "page directory allocation");
+    pagedirectory_t *pd_out = (pagedirectory_t*)mem_remapPhys((uintptr_t)pd_block);
 
-            // Copy pages
-            memcpy((void*)dest_pt, (void*)src_pt, sizeof(pagetable_t));
+
+    // Let's start cloning
+    for (int pd = 0; pd < 1024; pd++) {
+        pde_t *src_pde = &source->entries[pd];
+        if (!pde_ispresent(*src_pde)) continue;
+
+        // Construct a new table and add it to our output
+        void *dest_table_block = pmm_allocateBlock();
+        if (!dest_table_block) mem_outofmemory(1, "destination table allocation in clone");
+        
+        pagetable_t *dest_table = (pagetable_t*)mem_remapPhys((uintptr_t)dest_table_block);
+        memset(dest_table, 0, sizeof(pagetable_t));
+
+        // Construct a PDE
+        pde_t *dest_pde = &pd_out->entries[pd];
+        
+        // TODO: We shouldn't do this!
+        pde_addattrib(dest_pde, PDE_PRESENT);
+        pde_addattrib(dest_pde, PDE_WRITABLE);
+        pde_addattrib(dest_pde, PDE_USER);
+
+        pde_setframe(dest_pde, (uint32_t)dest_table_block);
+
+        pagetable_t *src_table = (pagetable_t*)mem_remapPhys(MEM_VIRTUAL_TO_PHYS(src_pde));
+        
+        // Now, time to copy the pages
+        for (int page = 0; page < 1024; page++) {
+            pte_t *src_page = &src_table->entries[page];
+            if (pte_ispresent(*src_page)) {
+                pte_t *dest_page = &dest_table->entries[page];
+
+                if (*src_page & PTE_USER) {
+                    // Usermode page. Bah humbug!
+                }
+
+                // Copy it because whatever
+                *dest_page = *src_page;
+            } 
         }
+        
+
     }
 
 
 
-    return 0;
+    return pd_out;
 }
 
 extern multiboot_info *globalInfo;
@@ -382,6 +487,7 @@ void mem_init() {
 
     // Update mem_heapStart
     extern uint32_t nframes;
+    extern uint32_t *frames;
     mem_heapStart += nframes;
 
     // Now we should copy the multiboot info
@@ -401,30 +507,42 @@ void mem_init() {
     pmm_deinitRegion(0x320000,  0x40000);
     pmm_deinitRegion(0x2e0000,  0x0C000);
 
-    // Now, it's identity mapping time. We need to map the kernel and the extra stuff we tossed in.
-    // This is a little complicated, but it's not too hard.
 
     // Get a page directory
-    pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlocks(6);
+    pagedirectory_t *dir = (pagedirectory_t*)pmm_allocateBlocks(6); // why 6
     memset(dir, 0x0, sizeof(pagedirectory_t));
 
-    
-    
 
-    // Calculate how many pages we need to allocate.
-    uintptr_t heap_start_aligned = ((uintptr_t)mem_heapStart + 0xFFF) & 0xFFFFF000; 
-    uintptr_t kern_pages = (uintptr_t)heap_start_aligned >> PAGE_SHIFT; // Shifting right 0x1000
+    // We only have access to 4GB of VAS because of 32-bit protected mode (and lack of PAE support)
+    // The physical memory manager is very much needed after paging is enabled, specifically for PFA
+    // It's best to map this code to a specific range.
+    // reduceOS can map a maximum of 512 MB of addressible memory. This is specified in mem.h
+    // Calculate how many pages the PMM is using
+    size_t frame_bytes = nframes * 4096; 
+    frame_bytes = (frame_bytes + 0xFFF) & ~0xFFF;
 
-    // Let's map. We'll calculate the amount of cycles to run the initial loop
-    int initial_loop_cycles = (kern_pages + 1024) / 1024;
-    
-    // We'll use a variable to keep track of how many pages have been actually mapped
-    int pages_mapped = 0;
+    serialPrintf("frames will take up %i bytes\n", frame_bytes);
+
+    if (frame_bytes > IDENTITY_MAP_MAXSIZE) {
+        serialPrintf("mem: WARNING! Too much memory for identity maps (0x%x bytes available, maximum identity map is 0x%x)!\n", frame_bytes, IDENTITY_MAP_MAXSIZE);   
+        
+        // Truncate to max size
+        frame_bytes = IDENTITY_MAP_MAXSIZE;
+    }
+
+    size_t frame_pages = frame_bytes >> 12;
+    serialPrintf("frames will take up %i pages\n", frame_pages);
+
+    // Identity mapping time! 
 
     uintptr_t frame = 0x0; // The frame currently being done by the loop
     uintptr_t table_frame = 0x0; // The frame that the table should be put in
+    int loop_cycles = (frame_pages + 1024) / 1024;
 
-    for (int i = 0; i < initial_loop_cycles; i++) {
+    // We'll use a variable to keep track of how many pages have been actually mapped
+    int pages_mapped = 0;
+
+    for (int i = 0; i < loop_cycles; i++) {
         pagetable_t *table = (pagetable_t*)pmm_allocateBlock(); 
         memset(table, 0x0, sizeof(pagetable_t));
 
@@ -435,7 +553,54 @@ void mem_init() {
 
             pte_addattrib(&page, PTE_PRESENT);
             pte_addattrib(&page, PTE_WRITABLE);
-            pte_addattrib(&page, PTE_USER);
+            pte_setframe(&page, frame);
+
+            table->entries[MEM_PAGETBL_INDEX(frame + IDENTITY_MAP_REGION)] = page;
+
+            pages_mapped++;
+            if (pages_mapped == (int)frame_pages) break;
+
+            frame += 0x1000;
+        }
+
+
+        // Now create a PDE
+        pde_t *entry = &dir->entries[MEM_PAGEDIR_INDEX(table_frame + IDENTITY_MAP_REGION)];
+        pde_addattrib(entry, PDE_PRESENT);
+        pde_addattrib(entry, PDE_WRITABLE);
+        pde_setframe(entry, (uint32_t)table);
+        table_frame += 0x1000 * 1024;
+
+        if (pages_mapped == (int)frame_pages) break;
+    }
+
+
+
+    // We also need to map the kernel and the extra stuff we tossed in.
+    // This is a little complicated, but it's not too hard.
+
+    // Calculate how many pages we need to allocate.
+    uintptr_t heap_start_aligned = ((uintptr_t)mem_heapStart + 0xFFF) & 0xFFFFF000; 
+    uintptr_t kern_pages = (uintptr_t)heap_start_aligned >> PAGE_SHIFT; // Shifting right 0x1000
+
+    // Let's map. We'll calculate the amount of cycles to run the initial loop
+    loop_cycles = (kern_pages + 1024) / 1024;
+    pages_mapped = 0;
+
+    // Reset values
+    frame = 0x0;
+    table_frame = 0x0;
+    for (int i = 0; i < loop_cycles; i++) {
+        pagetable_t *table = (pagetable_t*)pmm_allocateBlock(); 
+        memset(table, 0x0, sizeof(pagetable_t));
+
+
+        for (int page = 0; page < 1024; page++) {
+            // This seems like a bad way to map..
+            pte_t page = 0;
+
+            pte_addattrib(&page, PTE_PRESENT);
+            pte_addattrib(&page, PTE_WRITABLE);
             pte_setframe(&page, frame);
 
             table->entries[MEM_PAGETBL_INDEX(frame)] = page;
@@ -451,15 +616,17 @@ void mem_init() {
         pde_t *entry = &dir->entries[MEM_PAGEDIR_INDEX(table_frame)];
         pde_addattrib(entry, PDE_PRESENT);
         pde_addattrib(entry, PDE_WRITABLE);
-        pde_addattrib(entry, PDE_USER);
         pde_setframe(entry, (uint32_t)table);
         table_frame += 0x1000 * 1024;
 
         if (pages_mapped == (int)kern_pages) break;
     }
     
-    // Give some breathing room
+
+    // A little bit of breathing room. This isn't required but makes debugging easier
     mem_heapStart += 0x1000;
+
+    
 
 
     // Final prep work
@@ -535,10 +702,6 @@ void *mem_sbrk(int b) {
     mem_heapStart += b;
 
     serialPrintf("mem: Successfully allocated 0x%x - 0x%x with a b request of 0x%x\n", oldStart, mem_heapStart, b);
-    serialPrintf("mem: Physical memory blocks given:\n");
-    /*for (char *i = oldStart; i < mem_heapStart; i += 0x1000) {
-        serialPrintf("\t0x%x: 0x%x\n", i, mem_getPhysicalAddress(NULL, (uintptr_t)i));
-    }*/
 
     return oldStart;
 }

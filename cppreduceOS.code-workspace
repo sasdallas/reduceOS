@@ -79,7 +79,8 @@
 			"stat.h": "c",
 			"*.s": "c",
 			"vmm_pte.h": "c",
-			"vmm_pde.h": "c"
+			"vmm_pde.h": "c",
+			"multiboot.h": "c"
 		}
 	}
 }

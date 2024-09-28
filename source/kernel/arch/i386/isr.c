@@ -15,7 +15,7 @@ int interruptToBeAcknowledged = -1; // When an interrupt is fired, the interrupt
 
 // isrAcknowledge(uint32_t interruptNumber) - Acknowledge the current interrupt
 void isrAcknowledge(uint32_t interruptNumber) {
-    interruptCompleted(interruptNumber);
+    hal_interruptCompleted(interruptNumber);
     interruptToBeAcknowledged = -1;
 }
 
@@ -75,57 +75,57 @@ void isrIRQHandler(registers_t* reg) {
 
 void isrInstall() {
     // First, install the proper ISR exception handlers into the system.
-    setVector(0, (uint32_t)isr0);
-    setVector(1, (uint32_t)isr1);
-    setVector(2, (uint32_t)isr2);
-    setVector(3, (uint32_t)isr3);
-    setVector(4, (uint32_t)isr4);
-    setVector(5, (uint32_t)isr5);
-    setVector(6, (uint32_t)isr6);
-    setVector(7, (uint32_t)isr7);
-    setVector(8, (uint32_t)isr8);
-    setVector(9, (uint32_t)isr9);
-    setVector(10, (uint32_t)isr10);
-    setVector(11, (uint32_t)isr11);
-    setVector(12, (uint32_t)isr12);
-    setVector(13, (uint32_t)isr13);
-    setVector(14, (uint32_t)isr14);
-    setVector(15, (uint32_t)isr15);
-    setVector(16, (uint32_t)isr16);
-    setVector(17, (uint32_t)isr17);
-    setVector(18, (uint32_t)isr18);
-    setVector(19, (uint32_t)isr19);
-    setVector(20, (uint32_t)isr20);
-    setVector(21, (uint32_t)isr21);
-    setVector(22, (uint32_t)isr22);
-    setVector(23, (uint32_t)isr23);
-    setVector(24, (uint32_t)isr24);
-    setVector(25, (uint32_t)isr25);
-    setVector(26, (uint32_t)isr26);
-    setVector(27, (uint32_t)isr27);
-    setVector(28, (uint32_t)isr28);
-    setVector(29, (uint32_t)isr29);
-    setVector(30, (uint32_t)isr30);
-    setVector(31, (uint32_t)isr31);
+    hal_setInterruptVector(0, (uint32_t)isr0);
+    hal_setInterruptVector(1, (uint32_t)isr1);
+    hal_setInterruptVector(2, (uint32_t)isr2);
+    hal_setInterruptVector(3, (uint32_t)isr3);
+    hal_setInterruptVector(4, (uint32_t)isr4);
+    hal_setInterruptVector(5, (uint32_t)isr5);
+    hal_setInterruptVector(6, (uint32_t)isr6);
+    hal_setInterruptVector(7, (uint32_t)isr7);
+    hal_setInterruptVector(8, (uint32_t)isr8);
+    hal_setInterruptVector(9, (uint32_t)isr9);
+    hal_setInterruptVector(10, (uint32_t)isr10);
+    hal_setInterruptVector(11, (uint32_t)isr11);
+    hal_setInterruptVector(12, (uint32_t)isr12);
+    hal_setInterruptVector(13, (uint32_t)isr13);
+    hal_setInterruptVector(14, (uint32_t)isr14);
+    hal_setInterruptVector(15, (uint32_t)isr15);
+    hal_setInterruptVector(16, (uint32_t)isr16);
+    hal_setInterruptVector(17, (uint32_t)isr17);
+    hal_setInterruptVector(18, (uint32_t)isr18);
+    hal_setInterruptVector(19, (uint32_t)isr19);
+    hal_setInterruptVector(20, (uint32_t)isr20);
+    hal_setInterruptVector(21, (uint32_t)isr21);
+    hal_setInterruptVector(22, (uint32_t)isr22);
+    hal_setInterruptVector(23, (uint32_t)isr23);
+    hal_setInterruptVector(24, (uint32_t)isr24);
+    hal_setInterruptVector(25, (uint32_t)isr25);
+    hal_setInterruptVector(26, (uint32_t)isr26);
+    hal_setInterruptVector(27, (uint32_t)isr27);
+    hal_setInterruptVector(28, (uint32_t)isr28);
+    hal_setInterruptVector(29, (uint32_t)isr29);
+    hal_setInterruptVector(30, (uint32_t)isr30);
+    hal_setInterruptVector(31, (uint32_t)isr31);
 
     // Register all IRQs
-    setVector(32, (uint32_t)irq_0);
-    setVector(33, (uint32_t)irq_1);
-    setVector(34, (uint32_t)irq_2);
-    setVector(35, (uint32_t)irq_3);
-    setVector(36, (uint32_t)irq_4);
-    setVector(37, (uint32_t)irq_5);
-    setVector(38, (uint32_t)irq_6);
-    setVector(39, (uint32_t)irq_7);
-    setVector(40, (uint32_t)irq_8);
-    setVector(41, (uint32_t)irq_9);
-    setVector(42, (uint32_t)irq_10);
-    setVector(43, (uint32_t)irq_11);
-    setVector(44, (uint32_t)irq_12);
-    setVector(45, (uint32_t)irq_13);
-    setVector(46, (uint32_t)irq_14);
-    setVector(47, (uint32_t)irq_15);
+    hal_setInterruptVector(32, (uint32_t)irq_0);
+    hal_setInterruptVector(33, (uint32_t)irq_1);
+    hal_setInterruptVector(34, (uint32_t)irq_2);
+    hal_setInterruptVector(35, (uint32_t)irq_3);
+    hal_setInterruptVector(36, (uint32_t)irq_4);
+    hal_setInterruptVector(37, (uint32_t)irq_5);
+    hal_setInterruptVector(38, (uint32_t)irq_6);
+    hal_setInterruptVector(39, (uint32_t)irq_7);
+    hal_setInterruptVector(40, (uint32_t)irq_8);
+    hal_setInterruptVector(41, (uint32_t)irq_9);
+    hal_setInterruptVector(42, (uint32_t)irq_10);
+    hal_setInterruptVector(43, (uint32_t)irq_11);
+    hal_setInterruptVector(44, (uint32_t)irq_12);
+    hal_setInterruptVector(45, (uint32_t)irq_13);
+    hal_setInterruptVector(46, (uint32_t)irq_14);
+    hal_setInterruptVector(47, (uint32_t)irq_15);
 
     // Register exception 128 (SYSCALLS)
-    setVector_flags(128, (uint32_t)isr128, I86_IDT_DESC_RING3);
+    hal_setInterruptVectorFlags(128, (uint32_t)isr128, I86_IDT_DESC_RING3);
 }

@@ -9,7 +9,7 @@
 #include <multiboot.h>
 #include <bootelf.h>
 
-#ifdef EFI_PLATFORM
+#if defined(EFI_PLATFORM) || defined(__INTELLISENSE__)
 #include <efi.h>
 #endif
 
@@ -37,6 +37,10 @@ void bootloader_main() {
     for (;;);
 }
 
+// code order :(
+void loadKernelAout();
+
+
 // checkKernelMultiboot() - Scans the kernel's load address for a multiboot signature
 int checkKernelMultiboot() {
     for (int x = 0; x < KERNEL_PAGES; x++) {
@@ -48,9 +52,8 @@ int checkKernelMultiboot() {
 
             // Check if the bit 16 is set in MULTIBOOT_FLAGS.
             if (value[1] & (1 << 16)) {
-                setColor(0x04);
-                boot_printf("a.out formatted kernels are not currently supported.\n");
-                return -1;
+                loadKernelAout(value);
+                return 0;
             } else {
                 boot_printf("Verified kernel successfully.\n");
                 return 1;
@@ -60,11 +63,11 @@ int checkKernelMultiboot() {
 
     setColor(0x04);
     boot_printf("No multiboot structure was found - kernel invalid.\n");
-    return 0;
+    return -1;
 }
 
 
-#ifdef EFI_PLATFORM
+#if defined(EFI_PLATFORM) || defined(__INTELLISENSE__)
 /* EFI CODE */
 
 // Function prototypes
@@ -109,6 +112,23 @@ EFI_STATUS efi_init_serial() {
 
     serial->Write(serial, 6, "HELLO");
 }
+
+// loadKernelAout() - Load an aout kludge style kernel
+void loadKernelAout(uint32_t *header) {
+    // Calculate base + header offset
+    uintptr_t boff = (uintptr_t)header - (uintptr_t)KERNEL_LOAD_ADDR;
+    uintptr_t hdr_offset = header[3] - boff;
+
+    memcpy((void*)header[4], KERNEL_LOAD_ADDR + (header[4] - hdr_offset), (header[5] - header[4]));
+    memset((void*)header[5], 0, (header[6] - header[5]));
+    elf_entrypoint = header[7];
+
+    if (header[6] > elf_end) elf_end = header[6];
+    elf_end = (elf_end & ~(0xFFF)) + ((elf_end & 0xFFF) ? 0x1000 : 0);
+
+    boot_printf("Kernel loaded (a.out kludge - end 0x%x h6 0x%x)\n", elf_end, header[6]);
+}
+
 
 // getFilename() - Helper function to convert char* to CHAR16 (todo: move me to utility.c)
 void getFilename(CHAR16 *output, char *input) {
@@ -208,8 +228,11 @@ int boot() {
 
 
     // Now that we've done that, we need to check the kernel. We'll call into a global function called checkKernelMultiboot.
-    if (checkKernelMultiboot() != 1) {
+    int mbcheck = checkKernelMultiboot();
+    if (mbcheck == -1) {
         return -1;
+    } else if (mbcheck == 0) {
+        goto _finish; // The code has already done the hard work for us!
     }
 
     // Let's load the ELF file
@@ -218,10 +241,15 @@ int boot() {
     if (end == 0x0) return -1;
 
     uintptr_t entrypoint = ehdr->e_entry;
-    boot_printf("Kernel validated successfully. Entrypoint: 0x%x. End: 0x%x\n", entrypoint, end);
 
     elf_entrypoint = entrypoint;
     elf_end = end;
+
+
+_finish:
+
+
+    boot_printf("Kernel validated successfully. Entrypoint: 0x%x. End: 0x%x\n", elf_entrypoint, elf_end);
 
     // Alright, we're about ready to load the kernel. We just need to finish up by calling efi_finish() to get multiboot information.
     efi_finish();
@@ -448,16 +476,26 @@ int efi_finish() {
     }
     
 
+    // Hop to it!
+    asm volatile ("jmp %0" :: "r"(elf_entrypoint), "a"(0x2BADB002), "b"(info));
     
+    // The system should crash by now...
 }
 
 
-#else
+#elif defined(__INTELLISENSE__) || defined(BIOS_PLATFORM)
 
 static int boot() {
-    boot_printf("eksbtijaertl\n");
+    boot_printf("Polyaniline is ready. Somehow.\n");
     return 0;
 }
 
+void loadKernelAout(uint32_t *header) {
+
+}
+
+#else
+
+#error "Unknown architecture. Define your platform as X_PLATFORM, where X is your platform name"
 
 #endif

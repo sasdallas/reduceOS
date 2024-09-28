@@ -37,6 +37,7 @@ mcopy -i out/fatimg/fat_boot.img source/sysroot/boot/kernel.elf ::/KERNEL.ELF
 mcopy -i out/fatimg/fat_boot.img source/sysroot/boot/ramdisk.img ::/RAMDISK.IMG
 
 echo "-- Temporary: Creating CDROM image..."
+rm -r out/fatimg/isodir || true
 mkdir -p out/fatimg/isodir
 cp out/fatimg/fat_boot.img out/fatimg/isodir/
 cp source/sysroot/boot/kernel.elf out/fatimg/isodir/kernel

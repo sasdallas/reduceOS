@@ -1098,8 +1098,7 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
 }
 
 pagedirectory_t* cloneDirectory(pagedirectory_t* in) {
-    pagedirectory_t* out = pmm_allocateBlock();
-    mem_clone(NULL, out);
+    pagedirectory_t* out = mem_clone(NULL);
     return out;
 }
 

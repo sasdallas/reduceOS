@@ -23,8 +23,8 @@
 
 // Functions
 
-void setVector(int intNo, uint32_t vect); // Sets a new interrupt vector.
-void interruptCompleted(uint32_t intNo); // Notifies HAL interrupt is done.
+void hal_setInterruptVector(int intNo, uint32_t vect); // Sets a new interrupt vector.
+void hal_interruptCompleted(uint32_t intNo); // Notifies HAL interrupt is done.
 void enableHardwareInterrupts(); // Enable hardware interrupts
 void disableHardwareInterrupts(); // Disable hardware interrupts
 uint8_t inportb(uint16_t port); // Read data from a device using port mapped IO
@@ -35,7 +35,7 @@ void __cpuid(uint32_t type, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_
 uint32_t inportl(uint16_t port); // Read data from a device via port mapped IO
 void outportl(uint16_t port, uint32_t data); // Write data to a device via port mapped IO
 size_t msb(size_t i); // Returns the most significant bit.
-void setVector_flags(int intNo, uint32_t vect, int flags); // Sets a new interrupt vector using flags.
+void hal_setInterruptVectorFlags(int intNo, uint32_t vect, int flags); // Sets a new interrupt vector using flags.
 unsigned short hal_getBIOSArea(unsigned short offset); // Returns the value at the offset in the BDA
 
 #endif
