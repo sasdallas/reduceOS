@@ -407,6 +407,7 @@ int memoryInfo(int argc, char *args[]) {
 
     printf("Physical memory management statistics:\n");
     printf("\tMemory size: 0x%x / %i KB\n", pmm_getPhysicalMemorySize(), pmm_getPhysicalMemorySize());
+    printf("\tMemory usage: %i KB (%i KB free)\n", (pmm_getUsedBlocks() * 4096) / 1024, (pmm_getFreeBlocks() * 4096) / 1024);
     printf("\tUsed blocks: %i blocks\n", pmm_getUsedBlocks());
     printf("\tFree blocks: %i blocks\n", pmm_getFreeBlocks());
     printf("\n");
@@ -418,15 +419,19 @@ int memoryInfo(int argc, char *args[]) {
     printf("\nVirtual memory manager statistics:\n");
     printf("\tCurrently using page directory 0x%x (matches with VMM directory: %s)\n", mem_getCurrentDirectory(), (mem_getCurrentDirectory() == vmm_getCurrentDirectory()) ? "YES" : "NO");
 extern char *mem_heapStart;
-    printf("\tKernel heap: 0x%x\n", mem_heapStart);
+extern char *mem_kernelEnd;
+
+    printf("\tKernel heap usage: 0x%x - 0x%x\n", mem_kernelEnd, mem_heapStart);
     printf("\nVirtual memory manager mappings:\n");
 
     uint32_t region_start = 0;
     uint32_t region_end = 0;
     uint32_t kernel_end = 0x0;
+
+
     for (uint32_t i = 0x0; i < 0xFFFFF000; i += 0x1000) {
         pte_t *page = mem_getPage(NULL, i, 0);
-        if (page && pte_ispresent(*page)) {
+        if (page && pte_ispresent(*page) && (region_start == 0x1000 ? region_end < (uint32_t)mem_kernelEnd : true)) {
             if (region_start == 0) {
                 region_start = i;
             }
@@ -434,9 +439,8 @@ extern char *mem_heapStart;
             region_end = i;
         } else if (region_start && region_end) {
             // math is my greatest enemy, there's a bug in this code
-            if (region_start == 0x1000) {
-                region_start = 0x0;   
-            }
+            if (region_start & 0xFFFFFF) region_start -= 0x1000;
+            else region_end += 0x1000;
 
             printf("\tMapping from 0x%x - 0x%x, type is ", region_start, region_end);
 
@@ -445,11 +449,15 @@ extern char *mem_heapStart;
             else if ((region_start - kernel_end) <= 0xF000) printf("Kernel Heap Memory\n");
             else if (region_start == 0xA0000000) printf("Module Memory\n");
             else if (region_start == 0xB0000000) printf("Secondary Video Framebuffer\n");
+            else if (region_start == 0xD0000000) printf("PMM mapped memory\n");
             else if (region_start == 0xFD000000) printf("Video Memory\n");
             else printf("Unknown\n");
 
             region_start = 0;
             region_end = 0;
+
+            // We skipped a loop
+            i -= 0x1000;
         }
     }
 

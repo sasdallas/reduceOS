@@ -66,6 +66,10 @@ void usb_poll(unsigned long seconds, unsigned long subseconds) {
  */
 
 int usb_init() {
+
+    serialPrintf("[module usb] Disabled for now!\n");
+    return 0;
+
     usb_DevInit();                      // Initialize the device list
     usb_controllers = list_create();    // Initialize the controllers list
     clock_registerCallback(&usb_poll);  // Register poll method

@@ -35,7 +35,8 @@
 static pagedirectory_t *mem_currentDirectory    = 0; // Current page directory 
 static uint32_t         mem_currentPDBR         = 0; // Current page directory base register address. This should be the same as pagedirectory_t.
 char*                   mem_heapStart           = 0; // The start of our heap. Expanded using mem_sbrk
-
+char*                   mem_kernelEnd           = 0; // Where the kernel ends and the heap begins.
+char*                   mem_maxPMMUsage         = 0; // The maximum amount of bytes that the PMM can use (see mem_init())
 
 extern uint32_t end;
 
@@ -101,20 +102,21 @@ uintptr_t mem_remapPhys(uintptr_t frame_address) {
  * @brief Switch the memory management directory
  * @param pagedir The page directory to switch to
  * 
- * @warning Anything greater than IDENTITY_MAP_MAXSIZE will be truncated.
+ * @warning Pass something mapped by mem_clone() or something in the identity-mapped PMM region.
+ *          Anything greater than IDENTITY_MAP_MAXSIZE will be truncated in the PDBR.
  * 
  * @returns -EINVAL on invalid, 0 on success.
  */
 int mem_switchDirectory(pagedirectory_t *pagedir) {
     if (!pagedir) return -EINVAL;
+    
+    vmm_switchDirectory((pagedirectory_t*)((uintptr_t)pagedir & ~IDENTITY_MAP_REGION));
 
-    pagedirectory_t *pd_to_load = pagedir;
-    if ((uintptr_t)pd_to_load > IDENTITY_MAP_MAXSIZE) pd_to_load = (pagedirectory_t*)((uint32_t)pd_to_load & ~IDENTITY_MAP_REGION);
+    mem_load_pdbr((uintptr_t)pagedir & ~IDENTITY_MAP_REGION);
 
-    mem_load_pdbr((uintptr_t)pd_to_load);
-    mem_currentDirectory = pd_to_load;
+    // TODO: Should we use mem_remapPhys?
+    mem_currentDirectory = pagedir;
 
-    vmm_switchDirectory(pd_to_load); // Temporary!
     return 0; 
 }  
 
@@ -513,6 +515,7 @@ void mem_init() {
     memset(dir, 0x0, sizeof(pagedirectory_t));
 
 
+
     // We only have access to 4GB of VAS because of 32-bit protected mode (and lack of PAE support)
     // The physical memory manager is very much needed after paging is enabled, specifically for PFA
     // It's best to map this code to a specific range.
@@ -520,8 +523,6 @@ void mem_init() {
     // Calculate how many pages the PMM is using
     size_t frame_bytes = nframes * 4096; 
     frame_bytes = (frame_bytes + 0xFFF) & ~0xFFF;
-
-    serialPrintf("frames will take up %i bytes\n", frame_bytes);
 
     if (frame_bytes > IDENTITY_MAP_MAXSIZE) {
         serialPrintf("mem: WARNING! Too much memory for identity maps (0x%x bytes available, maximum identity map is 0x%x)!\n", frame_bytes, IDENTITY_MAP_MAXSIZE);   
@@ -531,7 +532,8 @@ void mem_init() {
     }
 
     size_t frame_pages = frame_bytes >> 12;
-    serialPrintf("frames will take up %i pages\n", frame_pages);
+
+    mem_maxPMMUsage = (char*)frame_bytes;
 
     // Identity mapping time! 
 
@@ -623,10 +625,8 @@ void mem_init() {
     }
     
 
-    // A little bit of breathing room. This isn't required but makes debugging easier
-    mem_heapStart += 0x1000;
 
-    
+    mem_kernelEnd = mem_heapStart;
 
 
     // Final prep work
