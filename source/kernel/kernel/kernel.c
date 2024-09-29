@@ -444,6 +444,10 @@ void useCommands() {
     signal_init();
     tty_init();
 
+    // Finalize the memory map
+    mem_finalize();
+
+
     // Try to start the init process, if available
     //char *argv[] = {"/init"};
     //system("/init", 1, argv);

@@ -49,7 +49,7 @@ int getSystemInformation(int argc, char *args[]) {
     // Tell the user.
     printf("CPU Vendor: %s\n", vendor);
     printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
-    printf("CPU frequency: %u Hz\n", getCPUFrequency());
+    printf("CPU frequency: %u MHz\n", getCPUFrequency());
 
     printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
     
@@ -1131,7 +1131,7 @@ int modinfo(int argc, char *args[]) {
 
         foreach(key, hashmap_keys(module_map)) {
             if (!strcmp((char*)key->value, name)) {
-                loaded_module_t *moddata = hashmap_get(module_map, key);
+                loaded_module_t *moddata = hashmap_get(module_map, key->value);
                 printf("Information about this module:\n");
                 printf("Name: %s\n", key->value);
                 printf("File size: %i bytes\n", moddata->file_length);
@@ -1146,7 +1146,7 @@ int modinfo(int argc, char *args[]) {
 
     printf("Information about loaded modules:\n");
     foreach(key, hashmap_keys(module_map)) {
-        loaded_module_t *module = hashmap_get(module_map, key);        
+        loaded_module_t *module = hashmap_get(module_map, key->value);        
         printf("- %s (0x%x - 0x%x)\n", key->value, module->load_addr, module->load_addr + module->load_size);
     }
 
@@ -1215,6 +1215,7 @@ int setmode(int argc, char *args[]) {
 }
 
 int leak_memory(int argc, char *args[]) {
+
     if (argc != 2 && argc != 3) {
         printf("Usage: leak <KB to leak> <optional: use SBRK, specify nothing>\n");
         return 0;

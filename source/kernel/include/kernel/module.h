@@ -41,5 +41,6 @@ void module_parseCFG();
 hashmap_t* module_getHashmap();
 void module_init();
 uint32_t module_getLoadAddress(char* modulename);
+loaded_module_t *module_getFromAddress(uintptr_t address);
 
 #endif

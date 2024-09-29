@@ -102,10 +102,11 @@ static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
     serialPrintf("[module ahci] PCI interrupt line = %d\n", pciGetInterrupt(device));
     serialPrintf("[module ahci] BAR5 = %#x\n", pciConfigReadField(device, PCI_OFFSET_BAR5, 4));
 
-    // Use the VMM to map regions
+    // Use the memory subsystem to map regions
     uint32_t addr = pciConfigReadField(device, PCI_OFFSET_BAR5, 4) & 0xFFFFFFF0;
-    vmm_allocateRegionFlags(addr, addr, 0x2000, 1, 1, 0); // do we need usermode? IRQ handler should deal with this
-    
+    mem_mapAddress(NULL, addr, addr);
+    mem_mapAddress(NULL, addr + 0x1000, addr + 0x1000);
+
     ahci_hba_mem_t *mem = (ahci_hba_mem_t*)addr;
 
     uint32_t enabledPorts = mem->ports;
@@ -116,6 +117,8 @@ static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
     // Read the AHCI version (debug)
     uint32_t ahciVersion = mem->vs;
     serialPrintf("[module ahci] Controller version %d.%d%d\n", (ahciVersion >> 16) & 0xFFF, (ahciVersion >> 8) & 0xFF, (ahciVersion) & 0xFF);
+    printf("[module ahci] AHCI controller loaded - controller version %d.%d%d\n", (ahciVersion >> 16) & 0xFFF, (ahciVersion >> 8) & 0xFF, (ahciVersion) & 0xFF); // debug code for a system I'm testing
+
 
     ahci_probePorts(mem);
 }

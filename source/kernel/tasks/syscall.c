@@ -53,10 +53,11 @@ void syscallHandler(registers_t* regs) {
     uint32_t syscallNumber = regs->eax;
 
     heavy_dprintf("handle syscall START - num %i...\n", syscallNumber);
-
+    serialPrintf("[syscall] Received %i\n", syscallNumber);
 
     // Check if system call number is valid.
     if (syscallNumber >= syscallAmount) {
+        serialPrintf("[syscall] Invalid system call received - %i.\n", syscallNumber);
         return; // Requested call number >= available system calls
     }
 
@@ -74,6 +75,8 @@ void syscallHandler(registers_t* regs) {
         panic("reduceOS", "Debug", "-ERESTARTSYS received - do we restart?");
     }
 
+    serialPrintf("[syscall] Finished handling. Return value: %i\n", returnValue);
+
     heavy_dprintf("handle syscall STOP - ret %i...\n", returnValue);
 
     // Set EAX to the return value
@@ -83,7 +86,7 @@ void syscallHandler(registers_t* regs) {
 
 /* SYSTEM CALL HELPERS */
 
-// syscall_validatePointer(void *ptr, const char *syscall) - Validate that a pointer is within range of the program's address space
+// syscall_validatePointer(void* ptr, const char* syscall) - Validate that a pointer is within range of the program's address space
 int syscall_validatePointer(void* ptr, const char* syscall) {
     if (ptr) {
         if (PTR_INRANGE(ptr)) {
@@ -113,7 +116,7 @@ int syscall_validatePointer(void* ptr, const char* syscall) {
             for (;;);
         }
 
-        pte_t* page = vmm_getPage(ptr);
+        pte_t* page = mem_getPage(NULL, (uintptr_t)ptr, 0);
         if (!page) return 1;
         if (!pte_ispresent(*page) || !pte_iswritable(*page) || (*page & PTE_USER) == PTE_USER) return 1;
     }
@@ -140,6 +143,7 @@ void _exit(int status) {
 // SYSCALL 2 (https://man7.org/linux/man-pages/man2/read.2.html)
 // NOTE: Should return a ssize_t but long works I think
 long sys_read(int file_desc, void* buf, size_t nbyte) {
+    serialPrintf("sys_read: %i 0x%x %i\n", file_desc, buf, nbyte);
     if (!nbyte) return 0;
 
     if (!SYS_FD_VALIDATE(file_desc)) { return -EBADF; }
@@ -153,7 +157,11 @@ long sys_read(int file_desc, void* buf, size_t nbyte) {
 
 // SYSCALL 3 (https://man7.org/linux/man-pages/man2/write.2.html)
 long sys_write(int file_desc, char* buf, size_t nbyte) {
+    serialPrintf("sys_write: %i 0x%x %i\n", file_desc, buf, nbyte);
+    serialPrintf("%s\n", buf);
     if (!nbyte) return 0;
+
+
 
     if (!SYS_FD_VALIDATE(file_desc)) { return -EBADF; }
 
@@ -379,23 +387,27 @@ int sys_open(const char* name, int flags, int mode) {
 uint32_t sys_sbrk(int incr) {
     process_t* proc = currentProcess;
 
-    if (!proc) return -1;
-
-    spinlock_lock(&proc->image.spinlock);
-
-    uintptr_t out = proc->image.heap; // Old heap value
-
-
-    // Make sure something isn't going on
-    if (proc->image.heap + incr < proc->image.heap_start) {
-        panic("reduceOS", "DEBUG SYSCALL", "The process heap expanded to below its start.");
+    if (!proc) return -1; // bro what
+    
+    if (incr < 0) {
+        panic("reduceOS", "DEBUG", "sys_sbrk debug break");
     }
 
-    proc->image.heap += incr;
-    proc->image.heap_end += incr;
 
-    spinlock_release(&proc->image.spinlock);
-    serialPrintf("sys_sbrk: Heap done - new value: 0x%x - 0x%x, update by %i\n", proc->image.heap_start, (uint32_t)out + incr, incr);
+    uintptr_t out = currentProcess->image.heap_end;
+
+    spinlock_lock(&currentProcess->image.spinlock);
+    for (uintptr_t i = out; i < out + incr; i += 0x1000) {
+        // Create new pages
+        pte_t *page = mem_getPage(NULL, i, MEM_CREATE); // Do we need to use current process page directory instead?
+        mem_allocatePage(page, MEM_DEFAULT);
+    }
+    proc->image.heap_end += incr;
+    proc->image.heap = proc->image.heap_end;
+    spinlock_release(&currentProcess->image.spinlock);
+
+    serialPrintf("sys_sbrk: Expanded process heap from 0x%x - 0x%x\n", out, currentProcess->image.heap_end);
+
     return (uint32_t)out;
 }
 

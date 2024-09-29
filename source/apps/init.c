@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
     // Step one is to setup the file descriptor outputs
     open("/device/console", 0);
     open("/device/console", 1);
-    open("/device/console", 1); // stderr will be forced anyways, this doesn't really matter
+    open("/device/console", 1); 
 
     // Step two is to print out the loading message
     printf("reduceOS is loading, please wait...\n");

@@ -7,6 +7,7 @@
 #include <kernel/mod.h>
 #include <kernel/vfs.h>
 #include <kernel/elf.h>
+#include <kernel/args.h>
 #include <libk_reduced/stdio.h>
 
 // Modules are NEVER unloaded, and we always will have them start at MODULE_ADDR_START (default is 0xA0000000)
@@ -14,6 +15,26 @@ uint32_t last_load_address = MODULE_ADDR_START; // Incremented when a module is 
 hashmap_t *module_hashmap = NULL;
 char *moduser_buf = NULL;
 
+loaded_module_t *module_getFromAddress(uintptr_t address) {
+    if (address > last_load_address || address < MODULE_ADDR_START) {
+        serialPrintf("rejecting address 0x%x - last_load_address 0x%x\n", address, last_load_address);
+        return NULL;
+    }
+
+    foreach(key, hashmap_keys(module_hashmap)) {
+        loaded_module_t *module_data = (loaded_module_t*)hashmap_get(module_hashmap, key->value);
+        if (!module_data) {
+            serialPrintf("module_getFromAddress: No data on key %s\n", key->value);
+            return NULL;
+        }
+
+        if (address < module_data->load_addr + module_data->load_size && address > module_data->load_addr) {
+            return module_data;
+        }
+    }
+
+    return NULL;
+}
 
 
 // module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdataout) - Loads a module for modfile
@@ -23,7 +44,7 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
         return MODULE_PARAM_ERROR;
     }
 
-    int error;
+    int error, has_constructed_module = 0;
 
 
     // A bit hacky, but it works lol
@@ -66,6 +87,21 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
         goto _unmap_module;
     }
 
+    // BEFORE WE LOAD THE MODULE WE NEED TO CATER TO DEBUGGERS!
+
+    // Construct a loaded module
+    loaded_module_t *loadedModule = kmalloc(sizeof(loaded_module_t));
+    loadedModule->load_addr = last_load_address;
+    loadedModule->metadata = data;
+    loadedModule->load_size = length;
+    loadedModule->file_length = modfile->length;
+
+    hashmap_set(module_hashmap, data->name, (void*)loadedModule);
+    last_load_address += length;
+
+    has_constructed_module = 1;
+
+    // Alrighty, now time to go!
 
     serialPrintf("module_load: Loading module '%s'...\n", data->name);
     int status = data->init(argc, args);
@@ -77,24 +113,31 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
         goto _unmap_module;
     }
 
-    // We did it! Construct a loaded module first
-    loaded_module_t *loadedModule = kmalloc(sizeof(loaded_module_t));
-    loadedModule->load_addr = last_load_address;
-    loadedModule->metadata = data;
-    loadedModule->load_size = length;
-    loadedModule->file_length = modfile->length;
-
-    hashmap_set(module_hashmap, data->name, (void*)loadedModule);
-    last_load_address += length;
+    
     if (mdataout != NULL) memcpy(mdataout, data, sizeof(struct Metadata));
 
     return MODULE_OK;
 
 _unmap_module:
-    for (uintptr_t i = last_load_address; i < last_load_address + length; i += 0x1000) {
-        pte_t *page = mem_getPage(NULL, i, 0);
-        mem_freePage(page);
+    if (has_constructed_module) {
+        for (uintptr_t i = last_load_address - length; i < last_load_address; i += 0x1000) {
+            pte_t *page = mem_getPage(NULL, i, 0);
+            mem_freePage(page);
+        }
+
+        last_load_address -= length;
+
+        hashmap_remove(module_hashmap, data->name);
+        kfree(loadedModule);
+    } else {
+        for (uintptr_t i = last_load_address; i < last_load_address + length; i += 0x1000) {
+            pte_t *page = mem_getPage(NULL, i, 0);
+            mem_freePage(page);
+        }
     }
+
+
+    
 
     return error;
 }
@@ -173,7 +216,30 @@ void module_parseCFG() {
         panic("module", "module_parseCFG", "Failed to read mod_user.conf");
     }
 
+    // We need to check whether a parameter was specified to skip the driver.
+    // TODO: Inefficient!
+    hashmap_t *skip_modules = NULL;
+    if (args_has("--skip_modules")) {
+        serialPrintf("module: Boot-time parameter --skip_modules found, parsing...\n");
+        // Create the hashmap
+        skip_modules = hashmap_create(10);
+        char *skip_modules_raw = args_get("--skip_modules");
+        if (!skip_modules_raw) { goto _cont; }
+
+        char *save_ptr;
+        char *token = strtok_r(skip_modules_raw, ",", &save_ptr);
+        while (token != NULL) {
+            hashmap_set(skip_modules, token, (void*)NULL); // NEVER USE HASHMAP_GET! Only use hashmap_has!
+
+            token = strtok_r(NULL, ",", &save_ptr);
+        }
+    }
+
+_cont: ; // GCC!!!
+
+
     // Let's start by initializing and parsing the boot-time drivers
+
     char *save;
     char *token = strtok_r(modboot_buf, "\n", &save);
     int line = 1;
@@ -200,6 +266,15 @@ void module_parseCFG() {
             char *filename = kmalloc(strlen(token));
             strcpy(filename, token + (strchr(token, ' ')-token) + 1);
             
+
+            if (skip_modules) {
+                // This nested if-statement is required because kernel will page fault
+                if (hashmap_has(skip_modules, filename)) {
+                    serialPrintf("module_parseCFG: Skipping module '%s' as specified in boot arguments\n", filename);
+                    kfree(filename);
+                    goto _nextToken;
+                }
+            }
 
 
             // Let's get the priority next
@@ -256,6 +331,11 @@ void module_parseCFG() {
             } else {
                 printf("Successfully loaded module '%s'.\n", filename);
             }
+
+            kfree(filename);
+            kfree(priority);
+            kfree(fullpath);
+
 
             // We r done
             goto _nextToken;

@@ -25,8 +25,6 @@ void *kmalloc(size_t size){
     if (liballoc_enabled) {
         void *out = liballoc_kmalloc(size);
 
-        heavy_dprintf("kernel allocate %i bytes to 0x%x\n", size, out);
-
         return out;
     } else {
         panic("reduceOS", "trap", "deprecated secondary kmalloc");
@@ -38,21 +36,16 @@ void *kmalloc(size_t size){
 void *krealloc(void *a, size_t b) {
     void *out = liballoc_krealloc(a, b);
 
-    heavy_dprintf("kernel reallocate %i bytes from 0x%x to 0x%x\n", b, a, out);
-
     return out;
 }
 
 void *kcalloc(size_t a, size_t b) {
     void *out = liballoc_kcalloc(a, b);
     
-    heavy_dprintf("kernel calloc %i bytes %i times to 0x%x\n", a, b, out);
-    
     return out;
 }
 
 void kfree(void *a) {
     liballoc_kfree(a);
-    heavy_dprintf("kernel free ptr 0x%x\n", a);
 }
 

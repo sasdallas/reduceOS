@@ -15,3 +15,7 @@ define debug-elf
 	# Load the symbol file
 	add-symbol-file $arg0 $text_address
 end
+
+define debug-module
+	add-symbol-file $arg0 $arg1
+end

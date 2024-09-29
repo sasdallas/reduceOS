@@ -31,7 +31,7 @@ load_context:
     mov %gs:0x10, %eax
     cmp %gs:0x0, %eax
     je 1f
-    lock andl $0xFFFFfff7, 0x14(%eax)
+    # lock andl $0xFFFFfff7, 0x14(%eax)
 1:
     movl 4(%esp), %edi
     

@@ -42,9 +42,13 @@ Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesy
 Scary! I wouldn't do this, but it's possible. Here are some issues I've encountered:
 
 **reduceOS will commonly fail to initialize a video driver.** If this happens you'll see the message that says "BIOS call failed". To fix this, add `--force_vga` to the boot arguments in GRUB (the only way you'll see the BIOS call failed message is with this anyways)
--  **IMPORTANT:** The kernel's bootloader will automatically ask GRUB for a framebuffer in 1024x768x32 mode. If GRUB provides this, it will set the mode and render it useless.
+-  **IMPORTANT:** The kernel's bootloader will automatically ask GRUB for a framebuffer in 1024x768x32 mode. If GRUB provides this, it will set the mode and render it useless. To fix this, you can remove the VESA framebuffer multiboot sections from bootstrap. 
 
-**Occasionally module and debug symbols will fail to load.** No way to fix this unless you patch the kernel.
+**Modules such as the prototype AHCI driver will fail to load.** Use the boot argument `--skip_modules=<filename>` to skip these modules. This should work.
+
+**Tasking (last stage) crashes the system** The boot argument `--no_tasking` should help here. Be warned the system will be unstable!
+
+**There is no video driver, but I have a COM port!** Use the boot argument `--force_headless` to put reduceOS into serial-only mode.
 
 If you manage to get reduceOS running, then tell me in our Discord server or in GitHub issues!
 

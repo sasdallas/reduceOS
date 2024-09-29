@@ -835,3 +835,25 @@ void*   PREFIX(realloc)(void *p, size_t size)
 
 
 
+void*	PREFIX(valloc)(size_t size) {
+	/**
+	 * DO NOT DO THIS!!!
+	 * DO NOT FREE ANYTHING GIVEN BY THIS
+	 * DO NOT RELY ON SENSITIVE DATA TO BE RETAINED BY THIS
+	 * DO NOT EXPECT THIS TO NOT CRASH
+	 */
+
+	uintptr_t true_size = size + l_pageSize;
+    void* result = PREFIX(malloc)(true_size);
+    if (!result) return NULL;
+    
+    void* out = (void*)(((uintptr_t)result + l_pageSize - 1) & ~(l_pageSize - 1));
+    
+    // Ensure we have enough space after alignment
+    if ((uintptr_t)out + size > (uintptr_t)result + true_size) {
+        PREFIX(free)(result);
+        return NULL;
+    }
+    
+    return out;
+}

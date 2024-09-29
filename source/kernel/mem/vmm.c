@@ -42,13 +42,7 @@ void vmm_loadPDBR(uint32_t pdbr_addr) {
 
 // vmm_switchDirectory(pagedirectory_t *directory) - Changes the current page directory.
 bool vmm_switchDirectory(pagedirectory_t *directory) {
-    if (directory == NULL) {
-        serialPrintf("vmm_switchDirectory: Unknown directory.\n");
-        return false;
-    }
-
     currentDirectory = directory;
-    vmm_loadPDBR((uint32_t)currentDirectory); // Load the new directory into the page directory base register (CR3)
     return true;
 }
 

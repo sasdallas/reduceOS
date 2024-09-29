@@ -31,7 +31,7 @@
 #include <libk_reduced/errno.h>
 
 
-
+static pagedirectory_t *mem_kernelDirectory     = 0; // The kernel's page directory. Setup by mem_finalize
 static pagedirectory_t *mem_currentDirectory    = 0; // Current page directory 
 static uint32_t         mem_currentPDBR         = 0; // Current page directory base register address. This should be the same as pagedirectory_t.
 char*                   mem_heapStart           = 0; // The start of our heap. Expanded using mem_sbrk
@@ -81,7 +81,7 @@ static inline void mem_invalidatePage(uintptr_t addr) {
  * @param pagedir The address of the page directory to load
  */
 static inline void mem_load_pdbr(uintptr_t addr) {
-    asm volatile ("mov %%cr3, %0" :: "r"(addr));
+    asm volatile ("mov %0, %%cr3" :: "r"(addr));
     mem_currentPDBR = addr;
 }
 
@@ -110,12 +110,13 @@ uintptr_t mem_remapPhys(uintptr_t frame_address) {
 int mem_switchDirectory(pagedirectory_t *pagedir) {
     if (!pagedir) return -EINVAL;
     
-    vmm_switchDirectory((pagedirectory_t*)((uintptr_t)pagedir & ~IDENTITY_MAP_REGION));
+    serialPrintf("mem: 0x%x - loading pdbr to 0x%x\n", pagedir, (uintptr_t)pagedir & ~IDENTITY_MAP_REGION);
 
     mem_load_pdbr((uintptr_t)pagedir & ~IDENTITY_MAP_REGION);
 
     // TODO: Should we use mem_remapPhys?
     mem_currentDirectory = pagedir;
+    vmm_switchDirectory(pagedir);
 
     return 0; 
 }  
@@ -215,6 +216,22 @@ bad_page:
     return NULL;
 }
 
+
+/**
+ * @brief Map a physical address to a virtual address
+ * 
+ * @param dir The directory to map them in (leave blank for current)
+ * @param phys The physical address
+ * @param virt The virtual address
+ */
+void mem_mapAddress(pagedirectory_t *dir, uintptr_t phys, uintptr_t virt) {
+    pagedirectory_t *directory = dir;
+    if (dir == NULL) directory = mem_getCurrentDirectory();
+
+    pte_t *page = mem_getPage(directory, virt, MEM_CREATE);
+    pte_setframe(page, phys);
+}
+
 /**
  * @brief Allocate a page using the physical memory manager
  * 
@@ -225,6 +242,12 @@ bad_page:
  * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified.
  */
 void mem_allocatePage(pte_t *page, uint32_t flags) {
+    if (flags & MEM_FREE_PAGE) {
+        if (pte_getframe(*page)) pmm_freeBlock((void*)pte_getframe(*page));
+        *page = 0;
+        return;
+    }
+
     // MEM_NOALLOC specifies we shouldn't allocate something for the page.
     if (!(flags & MEM_NOALLOC)) {
         void *block = pmm_allocateBlock();
@@ -235,10 +258,7 @@ void mem_allocatePage(pte_t *page, uint32_t flags) {
         serialPrintf("mem: NOALLOC specified (debug)\n");
     }
 
-    if (flags & MEM_FREE_PAGE) {
-        *page = 0;
-        return;
-    }
+    
 
     // Let's setup the bits
     *page = (flags & MEM_NOT_PRESENT) ? (*page & ~PTE_PRESENT) : (*page | PTE_PRESENT);
@@ -249,6 +269,7 @@ void mem_allocatePage(pte_t *page, uint32_t flags) {
 }
 
 
+
 /**
  * @brief Free a page
  * 
@@ -256,9 +277,9 @@ void mem_allocatePage(pte_t *page, uint32_t flags) {
  */
 void mem_freePage(pte_t *page) {
     // Get the physical address and free it
-    uintptr_t paddr = pte_getframe(*page);
-    if (paddr) pmm_freeBlock((void*)paddr);
+    if (!page) return;
     mem_allocatePage(page, MEM_FREE_PAGE);
+    
 }
 
 /**
@@ -266,6 +287,13 @@ void mem_freePage(pte_t *page) {
  */
 pagedirectory_t *mem_getCurrentDirectory() {
     return mem_currentDirectory;
+}
+
+/**
+ * @brief Get the kernel page directory
+ */
+pagedirectory_t *mem_getKernelDirectory() {
+    return mem_kernelDirectory;
 }
 
 
@@ -555,6 +583,7 @@ void mem_init() {
 
             pte_addattrib(&page, PTE_PRESENT);
             pte_addattrib(&page, PTE_WRITABLE);
+            pte_addattrib(&page, PTE_USER);
             pte_setframe(&page, frame);
 
             table->entries[MEM_PAGETBL_INDEX(frame + IDENTITY_MAP_REGION)] = page;
@@ -570,6 +599,7 @@ void mem_init() {
         pde_t *entry = &dir->entries[MEM_PAGEDIR_INDEX(table_frame + IDENTITY_MAP_REGION)];
         pde_addattrib(entry, PDE_PRESENT);
         pde_addattrib(entry, PDE_WRITABLE);
+        pde_addattrib(entry, PDE_USER);
         pde_setframe(entry, (uint32_t)table);
         table_frame += 0x1000 * 1024;
 
@@ -625,14 +655,13 @@ void mem_init() {
     }
     
 
-
+    // Setup final variables
     mem_kernelEnd = mem_heapStart;
-
+    mem_kernelDirectory = dir;
 
     // Final prep work
     isrRegisterInterruptHandler(14, (ISR)pageFault);
-    mem_switchDirectory(dir);
-    vmm_switchDirectory(dir);
+    mem_switchDirectory(mem_kernelDirectory);
     vmm_enablePaging();
 
     serialPrintf("mem: The memory allocation system has initialized. Statistics:\n");
@@ -666,11 +695,9 @@ void *mem_sbrk(int b) {
     // Do they want to shrink the kernel heap?
     if (b < 0) {
         // just reverse everything lol
-        for (char *i = mem_heapStart; i > mem_heapStart - b; i -= 0x1000) {
-            pte_t *page = mem_getPage(NULL, (uintptr_t)i, 0);
-            if (page == NULL) panic("reduceOS", "sys_sbrk", "Page not present");
-
-            mem_freePage(page);
+        for (char *i = mem_heapStart; i > mem_heapStart + b; i -= 0x1000) {
+            
+            mem_freePage(mem_getPage(NULL, (uintptr_t)i, 0));
         }
 
 
@@ -679,8 +706,6 @@ void *mem_sbrk(int b) {
 
         serialPrintf("mem: sbrk shrunk heap from 0x%x to 0x%x (b was %i)\n", oldStart, mem_heapStart, b);
         return oldStart;
-        
-        return mem_heapStart;
     }
 
     // Let's allocate some pages
@@ -694,7 +719,7 @@ void *mem_sbrk(int b) {
         }
 
         pte_t *page = mem_getPage(NULL, (uintptr_t)i, MEM_CREATE);
-        mem_allocatePage(page, MEM_WRITETHROUGH | MEM_KERNEL);
+        mem_allocatePage(page, MEM_WRITETHROUGH);
     }
 
 
@@ -704,4 +729,14 @@ void *mem_sbrk(int b) {
     serialPrintf("mem: Successfully allocated 0x%x - 0x%x with a b request of 0x%x\n", oldStart, mem_heapStart, b);
 
     return oldStart;
+}
+
+
+/**
+ * @brief Finalize any changes to the memory system
+ */
+void mem_finalize() {
+    // Fill in anything you need here.
+
+    serialPrintf("mem: Finalized memory system successfully.\n");
 }

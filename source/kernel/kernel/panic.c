@@ -17,6 +17,7 @@
 #include <kernel/process.h>
 #include <kernel/signal.h>
 #include <kernel/debug.h>
+#include <kernel/module.h>
 #include <libk_reduced/stdio.h>
 
 
@@ -131,9 +132,32 @@ void panic_dumpPMM() {
 // This function performes a stack trace to get the callers of panic.
 #pragma GCC diagnostic ignored "-Wuninitialized" // Stack frame is technically uninitialized as NULL but stk itself is never used, only EBP
 void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
+    // WARNING: Inefficient. We dry run the stack to see if there's a module mixed in there.
+    // Make sure that the fault itself didn't occur in a module (uh oh)
+    // This is bad because 
+    stack_frame *stk2;
+    stk2->ebp = (stack_frame*)reg->ebp;
+    stk2->eip = reg->eip;
+    for (uint32_t frame = 0; stk2 && frame < maximumFrames; frame++) {
+        loaded_module_t *module = module_getFromAddress(stk2->eip);
+        if (module) {
+            // dang.
+            printf("\nThe fault appears to have origininated in the module '%s'.\n", module->metadata->name);
+            printf("Please remove this module from the reduceOS initial ramdisk and your main partition if present.\n");
+        
+            serialPrintf("\nThe fault may have been located in module '%s'.\n", module->metadata->name);
+            serialPrintf("\tModule load address: 0x%x - 0x%x\n\tFault: 0x%x\n", module->load_addr, module->load_addr + module->load_size, reg->eip);
+        }
+        stk2 = stk2->ebp;
+    }
+
+
+    // Reset stack frame
     stack_frame *stk;
     stk->ebp = (stack_frame*)reg->ebp;
     stk->eip = reg->eip;
+
+
     
     printf("\nStack trace:\n");
     serialPrintf("\nSTACK TRACE (EBP based):\n");
@@ -147,10 +171,19 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
 
         // Make sure the code is in kernelspace, else the symbol finder might crash
         if (stk->eip && (stk->eip < (uint32_t)&text_start || stk->eip > (uint32_t)&bss_end)) {
-            printf("Frame %i: 0x%x (outside of kspace)\n", frame, stk->eip);
+
+            // Okay, it's outside of kernel space, could it be in module space?
+            loaded_module_t *module = module_getFromAddress(stk->eip);
+            if (module) {
+                // Yes, it is!
+                printf("Frame %i: 0x%x (in module %s)\n", frame, stk->eip, module->metadata->name);
+                serialPrintf("FRAME %i: IP 0x%x (in module %s, with base 0x%x)\n", frame, stk->eip, module->metadata->name, module->load_addr);
+                goto _done;
+            }
+
+            printf("Frame %i: 0x%x (outside of kernel)\n", frame, stk->eip);
             serialPrintf("FRAME %i: IP 0x%x (outside of kspace)\n", frame, stk->eip);
-            stk = stk->ebp;
-            continue;
+            goto _done;
         }
 
         // Try to get the symbol
@@ -170,9 +203,10 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
             serialPrintf("FRAME %i: IP 0x%x (err = %i, unknown)\n", frame, stk->eip, err);
         }
 
-        kfree(sym->symname); // ugh...
+        if (sym->symname) kfree(sym->symname); // ugh...
         kfree(sym);
 
+    _done:
         stk = stk->ebp;
     }
 }
@@ -422,38 +456,16 @@ void pageFault(registers_t *reg) {
         return;
     }
 
-    // See syscall.c for an explanation on how this works
-    // We'll map more stack and quietly return
-    if (faultAddress < 0xC0000000 && faultAddress > 0xBFF00000) {
-        serialPrintf("Userstack page fault! Unimplemented - need to map more stack.\n", faultAddress);
-        for (;;);
-        return;
-    }
-
-    if (faultAddress > currentProcess->image.heap_start && faultAddress < currentProcess->image.heap_end) {
-        heavy_dprintf("*** Process heap page fault. Trying to allocate more pages...\n");
-        void *block = pmm_allocateBlock();
-        
-        if (!block) {
-            // crap
-            heavy_dprintf("*** HEAP ALLOCATION FAILED - NO FREE PMM BLOCKS (did you not clean up?)\n");
-            serialPrintf("pageFault: No free blocks\n");
-            panic("reduceOS", "kernel", "The kernel failed to manage the current process and ran out of memory.");
-        }
-
-        vmm_allocateRegionFlags((uintptr_t)block, faultAddress, 0x1000, 1, 1, 1);
-        return;
-    }
-
-    
-
 
     // Only faults in the kernel are critical. If it was a usermode process, we don't care.
     // To prevent it from continuously faulting (because we'd just jump back to the same EIP), send SIGSEGV to kill it.
     // If the process catches it, god help you.
     if (reg->cs != 0x08 && currentProcess) {
         // stupid processes
-        serialPrintf("pageFault: Current process attempted to access a bad memory address (0x%x)\n", faultAddress);
+        serialPrintf("kernel: Process %i (%s) attempted to access a bad memory address (0x%x)\n", currentProcess->id, currentProcess->name, faultAddress);
+        serialPrintf("kernel: Flags: %s%s%s%s\n", (present) ? "present, " : "not present, ", (rw) ? "write error, " : "read error, ", (user) ? "usermode, " : "kernel mode, ", (reserved) ? "reserved bits set, " : "\0");
+
+        
 
         heavy_dprintf("Bad memory address in current process - pid %i name %s\n", currentProcess->id, currentProcess->name);
         heavy_dprintf("\theap 0x%x - 0x%x\n", currentProcess->image.heap_start, currentProcess->image.heap_end);

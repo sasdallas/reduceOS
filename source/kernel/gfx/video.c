@@ -95,7 +95,10 @@ void video_init() {
         modeHeight  = globalInfo->framebuffer_height;
         modeBpp     = globalInfo->framebuffer_bpp;
         modePitch   = globalInfo->framebuffer_pitch;
+        
+        // The framebuffer is really garbled when this happens because of random PMM junk so clear it
         framebuffer = kmalloc(globalInfo->framebuffer_width * globalInfo->framebuffer_height * 4);
+        memset(framebuffer, 0, globalInfo->framebuffer_width * globalInfo->framebuffer_height * 4);
 
         /*framebuffer = (uint8_t*)0xB0000000;
         void *blocks = pmm_allocateBlocks((globalInfo->framebuffer_width * globalInfo->framebuffer_height) / 4096);

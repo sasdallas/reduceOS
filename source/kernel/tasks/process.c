@@ -83,6 +83,7 @@ void process_switchNext() {
 
     // Restore paging and task switch context
     spinlock_lock(&switch_lock);
+    serialPrintf("process: switching directory to 0x%x for process %i (%s)\n", currentProcess->thread.page_directory, currentProcess->id, currentProcess->name);
     mem_switchDirectory(currentProcess->thread.page_directory);
     spinlock_release(&switch_lock);
 
@@ -165,16 +166,12 @@ static void kidle() {
     }
 }
 
-// process_releaseDirectory(thread_t *thread) - Release a process's paging data
-void process_releaseDirectory(thread_t* thread) {
-    serialPrintf("Releasing process directory for thread 0x%x\n", thread);
-    spinlock_lock(thread->pd_lock);
-    thread->refcount--;
-    if (thread->refcount < 1) {
-        kfree(thread->page_directory);
-    } else {
-        spinlock_release(thread->pd_lock);
-    }
+// process_releaseDirectory(pagedirectory_t *dir) - Release a process's paging data
+void process_releaseDirectory(pagedirectory_t *dir) {
+    serialPrintf("process: Releasing process directory for pd 0x%x\n", dir);
+    pte_t *mapped_page = mem_getPage(NULL, (uintptr_t)dir, 0);
+    if (mapped_page) mem_freePage(mapped_page);
+    
 }
 
 // spawn_kidle(int bsp) - Spawns the kernel's idle process
@@ -184,9 +181,12 @@ process_t* spawn_kidle(int bsp) {
     idle->flags = PROCESS_FLAG_IS_TASKLET | PROCESS_FLAG_STARTED | PROCESS_FLAG_RUNNING;
 
     // Create a stack for the image and map it to kernel (non-user)
-    idle->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE; // WARNING: BUG HERE - THIS IS NOT ALIGNED
-    /*vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack,
-                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), idle->image.stack), PTE_PRESENT);*/
+    // This is DEFINITELY unsafe.
+    idle->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
+    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, (idle->image.stack - KSTACK_SIZE) + i, MEM_CREATE);
+        mem_allocatePage(page, MEM_DEFAULT);
+    }
 
     // Setup thread context
     idle->thread.context.ip = (uint32_t)&kidle;
@@ -199,7 +199,7 @@ process_t* spawn_kidle(int bsp) {
     gettimeofday(&idle->start, NULL);
 
     // Setup the page directory and clone it from kspace
-    idle->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
+    idle->thread.page_directory = cloneDirectory(mem_getCurrentDirectory());
     idle->thread.refcount = 1;
     idle->thread.pd_lock = spinlock_init(); // bug?
 
@@ -242,10 +242,11 @@ process_t* spawn_init() {
     init->image.heap = 0;
     init->image.heap_start = 0;
     init->image.heap_end = 0;
-    init->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
-    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), init->image.stack,
-                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), init->image.stack), PTE_PRESENT);
-
+    init->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
+    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, (init->image.stack - KSTACK_SIZE) + i, MEM_CREATE);
+        mem_allocatePage(page, MEM_DEFAULT); // This will also set usermode flags for the page
+    }
     // Setup flags
     init->flags = PROCESS_FLAG_STARTED | PROCESS_FLAG_RUNNING;
 
@@ -274,7 +275,7 @@ process_t* spawn_init() {
     init->file_descs->fd_lock = spinlock_init();
 
     // Setup the page directory
-    init->thread.page_directory = vmm_getCurrentDirectory();
+    init->thread.page_directory = mem_getCurrentDirectory();
     init->thread.refcount = 1;
     init->thread.pd_lock = spinlock_init();
 
@@ -308,9 +309,15 @@ process_t* spawn_process(volatile process_t* parent, int flags) {
     proc->image.heap = parent->image.heap;
     proc->image.heap_end = parent->image.heap_end;
     proc->image.heap_start = parent->image.heap_start;
-    proc->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
-    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack,
-                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack), PTE_PRESENT);
+
+    // Create a stack for the image and map it to kernel (non-user)
+    // This is DEFINITELY unsafe.
+    proc->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
+    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, (proc->image.stack - KSTACK_SIZE) + i, MEM_CREATE);
+        mem_allocatePage(page, MEM_DEFAULT);
+    }
+
     proc->image.shm_heap = NULL; // Unused
 
     proc->wd_node = kmalloc(sizeof(fsNode_t));
@@ -373,14 +380,13 @@ process_t* spawn_process(volatile process_t* parent, int flags) {
 
 // process_reap(process_t *proc) - Frees & releases the process
 void process_reap(process_t* proc) {
-    // Remap the stack bottom to be writable
-    vmm_mapPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack,
-                           (uint32_t)vmm_getPhysicalAddress(vmm_getCurrentDirectory(), proc->image.stack),
-                           PTE_PRESENT | PTE_WRITABLE);
-
     // Free the stack
-    kfree((void*)(proc->image.stack - KSTACK_SIZE));
-    process_releaseDirectory(&proc->thread);
+    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
+        pte_t *page = mem_getPage(currentProcess->thread.page_directory, (currentProcess->image.stack - KSTACK_SIZE) + i, 0);
+        if (page) mem_freePage(page);
+    }
+
+    process_releaseDirectory(proc->thread.page_directory);
 
     kfree(proc->name);
     if (proc->description) kfree(proc->description);
@@ -1059,13 +1065,19 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
     proc->job = proc->id;
     proc->session = proc->id;
 
+    // Setup the image stack
+    // This is DEFINITELY unsafe.
+    proc->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
+    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, (proc->image.stack - KSTACK_SIZE) + i, MEM_CREATE);
+        mem_allocatePage(page, MEM_DEFAULT);
+    }
+
     // Setup page directory
-    proc->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory()); // Is this possibly bugged?
+    proc->thread.page_directory = cloneDirectory(mem_getKernelDirectory());
     proc->thread.refcount = 1;
     proc->thread.pd_lock = spinlock_init();
 
-    // Setup the image stack
-    proc->image.stack = (uintptr_t)kmalloc(KSTACK_SIZE) + KSTACK_SIZE;
     PUSH(proc->image.stack, uintptr_t, (uintptr_t)entrypoint);
     PUSH(proc->image.stack, void*, argp);
 
@@ -1098,7 +1110,7 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
 }
 
 pagedirectory_t* cloneDirectory(pagedirectory_t* in) {
-    pagedirectory_t* out = mem_clone(NULL);
+    pagedirectory_t* out = mem_clone((in != NULL) ? in : NULL);
     return out;
 }
 
@@ -1128,13 +1140,15 @@ int createProcess(char* filepath, int argc, char* argv[], char* envl[], int envc
     }
 
     spinlock_lock(&switch_lock); // We're going to be greedy and lock it until we're done.
-    currentProcess->thread.page_directory = cloneDirectory(vmm_getCurrentDirectory());
+    pagedirectory_t *old_directory = currentProcess->thread.page_directory;
+    currentProcess->thread.page_directory = cloneDirectory(mem_getKernelDirectory());
     currentProcess->thread.refcount = 1;
     spinlock_release(currentProcess->thread.pd_lock);
     mem_switchDirectory(currentProcess->thread.page_directory);
+    process_releaseDirectory(old_directory);
     spinlock_release(&switch_lock);
 
-    pagedirectory_t* addressSpace = currentProcess->thread.page_directory;
+
 
     // Now, we should start parsing.
     uintptr_t heapBase = 0;
@@ -1142,15 +1156,17 @@ int createProcess(char* filepath, int argc, char* argv[], char* envl[], int envc
     for (int i = 0; i < ehdr->e_phnum; i++) {
         Elf32_Phdr* phdr = elf_getPHDR(ehdr, i);
         if (phdr->p_type == PT_LOAD) {
+            
             // We have to load it into memory
-            uint32_t memory_blocks = (phdr->p_memsize + 4096)
-                                     - ((phdr->p_memsize + 4096) % 4096); // Round up, else page fault will occur.
-            void* mem = pmm_allocateBlocks(memory_blocks / 4096);
-            for (uint32_t blk = 0; blk < memory_blocks; blk += 4096) {
-                vmm_mapPhysicalAddress(addressSpace, phdr->p_vaddr + blk, (uint32_t)mem + blk,
-                                       PTE_PRESENT | PTE_WRITABLE | PTE_USER);
+            for (uint32_t i = phdr->p_vaddr; i < phdr->p_vaddr + phdr->p_memsize; i += 0x1000) {
+                pte_t *page = mem_getPage(NULL, i, MEM_CREATE);
+                if (page) mem_allocatePage(page, MEM_DEFAULT);
             }
+
             memcpy((void*)phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
+            for (size_t i = phdr->p_filesize; i < phdr->p_memsize; i++) {
+                *(char*)(phdr->p_vaddr + i) = 0;
+            }
         }
 
         if (phdr->p_vaddr < execBase) execBase = phdr->p_vaddr;
@@ -1163,11 +1179,11 @@ int createProcess(char* filepath, int argc, char* argv[], char* envl[], int envc
 
     uintptr_t usermode_stack = 0xC0000000;
     for (uintptr_t i = usermode_stack - 512 * 0x400; i < usermode_stack; i += 0x1000) {
-        void* block = kmalloc(4096);
-        vmm_allocateRegionFlags((uintptr_t)block, i, 0x1000, 1, 1, 1);
+        pte_t *page = mem_getPage(currentProcess->thread.page_directory, i, MEM_CREATE);
+        mem_allocatePage(page, MEM_DEFAULT);
     }
 
-    serialPrintf("usermode stack mapped from 0x%x to 0x%x\n", usermode_stack - 512 * 0x400, usermode_stack);
+    serialPrintf("process: usermode stack mapped from 0x%x to 0x%x\n", usermode_stack - 512 * 0x400, usermode_stack);
 
     currentProcess->image.userstack = usermode_stack - 16 * 0x400;
 
