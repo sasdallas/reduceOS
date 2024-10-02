@@ -6,6 +6,7 @@
 bits 16
 
 jmp main
+
 ; ---------------------------------------
 ; Includes
 ; ---------------------------------------
@@ -17,38 +18,13 @@ jmp main
 %include "include/bootinfo.inc"
 
 
+
+
 ; ---------------------------------------
 ; Data and strings
 ; ---------------------------------------
 preparing db "Preparing to load Polyaniline, please wait...", 13, 10, 0
 BootDisk db 0x0
-
-boot_info:
-istruc multiboot_info
-	at multiboot_info.flags,			dd 0
-	at multiboot_info.memoryLo,			dd 0
-	at multiboot_info.memoryHi,			dd 0
-	at multiboot_info.bootDevice,			dd 0
-	at multiboot_info.cmdLine,			dd 0
-	at multiboot_info.mods_count,			dd 0
-	at multiboot_info.mods_addr,			dd 0
-	at multiboot_info.syms0,			dd 0
-	at multiboot_info.syms1,			dd 0
-	at multiboot_info.syms2,			dd 0
-	at multiboot_info.mmap_length,			dd 0
-	at multiboot_info.mmap_addr,			dd 0
-	at multiboot_info.drives_length,		dd 0
-	at multiboot_info.drives_addr,			dd 0
-	at multiboot_info.config_table,			dd 0
-	at multiboot_info.bootloader_name,		dd 0
-	at multiboot_info.apm_table,			dd 0
-	at multiboot_info.vbe_control_info,		dd 0
-	at multiboot_info.vbe_mode_info,		dw 0
-	at multiboot_info.vbe_interface_seg,		dw 0
-	at multiboot_info.vbe_interface_off,		dw 0
-	at multiboot_info.vbe_interface_len,		dw 0
-iend
-
 
 
 
@@ -56,13 +32,11 @@ iend
 ; Functions
 ; ---------------------------------------
 main:
-	cli
-	call installGDT								; Install the GDT
-	call enableA20_KKbrd_Out					; Enable A20
-
-	mov si, preparing							; Print the preparing string
+	mov si, preparing
 	call print16
-
+	cli
+	hlt
+	
 
 	; Now we'll enable protected mode
 enablePmode:

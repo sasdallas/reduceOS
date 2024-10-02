@@ -2,7 +2,7 @@ OUTPUT_FORMAT("binary")
 ENTRY("start")
 SECTIONS
 {
-    . = 0x7c00;
+    . = 0x00010000;
 
     .text : 
 	{

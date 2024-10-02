@@ -1,260 +1,266 @@
-; ============================================================
-; mbr.asm - The Master Boot Record loader for Polyaniline
-; ============================================================
-; (c) sasdallas, 2024
-; The FAT12 and BPB code is sourced from Brokenthorn's MBR.
+; I DO NOT OWN THIS IMPLEMENTATION - IT IS FOR TESTING
+; Original source: twd2/osdev
 
-org 0x0                                 ; Loaded in by BIOS at 0x0
-bits 16                                 ; We start at 16-bit
+; boot from cdrom
+; use bios function 0x42
+; compatible with ISO-9660
 
-start: jmp main                         ; Jump to main
+org 0x7c00
+bits 16
 
-; OEM Parameter Block for FAT/MBR
-TIMES 0Bh-$+start DB 0
- 
-bpbBytesPerSector:  	DW 512
-bpbSectorsPerCluster: 	DB 1
-bpbReservedSectors: 	DW 1
-bpbNumberOfFATs: 	DB 2
-bpbRootEntries: 	DW 224
-bpbTotalSectors: 	DW 2880
-bpbMedia: 	        DB 0xF0
-bpbSectorsPerFAT: 	DW 9
-bpbSectorsPerTrack: 	DW 18
-bpbHeadsPerCylinder: 	DW 2
-bpbHiddenSectors:       DD 0
-bpbTotalSectorsBig:     DD 0
-bsDriveNumber: 	        DB 0
-bsUnused: 	        DB 0
-bsExtBootSignature: 	DB 0x29
-bsSerialNumber:	        DD 0xa0a1a2a3
-bsVolumeLabel: 	        DB "polyaniline"
-bsFileSystem: 	        DB "FAT12   "
+_start:
+cli
 
+;cmp dl, 0xe0 ; is cdrom?
+;jnz die
+
+xor ax, ax
+mov ds, ax
+mov es, ax
+mov ss, ax
+mov sp, 0x7c00 ; init stack
+
+lea si, [loading_str]
+call print
+
+mov ah, 0x41 ; check extension present
+mov bx, 0x55aa ; magic
+int 0x13 ; bios function
+jc not_present
+cmp bx, 0xaa55 ; magic again
+jne not_present ; if not present...
+
+; find primary volume descriptor
+mov ebx, 16 ; starts at sector 16
+mov ecx, 1 ; descriptors are one sector size.
+mov ax, 0x1000
+mov es, ax
+xor di, di ; buffer = es:di = 1000:0000 = 0x10000
+find_primary_volume_descriptor_loop:
+  call read_sector
+  cmp byte [es:di + volume_descriptor_type], type_primary_volume_descriptor
+  je found_primary_volume_descriptor ; is primary volume descriptor?
+  inc ebx ; try next sector
+jmp find_primary_volume_descriptor_loop
+
+found_primary_volume_descriptor:
+mov ebx, [es:di + primary_volume_descriptor_root_dir_rec + dir_rec_extent_sector_no]
+mov ecx, [es:di + primary_volume_descriptor_root_dir_rec + dir_rec_data_length]
+shr ecx, 11 ; length to sector count
+; es:di is still 1000:0000 = 0x10000
+call read_sector ; read root directory record
+
+; find boot dir
+mov ax, es
+mov ds, ax
+mov si, di ; buffer = ds:si = es:di
+mov bx, cx
+shl bx, 11 ; limit + 1 = buffer size
+lea ax, [boot_dir_name]
+call find_entry
+test ax, ax ; found?
+jz path_not_found
+
+mov ebx, [ds:si + dir_rec_extent_sector_no]
+mov ecx, [ds:si + dir_rec_data_length]
+shr ecx, 11 ; length to sector count
+; es:di is still 1000:0000 = 0x10000
+call read_sector ; read `boot' directory record
+
+; find stage2 file
+mov ax, es
+mov ds, ax
+mov si, di ; buffer = ds:si = es:di
+mov bx, cx
+shl bx, 11 ; limit + 1 = buffer size
+lea ax, [stage2_file_name]
+call find_entry
+test ax, ax ; found?
+jz stage2_not_found
+
+; found stage2
+mov ebx, [ds:si + dir_rec_extent_sector_no]
+mov ecx, [ds:si + dir_rec_data_length]
+add ecx, 2047
+shr ecx, 11 ; length to sector count = ceiling(length / 2048)
+; es:di is still 1000:0000 = 0x10000
+call read_sector ; load stage2 file
+jmp word 0x1000:0000 ; go!
+
+bios_error:
+xor ax, ax
+mov ds, ax
+lea si, [bios_error_str]
+jmp print_and_die
+
+not_present:
+xor ax, ax
+mov ds, ax
+lea si, [not_present_str]
+jmp print_and_die
+
+path_not_found:
+xor ax, ax
+mov ds, ax
+lea si, [path_not_found_str]
+jmp print_and_die
+
+stage2_not_found:
+xor ax, ax
+mov ds, ax
+lea si, [stage2_not_found_str]
+jmp print_and_die
+
+print_and_die:
+call print
+; ... and die ...
+
+die:
+cli
+hlt
+jmp die
+
+; print a string
+; buffer = ds:si
 print:
-  mov ah, 0eh
-.loop:
-  lodsb                                 ; Load character from SI buffer
-  or al, al                             ; Is it a zero?
-  jz .print_done                        ; Done printing :D 
-  int 10h                               ; Call BIOS
-  jmp .loop                             ; Loop!
-.print_done:
-  ret                                   ; Return  
+lodsb
+or al, al
+jz print_return
+mov ah, 0x0e ; print
+mov bh, 0
+mov bl, 0
+int 0x10 ; bios print
+jmp print
+print_return:
+ret
 
-read_sectors:
-.main:
-  mov di, 0x0005                        ; Allow 5 retries
-.sectorloop:
-  push ax
-  push bx
-  push cx
-  call LBACHS                           ; Convert starting sector to CHS
-  mov ah, 0x02                          ; BIOS read sector
-  mov al, 0x01                          ; Read one sector
-  mov ch, BYTE [absoluteTrack]          ; Track
-  mov cl, BYTE [absoluteSector]         ; Sector
-  mov dh, BYTE [absoluteHead]           ; Head
-  mov dl, BYTE [bsDriveNumber]          ; Drive
-  int 0x13                              ; Call BIOS
-  jnc .success
-  xor ax, ax                            ; BIOS reset disk
-  int 0x13                              ; Invoke BIOS
-  dec di                                ; Decrement error counter
-  pop cx
-  pop bx
-  pop ax
-  jnz .sectorloop                       ; Attempt to read again
-  int 0x18
-.success:
-  mov si, msg_progress
-  call print
-  pop cx
-  pop bx
-  pop ax
-  add bx, WORD [bpbBytesPerSector]      ; Queue next buffer & sector
-  inc ax
-  loop .main
-  ret
+; print a '.'
+print_dot:
+mov al, '.'
+mov ah, 0x0e ; print
+mov bh, 0
+mov bl, 0
+int 0x10 ; bios print
+ret
 
-cluster_lba:
-  sub ax, 0x0002                        ; Zero base cluster number
+; read one or more sectors
+; sector LBA = ebx, count = ecx, destination = es:di
+read_sector:
+xor ax, ax
+mov ds, ax
+mov [dap_ptr + dap_lba_low], ebx
+mov [dap_ptr + dap_count], ecx
+lea si, [dap_ptr] ; ds:si = dap_ptr
+mov ax, es
+mov [dap_ptr + dap_seg], ax
+mov [dap_ptr + dap_offset], di ; dap_ptr->seg:offset = es:di
+mov ah, 0x42 ; extended read sector
+int 0x13 ; bios function
+jc bios_error
+push ax ; save ax (set by int 0x13)
+call print_dot
+pop ax
+ret
+
+; find a directory record
+; buffer = ds:si, buffer size = limit + 1 = bx, name_ptr = ax
+find_entry:
+push di
+push es
+push bx
+mov di, ax
+xor ax, ax
+mov es, ax ; es = 0
+add bx, si
+find_entry_loop:
+  cmp si, bx ; buffer > limit?
+  jae find_entry_return0
+  cmp byte [ds:si + dir_rec_length], 0 ; buffer->dir_rec_length == 0?
+  je find_entry_return0
+
   xor cx, cx
-  mov cl, BYTE [bpbSectorsPerCluster]   ; Byte -> Word
-  mul cx
-  add ax, WORD [datasector]             ; Base data sector 
-  ret
+  mov cl, [ds:si + dir_rec_ident_length]
+  cmp cl, name_min_size ; buffer->dir_rec_ident_length < name_min_size?
+  jb find_entry_loop_continue
 
+  xor bp, bp ; i = 0
+  strcmp_loop:
+    mov cl, [es:bp + di] ; pattern char
+    mov ch, [ds:bp + si + dir_rec_ident] ; text char
+    test cl, cl ; is last pattern char?
+    jz strcmp_last
+    cmp cl, ch ; pattern char == text char?
+    jne find_entry_loop_continue ; !=
+    inc bp ; next char
+  jmp strcmp_loop
 
-; LBACHS - Converts LBA to CHS
-; Absolute Sector = (logical sector / sectors per track) + 1
-; Absolute Head = (logical sector / sectors per track) % number of heads
-; Absolute Track = logical sector / (sectors per track * number of heads)
-LBACHS:
-  xor dx, dx                            ; Prepare DX:AX for operation
-  div WORD [bpbSectorsPerTrack]         ; Calculate
-  inc dl                                ; Adjust for sector 0
-  mov BYTE [absoluteSector], dl
-  xor dx, dx                            ; Prepare DX:AX for operation
-  div WORD [bpbHeadsPerCylinder]        ; Calculate
-  mov BYTE [absoluteHead], dl
-  mov BYTE [absoluteTrack], al
-  ret
+  strcmp_last:
+  ; (ch == ';' || ch == '\0') || bp == dir_rec_ident_length
+  cmp ch, ';'
+  je find_entry_return1
+  test ch, ch
+  jz find_entry_return1
+  cmp bp, dir_rec_ident_length
+  je find_entry_return1
 
+  ; else
 
-  
-main:
-  ; Adjust segment registers for 0000:7c00 code boundary
-  cli
-  mov ax, 0x07c0
-  mov ds, ax
-  mov es, ax
-  mov fs, ax
-  mov gs, ax
-
-  ; Create stack and restore interrupts
-  mov ax, 0x0000
-  mov ss, ax
-  mov sp, 0xFFFF
-  sti
-
-  ; Print loading message
-  mov si, loading_msg
-  call print
-
-  ; Load root directory table
-  LOAD_ROOT:
-  ; Compute size of root directory -> CX
+  find_entry_loop_continue:
+  ; next entry
   xor cx, cx
-  xor dx, dx
-  mov ax, 0x0020                        ; 32 byte directory entry
-  mul WORD [bpbRootEntries]             ; Total size of directory
-  div WORD [bpbBytesPerSector]          ; Sectors used by directory
-  xchg ax, cx
+  mov cl, [ds:si + dir_rec_length]
+  add si, cx ; buffer += buffer->dir_rec_length
+jmp find_entry_loop
 
-  ; Compute location of root directory -> AX
-  mov al, BYTE [bpbNumberOfFATs]        ; Number of FATs
-  mul WORD [bpbSectorsPerFAT]           ; Sectors used by FATs
-  add ax, WORD [bpbReservedSectors]     ; Adjust for boot sector
-  mov WORD [datasector], ax             ; Base of root directory
-  add WORD [datasector], cx
+find_entry_return0:
+xor ax, ax
+jmp find_entry_return
 
-  ; Read root directory into memory (7c00:0200)
-  mov bx, 0x0200
-  call read_sectors
+find_entry_return1:
+mov ax, 1
+find_entry_return:
+pop bx
+pop es
+pop di
+ret
 
-  ; Locate BOOTLDR.SYS
-  mov cx, WORD [bpbRootEntries]         ; Load loop counter
-  mov di, 0x0200                        ; Locate first root entry
-.locate_loop:
-  push cx
-  mov cx, 0x000B                        ; 11 character name
-  mov si, ImageName                     ; Image name to find
-  push di
-  rep cmpsb                             ; Check for match
-  pop di
-  je LOAD_FAT
-  pop cx
-  add di, 0x0020                        ; Queue next entry
-  loop .locate_loop
-  jmp FAILED
+dap_ptr:
+db 16 ; dap size = 16
+db 0 ; reserved
+dw 1 ; count
+dd 0 ; destination
+dd 0 ; sector LBA low
+dd 0 ; sector LBA high
 
-  ; Now load the FAT
-  LOAD_FAT:
+dap_count equ 2
+dap_offset equ 4
+dap_seg equ 6
+dap_lba_low equ 8
+dap_lba_high equ 12
 
-  ; Save the starting cluster of the boot image
-  mov si, msg_crlf
-  call print
-  mov dx, WORD [di + 0x001A]
-  mov WORD [cluster], dx               ; File's first cluster
+volume_descriptor_type equ 0
+type_primary_volume_descriptor equ 0x01
 
-  ; Compute size of FAT -> CX
-  xor ax, ax
-  mov al, BYTE [bpbNumberOfFATs]      ; Number of FATs
-  mul WORD [bpbSectorsPerFAT]         ; Sectors used by FATs
-  mov cx, ax
+; data struct offset
+primary_volume_descriptor_root_dir_rec equ 156
+dir_rec_length equ 0
+dir_rec_extent_sector_no equ 2
+dir_rec_data_length equ 10
+dir_rec_ident_length equ 32
+dir_rec_ident equ 33
 
-  ; Compute location of FAT -> AX
-  mov ax, WORD [bpbReservedSectors]  ; Adjust for reserved sectors
+; constant strings
+loading_str db "Loading.", 0
+bios_error_str db "BIOS error.", 0
+not_present_str db "Extensions not present.", 0
+path_not_found_str db "Path not found.", 0
+stage2_not_found_str db "Stage2 not found.", 0
 
-  ; Read FAT into memory above the bootcode
-  mov bx, 0x0200                     ; Destination -> 0x0200 
-  call read_sectors
+; /BOOT/STAGE2.BIN
+name_min_size equ 4 ; length of "BOOT"
+boot_dir_name db "BOOT", 0
+stage2_file_name db "STAGE2.BIN", 0
 
-  ; Read image file into memory
-  mov si, msg_crlf
-  call print
-  mov ax, 0x0050
-  mov es, ax                        ; Destination for image
-  mov bx, 0x0000                    ; Destination for image
-  push bx
-
-  ; Load stage 2
-  LOAD_IMAGE:
-  mov ax, WORD [cluster]            ; Cluster to read
-  pop bx                            ; Buffer to read into
-  call cluster_lba                  ; Convert cluster to LBA
-  xor cx, cx
-  mov cl, BYTE [bpbSectorsPerCluster] ; Sectors to read
-  call read_sectors
-  push bx
-
-  ; Compute next cluster
-  mov ax, WORD [cluster]            ; Identify current cluster
-  mov cx, ax                        ; Copy current cluster
-  mov dx, ax
-  shr dx, 0x0001                    ; Divide it by 2
-  add cx, dx                        ; Sum for (3/2)
-  mov bx, 0x0200                    ; Location of FAT into memory
-  add bx, cx                        ; Index into FAT
-  mov dx, WORD [bx]                 ; Read two bytes from FAT
-  test ax, 0x0001
-  jnz .odd_cluster
-
-.even_cluster:
-  and dx, 0000111111111111b         ; Take the low 12 bits
-  jmp .done
-
-.odd_cluster:
-  shr dx, 0x0004                    ; Take the high 12 bits
-
-.done:
-  mov WORD [cluster], dx            ; Store new cluster
-  cmp dx, 0x0FF0                    ; Test for end of file
-  jb LOAD_IMAGE
-  
-  DONE_LOADING:
-  mov si, msg_crlf
-  call print
-  push word 0x0050
-  push word 0x0000
-  retf
-
-  FAILED:
-  ; Failed to locate image :(
-  mov si, load_fail
-  call print
-
-  cli                                   ; Clear interrupts
-  hlt                                   ; Halt system
-
-
-; Variables
-
-absoluteSector db 0x00
-absoluteHead db 0x00
-absoluteTrack db 0x00
-
-datasector dw 0x0000
-cluster dw 0x0000
-ImageName db "BOOT    SYS"
-msg_crlf db 0x0D, 0x0A, 0x00
-msg_progress db ".", 0x00
-
-
-loading_msg db 0x0D, 0x0A, "Loading BOOT.SYS...", 0x0D, 0x0A, 0
-load_fail db 0x0D, 0x0A, "ERROR: Load failed, halting.", 0x0D, 0x0A, 0
-
-
-times 510 - ($-$$) db 0                 ; Padding for size
-dw 0xAA55                               ; Boot signature for BIOS
+times 510 - ($ - $$) db 0
+db 0x55
+db 0xaa

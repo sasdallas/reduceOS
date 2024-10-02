@@ -33,7 +33,7 @@ int clock_settimeofday(struct timeval *t, void *z);
 void clock_relative(unsigned long seconds, unsigned long subseconds, unsigned long *out_seconds, unsigned long *out_subseconds); // Calculate a time in the future
 void clock_update(); // Update the clock
 void clock_registerCallback(clock_callback_func func); // Register a callback function
-
+uint64_t clock_getBoottime(); // Return initial boottime
 
 
 #endif

@@ -90,6 +90,8 @@ static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
     if (pciConfigReadField(device, PCI_OFFSET_PROGIF, 1) != 0x01) return; // Not an AHCI device
 
     serialPrintf("[module ahci] PCI device found with venid 0x%x and devid 0x%x\n", vendorID, deviceID);
+    printf("Found AHCI device with vendor ID 0x%x device ID 0x%x\n", vendorID, deviceID);
+
 
     // We're going to write a value to the PCI command register
     uint16_t command_reg = pciConfigReadField(device, PCI_OFFSET_COMMAND, 2);
