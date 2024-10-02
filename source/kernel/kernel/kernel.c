@@ -168,8 +168,13 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
 
     // ==== TERMINAL INITIALIZATION ====
+
+    // Quickbooting allows us to skip all terminal initialization until the system is ready to go and loaded. If --quickboot was specified, omit anything terminal-related.
+    // Setting up video drivers is still required, though.
     video_init();
 
+
+    if (args_has("--quickboot")) goto _skip_terminal;
     initTerminal();
 
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
@@ -180,8 +185,10 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
 
     printf("reduceOS is loading, please wait...\n");
 
+
     // ==== PERIPHERAL/DRIVER INITIALIZATION ====
 
+_skip_terminal:
     // PIT timer
     updateBottomText("Initializing PIT...");
     pitInit();
@@ -429,6 +436,45 @@ void useCommands() {
 
     serialPrintf("kmain: All commands registered successfully.\n");
 
+    // Finalize the memory map
+    mem_finalize();
+
+    if (args_has("--no_tasking")) goto _use_commands_done; // if you use this, I am sorry
+    
+    // Startup tasking, signals, and TTY
+    tasking_start();
+    signal_init();
+    tty_init();
+
+
+_use_commands_done: // amazing label name
+
+    // yawn.. where were we again?
+    if (args_has("--quickboot")) {
+        initTerminal();
+
+        updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
+        terminalUpdateTopBarKernel("created by @sasdallas");
+
+        // Next, update terminal color to the proper color and print loading text.
+        updateTerminalColor_gfx(COLOR_WHITE, COLOR_CYAN);
+
+        printf("reduceOS is loading, please wait...\n");
+        printf("WARNING: Quickbooted (terminal omitted)\n");
+    }
+
+    // Calculate the boottime
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    unsigned long long millisecondsSinceEpoch =
+    (unsigned long long)(tv.tv_sec) * 1000 +
+    (unsigned long long)(tv.tv_usec) / 1000;
+
+    serialPrintf("kernel: boot sequence completed - reduceOS has loaded successfully\n");
+    serialPrintf("\tinitial boot time: unix milliseconds 0x%llX\n", clock_getBoottime());
+    serialPrintf("\tcurrent time: 0x%llX milliseconds since epoch\n", millisecondsSinceEpoch);
+
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");
     printf("Type 'help' for help.\n");
@@ -436,22 +482,6 @@ void useCommands() {
         printf("WARNING: You are currently in VGA text mode. This mode is deprecated and unsupported!\n");
     if (!strcmp(fs_root->name, "tarfs"))
         printf("WARNING: No root filesystem was mounted. The initial ramdisk has been mounted as root.\n");
-
-    if (args_has("--no_tasking")) kshell(); // if you use this, I am sorry
-
-    // Startup tasking, signals, and TTY
-    tasking_start();
-    signal_init();
-    tty_init();
-
-    // Finalize the memory map
-    mem_finalize();
-
-
-    // Try to start the init process, if available
-    //char *argv[] = {"/init"};
-    //system("/init", 1, argv);
-
 
 
     kshell();

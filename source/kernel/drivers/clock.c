@@ -193,7 +193,7 @@ void clock_init() {
     tsc_baseline = start / tsc_mhz;
 
     serialPrintf("clock: TSC calculated speed is %lu MHz\n", tsc_mhz);
-    serialPrintf("clock: Boot time is %lus (UNIX timestamp).\n", boottime);
+    serialPrintf("clock: Boot time is %lu (UNIX timestamp).\n", boottime);
     serialPrintf("clock: Initial TSC timestamp was %luus\n", tsc_baseline);
 
     // Initialize the spinlocks
@@ -289,3 +289,7 @@ void clock_registerCallback(clock_callback_func func) {
     callback_index++;
 }
 
+// clock_getBootTime() - Returns the initial boot time of the OS. This was calculated after memory and serial initialized.
+uint64_t clock_getBoottime() {
+    return boottime;
+}

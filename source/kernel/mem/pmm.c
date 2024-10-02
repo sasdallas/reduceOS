@@ -2,7 +2,6 @@
 // pmm.c - Handles physical bitmaps for memory management
 // ==========================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
-// Some code was sourced from JamesM's Kernel Development Tutorials. Please credit him as well.
 
 #include <kernel/pmm.h> // Main header file
 #include <kernel/debug.h>
@@ -73,12 +72,10 @@ void pmm_clearFrame(int frame) {
     frames[INDEX_BIT(frame)] &= ~(1 << OFFSET_BIT(frame));
 }
 
+// pmm_testFrame(int frame) - Test whether a frame is set
 bool pmm_testFrame(int frame) {
     return frames[INDEX_BIT(frame)] & (1 << OFFSET_BIT(frame));
 }
-
-
-
 
 // pmm_firstFrame() - Find the first free frame
 uint32_t pmm_firstFrame() {
@@ -166,28 +163,26 @@ void pmm_deinitRegion(uintptr_t base, size_t size) {
 // pmm_allocateBlock() - Allocates a block
 void *pmm_allocateBlock() {
     if ((pmm_maxBlocks - pmm_usedBlocks) <= 0) {
-        serialPrintf("pmm_allocateBlock: Out of memory!\n");
+        serialPrintf("pmm_allocateBlock: The system has run out of memory. Cannot allocate a block.\n");
         return 0; // OOM
     }
 
     int frame = pmm_firstFrame();
     if (frame == -1) {
-        serialPrintf("pmm_allocateBlock: Failed to allocate block.\n");
+        serialPrintf("pmm_allocateBlock: Block allocation failed (most likely out of memory)\n");
         return 0; // OOM
     }
 
     pmm_setFrame(frame);
-
-    uint32_t addr = frame * 4096;
     pmm_usedBlocks++;
 
+    uint32_t addr = frame * 4096;
     if (addr == 0x0) {
         // try again, buddy. this is a rare bug that can happen, not sure why.
         serialPrintf("pmm_allocateBlock: bug triggered, reallocating...\n"); 
         return pmm_allocateBlock();
     }
 
-    //heavy_dprintf("physical memory block 0x%x allocated\n", addr);
     return (void*)addr;
 }
 
@@ -204,6 +199,7 @@ void pmm_freeBlock(void *block) {
 // pmm_allocateBlocks(size_t size) - Allocates size amount of blocks
 void *pmm_allocateBlocks(size_t size) {
     if (size >= 4096) {
+        // Some debug code.
         serialPrintf("pmm_allocateBlocks: Warning, a potential block overrun might happen - size is 0x%x\n", size);
         panic("pmm", "pmm_allocateBlocks", "A function may have attempted to pass in bytes instead of blocks.");
     }
@@ -215,7 +211,7 @@ void *pmm_allocateBlocks(size_t size) {
 
     int frame = pmm_firstFrames(size);
     if (frame == -1) {
-        serialPrintf("pmm_allocateBlocks: Failed to allocate %i blocks\n", size);
+        serialPrintf("pmm_allocateBlocks: Failed to allocate %i blocks (not enough frames)\n", size);
         return 0;
     }
 

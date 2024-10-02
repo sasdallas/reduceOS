@@ -79,6 +79,14 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
         goto _unmap_module;
     }
 
+
+    serialPrintf("module_load: Loading module '%s', init function 0x%x...\n", data->name, data->init);
+    if (!data->name) {
+        // BAIL OUT AS HARD AS POSSIBLE
+        error = MODULE_META_ERROR;
+        goto _unmap_module;
+    }
+
     // Check if data exists
     if (hashmap_has(module_hashmap, data->name)) {
         // Unmap the module
@@ -102,8 +110,6 @@ int module_load(fsNode_t *modfile, int argc, char **args, struct Metadata *mdata
     has_constructed_module = 1;
 
     // Alrighty, now time to go!
-
-    serialPrintf("module_load: Loading module '%s'...\n", data->name);
     int status = data->init(argc, args);
 
     if (status != 0) {

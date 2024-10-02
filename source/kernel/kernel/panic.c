@@ -3,6 +3,7 @@
 // This file handles the kernel panicking and exiting
 // =====================================================================
 // This file is apart of the reduceOS C kernel. Please credit me if you use this code.
+// !WARNING! This file is incredibly buggy and messy. It's best not to use this!
 
 
 /*
@@ -139,6 +140,7 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
     stk2->ebp = (stack_frame*)reg->ebp;
     stk2->eip = reg->eip;
     for (uint32_t frame = 0; stk2 && frame < maximumFrames; frame++) {
+        if (stk2->eip < MODULE_ADDR_START) goto _next_frame;
         loaded_module_t *module = module_getFromAddress(stk2->eip);
         if (module) {
             // dang.
@@ -148,6 +150,7 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
             serialPrintf("\nThe fault may have been located in module '%s'.\n", module->metadata->name);
             serialPrintf("\tModule load address: 0x%x - 0x%x\n\tFault: 0x%x\n", module->load_addr, module->load_addr + module->load_size, reg->eip);
         }
+        _next_frame:
         stk2 = stk2->ebp;
     }
 
@@ -172,22 +175,15 @@ void panic_stackTrace(uint32_t maximumFrames, registers_t *reg) {
         // Make sure the code is in kernelspace, else the symbol finder might crash
         if (stk->eip && (stk->eip < (uint32_t)&text_start || stk->eip > (uint32_t)&bss_end)) {
 
-            // Okay, it's outside of kernel space, could it be in module space?
-            loaded_module_t *module = module_getFromAddress(stk->eip);
-            if (module) {
-                // Yes, it is!
-                printf("Frame %i: 0x%x (in module %s)\n", frame, stk->eip, module->metadata->name);
-                serialPrintf("FRAME %i: IP 0x%x (in module %s, with base 0x%x)\n", frame, stk->eip, module->metadata->name, module->load_addr);
-                goto _done;
-            }
-
             printf("Frame %i: 0x%x (outside of kernel)\n", frame, stk->eip);
             serialPrintf("FRAME %i: IP 0x%x (outside of kspace)\n", frame, stk->eip);
             goto _done;
         }
 
         // Try to get the symbol
-        ksym_symbol_t *sym = kmalloc(sizeof(ksym_symbol_t)); // !!!! THIS IS SO BAD WE SHOULD NOT BE DOING THIS
+        ksym_symbol_t *sym = kmalloc(sizeof(ksym_symbol_t));    // !!!! THIS IS SO BAD WE SHOULD NOT BE DOING THIS
+                                                                // Best case is that this should be stack allocated. This file is designed to withstand ALL errors.
+
         int err = ksym_find_best_symbol(stk->eip, sym);
         if (err == -1) {
             printf("Frame %i: 0x%x (exception occurred before ksym_init)\n", frame, stk->eip);
