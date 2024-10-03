@@ -25,14 +25,6 @@ mkdir -p out/iso/builddir/boot/grub
 echo "-- Copying OS files"
 cp source/sysroot/boot/kernel.elf out/iso/builddir/boot/kernel.elf
 cp source/sysroot/boot/ramdisk.img out/iso/builddir/boot/ramdisk.img
-
-cat > out/iso/builddir/boot/grub/grub.cfg << EOF
-
-insmod all_video
-menuentry "reduceOS" {
-    multiboot /boot/kernel.elf
-    module /boot/ramdisk.img modfs=1 type=initrd
-}
-EOF
+cp conf/grub.cfg out/iso/builddir/boot/grub/
 
 grub-mkrescue -o out/iso/reduceOS.iso out/iso/builddir
