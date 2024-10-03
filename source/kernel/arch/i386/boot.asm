@@ -10,9 +10,14 @@ extern start
 ; Flags
 PG_ALIGN            equ 1 << 0
 MEMINFO             equ 1 << 1
-VESA_FRAMEBUFFER    equ 1 << 2
 
+%ifndef FORCE_VGA
+VESA_FRAMEBUFFER    equ 1 << 2
 MULTIBOOT_FLAGS equ PG_ALIGN | MEMINFO | VESA_FRAMEBUFFER
+%else
+MULTIBOOT_FLAGS equ PG_ALIGN | MEMINFO
+%endif
+
 MULTIBOOT_MAGIC equ 0x1BADB002
 MULTIBOOT_CHECKSUM equ -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
 
@@ -32,10 +37,12 @@ multiboot_header:
     dd end
     dd _start
 
+%ifndef FORCE_VGA
     dd 0x00000000
     dd 1024
     dd 768
     dd 32
+%endif
 
 section .data
     align 4096

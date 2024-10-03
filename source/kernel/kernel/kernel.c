@@ -472,7 +472,7 @@ _use_commands_done: // amazing label name
     (unsigned long long)(tv.tv_usec) / 1000;
 
     serialPrintf("kernel: boot sequence completed - reduceOS has loaded successfully\n");
-    serialPrintf("\tinitial boot time: unix milliseconds 0x%llX\n", clock_getBoottime());
+    serialPrintf("\tinitial boot time: unix seconds 0x%llX\n", clock_getBoottime());
     serialPrintf("\tcurrent time: 0x%llX milliseconds since epoch\n", millisecondsSinceEpoch);
 
     printf("reduceOS has finished loading successfully.\n");

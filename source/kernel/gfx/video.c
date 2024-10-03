@@ -82,7 +82,9 @@ void video_init() {
     // Else, let's go through and see what we got.
 
     // Let's try to use GOP mode from GRUB.
-    if (globalInfo->framebuffer_addr) {
+    // GRUB will also try to use a 0xB8000 address if the kernel bootstrap does not specify a framebuffer (which you can force by adding -DFORCE_VGA in NASM args! see build/i386.mk)
+    if (globalInfo->framebuffer_addr && globalInfo->framebuffer_addr != 0xB8000) {
+
         // First, what we're going to do might seem a little weird, but it should work.
         // Map the framebuffer to 0xFD000000. This is usually the classic VBE address used - and GRUB will normally use this anyways.
         // GCC will not accept int-to-pointer casts, and mapping it to a predefined kernel location is probably better regardless.

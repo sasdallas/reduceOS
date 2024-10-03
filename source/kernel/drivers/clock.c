@@ -75,7 +75,7 @@ uint64_t clock_convertCMOSToUnix() {
     // Marked as TODO.
 
     uint64_t time = yearsToSeconds(from_bcd(values[CMOS_YEAR]) - 1) +
-                    monthsToSeconds(from_bcd(values[CMOS_MONTH]) - 1,
+                    monthsToSeconds(from_bcd(values[CMOS_MONTH]),
                     from_bcd(values[CMOS_YEAR])) +
                     (from_bcd(values[CMOS_DAY]) - 1) * 86400 +
                     (from_bcd(values[CMOS_HOUR])) * 3600 +
