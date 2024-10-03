@@ -85,12 +85,18 @@ void ahci_probePorts(ahci_hba_mem_t *abar) {
 }
 
 
+static int found_ahci = 0;      // TEMPORARY PATCH!
+                                // The bug here most likely lies in pciScan but I'd rather stabilize the OS to a "nominal" point.
+
 static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, void *extra) {
+    if (found_ahci == 1) return;
     if (pciGetType(device) != 0x0106) return; // We're looking for a device with the "Mass Storage, SATA controller" type
     if (pciConfigReadField(device, PCI_OFFSET_PROGIF, 1) != 0x01) return; // Not an AHCI device
 
     serialPrintf("[module ahci] PCI device found with venid 0x%x and devid 0x%x\n", vendorID, deviceID);
     printf("Found AHCI device with vendor ID 0x%x device ID 0x%x\n", vendorID, deviceID);
+    found_ahci = 1;
+
 
 
     // We're going to write a value to the PCI command register
