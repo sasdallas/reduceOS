@@ -3,6 +3,7 @@
 // ==========================================================
 // This file is part of the reduceOS C kernel. Please credit me if you use this code.
 
+#include <kernel/arch/i386/processor.h>
 #include <libk_reduced/stdint.h>
 #include <libk_reduced/string.h>
 #include <libk_reduced/stdio.h>
@@ -22,7 +23,6 @@
 #include <kernel/floppy.h>
 #include <kernel/pci.h>
 #include <kernel/keyboard.h>
-#include <kernel/processor.h>
 #include <kernel/video.h>
 
 extern fsNode_t *fatDriver;
@@ -49,10 +49,13 @@ int getSystemInformation(int argc, char *args[]) {
     // Tell the user.
     printf("CPU Vendor: %s\n", vendor);
     printf("64 bit capable: %s\n", (iedx & (1 << 29)) ? "YES" : "NO (32-bit)");
-    printf("CPU frequency: %u MHz\n", getCPUFrequency());
+    printf("CPU frequency: %u MHz\n", processor_getCPUFrequency());
 
     printf("Available physical memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
     
+extern uint32_t kernel_boot_time;
+    printf("\nTime for reduceOS boot to complete: %i seconds\n", kernel_boot_time);
+
 
     return 1; // Return
 }
@@ -71,7 +74,7 @@ int dump(int argc, char *args[]) {
         __cpuid(0x80000003, (uint32_t *)vendor+0x4, (uint32_t *)vendor+0x5, (uint32_t *)vendor+0x6, (uint32_t *)vendor+0x7);
         __cpuid(0x80000004, (uint32_t *)vendor+0x8, (uint32_t *)vendor+0x9, (uint32_t *)vendor+0xa, (uint32_t *)vendor+0xb);
         
-        printf("CPU model: %s (frequency: %i Hz)\n", vendor, getCPUFrequency());
+        printf("CPU model: %s (frequency: %i MHz)\n", vendor, processor_getCPUFrequency());
         printf("Available memory: %i KB\n", globalInfo->m_memoryHi - globalInfo->m_memoryLo);
         printf("Drives available:\n");
         printIDESummary();
@@ -1244,4 +1247,28 @@ int leak_memory(int argc, char *args[]) {
 
     printf("Leak completed\n");
     return 0;
+}
+
+int gtime(int argc, char *args[]) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    unsigned long long millisecondsSinceEpoch =
+    (unsigned long long)(tv.tv_sec) * 1000 +
+    (unsigned long long)(tv.tv_usec) / 1000;
+
+    printf("The current time (in Unix milliseconds) is %016llX.\n", millisecondsSinceEpoch);
+
+    struct tm *tmp;
+    time_t t;
+    time(&t);
+    char time_buf[50];
+
+    tmp = localtime(&t);
+
+    strftime(time_buf, 50, "%x - %I:%M%p", tmp);
+    printf("The current time (in GMT) is %s\n", time_buf);
+
+    return 0;
+
 }

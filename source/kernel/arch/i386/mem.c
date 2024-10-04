@@ -60,7 +60,7 @@ void mem_outofmemory(int pages, char *seq) {
     panic_dumpStack(NULL);
     printf("\n");
 
-    disableHardwareInterrupts();
+    hal_disableHardwareInterrupts();
     asm volatile ("hlt");
     for (;;);
     __builtin_unreachable();

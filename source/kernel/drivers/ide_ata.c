@@ -141,10 +141,10 @@ void ideInit(uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_
 
     // Finally (for all of the driver), print a summary of the ATA devices
     int drives = 0;
-    serialPrintf("IDE driver completed initialization.\n");
+    serialPrintf("ide: IDE driver completed initialization successfully.\n");
     for (int i = 0; i < 4; i++) {
         if (ideDevices[i].reserved == 1) {
-            serialPrintf("Found %s drive - %s\n", (ideDevices[i].type == 0) ? "ATA" : "ATAPI", ideDevices[i].model);
+            serialPrintf("ide: Found %s drive - %s\n", (ideDevices[i].type == 0) ? "ATA" : "ATAPI", ideDevices[i].model);
             // Quick maths to find out the drive capacity.
             int capacityGB = ideDevices[i].size / 1024 / 1024;
             int capacityMB = ideDevices[i].size / 1024 - (capacityGB * 1024);

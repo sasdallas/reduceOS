@@ -6,6 +6,9 @@
 #include <libk_reduced/stdio.h>
 #include <libk_reduced/string.h>
 
+
+#include <kernel/arch/i386/processor.h>
+
 #include <kernel/fat.h>
 #include <kernel/serial.h>
 #include <kernel/terminal.h>
@@ -13,7 +16,6 @@
 #include <kernel/ext2.h>
 #include <kernel/bitmap.h>
 #include <kernel/vfs.h>
-#include <kernel/processor.h>
 #include <kernel/keyboard.h>
 #include <kernel/ide_ata.h>
 #include <libk_reduced/sleep.h>
@@ -1238,7 +1240,7 @@ int badapple_test() {
 int cpu_tests() {
     cpuInfo_t cpu = getCPUProcessorData();
     printf("\tCPU vendor data: %s\n", getCPUVendorData());
-    printf("\tCPU frequency: %i Hz\n", getCPUFrequency());
+    printf("\tCPU frequency: %i Hz\n", processor_getCPUFrequency());
     printf("\tFPU support (CPUID): %i\n", cpu.fpuEnabled);
 
     if (cpu.fpuEnabled == 1) {

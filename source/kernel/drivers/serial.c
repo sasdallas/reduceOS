@@ -49,6 +49,7 @@ void serialClock(unsigned long ticks, unsigned long subticks) {
     if (serialHasReceived()) {
 
         char c = serialRead();
+    
         if (c == '\r' || c == '\n') {
             serialPrintf("\n"); // Because of the way teletypes work, pressing ENTER (or RETURN) will send the carriage return. 
             keyboardRegisterKeyPress('\n');

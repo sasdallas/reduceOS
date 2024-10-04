@@ -1,12 +1,72 @@
-// =====================================================================
-// hal.c - Hardware Abstraction Layer
-// This file handles functions of the Hardware Abstraction Layer (HAL)
-// =====================================================================
+/**
+ * @file source/kernel/arch/i386/hal.c
+ * @brief The reduceOS kernel hardware abstraction layer (i386 architecture)
+ * 
+ * This file handles call translation from the main kernel logic to bare hardware.
+ * An implementation is required for a new architecture.
+ * The kernel will call hal_init() to initialize the HAL.
+ * 
+ * 
+ * @copyright
+ * This file is part of reduceOS, which is created by Samuel.
+ * It is released under the terms of the BSD 3-clause license.
+ * Please see the LICENSE file in the main repository for more details.
+ * 
+ * Copyright (C) 2024 Samuel S.
+ */
 
 #include <kernel/hal.h> // Main header file
+#include <kernel/arch/i386/processor.h>
 
 
-// Functions
+
+/**
+ * @brief Temporary hal shenanigans. Ignore!
+ */
+ISR hal_cpuidIsAvailable(registers_t *reg) {
+    // hit it
+    panic_prepare();
+    serialPrintf("*** The system does not support the CPUID instruction.\n");
+    serialPrintf("*** reduceOS requires the CPUID instruction to operate correctly.\n");
+    serialPrintf("\nThe video drivers have not been initialized. The system will now reboot.\n");
+    hal_reboot();
+    __builtin_unreachable();
+}
+
+/**
+ * @brief Initialize the hardware abstraction layer.
+ */
+
+void hal_init() {
+    serialPrintf("[i386] Hardware abstraction layer (HAL) starting up...\n");
+    
+    // Initialize the CPU
+    processor_init();
+
+    // Make sure the CPU is compatible
+    // CPUID check. Remap an interrupt handler for the Opcode Error
+    isrRegisterInterruptHandler(6, (ISR)hal_cpuidIsAvailable);
+
+    // Tense!
+    uint32_t discard;
+    __cpuid(0, &discard, &discard, &discard, &discard);
+
+    // All good! Unregister that handler.
+    isrUnregisterInterruptHandler(6);
+
+    // Collect processor data
+    processor_collect_data();
+    
+    serialPrintf("[i386] HAL initialized successfully.\n");
+}
+
+/**
+ * @brief Reboot the system
+ */
+void hal_reboot() {
+    for (;;);
+}
+
 
 /** INTERRUPT FUNCTIONS **/
 
@@ -17,7 +77,6 @@ void hal_interruptCompleted(uint32_t intNo) {
     
     // Send EOI to master
     outportb(0x20, 0x20);
-
 }
 
 
@@ -32,13 +91,13 @@ void hal_setInterruptVectorFlags(int intNo, uint32_t vect, int flags) {
 }
 
 // void enableHardwareInterrupts() - Enable hardware interrupts
-void enableHardwareInterrupts() {
+void hal_enableHardwareInterrupts() {
     asm ("sti");
 }
 
 
 // void disableHardwareInterrupts() - Disable hardware interrupts
-void disableHardwareInterrupts() {
+void hal_disableHardwareInterrupts() {
     asm ("cli");
 }
 

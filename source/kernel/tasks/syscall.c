@@ -95,7 +95,7 @@ int syscall_validatePointer(void* ptr, const char* syscall) {
             // Normally we could send a SIGSEGV to the process to say "that aint your memory son" but this is debugging stages.
 
             panic_prepare();
-            disableHardwareInterrupts();
+            hal_disableHardwareInterrupts();
             printf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n", syscall,
                    currentProcess->name, currentProcess->id);
             printf("*** The attempted access violation happened at 0x%x\n", ptr);

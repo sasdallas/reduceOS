@@ -24,6 +24,12 @@ void isrRegisterInterruptHandler(int num, ISR handler) {
     if (num < 256) { interruptHandlers[num] = handler; }
 }
 
+// isrUnregisterInterruptHandler(int num) - Unregister an interrupt handler
+void isrUnregisterInterruptHandler(int num) {
+    if (num < 256) { interruptHandlers[num] = NULL; }
+}
+
+
 void isrExceptionHandler(registers_t* reg) {
     bool handled = false;
     if (interruptHandlers[reg->int_no] != NULL) {

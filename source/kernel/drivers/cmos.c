@@ -18,18 +18,18 @@ static void cmos_selectRegister(uint8_t cmosreg) {
 }
 
 uint8_t cmos_readRegister(uint8_t cmosreg) {
-    disableHardwareInterrupts();
+    hal_disableHardwareInterrupts();
     cmos_selectRegister(cmosreg);
     uint8_t ret = inportb(0x71); 
-    enableHardwareInterrupts();
+    hal_enableHardwareInterrupts();
     return ret;
 }
 
 void cmos_writeRegister(uint8_t cmosreg, uint8_t value) {
-    disableHardwareInterrupts();
+    hal_disableHardwareInterrupts();
     cmos_selectRegister(cmosreg);
     outportb(CMOS_DATA, value);
-    enableHardwareInterrupts();
+    hal_enableHardwareInterrupts();
 }
 
 

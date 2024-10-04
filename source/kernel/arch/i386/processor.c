@@ -3,7 +3,7 @@
 // ======================================================
 // This file is a part of the reduceOS C kernel. Please credit me if you use this code.
 
-#include <kernel/processor.h> // Main header file
+#include <kernel/arch/i386/processor.h> // Main header file
 #include <kernel/fpu.h>
 #include <libk_reduced/stdio.h>
 
@@ -14,8 +14,8 @@ static cpuInfo_t processor_data; // TODO: Seems like not ht ebest way to do thin
 // Function prototypes
 void cpuCheckSSE();
 
-// cpuInit() - Initializes the CPU with ISR, IDT, and GDT
-void cpuInit() {
+// processor_init() - Initializes the CPU with ISR, IDT, and GDT
+void processor_init() {
     // Load GDT and IDT (IDT method sets up ISR as well as PIC)
     gdtInit();
     idtInit();
@@ -23,9 +23,13 @@ void cpuInit() {
     serialPrintf("[i386]: GDT/IDT installed\n");
 
     // Enable interrupts.
-    enableHardwareInterrupts();
+    hal_enableHardwareInterrupts();
     serialPrintf("[i386]: Hardware interrupts enabled.\n");
 
+}
+
+// processor_collect_data() - Collects data about the processor. This is separate because HAL should run compat checks before we actually hop into this.
+void processor_collect_data() {
 	
 	// We want a fast boot so we'll only detect CPU frequency when needed.
 	processor_data.frequency = 0;
@@ -75,13 +79,7 @@ void cpuInit() {
 	serialPrintf("== End SSE Data Collection Summary ==\n");
 	serialPrintf("======== End CPU Data Collection Summary ========\n");
 
-	// Done!
-	
-
-	printf("CPU initialization completed.\n");
-	serialPrintf("CPU initialization completed\n");
-
-
+	serialPrintf("[i386] CPU initialization completed\n");
 	return;
 	
 }
@@ -135,7 +133,7 @@ void cpuCheckSSE() {
 
 
 // detectCPUFrequency() - Detect the CPU frequency (buggy and takes time)
-uint32_t detectCPUFrequency() {
+static uint32_t detectCPUFrequency() {
 	uint64_t start, end, diff;
 	uint64_t ticks, old;
 
@@ -160,7 +158,7 @@ uint32_t detectCPUFrequency() {
 
 
 // getCPUFrequency() - Returns the CPU frequency and gets it if it is not present.
-uint32_t getCPUFrequency() {	
+uint32_t processor_getCPUFrequency() {	
 	if (processor_data.frequency > 0)
 		return processor_data.frequency;
 

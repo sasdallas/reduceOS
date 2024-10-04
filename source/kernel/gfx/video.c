@@ -372,6 +372,10 @@ void headless_putchar(char ch, int x, int y, uint8_t color) {
     // The terminal driver works by updating its own Y value
     if (y > lasty) {
         serialPrintf("\r\n"); // This should also handle the return carriage for serial emulators that need it
+    } else if (lasty > y) {
+        // This indicates a backspace (A WARNING: THIS IS ONLY COMPATIBLE WITH PROPER SERIAL MONITORS)
+        // Certain monitors like Linux's terminals won't read this correctly.
+        serialPrintf("\b \b");
     }
 
     lasty = y;

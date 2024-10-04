@@ -21,8 +21,9 @@
 #include <kernel/fat.h>
 #include <kernel/floppy.h>
 #include <kernel/font.h>
+#include <kernel/hal.h>
 #include <kernel/ide_ata.h>
-#include <kernel/kernel.h> // Kernel header file
+#include <kernel/kernel.h>
 #include <kernel/keyboard.h>
 #include <kernel/ksym.h>
 #include <kernel/modfs.h>
@@ -30,7 +31,6 @@
 #include <kernel/nulldev.h>
 #include <kernel/pci.h>
 #include <kernel/process.h>
-#include <kernel/processor.h>
 #include <kernel/serialdev.h>
 #include <kernel/signal.h>
 #include <kernel/syscall.h>
@@ -44,10 +44,8 @@
 // ide_ata.c defined variables
 extern ideDevice_t ideDevices[4];
 
-// initrd.c defined variables
-extern fsNode_t* initrdDev;
-
-multiboot_info* globalInfo;
+multiboot_info* globalInfo;     // Global multiboot info. I don't like.
+uint32_t kernel_boot_time = 0;  // Bragging rights
 
 extern void switchToUserMode(); // User mode switch function
 void kshell();
@@ -58,13 +56,6 @@ void usermodeMain() {
     // syscall_sys_write(2, "Hello, system call world!", strlen("Hello, system call world!"));
 
     for (;;);
-}
-
-int enterUsermode(int argc, char* args[]) {
-    printf("Entering usermode, please wait...\n");
-    setKernelStack(2048);
-    switchToUserMode();
-    return -1;
 }
 
 // Filesystem nodes
@@ -89,39 +80,10 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     extern uint32_t bss_end;
 
     // ==== MEMORY MANAGEMENT INITIALIZATION ====
-
     mem_init();
+    enable_liballoc(); // TODO: Remove this crap. All memory management is forced to take place as early as possible and failures are treated as kernel panics.
 
-    // This has to be done before ANYTHING else, because lack of PMM will break a lot of stuff.
-    //pmmInit((globalInfo->m_memoryHi - globalInfo->m_memoryLo));
-
-
-    // Initialize the memory map
-    //pmm_initializeMemoryMap(globalInfo);
-
-    // Deallocate the kernel's region.
-    /*
-    uint32_t kernelStart = (uint32_t)&text_start;
-    uint32_t kernelEnd = (uint32_t)&bss_end;
-    pmm_deinitRegion(kernelStart, (kernelEnd - kernelStart));
-    pmm_deinitRegion(0x0, 4096);
-    */
-
-    // Before anything else is allocated, we need to deinitialize a few other regions.
-    // Here is the list:
-    /*
-        - ACPI (0x000E0000 - 0x000FFFFF)
-    */
-
-    // pmm_deinitRegion(0x000E0000, 0x000FFFFF - 0x000E0000);
-
-
-    // Even though paging hasn't been initialized, liballoc can use PMM blocks.
-    enable_liballoc();
-
-    
-    
-    
+    // ==== MAIN INITIALIZATION ====
 
     // Initialize PC Screen Font for later
     psfInit();
@@ -147,20 +109,14 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Before CPU initialization can even take place, we should start the clock.
     clock_init();
 
-    // Now initialize ACPI, has to be done before VMM (it will allocate regions I think)
+    // Now initialize ACPI
     // acpiInit();
 
-    // Initialize all the basic CPU features
-    cpuInit();
-
-    // Initialize VMM
-    // vmmInit();
+    // Initialize the hardware abstraction layer
+    hal_init();
     
-
-    // While we're on the topic of multiboot, setup the argument parser
+    // While we're doing completely unrelated stuff, setup the argument parser
     args_init((char*)globalInfo->m_cmdLine);
-
-    // TODO: ACPI might need to reinitialize its regions so do we need to reallocate? I call vmm_allocateRegion in ACPI, but does that work before vmmInit
 
     // Installs the GDT and IDT entries for BIOS32
     bios32_init();
@@ -271,7 +227,6 @@ _skip_terminal:
         }
 
         multiboot_mod_t* mod = (multiboot_mod_t*)modnode->impl_struct;
-        serialPrintf("mod cmdline %s\n", mod->cmdline);
         if (strstr((char*)mod->cmdline, "type=initrd") != NULL) {
             // There should be a way to dynamically do this.
             modnode->close(modnode);
@@ -407,7 +362,6 @@ void useCommands() {
     registerCommand("pagefault", (command*)doPageFault);
     registerCommand("read_floppy", (command*)read_floppy);
     registerCommand("test", (command*)test);
-    registerCommand("user", (command*)enterUsermode);
 
     registerCommand("mount_fat", (command*)mountFAT);
 
@@ -433,6 +387,7 @@ void useCommands() {
     registerCommand("showmodes", (command*)showmodes);
     registerCommand("setmode", (command*)setmode);
     registerCommand("leak", (command*)leak_memory);
+    registerCommand("time", (command*)gtime);
 
     serialPrintf("kmain: All commands registered successfully.\n");
 
@@ -467,13 +422,9 @@ _use_commands_done: // amazing label name
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    unsigned long long millisecondsSinceEpoch =
-    (unsigned long long)(tv.tv_sec) * 1000 +
-    (unsigned long long)(tv.tv_usec) / 1000;
-
     serialPrintf("kernel: boot sequence completed - reduceOS has loaded successfully\n");
-    serialPrintf("\tinitial boot time: unix seconds 0x%llX\n", clock_getBoottime());
-    serialPrintf("\tcurrent time: 0x%llX milliseconds since epoch\n", millisecondsSinceEpoch);
+    serialPrintf("\tboot completed in %i seconds\n", tv.tv_sec - clock_getBoottime());
+    kernel_boot_time = tv.tv_sec - clock_getBoottime();
 
     printf("reduceOS has finished loading successfully.\n");
     printf("Please type your commands below.\n");

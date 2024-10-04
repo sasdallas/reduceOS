@@ -1044,7 +1044,7 @@ pid_t clone(uintptr_t new_stack, uintptr_t thread_func, uintptr_t arg) {
     if (parent->flags & PROCESS_FLAG_IS_TASKLET) new_proc->flags |= PROCESS_FLAG_IS_TASKLET;
     makeProcessReady(new_proc);
 
-    enableHardwareInterrupts();
+    hal_enableHardwareInterrupts();
 
     return new_proc->id;
 }

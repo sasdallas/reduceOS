@@ -48,7 +48,7 @@ Scary! I wouldn't do this, but it's possible. Here are some issues I've encounte
 
 **Tasking (last stage) crashes the system** The boot argument `--no_tasking` should help here. Be warned the system will be unstable!
 
-**There is no video driver, but I have a COM port!** Use the boot argument `--force_headless` to put reduceOS into serial-only mode.
+**There is no video driver, but I have a COM port!** Use the boot argument `--headless` to put reduceOS into serial-only mode.
 
 If you manage to get reduceOS running, then tell me in our Discord server or in GitHub issues!
 

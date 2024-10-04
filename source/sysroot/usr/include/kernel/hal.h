@@ -7,7 +7,7 @@
 // Includes
 #include <kernel/idt.h> // Interrupt Descriptor Table
 #include <kernel/pic.h> // Programmable Interrupt Controller
-#include <kernel/pit.h> // Programmable interval Timer
+#include <kernel/pit.h> // Programmable interval Timer 
 #include <libk_reduced/stdint.h> // Integer declarations (like uint8_t, uint16_t, etc..)
 #include <libk_reduced/stddef.h> // size_t declaration
 
@@ -16,17 +16,28 @@
 #define far
 #define near
 
-
 // BDA definitions (see https://wiki.osdev.org/Memory_Map_(x86)#BIOS_Data_Area_.28BDA.29)
 #define HAL_BDA_START 0x400
 #define HAL_BDA_END 0x498
+
+
+
+/**
+ * @brief Initialize the hardware abstraction layer.
+ */
+void hal_init();
+
+/**
+ * @brief Reboot the system
+ */
+void hal_reboot();
 
 // Functions
 
 void hal_setInterruptVector(int intNo, uint32_t vect); // Sets a new interrupt vector.
 void hal_interruptCompleted(uint32_t intNo); // Notifies HAL interrupt is done.
-void enableHardwareInterrupts(); // Enable hardware interrupts
-void disableHardwareInterrupts(); // Disable hardware interrupts
+void hal_enableHardwareInterrupts(); // Enable hardware interrupts
+void hal_disableHardwareInterrupts(); // Disable hardware interrupts
 uint8_t inportb(uint16_t port); // Read data from a device using port mapped IO
 void outportb(uint16_t port, uint8_t value); // Write data to a device using port mapped IO
 uint16_t inportw(uint16_t port); // Read data from a device using port mapped IO
