@@ -33,7 +33,7 @@ extern uint32_t end;
 // This function will dump physical memory to disk
 void panic_dumpPMM() {
     // Do not dump PMM if we're using a RELEASE build.
-    if (!strcmp(BUILD_CONFIGURATION, "RELEASE")) {
+    if (!strcmp(__kernel_configuration, "RELEASE")) {
         printf("\nThis is a RELEASE build of reduceOS - therefore, to retain the security of your disks, memory dumps have been disabled.\n");
         return;
     }
@@ -219,8 +219,8 @@ void badvideo_panic(char *caller, char *code, char *reason, registers_t *reg, ui
     serialPrintf("As such, debug info will only be printed to console.\n");
     updateTerminalColor_gfx(COLOR_BLACK, COLOR_LIGHT_GRAY); // Update terminal color
     
-    printf("reduceOS v%s %s - Kernel Panic", VERSION, CODENAME);
-    for (uint32_t i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(CODENAME) - strlen(VERSION)); i++) printf(" ");
+    printf("reduceOS v%s %s - Kernel Panic", __kernel_version, __kernel_codename);
+    for (uint32_t i = 0; i < (SCREEN_WIDTH - strlen("reduceOS v  - Kernel Panic") - strlen(__kernel_codename) - strlen(__kernel_version)); i++) printf(" ");
     
     updateTerminalColor_gfx(COLOR_WHITE, COLOR_RED); // When we're called this hasn't been done
 
@@ -513,8 +513,7 @@ void pageFault(registers_t *reg) {
     printf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->cs, reg->ss, reg->eflags, reg->useresp);
 
     
-    // DUMP PMM FIRST
-    // This is because page faults will sometimes hang stackTrace
+    // Dump physical memory first
     serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
     panic_dumpPMM();
     serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");

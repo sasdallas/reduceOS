@@ -54,7 +54,7 @@ void hal_init() {
     // All good! Unregister that handler.
     isrUnregisterInterruptHandler(6);
 
-    // Collect processor data
+    // Collect processor data (also initializes FPU)
     processor_collect_data();
     
     serialPrintf("[i386] HAL initialized successfully.\n");

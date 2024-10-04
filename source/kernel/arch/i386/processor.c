@@ -20,11 +20,11 @@ void processor_init() {
     gdtInit();
     idtInit();
 	
-    serialPrintf("[i386]: GDT/IDT installed\n");
+    serialPrintf("[i386] GDT/IDT installed\n");
 
     // Enable interrupts.
     hal_enableHardwareInterrupts();
-    serialPrintf("[i386]: Hardware interrupts enabled.\n");
+    serialPrintf("[i386] Hardware interrupts enabled.\n");
 
 }
 

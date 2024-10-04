@@ -137,7 +137,7 @@ int parseCommand(char *cmd) {
 
 // Help command - prints all available commands.
 int help(int argc, char *args[]) {
-    printf("reduceOS v%s - help command\nAvailable commands: ", VERSION);
+    printf("reduceOS v%s - help command\nAvailable commands: ", __kernel_version);
     
     for (int i = 0; i < index; i++) {
         cmdData *data = &cmdFunctions[i];

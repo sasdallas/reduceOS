@@ -91,8 +91,8 @@ void kmain(unsigned long addr, unsigned long loader_magic) {
     // Initialize serial logging
     serialInit();
     serialPrintf("============================================================================================================================\n");
-    serialPrintf("\treduceOS v%s %s - written by sasdallas\n", VERSION, CODENAME);
-    serialPrintf("\tBuild %s-%s, compiled on %s\n", BUILD_NUMBER, BUILD_CONFIGURATION, BUILD_DATE);
+    serialPrintf("\treduceOS v%s %s - written by sasdallas\n", __kernel_version, __kernel_codename);
+    serialPrintf("\tBuild %s-%s, compiled on %s\n", __kernel_build_number, __kernel_configuration, __kernel_build_date);
     serialPrintf("============================================================================================================================\n\n");
     serialPrintf("Kernel location: 0x%x - 0x%x\nText section: 0x%x - 0x%x; Data section: 0x%x - 0x%x; BSS section: 0x%x - 0x%x\n",
                  &text_start, &bss_end, &text_start, &text_end, &data_start, &data_end, &bss_start, &bss_end);

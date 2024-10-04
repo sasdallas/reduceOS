@@ -368,6 +368,6 @@ void terminalUpdateTopBar(char *text) {
 // terminalUpdateTopBarKernel(char *text) - Prints out kernel version and codename too 
 void terminalUpdateTopBarKernel(char *text) {
     char buffer[256]; // stack smashing :sob:
-    sprintf((char*)&buffer, "reduceOS v%s %s - %s", VERSION, CODENAME, text);
+    sprintf((char*)&buffer, "reduceOS v%s %s - %s", __kernel_version, __kernel_codename, text);
     terminalUpdateTopBar((char*)&buffer);
 }

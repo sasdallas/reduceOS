@@ -97,6 +97,7 @@ static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
     printf("Found AHCI device with vendor ID 0x%x device ID 0x%x\n", vendorID, deviceID);
     found_ahci = 1;
 
+    return;
 
 
     // We're going to write a value to the PCI command register
@@ -108,6 +109,8 @@ static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
 
     // Print out some debug information
     serialPrintf("[module ahci] PCI interrupt line = %d\n", pciGetInterrupt(device));
+
+
     serialPrintf("[module ahci] BAR5 = %#x\n", pciConfigReadField(device, PCI_OFFSET_BAR5, 4));
 
     // Use the memory subsystem to map regions
@@ -128,7 +131,7 @@ static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
     printf("[module ahci] AHCI controller loaded - controller version %d.%d%d\n", (ahciVersion >> 16) & 0xFFF, (ahciVersion >> 8) & 0xFF, (ahciVersion) & 0xFF); // debug code for a system I'm testing
 
 
-    ahci_probePorts(mem);
+    // ahci_probePorts(mem);
 }
 
 

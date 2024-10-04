@@ -208,8 +208,9 @@ int testISRException(int argc, char *args[]) {
 
 
 int about(int argc, char *args[]) {
-    printf("reduceOS v%s (codename %s)\n", VERSION, CODENAME);
-    printf("Build number %s-%s - build date %s\n", BUILD_NUMBER, BUILD_CONFIGURATION, BUILD_DATE);
+    printf("reduceOS v%s (codename %s)\n", __kernel_version, __kernel_codename);
+    printf("Build number %s-%s - build date %s\n", __kernel_build_number, __kernel_configuration, __kernel_build_date);
+    printf("Compiled by %s\n", __kernel_compiler);
     printf("Created by @sasdallas\n");
     return 0;
 }

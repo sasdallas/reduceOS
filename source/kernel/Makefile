@@ -78,9 +78,7 @@ MAKE_OUTPUT_DIRS:
 # Fixes a CONFIG.h not updating bug
 # Not good
 DELETE_OLD_KERNEL_OBJ:
-	-@$(RM) $(OUT_OBJ)/kernel/kernel.o
-	-@$(RM) $(OUT_OBJ)/kernel/panic.o
-	-@$(RM) $(OUT_OBJ)/kernel/cmds.o
+	-@$(RM) $(OUT_OBJ)/kernel/config.o
 
 BUILDSCRIPTS_RELEASE:
 	@printf "[ Running buildscripts for RELEASE build of reduceOS... ]\n"

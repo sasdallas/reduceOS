@@ -49,10 +49,10 @@ int fpu_init() {
     if (test_word == 0x0) {
         // Set up control words
         fpu_write(0x37A);   // Division by zero + operand exceptions
-        serialPrintf("fpu_init: FPU initialized\n");
+        serialPrintf("[i386] fpu: FPU initialized\n");
         return 0;
     } else { 
-        serialPrintf("fpu_init: Could not initialize FPU.\n");
+        serialPrintf("[i386] fpu: Could not initialize FPU.\n");
         return -1;
     }
 }

@@ -2,7 +2,6 @@
  * @file source/kernel/arch/i386/mem.c
  * @brief i386 virtual memory manager
  * 
- * ! This file is in prototype !
  * This is the memory management facilities for the i386 architecture.
  * 
  * @see pmm.c for the physical memory manager - it is architecture-independent.

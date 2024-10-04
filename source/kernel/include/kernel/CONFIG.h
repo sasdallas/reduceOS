@@ -5,11 +5,20 @@
 // This file contains configuration data for all of reduceOS, such as the release codename, build no. & date, debug/release config, etc.
 
 
-// YOU CAN MODIFY THE BELOW LINES
+#ifdef _KERNEL_CONFIGURATION_FILE
 #define CODENAME "Cherry Blossom"
 #define VERSION "1.4"
 
 // DO NOT MODIFY THE BELOW LINES!!!
-#define BUILD_NUMBER "11633"
-#define BUILD_DATE "10/03/24, 19:14:15"
+#define BUILD_NUMBER "11660"
+#define BUILD_DATE "10/04/24, 15:15:47"
 #define BUILD_CONFIGURATION "DEBUG"
+#else
+extern char *__kernel_version;
+extern char *__kernel_codename;
+extern char *__kernel_configuration;
+extern char *__kernel_build_number;
+extern char *__kernel_build_date;
+extern char *__kernel_compiler;
+
+#endif
