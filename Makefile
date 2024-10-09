@@ -90,7 +90,7 @@ qemu_dbg_gdb:
 	qemu-system-i386 -cdrom out/iso/reduceOS.iso -serial stdio -s -S
 
 qemu_drive:
-	qemu-system-x86_64 -cdrom out/iso/reduceOS.iso -serial stdio -hda drive.img -s
+	qemu-system-i386 -cdrom out/iso/reduceOS.iso -serial stdio -hda drive.img -s
 
 
 # Other targets

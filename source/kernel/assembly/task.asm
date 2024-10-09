@@ -1,8 +1,5 @@
 global start_process
 global restore_kernel_selectors
-global enter_tasklet
-global restore_context
-global save_context
 global read_eip
 global resume_usermode
 

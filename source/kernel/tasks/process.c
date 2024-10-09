@@ -85,6 +85,9 @@ void process_switchNext() {
     spinlock_lock(&switch_lock);
     serialPrintf("process: switching directory to 0x%x for process %i (%s)\n", currentProcess->thread.page_directory, currentProcess->id, currentProcess->name);
     mem_switchDirectory(currentProcess->thread.page_directory);
+    if (!strcmp(currentProcess->name, "worker")) {
+        asm volatile ("pause");
+    }
     spinlock_release(&switch_lock);
 
     setKernelStack(currentProcess->image.stack);
@@ -1065,6 +1068,12 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
     proc->job = proc->id;
     proc->session = proc->id;
 
+    // Setup page directory
+    proc->thread.page_directory = cloneDirectory(mem_getKernelDirectory());
+    proc->thread.refcount = 1;
+    proc->thread.pd_lock = spinlock_init();
+
+
     // Setup the image stack
     // This is DEFINITELY unsafe.
     proc->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
@@ -1073,11 +1082,7 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
         mem_allocatePage(page, MEM_DEFAULT);
     }
 
-    // Setup page directory
-    proc->thread.page_directory = cloneDirectory(mem_getKernelDirectory());
-    proc->thread.refcount = 1;
-    proc->thread.pd_lock = spinlock_init();
-
+    
     PUSH(proc->image.stack, uintptr_t, (uintptr_t)entrypoint);
     PUSH(proc->image.stack, void*, argp);
 
@@ -1085,7 +1090,7 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
     proc->thread.context.sp = proc->image.stack;
     proc->thread.context.bp = proc->image.stack;
     proc->thread.context.ip = (uintptr_t)&enter_tasklet;
-
+    
     // Setup scheduler values
     proc->waitQueue = list_create();
     proc->shm_mappings = list_create(); // Unused

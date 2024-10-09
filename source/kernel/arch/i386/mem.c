@@ -32,7 +32,7 @@
 
 static pagedirectory_t *mem_kernelDirectory     = 0; // The kernel's page directory. Setup by mem_finalize
 static pagedirectory_t *mem_currentDirectory    = 0; // Current page directory 
-static uint32_t         mem_currentPDBR         = 0; // Current page directory base register address. This should be the same as pagedirectory_t.
+//static uint32_t         mem_currentPDBR         = 0; // Current page directory base register address. This should be the same as pagedirectory_t.
 char*                   mem_heapStart           = 0; // The start of our heap. Expanded using mem_sbrk
 char*                   mem_kernelEnd           = 0; // Where the kernel ends and the heap begins.
 char*                   mem_maxPMMUsage         = 0; // The maximum amount of bytes that the PMM can use (see mem_init())
@@ -81,7 +81,6 @@ static inline void mem_invalidatePage(uintptr_t addr) {
  */
 static inline void mem_load_pdbr(uintptr_t addr) {
     asm volatile ("mov %0, %%cr3" :: "r"(addr));
-    mem_currentPDBR = addr;
 }
 
 

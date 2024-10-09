@@ -20,6 +20,14 @@ char *__kernel_codename = CODENAME;
 char *__kernel_configuration = BUILD_CONFIGURATION;
 
 
+#ifdef ARCH_I386
+char *__kernel_architecture = "i386";
+#elif defined(ARCH_X86_64)
+char *__kernel_architecture = "x86_64";
+#else 
+char *__kernel_architecture = "unknown - how are you running this";
+#endif
+
 
 
 #if (defined(__GNUC__) || defined(__GNUG__)) && !(defined(__clang__) || defined(__INTEL_COMPILER))
