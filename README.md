@@ -60,17 +60,13 @@ I've written an excellent README for the `source/kmods` folder, which can be fou
 reduceOS will automatically load and handle your modules without needing to modify the parent directory Makefile.
 
 # Known Bugs
-- **Highest priority:** Exiting tasks after forking will crash.
+- **Highest priority:** New memory subsystem not working with tasking (this is entirely tasking's fault)
+- **High priority:** `valloc` sucks
 - **High priority:** ATAPI drives cannot be read
-- **High priority:** Being in a higher resolution while running tasks will crash the system due to an invalid heap relocation
 - **Requires further debugging:** Loading bitmaps cause more memory leaks than the Titanic had, and if you try to free buffers they crash. 
-- **Medium priority:** Memory dumping will crash and corrupt the drive.
 - **TODO:** Merge USB driver handling into kernel
 - **TODO:** device/ directory is not present when running `ls`
-- **TODO:** DMA in IDE/ATA driver
-- **TODO:** System calls need a better interface(?)
-- **TODO:** ext2 driver deletion functions suck
-- **Likely will never be fixed:** Kernel security is not being upheld with usermode as kernel pages are RW. Not good! (needs to be fixed in allocatePage)
+- **TODO:** DMA in IDE/ATA drivers
 - **Likely will never be fixed:** A bitmap that is too large will crash the system
 
 
