@@ -85,7 +85,7 @@ void process_switchNext() {
     spinlock_lock(&switch_lock);
     serialPrintf("process: switching directory to 0x%x for process %i (%s)\n", currentProcess->thread.page_directory, currentProcess->id, currentProcess->name);
     mem_switchDirectory(currentProcess->thread.page_directory);
-    if (!strcmp(currentProcess->name, "worker")) {
+    if (currentProcess->id == -1) {
         asm volatile ("pause");
     }
     spinlock_release(&switch_lock);
@@ -188,11 +188,9 @@ process_t* spawn_kidle(int bsp) {
 
     // Create a stack for the image and map it to kernel (non-user)
     // This is DEFINITELY unsafe.
-    idle->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
-    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
-        pte_t *page = mem_getPage(NULL, (idle->image.stack - KSTACK_SIZE) + i, MEM_CREATE);
-        mem_allocatePage(page, MEM_DEFAULT);
-    }
+    idle->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9));
+
+
 
     // Setup thread context
     idle->thread.context.ip = (uint32_t)&kidle;
@@ -248,11 +246,8 @@ process_t* spawn_init() {
     init->image.heap = 0;
     init->image.heap_start = 0;
     init->image.heap_end = 0;
-    init->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
-    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
-        pte_t *page = mem_getPage(NULL, (init->image.stack - KSTACK_SIZE) + i, MEM_CREATE);
-        mem_allocatePage(page, MEM_DEFAULT); // This will also set usermode flags for the page
-    }
+    init->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9));
+
     // Setup flags
     init->flags = PROCESS_FLAG_STARTED | PROCESS_FLAG_RUNNING;
 
@@ -318,11 +313,7 @@ process_t* spawn_process(volatile process_t* parent, int flags) {
 
     // Create a stack for the image and map it to kernel (non-user)
     // This is DEFINITELY unsafe.
-    proc->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
-    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
-        pte_t *page = mem_getPage(NULL, (proc->image.stack - KSTACK_SIZE) + i, MEM_CREATE);
-        mem_allocatePage(page, MEM_DEFAULT);
-    }
+    proc->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9));
 
     proc->image.shm_heap = NULL; // Unused
 
@@ -1075,11 +1066,7 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
 
     // Setup the image stack
     // This is DEFINITELY unsafe.
-    proc->image.stack = (uintptr_t)mem_sbrk(KSTACK_SIZE) + KSTACK_SIZE;
-    for (uint32_t i = 0; i < KSTACK_SIZE; i += 0x1000) {
-        pte_t *page = mem_getPage(NULL, (proc->image.stack - KSTACK_SIZE) + i, MEM_CREATE);
-        mem_allocatePage(page, MEM_DEFAULT);
-    }
+    proc->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9));
 
     // Setup page directory
     proc->thread.page_directory = cloneDirectory(mem_getKernelDirectory());

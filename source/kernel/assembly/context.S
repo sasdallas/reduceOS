@@ -33,14 +33,18 @@ load_context:
     je 1f
     # lock andl $0xFFFFfff7, 0x14(%eax)
 1:
-    movl 4(%esp), %edi
+    movl 4(%esp), %ecx
     
     # Restoring from general context, SP/BP
-    movl 0(%edi), %esp
-    movl 4(%edi), %ebp
+    movl 0(%ecx), %esp
+    movl 4(%ecx), %ebp
 
-    # Restoring from saved[5], note we don't actually do basically any of it.
-    movl 16(%edi), %ebx 
+    # Restoring from saved[5]
+    movl 16(%ecx), %ebx 
+    movl 20(%ecx), %edi
+    movl 24(%ecx), %esi
+    #movl 28(%ecx), %ebp
+    #movl 32(%ecx), %esp
 
     movl $1, %eax                           # This code is to make sure switchTask knows when we're back from a switch
-    jmpl *12(%edi)                          # Jump to IP
+    jmpl *12(%ecx)                          # Jump to IP

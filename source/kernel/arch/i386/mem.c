@@ -406,6 +406,7 @@ pagedirectory_t *mem_clone(pagedirectory_t *pd_in) {
     void *pd_block = pmm_allocateBlock();
     if (!pd_block) mem_outofmemory(1, "page directory allocation");
     pagedirectory_t *pd_out = (pagedirectory_t*)mem_remapPhys((uintptr_t)pd_block);
+    memset(pd_out, 0, sizeof(pagedirectory_t));
 
 
     // Let's start cloning
@@ -425,30 +426,27 @@ pagedirectory_t *mem_clone(pagedirectory_t *pd_in) {
         
         // TODO: We shouldn't do this!
         pde_addattrib(dest_pde, PDE_PRESENT);
-        pde_addattrib(dest_pde, PDE_WRITABLE);
-        pde_addattrib(dest_pde, PDE_USER);
+        if (pde_iswritable(*src_pde)) pde_addattrib(dest_pde, PDE_WRITABLE);
+        if (pde_isuser(*src_pde)) pde_addattrib(dest_pde, PDE_USER);
 
         pde_setframe(dest_pde, (uint32_t)dest_table_block);
 
         pagetable_t *src_table = (pagetable_t*)mem_remapPhys(MEM_VIRTUAL_TO_PHYS(src_pde));
-        
+
         // Now, time to copy the pages
         for (int page = 0; page < 1024; page++) {
             pte_t *src_page = &src_table->entries[page];
             if (pte_ispresent(*src_page)) {
-                pte_t *dest_page = &dest_table->entries[page];
-
                 if (*src_page & PTE_USER) {
                     // Usermode page. Bah humbug!
                 }
 
                 // Copy it because whatever
-                *dest_page = *src_page;
+                dest_table->entries[page] = src_table->entries[page];
             } 
         }
-        
-
     }
+
 
 
 

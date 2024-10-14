@@ -1,12 +1,6 @@
-// ==================================================================
-// vmm.c - 86th time's the charm, right? (Virtual Memory Mangement)
-// ==================================================================
-// This file is part of the reduceOS C kernel. Please credit me if you use this code.
-// NOTICE: Paging file structure and design sourced from BrokenThorn Entertainment. MOST code is written by me, but PLEASE credit them!
+// THIS FILE IS DEPRECATED AND TO BE REMOVED.
 
 #include <kernel/vmm.h> // Main header file
-
-
 #include <kernel/panic.h> // Kernel panicking
 
 // Variables
