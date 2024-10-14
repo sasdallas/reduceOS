@@ -1,4 +1,4 @@
-# i386.mk - extension for building i386 code
+# x86_64.mk - extension for building i386 code
 
 # We'll add a few extra flags for the kernel
 LDFLAGS += -melf_x86_64

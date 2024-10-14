@@ -156,6 +156,12 @@ void mem_freePage(pte_t *page);
  */
 void *mem_sbrk(int b);
 
+/**
+ * @brief Enable/disable paging
+ * @param status Enable/disable
+ */
+void mem_setPaging(bool status);
+
 // Functions (liballoc)
 void enable_liballoc();
 void *kmalloc(size_t size);
@@ -164,3 +170,4 @@ void *kcalloc(size_t a, size_t b);
 void kfree(void *a);
 
 #endif
+

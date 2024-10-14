@@ -85,6 +85,31 @@ static inline void mem_load_pdbr(uintptr_t addr) {
 
 
 /**
+ * @brief Enable/disable paging
+ * @param status Enable/disable
+ */
+void mem_setPaging(bool status) {
+    if (status) {
+        // Turn on paging
+        uint32_t cr0, cr4;
+
+        asm volatile ("mov %%cr4, %0" : "=r"(cr4));
+        cr4 = cr4 & 0xffffffef; // Clear PSE bit
+        asm volatile ("mov %0, %%cr4" :: "r"(cr4));
+
+        asm volatile ("mov %%cr0, %0" : "=r"(cr0));
+        cr0 = cr0 | 0x80010001; // Enable paging
+        asm volatile ("mov %0, %%cr0" :: "r"(cr0));
+    } else {
+        uint32_t cr0;
+
+        asm volatile ("mov %%cr0, %0" : "=r"(cr0));
+        cr0 = cr0 & 0x7FFFFFFF; // Disable paging
+        asm volatile ("mov %0, %%cr4" :: "r"(cr0));
+    }
+}
+
+/**
  * @brief Remap a physical memory manager address to the identity mapped region
  * @param frame_address The address of the frame to remap
  */
@@ -227,6 +252,7 @@ void mem_mapAddress(pagedirectory_t *dir, uintptr_t phys, uintptr_t virt) {
     if (dir == NULL) directory = mem_getCurrentDirectory();
 
     pte_t *page = mem_getPage(directory, virt, MEM_CREATE);
+    mem_allocatePage(page, MEM_NOALLOC);
     pte_setframe(page, phys);
 }
 
@@ -252,8 +278,6 @@ void mem_allocatePage(pte_t *page, uint32_t flags) {
         if (!block) mem_outofmemory(1, "page allocation");
 
         pte_setframe(page, (uint32_t)block);
-    } else {
-        serialPrintf("mem: NOALLOC specified (debug)\n");
     }
 
     
@@ -277,7 +301,6 @@ void mem_freePage(pte_t *page) {
     // Get the physical address and free it
     if (!page) return;
     mem_allocatePage(page, MEM_FREE_PAGE);
-    
 }
 
 /**
@@ -660,7 +683,7 @@ void mem_init() {
     // Final prep work
     isrRegisterInterruptHandler(14, (ISR)pageFault);
     mem_switchDirectory(mem_kernelDirectory);
-    vmm_enablePaging();
+    mem_setPaging(true);
 
     serialPrintf("mem: The memory allocation system has initialized. Statistics:\n");
     serialPrintf("\tHeap initialized to 0x%x, and addresses 0x%x - 0x%x were mapped\n", mem_heapStart, &text_start, heap_start_aligned);
@@ -668,6 +691,41 @@ void mem_init() {
     serialPrintf("\tHas crashed yet: not yet\n");
 }
 
+
+
+static uintptr_t mem_liballocHackStart = 0x0; // sbrk() will check this address, and if free happens to land on it (or before it), we'll continue freeing pages
+static uintptr_t mem_liballocHackPages = 0x0; // Amount of pages
+
+/**
+ * @brief This is a hack so liballoc will work
+ * 
+ * Explanation: liballoc isn't too fond of sbrk(), because it will try to free pages that are before the heap end (or starts, in our weird variable system)
+ * So this hack is here to allow it to do that, without doing that.
+ * It basically tells sbrk to save these pages for later.
+ * This is really bad, and I should definitely write my own heap system. This can cause all sorts of problems!!
+ * 
+ * @param addr The address to start freeing at. Provide address liballoc gives, we'll adjust it,.
+ * @param pages The pages to free
+ * 
+ * @warning This will panic if it has already been called
+ */
+void mem_doLiballocHack(uintptr_t addr, size_t pages) {
+    // ugh i hate my life
+    if (mem_liballocHackStart > 0x0 || mem_liballocHackPages > 0x0) {
+        panic_prepare();
+        printf("*** A bug in the operating system has been triggered. PLEASE, report this!\n");
+        printf("*** liballoc has tried to do the hack twice\n");
+
+        serialPrintf("*** LIBALLOC TRIED TO DO THE HACK TWICE!!!! ARGHH!\n");
+
+        for (;;);
+    }
+
+    mem_liballocHackStart = addr + (pages * PAGE_SIZE);
+    mem_liballocHackPages = pages;
+
+    serialPrintf("mem: Triggered liballoc hack\n");
+}
 
 
 /**
@@ -692,12 +750,30 @@ void *mem_sbrk(int b) {
 
     // Do they want to shrink the kernel heap?
     if (b < 0) {
-        // just reverse everything lol
-        for (char *i = mem_heapStart; i > mem_heapStart + b; i -= 0x1000) {
-            
+        // BUG: Not entirely sure if this is a bug, but sbrk will leave the first page allocated (shrinking from 0x5b4000 - 0x5a4000 leaves 0x5a4000 allocated)...
+
+        // Free pages
+        for (char *i = mem_heapStart; i >= mem_heapStart + b; i -= 0x1000) {
             mem_freePage(mem_getPage(NULL, (uintptr_t)i, 0));
         }
 
+        // HACK: Check if the pages below are allocated, and if they aren't, something funny has happened (most likely liballoc)
+        pte_t *hack = mem_getPage(NULL, ((uintptr_t)mem_heapStart + b) - 0x1000, 0);
+        if (!hack || !pte_ispresent(*hack)) {
+            // we have shenanigans to do
+            uintptr_t free_start = ((uintptr_t)mem_heapStart + b) - 0x1000;
+            char *oldStart = mem_heapStart;
+            mem_heapStart = (char*)free_start;
+            pte_t *page;
+            while ((page = mem_getPage(NULL, free_start, 0)) && (!page || !pte_ispresent(*page))) {
+                mem_heapStart -= 0x1000;
+            }
+
+            serialPrintf("mem: Detected unmapped pages when freeing. mem_heapStart has been updated to 0x%x\n", free_start);
+
+            return oldStart;
+        }
+    
 
         char *oldStart = mem_heapStart;
         mem_heapStart += b;
@@ -710,6 +786,9 @@ void *mem_sbrk(int b) {
     for (char *i = mem_heapStart; i < mem_heapStart + b; i += 0x1000) {
         pte_t *existing_page = (mem_getPage(NULL, (uintptr_t)i, 0));
         if (existing_page && pte_ispresent(*existing_page)) {
+            // This is most likely caused by sbrk leaving this page allocated
+            if (i == mem_heapStart) continue;
+
             serialPrintf("mem: WARNING! Expanding into unknown memory region at 0x%x!\n", i);
 
             // hey look, free memory!

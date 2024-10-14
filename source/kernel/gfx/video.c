@@ -87,8 +87,8 @@ void video_init() {
 
         // First, what we're going to do might seem a little weird, but it should work.
         // Map the framebuffer to 0xFD000000. This is usually the classic VBE address used - and GRUB will normally use this anyways.
-        // GCC will not accept int-to-pointer casts, and mapping it to a predefined kernel location is probably better regardless.
-        for (uint32_t i = 0; i < (globalInfo->framebuffer_width * globalInfo->framebuffer_height) * 4; i += 0x1000) vmm_allocateRegion(globalInfo->framebuffer_addr + i, (0xFD000000 + i), 0x1000);
+        // GCC will not accept int-to-pointer casts, and mapping it to a predefined kernel location is probably  regardless.
+        for (uint32_t i = 0; i < (globalInfo->framebuffer_width * globalInfo->framebuffer_height) * 4; i += 0x1000) mem_mapAddress(NULL, globalInfo->framebuffer_addr + i, (0xFD000000 + i));
         pmm_deinitRegion(globalInfo->framebuffer_addr, globalInfo->framebuffer_width * globalInfo->framebuffer_height);
 
         VESA_Initialized = 1;

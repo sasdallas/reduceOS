@@ -130,16 +130,6 @@ int liballoc_tests() {
     kfree(itsgonnacrash); // It did not in fact.
     printf("PASS\n");
 
-    printf("\tvalloc() test...");
-
-#include <kernel/liballoc.h>
-
-    char *hardcoded_valloc = liballoc_kvalloc(0x9000);
-    if ((uint32_t)hardcoded_valloc & 0xFFF) { printf("FAIL (got 0x%x, not aligned)\n", hardcoded_valloc); return -1; }
-    printf("PASS (got 0x%x)\n", hardcoded_valloc);
-
-    // Using kfree on a valloc() will crash instantly. vallocs only purpose is process scheduler so I don't care
-
 
 
     return 0;

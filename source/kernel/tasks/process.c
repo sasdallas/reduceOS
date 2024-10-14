@@ -172,8 +172,11 @@ static void kidle() {
 // process_releaseDirectory(pagedirectory_t *dir) - Release a process's paging data
 void process_releaseDirectory(pagedirectory_t *dir) {
     serialPrintf("process: Releasing process directory for pd 0x%x\n", dir);
-    pte_t *mapped_page = mem_getPage(NULL, (uintptr_t)dir, 0);
-    if (mapped_page) mem_freePage(mapped_page);
+
+    uintptr_t remapped_dir = mem_remapPhys((uintptr_t)dir);
+
+    pte_t *mapped_page = mem_getPage(NULL, (uintptr_t)remapped_dir, 0);
+    if (mapped_page) pmm_freeBlock((void*)pte_getframe(*mapped_page)); // probably not the best way to do this
     
 }
 
@@ -1068,11 +1071,7 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
     proc->job = proc->id;
     proc->session = proc->id;
 
-    // Setup page directory
-    proc->thread.page_directory = cloneDirectory(mem_getKernelDirectory());
-    proc->thread.refcount = 1;
-    proc->thread.pd_lock = spinlock_init();
-
+    
 
     // Setup the image stack
     // This is DEFINITELY unsafe.
@@ -1082,7 +1081,12 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
         mem_allocatePage(page, MEM_DEFAULT);
     }
 
-    
+    // Setup page directory
+    proc->thread.page_directory = cloneDirectory(mem_getKernelDirectory());
+    proc->thread.refcount = 1;
+    proc->thread.pd_lock = spinlock_init();
+
+
     PUSH(proc->image.stack, uintptr_t, (uintptr_t)entrypoint);
     PUSH(proc->image.stack, void*, argp);
 
@@ -1164,7 +1168,7 @@ int createProcess(char* filepath, int argc, char* argv[], char* envl[], int envc
             
             // We have to load it into memory
             for (uint32_t i = phdr->p_vaddr; i < phdr->p_vaddr + phdr->p_memsize; i += 0x1000) {
-                pte_t *page = mem_getPage(NULL, i, MEM_CREATE);
+                pte_t *page = mem_getPage(currentProcess->thread.page_directory, i, MEM_CREATE);
                 if (page) mem_allocatePage(page, MEM_DEFAULT);
             }
 

@@ -1,4 +1,4 @@
-# tasklet.asm - i hate myself
+# tasklet.S - i hate myself
 
 .global enter_tasklet
 .type enter_tasklet, @function

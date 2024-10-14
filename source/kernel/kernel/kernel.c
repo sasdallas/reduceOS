@@ -281,7 +281,7 @@ _skip_terminal:
     // We also need to mount the VESA VBE block device.
     vesa_createVideoDevice("fb0");
 
-    printf("Mounted IDE nodes successfully.\n");
+    printf("Mounted nodes successfully.\n");
 
     // For compatibility with our tests, we need to set the ext2_root variable.
     // The user can use the mount_fat command to mount the FAT driver.

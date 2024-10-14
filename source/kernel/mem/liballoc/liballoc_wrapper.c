@@ -34,8 +34,6 @@ void *liballoc_alloc(size_t pages) {
     void *addr = mem_sbrk(pages * PAGE_SIZE);
     memset(addr, 0x0, pages * PAGE_SIZE);
 
-    // switch buffers immediately (DEBUG!!!)
-    vbeSwitchBuffers();
 
     return addr;
 }
@@ -43,6 +41,16 @@ void *liballoc_alloc(size_t pages) {
 // liballoc_free(void *addr, size_t pages) - Frees pages
 int liballoc_free(void *addr, size_t pages) {
     // Un-sbrk ourselves
+
+    extern uintptr_t mem_heapStart;
+    if ((uintptr_t)addr < mem_heapStart && (char*)(mem_heapStart - (pages * PAGE_SIZE)) != addr) {
+        // we will be sneaky
+        serialPrintf("liballoc: force unmapping 0x%x - 0x%x\n", addr - (pages * PAGE_SIZE), addr);
+        for (uintptr_t i = (uintptr_t)addr; i > (uintptr_t)addr - (pages * PAGE_SIZE); i -= 0x1000) {
+            mem_freePage(mem_getPage(NULL, i, 0));
+        }
+        return 0;
+    }
     mem_sbrk(-(pages * PAGE_SIZE));
 
     return 0;
