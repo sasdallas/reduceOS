@@ -361,7 +361,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/am_map.o
  .debug_macro   0x0000000000000000      0x460 build/am_map.o
  .debug_macro   0x0000000000000000       0x16 build/am_map.o
- .debug_macro   0x0000000000000000      0x11e build/am_map.o
+ .debug_macro   0x0000000000000000      0x106 build/am_map.o
  .debug_macro   0x0000000000000000       0x19 build/am_map.o
  .debug_macro   0x0000000000000000       0x1c build/am_map.o
  .group         0x0000000000000000        0xc build/doomdef.o
@@ -451,13 +451,13 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/doomdef.o
  .debug_macro   0x0000000000000000      0x460 build/doomdef.o
  .debug_macro   0x0000000000000000       0x16 build/doomdef.o
- .debug_macro   0x0000000000000000      0x11e build/doomdef.o
+ .debug_macro   0x0000000000000000      0x106 build/doomdef.o
  .debug_macro   0x0000000000000000       0x19 build/doomdef.o
  .debug_macro   0x0000000000000000       0x1c build/doomdef.o
  .debug_macro   0x0000000000000000       0x10 build/doomdef.o
  .debug_macro   0x0000000000000000       0x34 build/doomdef.o
  .debug_line    0x0000000000000000      0x117 build/doomdef.o
- .debug_str     0x0000000000000000     0x859a build/doomdef.o
+ .debug_str     0x0000000000000000     0x858a build/doomdef.o
  .debug_line_str
                 0x0000000000000000      0x325 build/doomdef.o
  .comment       0x0000000000000000       0x13 build/doomdef.o
@@ -544,7 +544,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/doomstat.o
  .debug_macro   0x0000000000000000      0x460 build/doomstat.o
  .debug_macro   0x0000000000000000       0x16 build/doomstat.o
- .debug_macro   0x0000000000000000      0x11e build/doomstat.o
+ .debug_macro   0x0000000000000000      0x106 build/doomstat.o
  .debug_macro   0x0000000000000000       0x19 build/doomstat.o
  .debug_macro   0x0000000000000000       0x1c build/doomstat.o
  .debug_macro   0x0000000000000000       0x16 build/doomstat.o
@@ -614,7 +614,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/d_event.o
  .debug_macro   0x0000000000000000      0x460 build/d_event.o
  .debug_macro   0x0000000000000000       0x16 build/d_event.o
- .debug_macro   0x0000000000000000      0x11e build/d_event.o
+ .debug_macro   0x0000000000000000      0x106 build/d_event.o
  .debug_macro   0x0000000000000000       0x19 build/d_event.o
  .debug_macro   0x0000000000000000       0x1c build/d_event.o
  .group         0x0000000000000000        0xc build/d_items.o
@@ -698,7 +698,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/d_items.o
  .debug_macro   0x0000000000000000      0x460 build/d_items.o
  .debug_macro   0x0000000000000000       0x16 build/d_items.o
- .debug_macro   0x0000000000000000      0x11e build/d_items.o
+ .debug_macro   0x0000000000000000      0x106 build/d_items.o
  .debug_macro   0x0000000000000000       0x19 build/d_items.o
  .debug_macro   0x0000000000000000       0x1c build/d_items.o
  .debug_macro   0x0000000000000000       0x10 build/d_items.o
@@ -797,7 +797,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/d_iwad.o
  .debug_macro   0x0000000000000000      0x460 build/d_iwad.o
  .debug_macro   0x0000000000000000       0x16 build/d_iwad.o
- .debug_macro   0x0000000000000000      0x11e build/d_iwad.o
+ .debug_macro   0x0000000000000000      0x106 build/d_iwad.o
  .debug_macro   0x0000000000000000       0x19 build/d_iwad.o
  .debug_macro   0x0000000000000000       0x1c build/d_iwad.o
  .debug_macro   0x0000000000000000       0x4c build/d_iwad.o
@@ -878,7 +878,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1df build/d_loop.o
  .debug_macro   0x0000000000000000      0x460 build/d_loop.o
  .debug_macro   0x0000000000000000       0x16 build/d_loop.o
- .debug_macro   0x0000000000000000      0x11e build/d_loop.o
+ .debug_macro   0x0000000000000000      0x106 build/d_loop.o
  .debug_macro   0x0000000000000000       0x19 build/d_loop.o
  .debug_macro   0x0000000000000000       0x1c build/d_loop.o
  .debug_macro   0x0000000000000000       0x10 build/d_loop.o
@@ -1008,7 +1008,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/d_main.o
  .debug_macro   0x0000000000000000      0x460 build/d_main.o
  .debug_macro   0x0000000000000000       0x16 build/d_main.o
- .debug_macro   0x0000000000000000      0x11e build/d_main.o
+ .debug_macro   0x0000000000000000      0x106 build/d_main.o
  .debug_macro   0x0000000000000000       0x19 build/d_main.o
  .debug_macro   0x0000000000000000       0x1c build/d_main.o
  .debug_macro   0x0000000000000000       0x1c build/d_main.o
@@ -1077,7 +1077,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/d_mode.o
  .debug_macro   0x0000000000000000      0x460 build/d_mode.o
  .debug_macro   0x0000000000000000       0x16 build/d_mode.o
- .debug_macro   0x0000000000000000      0x11e build/d_mode.o
+ .debug_macro   0x0000000000000000      0x106 build/d_mode.o
  .debug_macro   0x0000000000000000       0x19 build/d_mode.o
  .debug_macro   0x0000000000000000       0x1c build/d_mode.o
  .group         0x0000000000000000        0xc build/d_net.o
@@ -1177,7 +1177,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/d_net.o
  .debug_macro   0x0000000000000000      0x460 build/d_net.o
  .debug_macro   0x0000000000000000       0x16 build/d_net.o
- .debug_macro   0x0000000000000000      0x11e build/d_net.o
+ .debug_macro   0x0000000000000000      0x106 build/d_net.o
  .debug_macro   0x0000000000000000       0x19 build/d_net.o
  .debug_macro   0x0000000000000000       0x1c build/d_net.o
  .debug_macro   0x0000000000000000       0x10 build/d_net.o
@@ -1286,7 +1286,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/f_finale.o
  .debug_macro   0x0000000000000000      0x460 build/f_finale.o
  .debug_macro   0x0000000000000000       0x16 build/f_finale.o
- .debug_macro   0x0000000000000000      0x11e build/f_finale.o
+ .debug_macro   0x0000000000000000      0x106 build/f_finale.o
  .debug_macro   0x0000000000000000       0x19 build/f_finale.o
  .debug_macro   0x0000000000000000       0x1c build/f_finale.o
  .debug_macro   0x0000000000000000       0x1c build/f_finale.o
@@ -1383,7 +1383,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/f_wipe.o
  .debug_macro   0x0000000000000000      0x460 build/f_wipe.o
  .debug_macro   0x0000000000000000       0x16 build/f_wipe.o
- .debug_macro   0x0000000000000000      0x11e build/f_wipe.o
+ .debug_macro   0x0000000000000000      0x106 build/f_wipe.o
  .debug_macro   0x0000000000000000       0x19 build/f_wipe.o
  .debug_macro   0x0000000000000000       0x1c build/f_wipe.o
  .group         0x0000000000000000        0xc build/g_game.o
@@ -1497,7 +1497,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/g_game.o
  .debug_macro   0x0000000000000000      0x460 build/g_game.o
  .debug_macro   0x0000000000000000       0x16 build/g_game.o
- .debug_macro   0x0000000000000000      0x11e build/g_game.o
+ .debug_macro   0x0000000000000000      0x106 build/g_game.o
  .debug_macro   0x0000000000000000       0x19 build/g_game.o
  .debug_macro   0x0000000000000000       0x1c build/g_game.o
  .debug_macro   0x0000000000000000       0x10 build/g_game.o
@@ -1620,7 +1620,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/hu_lib.o
  .debug_macro   0x0000000000000000      0x460 build/hu_lib.o
  .debug_macro   0x0000000000000000       0x16 build/hu_lib.o
- .debug_macro   0x0000000000000000      0x11e build/hu_lib.o
+ .debug_macro   0x0000000000000000      0x106 build/hu_lib.o
  .debug_macro   0x0000000000000000       0x19 build/hu_lib.o
  .debug_macro   0x0000000000000000       0x1c build/hu_lib.o
  .debug_macro   0x0000000000000000       0x10 build/hu_lib.o
@@ -1734,7 +1734,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/hu_stuff.o
  .debug_macro   0x0000000000000000      0x460 build/hu_stuff.o
  .debug_macro   0x0000000000000000       0x16 build/hu_stuff.o
- .debug_macro   0x0000000000000000      0x11e build/hu_stuff.o
+ .debug_macro   0x0000000000000000      0x106 build/hu_stuff.o
  .debug_macro   0x0000000000000000       0x19 build/hu_stuff.o
  .debug_macro   0x0000000000000000       0x1c build/hu_stuff.o
  .debug_macro   0x0000000000000000       0x10 build/hu_stuff.o
@@ -1844,7 +1844,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/info.o
  .debug_macro   0x0000000000000000      0x460 build/info.o
  .debug_macro   0x0000000000000000       0x16 build/info.o
- .debug_macro   0x0000000000000000      0x11e build/info.o
+ .debug_macro   0x0000000000000000      0x106 build/info.o
  .debug_macro   0x0000000000000000       0x19 build/info.o
  .debug_macro   0x0000000000000000       0x1c build/info.o
  .debug_macro   0x0000000000000000       0x16 build/info.o
@@ -1935,12 +1935,12 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/i_cdmus.o
  .debug_macro   0x0000000000000000      0x460 build/i_cdmus.o
  .debug_macro   0x0000000000000000       0x16 build/i_cdmus.o
- .debug_macro   0x0000000000000000      0x11e build/i_cdmus.o
+ .debug_macro   0x0000000000000000      0x106 build/i_cdmus.o
  .debug_macro   0x0000000000000000       0x19 build/i_cdmus.o
  .debug_macro   0x0000000000000000       0x1c build/i_cdmus.o
  .debug_macro   0x0000000000000000       0x34 build/i_cdmus.o
  .debug_line    0x0000000000000000      0x151 build/i_cdmus.o
- .debug_str     0x0000000000000000     0x863b build/i_cdmus.o
+ .debug_str     0x0000000000000000     0x862b build/i_cdmus.o
  .debug_line_str
                 0x0000000000000000      0x300 build/i_cdmus.o
  .comment       0x0000000000000000       0x13 build/i_cdmus.o
@@ -2027,7 +2027,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/i_endoom.o
  .debug_macro   0x0000000000000000      0x460 build/i_endoom.o
  .debug_macro   0x0000000000000000       0x16 build/i_endoom.o
- .debug_macro   0x0000000000000000      0x11e build/i_endoom.o
+ .debug_macro   0x0000000000000000      0x106 build/i_endoom.o
  .debug_macro   0x0000000000000000       0x19 build/i_endoom.o
  .debug_macro   0x0000000000000000       0x1c build/i_endoom.o
  .debug_macro   0x0000000000000000       0x28 build/i_endoom.o
@@ -2116,7 +2116,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/i_joystick.o
  .debug_macro   0x0000000000000000      0x460 build/i_joystick.o
  .debug_macro   0x0000000000000000       0x16 build/i_joystick.o
- .debug_macro   0x0000000000000000      0x11e build/i_joystick.o
+ .debug_macro   0x0000000000000000      0x106 build/i_joystick.o
  .debug_macro   0x0000000000000000       0x19 build/i_joystick.o
  .debug_macro   0x0000000000000000       0x1c build/i_joystick.o
  .debug_macro   0x0000000000000000       0x58 build/i_joystick.o
@@ -2220,13 +2220,13 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/i_scale.o
  .debug_macro   0x0000000000000000      0x460 build/i_scale.o
  .debug_macro   0x0000000000000000       0x16 build/i_scale.o
- .debug_macro   0x0000000000000000      0x11e build/i_scale.o
+ .debug_macro   0x0000000000000000      0x106 build/i_scale.o
  .debug_macro   0x0000000000000000       0x19 build/i_scale.o
  .debug_macro   0x0000000000000000       0x1c build/i_scale.o
  .debug_macro   0x0000000000000000       0x28 build/i_scale.o
  .debug_macro   0x0000000000000000       0x10 build/i_scale.o
  .debug_line    0x0000000000000000     0x1c26 build/i_scale.o
- .debug_str     0x0000000000000000     0x9025 build/i_scale.o
+ .debug_str     0x0000000000000000     0x9015 build/i_scale.o
  .debug_line_str
                 0x0000000000000000      0x34a build/i_scale.o
  .comment       0x0000000000000000       0x13 build/i_scale.o
@@ -2315,7 +2315,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/i_sound.o
  .debug_macro   0x0000000000000000      0x460 build/i_sound.o
  .debug_macro   0x0000000000000000       0x16 build/i_sound.o
- .debug_macro   0x0000000000000000      0x11e build/i_sound.o
+ .debug_macro   0x0000000000000000      0x106 build/i_sound.o
  .debug_macro   0x0000000000000000       0x19 build/i_sound.o
  .debug_macro   0x0000000000000000       0x1c build/i_sound.o
  .debug_macro   0x0000000000000000       0x28 build/i_sound.o
@@ -2416,7 +2416,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/i_system.o
  .debug_macro   0x0000000000000000      0x460 build/i_system.o
  .debug_macro   0x0000000000000000       0x16 build/i_system.o
- .debug_macro   0x0000000000000000      0x11e build/i_system.o
+ .debug_macro   0x0000000000000000      0x106 build/i_system.o
  .debug_macro   0x0000000000000000       0x19 build/i_system.o
  .debug_macro   0x0000000000000000       0x1c build/i_system.o
  .debug_macro   0x0000000000000000       0x58 build/i_system.o
@@ -2475,7 +2475,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/i_timer.o
  .debug_macro   0x0000000000000000      0x460 build/i_timer.o
  .debug_macro   0x0000000000000000       0x16 build/i_timer.o
- .debug_macro   0x0000000000000000      0x11e build/i_timer.o
+ .debug_macro   0x0000000000000000      0x106 build/i_timer.o
  .debug_macro   0x0000000000000000       0x19 build/i_timer.o
  .debug_macro   0x0000000000000000       0x1c build/i_timer.o
  .debug_macro   0x0000000000000000       0x16 build/i_timer.o
@@ -2658,7 +2658,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/m_argv.o
  .debug_macro   0x0000000000000000      0x460 build/m_argv.o
  .debug_macro   0x0000000000000000       0x16 build/m_argv.o
- .debug_macro   0x0000000000000000      0x11e build/m_argv.o
+ .debug_macro   0x0000000000000000      0x106 build/m_argv.o
  .debug_macro   0x0000000000000000       0x19 build/m_argv.o
  .debug_macro   0x0000000000000000       0x1c build/m_argv.o
  .debug_macro   0x0000000000000000       0x4c build/m_argv.o
@@ -2682,7 +2682,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x51 build/m_bbox.o
  .debug_macro   0x0000000000000000      0x189 build/m_bbox.o
  .debug_macro   0x0000000000000000      0x32a build/m_bbox.o
- .debug_macro   0x0000000000000000      0x11e build/m_bbox.o
+ .debug_macro   0x0000000000000000      0x106 build/m_bbox.o
  .debug_macro   0x0000000000000000       0x19 build/m_bbox.o
  .debug_macro   0x0000000000000000       0x16 build/m_bbox.o
  .group         0x0000000000000000        0xc build/m_cheat.o
@@ -2737,7 +2737,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1df build/m_cheat.o
  .debug_macro   0x0000000000000000      0x460 build/m_cheat.o
  .debug_macro   0x0000000000000000       0x16 build/m_cheat.o
- .debug_macro   0x0000000000000000      0x11e build/m_cheat.o
+ .debug_macro   0x0000000000000000      0x106 build/m_cheat.o
  .debug_macro   0x0000000000000000       0x19 build/m_cheat.o
  .debug_macro   0x0000000000000000       0x1c build/m_cheat.o
  .debug_macro   0x0000000000000000       0x1c build/m_cheat.o
@@ -2833,7 +2833,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/m_config.o
  .debug_macro   0x0000000000000000      0x460 build/m_config.o
  .debug_macro   0x0000000000000000       0x16 build/m_config.o
- .debug_macro   0x0000000000000000      0x11e build/m_config.o
+ .debug_macro   0x0000000000000000      0x106 build/m_config.o
  .debug_macro   0x0000000000000000       0x19 build/m_config.o
  .debug_macro   0x0000000000000000       0x1c build/m_config.o
  .debug_macro   0x0000000000000000      0x166 build/m_config.o
@@ -2915,7 +2915,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/m_controls.o
  .debug_macro   0x0000000000000000      0x460 build/m_controls.o
  .debug_macro   0x0000000000000000       0x16 build/m_controls.o
- .debug_macro   0x0000000000000000      0x11e build/m_controls.o
+ .debug_macro   0x0000000000000000      0x106 build/m_controls.o
  .debug_macro   0x0000000000000000       0x19 build/m_controls.o
  .debug_macro   0x0000000000000000       0x1c build/m_controls.o
  .debug_macro   0x0000000000000000      0x166 build/m_controls.o
@@ -2976,7 +2976,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/m_fixed.o
  .debug_macro   0x0000000000000000      0x460 build/m_fixed.o
  .debug_macro   0x0000000000000000       0x16 build/m_fixed.o
- .debug_macro   0x0000000000000000      0x11e build/m_fixed.o
+ .debug_macro   0x0000000000000000      0x106 build/m_fixed.o
  .debug_macro   0x0000000000000000       0x19 build/m_fixed.o
  .debug_macro   0x0000000000000000       0x1c build/m_fixed.o
  .debug_macro   0x0000000000000000       0x16 build/m_fixed.o
@@ -3088,7 +3088,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/m_menu.o
  .debug_macro   0x0000000000000000      0x460 build/m_menu.o
  .debug_macro   0x0000000000000000       0x16 build/m_menu.o
- .debug_macro   0x0000000000000000      0x11e build/m_menu.o
+ .debug_macro   0x0000000000000000      0x106 build/m_menu.o
  .debug_macro   0x0000000000000000       0x19 build/m_menu.o
  .debug_macro   0x0000000000000000       0x1c build/m_menu.o
  .debug_macro   0x0000000000000000       0x10 build/m_menu.o
@@ -3214,7 +3214,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/m_misc.o
  .debug_macro   0x0000000000000000      0x460 build/m_misc.o
  .debug_macro   0x0000000000000000       0x16 build/m_misc.o
- .debug_macro   0x0000000000000000      0x11e build/m_misc.o
+ .debug_macro   0x0000000000000000      0x106 build/m_misc.o
  .debug_macro   0x0000000000000000       0x19 build/m_misc.o
  .debug_macro   0x0000000000000000       0x1c build/m_misc.o
  .debug_macro   0x0000000000000000       0x1c build/m_misc.o
@@ -3318,7 +3318,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_ceilng.o
  .debug_macro   0x0000000000000000      0x460 build/p_ceilng.o
  .debug_macro   0x0000000000000000       0x16 build/p_ceilng.o
- .debug_macro   0x0000000000000000      0x11e build/p_ceilng.o
+ .debug_macro   0x0000000000000000      0x106 build/p_ceilng.o
  .debug_macro   0x0000000000000000       0x19 build/p_ceilng.o
  .debug_macro   0x0000000000000000       0x1c build/p_ceilng.o
  .debug_macro   0x0000000000000000       0x10 build/p_ceilng.o
@@ -3433,7 +3433,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_doors.o
  .debug_macro   0x0000000000000000      0x460 build/p_doors.o
  .debug_macro   0x0000000000000000       0x16 build/p_doors.o
- .debug_macro   0x0000000000000000      0x11e build/p_doors.o
+ .debug_macro   0x0000000000000000      0x106 build/p_doors.o
  .debug_macro   0x0000000000000000       0x19 build/p_doors.o
  .debug_macro   0x0000000000000000       0x1c build/p_doors.o
  .debug_macro   0x0000000000000000       0x10 build/p_doors.o
@@ -3549,7 +3549,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_enemy.o
  .debug_macro   0x0000000000000000      0x460 build/p_enemy.o
  .debug_macro   0x0000000000000000       0x16 build/p_enemy.o
- .debug_macro   0x0000000000000000      0x11e build/p_enemy.o
+ .debug_macro   0x0000000000000000      0x106 build/p_enemy.o
  .debug_macro   0x0000000000000000       0x19 build/p_enemy.o
  .debug_macro   0x0000000000000000       0x1c build/p_enemy.o
  .debug_macro   0x0000000000000000       0x16 build/p_enemy.o
@@ -3660,7 +3660,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_floor.o
  .debug_macro   0x0000000000000000      0x460 build/p_floor.o
  .debug_macro   0x0000000000000000       0x16 build/p_floor.o
- .debug_macro   0x0000000000000000      0x11e build/p_floor.o
+ .debug_macro   0x0000000000000000      0x106 build/p_floor.o
  .debug_macro   0x0000000000000000       0x19 build/p_floor.o
  .debug_macro   0x0000000000000000       0x1c build/p_floor.o
  .debug_macro   0x0000000000000000       0x10 build/p_floor.o
@@ -3777,7 +3777,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_inter.o
  .debug_macro   0x0000000000000000      0x460 build/p_inter.o
  .debug_macro   0x0000000000000000       0x16 build/p_inter.o
- .debug_macro   0x0000000000000000      0x11e build/p_inter.o
+ .debug_macro   0x0000000000000000      0x106 build/p_inter.o
  .debug_macro   0x0000000000000000       0x19 build/p_inter.o
  .debug_macro   0x0000000000000000       0x1c build/p_inter.o
  .debug_macro   0x0000000000000000       0x10 build/p_inter.o
@@ -3890,7 +3890,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/p_lights.o
  .debug_macro   0x0000000000000000      0x460 build/p_lights.o
  .debug_macro   0x0000000000000000       0x16 build/p_lights.o
- .debug_macro   0x0000000000000000      0x11e build/p_lights.o
+ .debug_macro   0x0000000000000000      0x106 build/p_lights.o
  .debug_macro   0x0000000000000000       0x19 build/p_lights.o
  .debug_macro   0x0000000000000000       0x1c build/p_lights.o
  .debug_macro   0x0000000000000000       0x16 build/p_lights.o
@@ -4003,7 +4003,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x29 build/p_map.o
  .debug_macro   0x0000000000000000       0x1c build/p_map.o
  .debug_macro   0x0000000000000000       0x16 build/p_map.o
- .debug_macro   0x0000000000000000      0x11e build/p_map.o
+ .debug_macro   0x0000000000000000      0x106 build/p_map.o
  .debug_macro   0x0000000000000000       0x19 build/p_map.o
  .debug_macro   0x0000000000000000       0x16 build/p_map.o
  .debug_macro   0x0000000000000000       0xe9 build/p_map.o
@@ -4103,7 +4103,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x16 build/p_maputl.o
  .debug_macro   0x0000000000000000       0x29 build/p_maputl.o
  .debug_macro   0x0000000000000000       0x16 build/p_maputl.o
- .debug_macro   0x0000000000000000      0x11e build/p_maputl.o
+ .debug_macro   0x0000000000000000      0x106 build/p_maputl.o
  .debug_macro   0x0000000000000000       0x19 build/p_maputl.o
  .debug_macro   0x0000000000000000       0x16 build/p_maputl.o
  .debug_macro   0x0000000000000000       0x1c build/p_maputl.o
@@ -4233,7 +4233,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/p_mobj.o
  .debug_macro   0x0000000000000000      0x460 build/p_mobj.o
  .debug_macro   0x0000000000000000       0x16 build/p_mobj.o
- .debug_macro   0x0000000000000000      0x11e build/p_mobj.o
+ .debug_macro   0x0000000000000000      0x106 build/p_mobj.o
  .debug_macro   0x0000000000000000       0x19 build/p_mobj.o
  .debug_macro   0x0000000000000000       0x1c build/p_mobj.o
  .debug_macro   0x0000000000000000       0x10 build/p_mobj.o
@@ -4345,7 +4345,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/p_plats.o
  .debug_macro   0x0000000000000000      0x460 build/p_plats.o
  .debug_macro   0x0000000000000000       0x16 build/p_plats.o
- .debug_macro   0x0000000000000000      0x11e build/p_plats.o
+ .debug_macro   0x0000000000000000      0x106 build/p_plats.o
  .debug_macro   0x0000000000000000       0x19 build/p_plats.o
  .debug_macro   0x0000000000000000       0x1c build/p_plats.o
  .debug_macro   0x0000000000000000       0x10 build/p_plats.o
@@ -4458,7 +4458,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_pspr.o
  .debug_macro   0x0000000000000000      0x460 build/p_pspr.o
  .debug_macro   0x0000000000000000       0x16 build/p_pspr.o
- .debug_macro   0x0000000000000000      0x11e build/p_pspr.o
+ .debug_macro   0x0000000000000000      0x106 build/p_pspr.o
  .debug_macro   0x0000000000000000       0x19 build/p_pspr.o
  .debug_macro   0x0000000000000000       0x1c build/p_pspr.o
  .debug_macro   0x0000000000000000       0x10 build/p_pspr.o
@@ -4582,7 +4582,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_saveg.o
  .debug_macro   0x0000000000000000      0x460 build/p_saveg.o
  .debug_macro   0x0000000000000000       0x16 build/p_saveg.o
- .debug_macro   0x0000000000000000      0x11e build/p_saveg.o
+ .debug_macro   0x0000000000000000      0x106 build/p_saveg.o
  .debug_macro   0x0000000000000000       0x19 build/p_saveg.o
  .debug_macro   0x0000000000000000       0x1c build/p_saveg.o
  .debug_macro   0x0000000000000000       0x1c build/p_saveg.o
@@ -4699,7 +4699,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_setup.o
  .debug_macro   0x0000000000000000      0x460 build/p_setup.o
  .debug_macro   0x0000000000000000       0x16 build/p_setup.o
- .debug_macro   0x0000000000000000      0x11e build/p_setup.o
+ .debug_macro   0x0000000000000000      0x106 build/p_setup.o
  .debug_macro   0x0000000000000000       0x19 build/p_setup.o
  .debug_macro   0x0000000000000000       0x1c build/p_setup.o
  .debug_macro   0x0000000000000000       0x1c build/p_setup.o
@@ -4812,7 +4812,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_sight.o
  .debug_macro   0x0000000000000000      0x460 build/p_sight.o
  .debug_macro   0x0000000000000000       0x16 build/p_sight.o
- .debug_macro   0x0000000000000000      0x11e build/p_sight.o
+ .debug_macro   0x0000000000000000      0x106 build/p_sight.o
  .debug_macro   0x0000000000000000       0x19 build/p_sight.o
  .debug_macro   0x0000000000000000       0x1c build/p_sight.o
  .debug_macro   0x0000000000000000       0x10 build/p_sight.o
@@ -4930,7 +4930,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_spec.o
  .debug_macro   0x0000000000000000      0x460 build/p_spec.o
  .debug_macro   0x0000000000000000       0x16 build/p_spec.o
- .debug_macro   0x0000000000000000      0x11e build/p_spec.o
+ .debug_macro   0x0000000000000000      0x106 build/p_spec.o
  .debug_macro   0x0000000000000000       0x19 build/p_spec.o
  .debug_macro   0x0000000000000000       0x1c build/p_spec.o
  .debug_macro   0x0000000000000000       0x10 build/p_spec.o
@@ -5042,7 +5042,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/p_switch.o
  .debug_macro   0x0000000000000000      0x460 build/p_switch.o
  .debug_macro   0x0000000000000000       0x16 build/p_switch.o
- .debug_macro   0x0000000000000000      0x11e build/p_switch.o
+ .debug_macro   0x0000000000000000      0x106 build/p_switch.o
  .debug_macro   0x0000000000000000       0x19 build/p_switch.o
  .debug_macro   0x0000000000000000       0x1c build/p_switch.o
  .debug_macro   0x0000000000000000       0x1c build/p_switch.o
@@ -5156,7 +5156,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_telept.o
  .debug_macro   0x0000000000000000      0x460 build/p_telept.o
  .debug_macro   0x0000000000000000       0x16 build/p_telept.o
- .debug_macro   0x0000000000000000      0x11e build/p_telept.o
+ .debug_macro   0x0000000000000000      0x106 build/p_telept.o
  .debug_macro   0x0000000000000000       0x19 build/p_telept.o
  .debug_macro   0x0000000000000000       0x1c build/p_telept.o
  .debug_macro   0x0000000000000000       0x10 build/p_telept.o
@@ -5262,7 +5262,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/p_tick.o
  .debug_macro   0x0000000000000000      0x460 build/p_tick.o
  .debug_macro   0x0000000000000000       0x16 build/p_tick.o
- .debug_macro   0x0000000000000000      0x11e build/p_tick.o
+ .debug_macro   0x0000000000000000      0x106 build/p_tick.o
  .debug_macro   0x0000000000000000       0x19 build/p_tick.o
  .debug_macro   0x0000000000000000       0x1c build/p_tick.o
  .debug_macro   0x0000000000000000       0x16 build/p_tick.o
@@ -5372,7 +5372,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/p_user.o
  .debug_macro   0x0000000000000000      0x460 build/p_user.o
  .debug_macro   0x0000000000000000       0x16 build/p_user.o
- .debug_macro   0x0000000000000000      0x11e build/p_user.o
+ .debug_macro   0x0000000000000000      0x106 build/p_user.o
  .debug_macro   0x0000000000000000       0x19 build/p_user.o
  .debug_macro   0x0000000000000000       0x1c build/p_user.o
  .debug_macro   0x0000000000000000       0x10 build/p_user.o
@@ -5478,7 +5478,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/r_bsp.o
  .debug_macro   0x0000000000000000      0x460 build/r_bsp.o
  .debug_macro   0x0000000000000000       0x16 build/r_bsp.o
- .debug_macro   0x0000000000000000      0x11e build/r_bsp.o
+ .debug_macro   0x0000000000000000      0x106 build/r_bsp.o
  .debug_macro   0x0000000000000000       0x19 build/r_bsp.o
  .debug_macro   0x0000000000000000       0x1c build/r_bsp.o
  .debug_macro   0x0000000000000000       0x10 build/r_bsp.o
@@ -5588,7 +5588,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/r_data.o
  .debug_macro   0x0000000000000000      0x460 build/r_data.o
  .debug_macro   0x0000000000000000       0x16 build/r_data.o
- .debug_macro   0x0000000000000000      0x11e build/r_data.o
+ .debug_macro   0x0000000000000000      0x106 build/r_data.o
  .debug_macro   0x0000000000000000       0x19 build/r_data.o
  .debug_macro   0x0000000000000000       0x1c build/r_data.o
  .debug_macro   0x0000000000000000       0x1c build/r_data.o
@@ -5707,7 +5707,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/r_draw.o
  .debug_macro   0x0000000000000000      0x460 build/r_draw.o
  .debug_macro   0x0000000000000000       0x16 build/r_draw.o
- .debug_macro   0x0000000000000000      0x11e build/r_draw.o
+ .debug_macro   0x0000000000000000      0x106 build/r_draw.o
  .debug_macro   0x0000000000000000       0x19 build/r_draw.o
  .debug_macro   0x0000000000000000       0x1c build/r_draw.o
  .debug_macro   0x0000000000000000       0x10 build/r_draw.o
@@ -5824,7 +5824,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/r_main.o
  .debug_macro   0x0000000000000000      0x460 build/r_main.o
  .debug_macro   0x0000000000000000       0x16 build/r_main.o
- .debug_macro   0x0000000000000000      0x11e build/r_main.o
+ .debug_macro   0x0000000000000000      0x106 build/r_main.o
  .debug_macro   0x0000000000000000       0x19 build/r_main.o
  .debug_macro   0x0000000000000000       0x1c build/r_main.o
  .debug_macro   0x0000000000000000       0x10 build/r_main.o
@@ -5934,7 +5934,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/r_plane.o
  .debug_macro   0x0000000000000000      0x460 build/r_plane.o
  .debug_macro   0x0000000000000000       0x16 build/r_plane.o
- .debug_macro   0x0000000000000000      0x11e build/r_plane.o
+ .debug_macro   0x0000000000000000      0x106 build/r_plane.o
  .debug_macro   0x0000000000000000       0x19 build/r_plane.o
  .debug_macro   0x0000000000000000       0x1c build/r_plane.o
  .debug_macro   0x0000000000000000       0x10 build/r_plane.o
@@ -6046,7 +6046,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/r_segs.o
  .debug_macro   0x0000000000000000      0x460 build/r_segs.o
  .debug_macro   0x0000000000000000       0x16 build/r_segs.o
- .debug_macro   0x0000000000000000      0x11e build/r_segs.o
+ .debug_macro   0x0000000000000000      0x106 build/r_segs.o
  .debug_macro   0x0000000000000000       0x19 build/r_segs.o
  .debug_macro   0x0000000000000000       0x1c build/r_segs.o
  .debug_macro   0x0000000000000000       0x16 build/r_segs.o
@@ -6152,7 +6152,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/r_sky.o
  .debug_macro   0x0000000000000000      0x460 build/r_sky.o
  .debug_macro   0x0000000000000000       0x16 build/r_sky.o
- .debug_macro   0x0000000000000000      0x11e build/r_sky.o
+ .debug_macro   0x0000000000000000      0x106 build/r_sky.o
  .debug_macro   0x0000000000000000       0x19 build/r_sky.o
  .debug_macro   0x0000000000000000       0x1c build/r_sky.o
  .debug_macro   0x0000000000000000       0x10 build/r_sky.o
@@ -6262,7 +6262,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/r_things.o
  .debug_macro   0x0000000000000000      0x460 build/r_things.o
  .debug_macro   0x0000000000000000       0x16 build/r_things.o
- .debug_macro   0x0000000000000000      0x11e build/r_things.o
+ .debug_macro   0x0000000000000000      0x106 build/r_things.o
  .debug_macro   0x0000000000000000       0x19 build/r_things.o
  .debug_macro   0x0000000000000000       0x1c build/r_things.o
  .debug_macro   0x0000000000000000       0x1c build/r_things.o
@@ -6371,7 +6371,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/sha1.o
  .debug_macro   0x0000000000000000      0x460 build/sha1.o
  .debug_macro   0x0000000000000000       0x16 build/sha1.o
- .debug_macro   0x0000000000000000      0x11e build/sha1.o
+ .debug_macro   0x0000000000000000      0x106 build/sha1.o
  .debug_macro   0x0000000000000000       0x19 build/sha1.o
  .debug_macro   0x0000000000000000       0x1c build/sha1.o
  .group         0x0000000000000000        0xc build/sounds.o
@@ -6429,7 +6429,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/sounds.o
  .debug_macro   0x0000000000000000      0x460 build/sounds.o
  .debug_macro   0x0000000000000000       0x16 build/sounds.o
- .debug_macro   0x0000000000000000      0x11e build/sounds.o
+ .debug_macro   0x0000000000000000      0x106 build/sounds.o
  .debug_macro   0x0000000000000000       0x19 build/sounds.o
  .debug_macro   0x0000000000000000       0x1c build/sounds.o
  .group         0x0000000000000000        0xc build/statdump.o
@@ -6523,7 +6523,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/statdump.o
  .debug_macro   0x0000000000000000      0x460 build/statdump.o
  .debug_macro   0x0000000000000000       0x16 build/statdump.o
- .debug_macro   0x0000000000000000      0x11e build/statdump.o
+ .debug_macro   0x0000000000000000      0x106 build/statdump.o
  .debug_macro   0x0000000000000000       0x19 build/statdump.o
  .debug_macro   0x0000000000000000       0x1c build/statdump.o
  .debug_macro   0x0000000000000000       0x10 build/statdump.o
@@ -6628,7 +6628,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/st_lib.o
  .debug_macro   0x0000000000000000      0x460 build/st_lib.o
  .debug_macro   0x0000000000000000       0x16 build/st_lib.o
- .debug_macro   0x0000000000000000      0x11e build/st_lib.o
+ .debug_macro   0x0000000000000000      0x106 build/st_lib.o
  .debug_macro   0x0000000000000000       0x19 build/st_lib.o
  .debug_macro   0x0000000000000000       0x1c build/st_lib.o
  .debug_macro   0x0000000000000000       0x1c build/st_lib.o
@@ -6751,7 +6751,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/st_stuff.o
  .debug_macro   0x0000000000000000      0x460 build/st_stuff.o
  .debug_macro   0x0000000000000000       0x16 build/st_stuff.o
- .debug_macro   0x0000000000000000      0x11e build/st_stuff.o
+ .debug_macro   0x0000000000000000      0x106 build/st_stuff.o
  .debug_macro   0x0000000000000000       0x19 build/st_stuff.o
  .debug_macro   0x0000000000000000       0x1c build/st_stuff.o
  .debug_macro   0x0000000000000000       0x28 build/st_stuff.o
@@ -6880,7 +6880,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/s_sound.o
  .debug_macro   0x0000000000000000      0x460 build/s_sound.o
  .debug_macro   0x0000000000000000       0x16 build/s_sound.o
- .debug_macro   0x0000000000000000      0x11e build/s_sound.o
+ .debug_macro   0x0000000000000000      0x106 build/s_sound.o
  .debug_macro   0x0000000000000000       0x19 build/s_sound.o
  .debug_macro   0x0000000000000000       0x1c build/s_sound.o
  .debug_macro   0x0000000000000000       0x1c build/s_sound.o
@@ -6948,7 +6948,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/tables.o
  .debug_macro   0x0000000000000000      0x460 build/tables.o
  .debug_macro   0x0000000000000000       0x16 build/tables.o
- .debug_macro   0x0000000000000000      0x11e build/tables.o
+ .debug_macro   0x0000000000000000      0x106 build/tables.o
  .debug_macro   0x0000000000000000       0x19 build/tables.o
  .debug_macro   0x0000000000000000       0x1c build/tables.o
  .debug_macro   0x0000000000000000       0x16 build/tables.o
@@ -7041,7 +7041,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/v_video.o
  .debug_macro   0x0000000000000000      0x460 build/v_video.o
  .debug_macro   0x0000000000000000       0x16 build/v_video.o
- .debug_macro   0x0000000000000000      0x11e build/v_video.o
+ .debug_macro   0x0000000000000000      0x106 build/v_video.o
  .debug_macro   0x0000000000000000       0x19 build/v_video.o
  .debug_macro   0x0000000000000000       0x1c build/v_video.o
  .debug_macro   0x0000000000000000       0x1c build/v_video.o
@@ -7147,7 +7147,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/wi_stuff.o
  .debug_macro   0x0000000000000000      0x460 build/wi_stuff.o
  .debug_macro   0x0000000000000000       0x16 build/wi_stuff.o
- .debug_macro   0x0000000000000000      0x11e build/wi_stuff.o
+ .debug_macro   0x0000000000000000      0x106 build/wi_stuff.o
  .debug_macro   0x0000000000000000       0x19 build/wi_stuff.o
  .debug_macro   0x0000000000000000       0x1c build/wi_stuff.o
  .debug_macro   0x0000000000000000       0x1c build/wi_stuff.o
@@ -7254,7 +7254,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/w_checksum.o
  .debug_macro   0x0000000000000000      0x460 build/w_checksum.o
  .debug_macro   0x0000000000000000       0x16 build/w_checksum.o
- .debug_macro   0x0000000000000000      0x11e build/w_checksum.o
+ .debug_macro   0x0000000000000000      0x106 build/w_checksum.o
  .debug_macro   0x0000000000000000       0x19 build/w_checksum.o
  .debug_macro   0x0000000000000000       0x1c build/w_checksum.o
  .group         0x0000000000000000        0xc build/w_file.o
@@ -7334,7 +7334,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/w_file.o
  .debug_macro   0x0000000000000000      0x460 build/w_file.o
  .debug_macro   0x0000000000000000       0x16 build/w_file.o
- .debug_macro   0x0000000000000000      0x11e build/w_file.o
+ .debug_macro   0x0000000000000000      0x106 build/w_file.o
  .debug_macro   0x0000000000000000       0x19 build/w_file.o
  .debug_macro   0x0000000000000000       0x1c build/w_file.o
  .group         0x0000000000000000        0xc build/w_main.o
@@ -7401,7 +7401,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/w_main.o
  .debug_macro   0x0000000000000000      0x460 build/w_main.o
  .debug_macro   0x0000000000000000       0x16 build/w_main.o
- .debug_macro   0x0000000000000000      0x11e build/w_main.o
+ .debug_macro   0x0000000000000000      0x106 build/w_main.o
  .debug_macro   0x0000000000000000       0x19 build/w_main.o
  .debug_macro   0x0000000000000000       0x1c build/w_main.o
  .debug_macro   0x0000000000000000       0x1c build/w_main.o
@@ -7510,7 +7510,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/w_wad.o
  .debug_macro   0x0000000000000000      0x460 build/w_wad.o
  .debug_macro   0x0000000000000000       0x16 build/w_wad.o
- .debug_macro   0x0000000000000000      0x11e build/w_wad.o
+ .debug_macro   0x0000000000000000      0x106 build/w_wad.o
  .debug_macro   0x0000000000000000       0x19 build/w_wad.o
  .debug_macro   0x0000000000000000       0x1c build/w_wad.o
  .debug_macro   0x0000000000000000       0xca build/w_wad.o
@@ -7593,7 +7593,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/z_zone.o
  .debug_macro   0x0000000000000000      0x460 build/z_zone.o
  .debug_macro   0x0000000000000000       0x16 build/z_zone.o
- .debug_macro   0x0000000000000000      0x11e build/z_zone.o
+ .debug_macro   0x0000000000000000      0x106 build/z_zone.o
  .debug_macro   0x0000000000000000       0x19 build/z_zone.o
  .debug_macro   0x0000000000000000       0x1c build/z_zone.o
  .group         0x0000000000000000        0xc build/w_file_stdc.o
@@ -7673,7 +7673,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/w_file_stdc.o
  .debug_macro   0x0000000000000000      0x460 build/w_file_stdc.o
  .debug_macro   0x0000000000000000       0x16 build/w_file_stdc.o
- .debug_macro   0x0000000000000000      0x11e build/w_file_stdc.o
+ .debug_macro   0x0000000000000000      0x106 build/w_file_stdc.o
  .debug_macro   0x0000000000000000       0x19 build/w_file_stdc.o
  .debug_macro   0x0000000000000000       0x1c build/w_file_stdc.o
  .debug_macro   0x0000000000000000       0x10 build/w_file_stdc.o
@@ -7788,7 +7788,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x1e5 build/i_input.o
  .debug_macro   0x0000000000000000      0x460 build/i_input.o
  .debug_macro   0x0000000000000000       0x16 build/i_input.o
- .debug_macro   0x0000000000000000      0x11e build/i_input.o
+ .debug_macro   0x0000000000000000      0x106 build/i_input.o
  .debug_macro   0x0000000000000000       0x19 build/i_input.o
  .debug_macro   0x0000000000000000       0x1c build/i_input.o
  .debug_macro   0x0000000000000000      0x166 build/i_input.o
@@ -7877,7 +7877,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/i_video.o
  .debug_macro   0x0000000000000000      0x460 build/i_video.o
  .debug_macro   0x0000000000000000       0x16 build/i_video.o
- .debug_macro   0x0000000000000000      0x11e build/i_video.o
+ .debug_macro   0x0000000000000000      0x106 build/i_video.o
  .debug_macro   0x0000000000000000       0x19 build/i_video.o
  .debug_macro   0x0000000000000000       0x1c build/i_video.o
  .debug_macro   0x0000000000000000       0x1c build/i_video.o
@@ -7989,7 +7989,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000       0x35 build/doomgeneric.o
  .debug_macro   0x0000000000000000      0x460 build/doomgeneric.o
  .debug_macro   0x0000000000000000       0x16 build/doomgeneric.o
- .debug_macro   0x0000000000000000      0x11e build/doomgeneric.o
+ .debug_macro   0x0000000000000000      0x106 build/doomgeneric.o
  .debug_macro   0x0000000000000000       0x19 build/doomgeneric.o
  .debug_macro   0x0000000000000000       0x1c build/doomgeneric.o
  .debug_macro   0x0000000000000000       0x16 build/doomgeneric.o
@@ -8086,7 +8086,7 @@ Discarded input sections
  .debug_macro   0x0000000000000000      0x122 build/doomgeneric_reduceOS.o
  .debug_macro   0x0000000000000000      0x460 build/doomgeneric_reduceOS.o
  .debug_macro   0x0000000000000000       0x16 build/doomgeneric_reduceOS.o
- .debug_macro   0x0000000000000000      0x11e build/doomgeneric_reduceOS.o
+ .debug_macro   0x0000000000000000      0x106 build/doomgeneric_reduceOS.o
  .debug_macro   0x0000000000000000       0x19 build/doomgeneric_reduceOS.o
  .debug_macro   0x0000000000000000       0x1c build/doomgeneric_reduceOS.o
  .debug_macro   0x0000000000000000       0x22 build/doomgeneric_reduceOS.o
@@ -12245,352 +12245,352 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_frame   0x000000000000aa2c       0xa0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
  .debug_frame   0x000000000000aacc       0x7c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
 
-.debug_str      0x0000000000000000    0x2135b
+.debug_str      0x0000000000000000    0x2134b
  *(.debug_str)
  .debug_str     0x0000000000000000       0xa9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/crt0.o
  .debug_str     0x00000000000000a9     0x5d2f build/main.o
                                        0x5f3b (size before relaxing)
- .debug_str     0x0000000000005dd8     0x1467 build/dummy.o
-                                       0x6600 (size before relaxing)
- .debug_str     0x000000000000723f     0xb3ec build/am_map.o
-                                      0x129ba (size before relaxing)
- .debug_str     0x000000000001262b      0x183 build/doomstat.o
-                                       0xbe56 (size before relaxing)
- .debug_str     0x00000000000127ae       0x1a build/dstrings.o
+ .debug_str     0x0000000000005dd8     0x1457 build/dummy.o
+                                       0x65f0 (size before relaxing)
+ .debug_str     0x000000000000722f     0xb3ec build/am_map.o
+                                      0x129aa (size before relaxing)
+ .debug_str     0x000000000001261b      0x183 build/doomstat.o
+                                       0xbe46 (size before relaxing)
+ .debug_str     0x000000000001279e       0x1a build/dstrings.o
                                        0x6af4 (size before relaxing)
- .debug_str     0x00000000000127c8       0x3f build/d_event.o
-                                       0x7409 (size before relaxing)
- .debug_str     0x0000000000012807       0x54 build/d_items.o
-                                       0xb7d7 (size before relaxing)
- .debug_str     0x000000000001285b      0xd09 build/d_iwad.o
-                                       0x9a85 (size before relaxing)
- .debug_str     0x0000000000013564      0x43d build/d_loop.o
-                                       0x8e49 (size before relaxing)
- .debug_str     0x00000000000139a1     0x113f build/d_main.o
-                                      0x13487 (size before relaxing)
- .debug_str     0x0000000000014ae0       0x84 build/d_mode.o
-                                       0x67d8 (size before relaxing)
- .debug_str     0x0000000000014b64       0xc2 build/d_net.o
-                                       0xcf78 (size before relaxing)
- .debug_str     0x0000000000014c26      0x77d build/f_finale.o
-                                      0x12647 (size before relaxing)
- .debug_str     0x00000000000153a3       0xf9 build/f_wipe.o
-                                       0x87f3 (size before relaxing)
- .debug_str     0x000000000001549c     0x198a build/g_game.o
-                                      0x1462b (size before relaxing)
- .debug_str     0x0000000000016e26      0x242 build/hu_lib.o
-                                       0x9aef (size before relaxing)
- .debug_str     0x0000000000017068      0x317 build/hu_stuff.o
-                                      0x12992 (size before relaxing)
- .debug_str     0x000000000001737f      0x366 build/info.o
-                                       0xc953 (size before relaxing)
- .debug_str     0x00000000000176e5       0x24 build/i_endoom.o
-                                       0x87f0 (size before relaxing)
- .debug_str     0x0000000000017709       0xdf build/i_joystick.o
-                                       0x8a59 (size before relaxing)
- .debug_str     0x00000000000177e8      0x3cb build/i_sound.o
-                                       0x8e09 (size before relaxing)
- .debug_str     0x0000000000017bb3     0x11e5 build/i_system.o
-                                       0xa469 (size before relaxing)
- .debug_str     0x0000000000018d98       0x42 build/i_timer.o
-                                       0x7557 (size before relaxing)
- .debug_str     0x0000000000018dda       0x59 build/m_argv.o
-                                       0x8fd9 (size before relaxing)
- .debug_str     0x0000000000018e33       0x44 build/m_bbox.o
-                                       0x45c3 (size before relaxing)
- .debug_str     0x0000000000018e77        0xd build/m_cheat.o
-                                       0x73b1 (size before relaxing)
- .debug_str     0x0000000000018e84      0x86d build/m_config.o
-                                       0x9fd1 (size before relaxing)
- .debug_str     0x00000000000196f1      0x342 build/m_controls.o
-                                       0x90ff (size before relaxing)
- .debug_str     0x0000000000019a33       0x13 build/m_fixed.o
-                                       0x73ec (size before relaxing)
- .debug_str     0x0000000000019a46      0x71f build/m_menu.o
-                                      0x13604 (size before relaxing)
- .debug_str     0x000000000001a165      0x63e build/m_misc.o
-                                       0xa1da (size before relaxing)
- .debug_str     0x000000000001a7a3       0x13 build/m_random.o
+ .debug_str     0x00000000000127b8       0x3f build/d_event.o
+                                       0x73f9 (size before relaxing)
+ .debug_str     0x00000000000127f7       0x54 build/d_items.o
+                                       0xb7c7 (size before relaxing)
+ .debug_str     0x000000000001284b      0xd09 build/d_iwad.o
+                                       0x9a75 (size before relaxing)
+ .debug_str     0x0000000000013554      0x43d build/d_loop.o
+                                       0x8e39 (size before relaxing)
+ .debug_str     0x0000000000013991     0x113f build/d_main.o
+                                      0x13477 (size before relaxing)
+ .debug_str     0x0000000000014ad0       0x84 build/d_mode.o
+                                       0x67c8 (size before relaxing)
+ .debug_str     0x0000000000014b54       0xc2 build/d_net.o
+                                       0xcf68 (size before relaxing)
+ .debug_str     0x0000000000014c16      0x77d build/f_finale.o
+                                      0x12637 (size before relaxing)
+ .debug_str     0x0000000000015393       0xf9 build/f_wipe.o
+                                       0x87e3 (size before relaxing)
+ .debug_str     0x000000000001548c     0x198a build/g_game.o
+                                      0x1461b (size before relaxing)
+ .debug_str     0x0000000000016e16      0x242 build/hu_lib.o
+                                       0x9adf (size before relaxing)
+ .debug_str     0x0000000000017058      0x317 build/hu_stuff.o
+                                      0x12982 (size before relaxing)
+ .debug_str     0x000000000001736f      0x366 build/info.o
+                                       0xc943 (size before relaxing)
+ .debug_str     0x00000000000176d5       0x24 build/i_endoom.o
+                                       0x87e0 (size before relaxing)
+ .debug_str     0x00000000000176f9       0xdf build/i_joystick.o
+                                       0x8a49 (size before relaxing)
+ .debug_str     0x00000000000177d8      0x3cb build/i_sound.o
+                                       0x8df9 (size before relaxing)
+ .debug_str     0x0000000000017ba3     0x11e5 build/i_system.o
+                                       0xa459 (size before relaxing)
+ .debug_str     0x0000000000018d88       0x42 build/i_timer.o
+                                       0x7547 (size before relaxing)
+ .debug_str     0x0000000000018dca       0x59 build/m_argv.o
+                                       0x8fc9 (size before relaxing)
+ .debug_str     0x0000000000018e23       0x44 build/m_bbox.o
+                                       0x45b3 (size before relaxing)
+ .debug_str     0x0000000000018e67        0xd build/m_cheat.o
+                                       0x73a1 (size before relaxing)
+ .debug_str     0x0000000000018e74      0x86d build/m_config.o
+                                       0x9fc1 (size before relaxing)
+ .debug_str     0x00000000000196e1      0x342 build/m_controls.o
+                                       0x90ef (size before relaxing)
+ .debug_str     0x0000000000019a23       0x13 build/m_fixed.o
+                                       0x73dc (size before relaxing)
+ .debug_str     0x0000000000019a36      0x71f build/m_menu.o
+                                      0x135f4 (size before relaxing)
+ .debug_str     0x000000000001a155      0x63e build/m_misc.o
+                                       0xa1ca (size before relaxing)
+ .debug_str     0x000000000001a793       0x13 build/m_random.o
                                        0x2654 (size before relaxing)
- .debug_str     0x000000000001a7b6      0x18e build/p_ceilng.o
-                                       0xd3dd (size before relaxing)
- .debug_str     0x000000000001a944      0x1de build/p_doors.o
-                                      0x11dc9 (size before relaxing)
- .debug_str     0x000000000001ab22      0x47e build/p_enemy.o
-                                       0xde28 (size before relaxing)
- .debug_str     0x000000000001afa0      0x119 build/p_floor.o
-                                       0xd414 (size before relaxing)
- .debug_str     0x000000000001b0b9      0x133 build/p_inter.o
-                                      0x12264 (size before relaxing)
- .debug_str     0x000000000001b1ec      0x150 build/p_lights.o
-                                       0xcda5 (size before relaxing)
- .debug_str     0x000000000001b33c      0x38b build/p_map.o
-                                       0xe41a (size before relaxing)
- .debug_str     0x000000000001b6c7      0x1cb build/p_maputl.o
-                                       0xd277 (size before relaxing)
- .debug_str     0x000000000001b892      0x134 build/p_mobj.o
-                                       0xda26 (size before relaxing)
- .debug_str     0x000000000001b9c6       0x58 build/p_plats.o
-                                       0xd479 (size before relaxing)
- .debug_str     0x000000000001ba1e      0x100 build/p_pspr.o
-                                       0xdc03 (size before relaxing)
- .debug_str     0x000000000001bb1e      0x3ee build/p_saveg.o
-                                      0x1246c (size before relaxing)
- .debug_str     0x000000000001bf0c      0x31a build/p_setup.o
-                                       0xe28c (size before relaxing)
- .debug_str     0x000000000001c226       0x7b build/p_sight.o
-                                       0xce07 (size before relaxing)
- .debug_str     0x000000000001c2a1      0x24e build/p_spec.o
-                                       0xe277 (size before relaxing)
- .debug_str     0x000000000001c4ef       0x6b build/p_switch.o
-                                       0xd6fd (size before relaxing)
- .debug_str     0x000000000001c55a        0x5 build/p_telept.o
-                                       0xd304 (size before relaxing)
- .debug_str     0x000000000001c55f       0x2e build/p_tick.o
-                                       0xcdea (size before relaxing)
- .debug_str     0x000000000001c58d       0x76 build/p_user.o
-                                       0xcffb (size before relaxing)
- .debug_str     0x000000000001c603      0x23e build/r_bsp.o
-                                       0xccaa (size before relaxing)
- .debug_str     0x000000000001c841      0x350 build/r_data.o
-                                       0xd6e0 (size before relaxing)
- .debug_str     0x000000000001cb91      0x22c build/r_draw.o
-                                       0xc447 (size before relaxing)
- .debug_str     0x000000000001cdbd      0x28d build/r_main.o
-                                       0xd851 (size before relaxing)
- .debug_str     0x000000000001d04a      0x13f build/r_plane.o
-                                       0xcfba (size before relaxing)
- .debug_str     0x000000000001d189      0x1ef build/r_segs.o
-                                       0xcf53 (size before relaxing)
- .debug_str     0x000000000001d378     0xbd55 build/r_sky.o
- .debug_str     0x000000000001d378      0x1d3 build/r_things.o
-                                       0xd4b5 (size before relaxing)
- .debug_str     0x000000000001d54b      0x324 build/sha1.o
-                                       0x89bd (size before relaxing)
- .debug_str     0x000000000001d86f      0x102 build/sounds.o
-                                       0x797b (size before relaxing)
- .debug_str     0x000000000001d971       0x43 build/statdump.o
-                                       0x8ba9 (size before relaxing)
- .debug_str     0x000000000001d9b4      0x130 build/st_lib.o
-                                       0xcac3 (size before relaxing)
- .debug_str     0x000000000001dae4      0xca2 build/st_stuff.o
-                                      0x13499 (size before relaxing)
- .debug_str     0x000000000001e786      0x199 build/s_sound.o
-                                       0xdd74 (size before relaxing)
- .debug_str     0x000000000001e91f        0xb build/tables.o
-                                       0x675d (size before relaxing)
- .debug_str     0x000000000001e92a      0x292 build/v_video.o
-                                       0x9833 (size before relaxing)
- .debug_str     0x000000000001ebbc      0x62c build/wi_stuff.o
-                                       0xddc9 (size before relaxing)
- .debug_str     0x000000000001f1e8       0x45 build/w_checksum.o
-                                       0x88ed (size before relaxing)
- .debug_str     0x000000000001f22d       0x48 build/w_file.o
-                                       0x882c (size before relaxing)
- .debug_str     0x000000000001f275       0x39 build/w_main.o
-                                       0x87cf (size before relaxing)
- .debug_str     0x000000000001f2ae       0xe2 build/w_wad.o
-                                       0x97ca (size before relaxing)
- .debug_str     0x000000000001f390       0xc5 build/z_zone.o
-                                       0x8b3c (size before relaxing)
- .debug_str     0x000000000001f455       0x46 build/w_file_stdc.o
-                                       0x8b98 (size before relaxing)
- .debug_str     0x000000000001f49b      0x4e2 build/i_input.o
-                                       0xae5e (size before relaxing)
- .debug_str     0x000000000001f97d      0x285 build/i_video.o
-                                       0x9f5a (size before relaxing)
- .debug_str     0x000000000001fc02        0x8 build/doomgeneric.o
-                                       0x868f (size before relaxing)
- .debug_str     0x000000000001fc0a       0xfb build/doomgeneric_reduceOS.o
-                                       0x9195 (size before relaxing)
- .debug_str     0x000000000001fd05       0x4b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-atof.o)
+ .debug_str     0x000000000001a7a6      0x18e build/p_ceilng.o
+                                       0xd3cd (size before relaxing)
+ .debug_str     0x000000000001a934      0x1de build/p_doors.o
+                                      0x11db9 (size before relaxing)
+ .debug_str     0x000000000001ab12      0x47e build/p_enemy.o
+                                       0xde18 (size before relaxing)
+ .debug_str     0x000000000001af90      0x119 build/p_floor.o
+                                       0xd404 (size before relaxing)
+ .debug_str     0x000000000001b0a9      0x133 build/p_inter.o
+                                      0x12254 (size before relaxing)
+ .debug_str     0x000000000001b1dc      0x150 build/p_lights.o
+                                       0xcd95 (size before relaxing)
+ .debug_str     0x000000000001b32c      0x38b build/p_map.o
+                                       0xe40a (size before relaxing)
+ .debug_str     0x000000000001b6b7      0x1cb build/p_maputl.o
+                                       0xd267 (size before relaxing)
+ .debug_str     0x000000000001b882      0x134 build/p_mobj.o
+                                       0xda16 (size before relaxing)
+ .debug_str     0x000000000001b9b6       0x58 build/p_plats.o
+                                       0xd469 (size before relaxing)
+ .debug_str     0x000000000001ba0e      0x100 build/p_pspr.o
+                                       0xdbf3 (size before relaxing)
+ .debug_str     0x000000000001bb0e      0x3ee build/p_saveg.o
+                                      0x1245c (size before relaxing)
+ .debug_str     0x000000000001befc      0x31a build/p_setup.o
+                                       0xe27c (size before relaxing)
+ .debug_str     0x000000000001c216       0x7b build/p_sight.o
+                                       0xcdf7 (size before relaxing)
+ .debug_str     0x000000000001c291      0x24e build/p_spec.o
+                                       0xe267 (size before relaxing)
+ .debug_str     0x000000000001c4df       0x6b build/p_switch.o
+                                       0xd6ed (size before relaxing)
+ .debug_str     0x000000000001c54a        0x5 build/p_telept.o
+                                       0xd2f4 (size before relaxing)
+ .debug_str     0x000000000001c54f       0x2e build/p_tick.o
+                                       0xcdda (size before relaxing)
+ .debug_str     0x000000000001c57d       0x76 build/p_user.o
+                                       0xcfeb (size before relaxing)
+ .debug_str     0x000000000001c5f3      0x23e build/r_bsp.o
+                                       0xcc9a (size before relaxing)
+ .debug_str     0x000000000001c831      0x350 build/r_data.o
+                                       0xd6d0 (size before relaxing)
+ .debug_str     0x000000000001cb81      0x22c build/r_draw.o
+                                       0xc437 (size before relaxing)
+ .debug_str     0x000000000001cdad      0x28d build/r_main.o
+                                       0xd841 (size before relaxing)
+ .debug_str     0x000000000001d03a      0x13f build/r_plane.o
+                                       0xcfaa (size before relaxing)
+ .debug_str     0x000000000001d179      0x1ef build/r_segs.o
+                                       0xcf43 (size before relaxing)
+ .debug_str     0x000000000001d368     0xbd45 build/r_sky.o
+ .debug_str     0x000000000001d368      0x1d3 build/r_things.o
+                                       0xd4a5 (size before relaxing)
+ .debug_str     0x000000000001d53b      0x324 build/sha1.o
+                                       0x89ad (size before relaxing)
+ .debug_str     0x000000000001d85f      0x102 build/sounds.o
+                                       0x796b (size before relaxing)
+ .debug_str     0x000000000001d961       0x43 build/statdump.o
+                                       0x8b99 (size before relaxing)
+ .debug_str     0x000000000001d9a4      0x130 build/st_lib.o
+                                       0xcab3 (size before relaxing)
+ .debug_str     0x000000000001dad4      0xca2 build/st_stuff.o
+                                      0x13489 (size before relaxing)
+ .debug_str     0x000000000001e776      0x199 build/s_sound.o
+                                       0xdd64 (size before relaxing)
+ .debug_str     0x000000000001e90f        0xb build/tables.o
+                                       0x674d (size before relaxing)
+ .debug_str     0x000000000001e91a      0x292 build/v_video.o
+                                       0x9823 (size before relaxing)
+ .debug_str     0x000000000001ebac      0x62c build/wi_stuff.o
+                                       0xddb9 (size before relaxing)
+ .debug_str     0x000000000001f1d8       0x45 build/w_checksum.o
+                                       0x88dd (size before relaxing)
+ .debug_str     0x000000000001f21d       0x48 build/w_file.o
+                                       0x881c (size before relaxing)
+ .debug_str     0x000000000001f265       0x39 build/w_main.o
+                                       0x87bf (size before relaxing)
+ .debug_str     0x000000000001f29e       0xe2 build/w_wad.o
+                                       0x97ba (size before relaxing)
+ .debug_str     0x000000000001f380       0xc5 build/z_zone.o
+                                       0x8b2c (size before relaxing)
+ .debug_str     0x000000000001f445       0x46 build/w_file_stdc.o
+                                       0x8b88 (size before relaxing)
+ .debug_str     0x000000000001f48b      0x4e2 build/i_input.o
+                                       0xae4e (size before relaxing)
+ .debug_str     0x000000000001f96d      0x285 build/i_video.o
+                                       0x9f4a (size before relaxing)
+ .debug_str     0x000000000001fbf2        0x8 build/doomgeneric.o
+                                       0x867f (size before relaxing)
+ .debug_str     0x000000000001fbfa       0xfb build/doomgeneric_reduceOS.o
+                                       0x9185 (size before relaxing)
+ .debug_str     0x000000000001fcf5       0x4b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-atof.o)
                                          0xf6 (size before relaxing)
- .debug_str     0x000000000001fd50       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-atoi.o)
+ .debug_str     0x000000000001fd40       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-atoi.o)
                                         0x4c1 (size before relaxing)
- .debug_str     0x000000000001fd69        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-calloc.o)
+ .debug_str     0x000000000001fd59        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-calloc.o)
                                         0x4cc (size before relaxing)
- .debug_str     0x000000000001fd73       0x44 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-callocr.o)
+ .debug_str     0x000000000001fd63       0x44 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-callocr.o)
                                         0x504 (size before relaxing)
- .debug_str     0x000000000001fdb7       0x32 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-crt0_main.o)
+ .debug_str     0x000000000001fda7       0x32 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-crt0_main.o)
                                         0x129 (size before relaxing)
- .debug_str     0x000000000001fde9        0xc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-environ.o)
+ .debug_str     0x000000000001fdd9        0xc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-environ.o)
                                          0x6f (size before relaxing)
- .debug_str     0x000000000001fdf5      0x4b7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-errno.o)
- .debug_str     0x000000000001fdf5       0x16 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-exit.o)
+ .debug_str     0x000000000001fde5      0x4b7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-errno.o)
+ .debug_str     0x000000000001fde5       0x16 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-exit.o)
                                         0x4d7 (size before relaxing)
- .debug_str     0x000000000001fe0b       0x60 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fclose.o)
+ .debug_str     0x000000000001fdfb       0x60 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fclose.o)
                                         0x51b (size before relaxing)
- .debug_str     0x000000000001fe6b       0x28 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fflush.o)
+ .debug_str     0x000000000001fe5b       0x28 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fflush.o)
                                         0x52e (size before relaxing)
- .debug_str     0x000000000001fe93      0x118 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-findfp.o)
+ .debug_str     0x000000000001fe83      0x118 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-findfp.o)
                                         0x655 (size before relaxing)
- .debug_str     0x000000000001ffab       0x2a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fopen.o)
+ .debug_str     0x000000000001ff9b       0x2a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fopen.o)
                                         0x542 (size before relaxing)
- .debug_str     0x000000000001ffd5       0x17 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fprintf.o)
+ .debug_str     0x000000000001ffc5       0x17 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fprintf.o)
                                         0x4fc (size before relaxing)
- .debug_str     0x000000000001ffec       0x52 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputs.o)
+ .debug_str     0x000000000001ffdc       0x52 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputs.o)
                                         0x539 (size before relaxing)
- .debug_str     0x000000000002003e       0x37 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fread.o)
+ .debug_str     0x000000000002002e       0x37 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fread.o)
                                         0x536 (size before relaxing)
- .debug_str     0x0000000000020075      0x10c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-freer.o)
+ .debug_str     0x0000000000020065      0x10c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-freer.o)
                                         0x624 (size before relaxing)
- .debug_str     0x0000000000020181       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fseek.o)
+ .debug_str     0x0000000000020171       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fseek.o)
                                         0x4db (size before relaxing)
- .debug_str     0x0000000000020192      0x10e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fseeko.o)
+ .debug_str     0x0000000000020182      0x10e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fseeko.o)
                                         0x6a5 (size before relaxing)
- .debug_str     0x00000000000202a0        0xc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fstatr.o)
+ .debug_str     0x0000000000020290        0xc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fstatr.o)
                                         0x60c (size before relaxing)
- .debug_str     0x00000000000202ac       0x13 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ftell.o)
+ .debug_str     0x000000000002029c       0x13 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ftell.o)
                                         0x4cd (size before relaxing)
- .debug_str     0x00000000000202bf        0x7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ftello.o)
+ .debug_str     0x00000000000202af        0x7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ftello.o)
                                         0x4dd (size before relaxing)
- .debug_str     0x00000000000202c6       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fvwrite.o)
+ .debug_str     0x00000000000202b6       0x3c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fvwrite.o)
                                         0x55f (size before relaxing)
- .debug_str     0x0000000000020302        0xf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fwalk.o)
+ .debug_str     0x00000000000202f2        0xf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fwalk.o)
                                         0x4d4 (size before relaxing)
- .debug_str     0x0000000000020311        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fwrite.o)
+ .debug_str     0x0000000000020301        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fwrite.o)
                                         0x538 (size before relaxing)
- .debug_str     0x000000000002031b        0xc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-impure.o)
+ .debug_str     0x000000000002030b        0xc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-impure.o)
                                         0x4ce (size before relaxing)
- .debug_str     0x0000000000020327        0xd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ioctl.o)
+ .debug_str     0x0000000000020317        0xd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ioctl.o)
                                          0xfc (size before relaxing)
- .debug_str     0x0000000000020334      0x1d4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-locale.o)
+ .debug_str     0x0000000000020324      0x1d4 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-locale.o)
                                         0x763 (size before relaxing)
- .debug_str     0x0000000000020508       0x2f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-makebuf.o)
+ .debug_str     0x00000000000204f8       0x2f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-makebuf.o)
                                         0x662 (size before relaxing)
- .debug_str     0x0000000000020537        0xc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-malloc.o)
+ .debug_str     0x0000000000020527        0xc /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-malloc.o)
                                         0x4e0 (size before relaxing)
- .debug_str     0x0000000000020543       0xd9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mallocr.o)
+ .debug_str     0x0000000000020533       0xd9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mallocr.o)
                                         0x6da (size before relaxing)
- .debug_str     0x000000000002061c       0x10 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbtowc_r.o)
+ .debug_str     0x000000000002060c       0x10 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbtowc_r.o)
                                         0x6eb (size before relaxing)
- .debug_str     0x000000000002062c       0x9f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memchr.o)
+ .debug_str     0x000000000002061c       0x9f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memchr.o)
                                          0xab (size before relaxing)
- .debug_str     0x00000000000206cb       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcpy.o)
+ .debug_str     0x00000000000206bb       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcpy.o)
                                          0xab (size before relaxing)
- .debug_str     0x000000000002070a       0x40 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memmove.o)
+ .debug_str     0x00000000000206fa       0x40 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memmove.o)
                                          0xac (size before relaxing)
- .debug_str     0x000000000002074a       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memset.o)
+ .debug_str     0x000000000002073a       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memset.o)
                                          0xab (size before relaxing)
- .debug_str     0x0000000000020789       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mlock.o)
+ .debug_str     0x0000000000020779       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mlock.o)
                                         0x4da (size before relaxing)
- .debug_str     0x00000000000207a2      0x4c6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-openr.o)
- .debug_str     0x00000000000207a2        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-printf.o)
+ .debug_str     0x0000000000020792      0x4c6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-openr.o)
+ .debug_str     0x0000000000020792        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-printf.o)
                                         0x4fa (size before relaxing)
- .debug_str     0x00000000000207ac       0x13 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-putchar.o)
+ .debug_str     0x000000000002079c       0x13 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-putchar.o)
                                         0x4d5 (size before relaxing)
- .debug_str     0x00000000000207bf       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-putc.o)
+ .debug_str     0x00000000000207af       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-putc.o)
                                         0x4ff (size before relaxing)
- .debug_str     0x00000000000207d8        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-puts.o)
+ .debug_str     0x00000000000207c8        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-puts.o)
                                         0x537 (size before relaxing)
- .debug_str     0x00000000000207e0      0x4d0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-realloc.o)
- .debug_str     0x00000000000207e0       0x49 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-reallocr.o)
+ .debug_str     0x00000000000207d0      0x4d0 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-realloc.o)
+ .debug_str     0x00000000000207d0       0x49 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-reallocr.o)
                                         0x5ac (size before relaxing)
- .debug_str     0x0000000000020829       0x2c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-reent.o)
+ .debug_str     0x0000000000020819       0x2c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-reent.o)
                                         0x4ee (size before relaxing)
- .debug_str     0x0000000000020855       0x12 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-refill.o)
+ .debug_str     0x0000000000020845       0x12 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-refill.o)
                                         0x529 (size before relaxing)
- .debug_str     0x0000000000020867       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-remove.o)
+ .debug_str     0x0000000000020857       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-remove.o)
                                         0x4d3 (size before relaxing)
- .debug_str     0x000000000002087b        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-rename.o)
+ .debug_str     0x000000000002086b        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-rename.o)
                                         0x4c0 (size before relaxing)
- .debug_str     0x0000000000020885        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-renamer.o)
+ .debug_str     0x0000000000020875        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-renamer.o)
                                         0x4bf (size before relaxing)
- .debug_str     0x000000000002088d        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sbrkr.o)
+ .debug_str     0x000000000002087d        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sbrkr.o)
                                         0x4c5 (size before relaxing)
- .debug_str     0x0000000000020897       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-snprintf.o)
+ .debug_str     0x0000000000020887       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-snprintf.o)
                                         0x50b (size before relaxing)
- .debug_str     0x00000000000208b0       0x23 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sscanf.o)
+ .debug_str     0x00000000000208a0       0x23 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sscanf.o)
                                         0x515 (size before relaxing)
- .debug_str     0x00000000000208d3       0x2c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-stdio.o)
+ .debug_str     0x00000000000208c3       0x2c /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-stdio.o)
                                         0x52a (size before relaxing)
- .debug_str     0x00000000000208ff      0x101 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strcasecmp.o)
- .debug_str     0x00000000000208ff       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strchr.o)
+ .debug_str     0x00000000000208ef      0x101 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strcasecmp.o)
+ .debug_str     0x00000000000208ef       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strchr.o)
                                          0xab (size before relaxing)
- .debug_str     0x000000000002093e       0xea /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strcmp.o)
- .debug_str     0x000000000002093e        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strdup.o)
+ .debug_str     0x000000000002092e       0xea /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strcmp.o)
+ .debug_str     0x000000000002092e        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strdup.o)
                                         0x4c0 (size before relaxing)
- .debug_str     0x0000000000020948        0x5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strdup_r.o)
+ .debug_str     0x0000000000020938        0x5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strdup_r.o)
                                         0x4db (size before relaxing)
- .debug_str     0x000000000002094d       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strlen.o)
+ .debug_str     0x000000000002093d       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strlen.o)
                                          0xab (size before relaxing)
- .debug_str     0x000000000002098c      0x109 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strncasecmp.o)
- .debug_str     0x000000000002098c       0xf2 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strncmp.o)
- .debug_str     0x000000000002098c       0x22 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strncpy.o)
+ .debug_str     0x000000000002097c      0x109 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strncasecmp.o)
+ .debug_str     0x000000000002097c       0xf2 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strncmp.o)
+ .debug_str     0x000000000002097c       0x22 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strncpy.o)
                                         0x11a (size before relaxing)
- .debug_str     0x00000000000209ae       0xf7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strrchr.o)
- .debug_str     0x00000000000209ae       0x7e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strstr.o)
+ .debug_str     0x000000000002099e       0xf7 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strrchr.o)
+ .debug_str     0x000000000002099e       0x7e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strstr.o)
                                         0x1c0 (size before relaxing)
- .debug_str     0x0000000000020a2c      0x24f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtod.o)
+ .debug_str     0x0000000000020a1c      0x24f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtod.o)
                                         0x990 (size before relaxing)
- .debug_str     0x0000000000020c7b       0x1f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtol.o)
+ .debug_str     0x0000000000020c6b       0x1f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtol.o)
                                         0x72c (size before relaxing)
- .debug_str     0x0000000000020c9a      0x10e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfprintf.o)
+ .debug_str     0x0000000000020c8a      0x10e /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfprintf.o)
                                         0x8a5 (size before relaxing)
- .debug_str     0x0000000000020da8      0x117 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
+ .debug_str     0x0000000000020d98      0x117 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfscanf.o)
                                         0x8cb (size before relaxing)
- .debug_str     0x0000000000020ebf       0x87 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
+ .debug_str     0x0000000000020eaf       0x87 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-syscalls.o)
                                         0x33c (size before relaxing)
- .debug_str     0x0000000000020f46        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
+ .debug_str     0x0000000000020f36        0xa /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-system.o)
                                         0x4c8 (size before relaxing)
- .debug_str     0x0000000000020f50      0x4bf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
- .debug_str     0x0000000000020f50       0x1b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
+ .debug_str     0x0000000000020f40      0x4bf /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-unlinkr.o)
+ .debug_str     0x0000000000020f40       0x1b /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfprintf.o)
                                         0x8f8 (size before relaxing)
- .debug_str     0x0000000000020f6b        0xd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
+ .debug_str     0x0000000000020f5b        0xd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vsnprintf.o)
                                         0x50d (size before relaxing)
- .debug_str     0x0000000000020f78        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
+ .debug_str     0x0000000000020f68        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wbuf.o)
                                         0x4f4 (size before relaxing)
- .debug_str     0x0000000000020f80       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
+ .debug_str     0x0000000000020f70       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wctomb_r.o)
                                         0x6f2 (size before relaxing)
- .debug_str     0x0000000000020f91      0x4c8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
- .debug_str     0x0000000000020f91      0x4ed /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
- .debug_str     0x0000000000020f91       0x27 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
+ .debug_str     0x0000000000020f81      0x4c8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-writer.o)
+ .debug_str     0x0000000000020f81      0x4ed /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wsetup.o)
+ .debug_str     0x0000000000020f81       0x27 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-__call_atexit.o)
                                         0x4fd (size before relaxing)
- .debug_str     0x0000000000020fb8      0x4b8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
- .debug_str     0x0000000000020fb8        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
+ .debug_str     0x0000000000020fa8      0x4b8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-closer.o)
+ .debug_str     0x0000000000020fa8        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ctype_.o)
                                          0xf4 (size before relaxing)
- .debug_str     0x0000000000020fc0       0xa6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
+ .debug_str     0x0000000000020fb0       0xa6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-dtoa.o)
                                         0x7eb (size before relaxing)
- .debug_str     0x0000000000021066        0x5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
+ .debug_str     0x0000000000021056        0x5 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-flags.o)
                                         0x4b6 (size before relaxing)
- .debug_str     0x000000000002106b       0x98 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
+ .debug_str     0x000000000002105b       0x98 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-gethex.o)
                                         0x8a1 (size before relaxing)
- .debug_str     0x0000000000021103        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
+ .debug_str     0x00000000000210f3        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-gdtoa-hexnan.o)
                                         0x216 (size before relaxing)
- .debug_str     0x000000000002110b      0x4ba /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
- .debug_str     0x000000000002110b      0x106 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
- .debug_str     0x000000000002110b      0x4b6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
- .debug_str     0x000000000002110b       0x1a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
+ .debug_str     0x00000000000210fb      0x4ba /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-isattyr.o)
+ .debug_str     0x00000000000210fb      0x106 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-iswspace.o)
+ .debug_str     0x00000000000210fb      0x4b6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-linkr.o)
+ .debug_str     0x00000000000210fb       0x1a /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-localeconv.o)
                                         0x709 (size before relaxing)
- .debug_str     0x0000000000021125      0x4cd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
- .debug_str     0x0000000000021125        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
+ .debug_str     0x0000000000021115      0x4cd /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-lseekr.o)
+ .debug_str     0x0000000000021115        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mbrtowc.o)
                                         0x6e6 (size before relaxing)
- .debug_str     0x000000000002112d       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
+ .debug_str     0x000000000002111d       0x3f /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-memcmp.o)
                                          0xab (size before relaxing)
- .debug_str     0x000000000002116c       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
+ .debug_str     0x000000000002115c       0x39 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-mprec.o)
                                         0x7a4 (size before relaxing)
- .debug_str     0x00000000000211a5      0x4c6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
- .debug_str     0x00000000000211a5        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
+ .debug_str     0x0000000000021195      0x4c6 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-readr.o)
+ .debug_str     0x0000000000021195        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sccl.o)
                                          0xfa (size before relaxing)
- .debug_str     0x00000000000211ae        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
+ .debug_str     0x000000000002119e        0x9 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sf_nan.o)
                                          0xfc (size before relaxing)
- .debug_str     0x00000000000211ae        0xb /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
+ .debug_str     0x000000000002119e        0xb /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-sprintf.o)
                                         0x4fd (size before relaxing)
- .debug_str     0x00000000000211b9       0x13 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
+ .debug_str     0x00000000000211a9       0x13 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-strtoul.o)
                                         0x730 (size before relaxing)
- .debug_str     0x00000000000211cc        0xe /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
+ .debug_str     0x00000000000211bc        0xe /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiprintf.o)
                                         0x81e (size before relaxing)
- .debug_str     0x00000000000211da       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
+ .debug_str     0x00000000000211ca       0x19 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-svfiscanf.o)
                                         0x87e (size before relaxing)
- .debug_str     0x00000000000211f3       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
+ .debug_str     0x00000000000211e3       0x11 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-ungetc.o)
                                         0x519 (size before relaxing)
- .debug_str     0x0000000000021204       0x21 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
+ .debug_str     0x00000000000211f4       0x21 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-vfiprintf.o)
                                         0x860 (size before relaxing)
- .debug_str     0x0000000000021225       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
+ .debug_str     0x0000000000021215       0x14 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-fputwc.o)
                                         0x53d (size before relaxing)
- .debug_str     0x0000000000021239        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
+ .debug_str     0x0000000000021229        0x8 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
                                         0x6e6 (size before relaxing)
- .debug_str     0x0000000000021241      0x11a /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+ .debug_str     0x0000000000021231      0x11a /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
                                         0x1e2 (size before relaxing)
 
 .debug_loc
@@ -12621,7 +12621,7 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  *(.debug_addr)
 
 .debug_line_str
-                0x0000000000000000     0x24b5
+                0x0000000000000000     0x249e
  *(.debug_line_str)
  .debug_line_str
                 0x0000000000000000       0x9d /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/crt0.o
@@ -13158,8 +13158,8 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
                 0x00000000000023ed       0x37 /usr/lib/gcc/i686-reduceOS/12.2.0/../../../../i686-reduceOS/lib/libc.a(lib_a-wcrtomb.o)
                                         0x265 (size before relaxing)
  .debug_line_str
-                0x0000000000002424       0x91 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
-                                         0xf4 (size before relaxing)
+                0x0000000000002424       0x7a /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
+                                         0xd4 (size before relaxing)
 
 .debug_loclists
                 0x0000000000000000    0x2a2ce
@@ -13483,7 +13483,7 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_loclists
                 0x000000000002a0a7      0x227 /usr/lib/gcc/i686-reduceOS/12.2.0/libgcc.a(_divdi3.o)
 
-.debug_macro    0x0000000000000000    0x13bf7
+.debug_macro    0x0000000000000000    0x13bdf
  *(.debug_macro)
  .debug_macro   0x0000000000000000      0x126 build/main.o
  .debug_macro   0x0000000000000126      0x7ba build/main.o
@@ -13519,174 +13519,174 @@ LOAD /usr/lib/gcc/i686-reduceOS/12.2.0/crtn.o
  .debug_macro   0x00000000000019df       0x35 build/dummy.o
  .debug_macro   0x0000000000001a14      0x460 build/dummy.o
  .debug_macro   0x0000000000001e74       0x16 build/dummy.o
- .debug_macro   0x0000000000001e8a      0x11e build/dummy.o
- .debug_macro   0x0000000000001fa8       0x19 build/dummy.o
- .debug_macro   0x0000000000001fc1       0x1c build/dummy.o
- .debug_macro   0x0000000000001fdd      0x564 build/am_map.o
- .debug_macro   0x0000000000002541       0x16 build/am_map.o
- .debug_macro   0x0000000000002557       0x9e build/am_map.o
- .debug_macro   0x00000000000025f5      0x10b build/am_map.o
- .debug_macro   0x0000000000002700       0x10 build/am_map.o
- .debug_macro   0x0000000000002710       0x10 build/am_map.o
- .debug_macro   0x0000000000002720       0x1c build/am_map.o
- .debug_macro   0x000000000000273c       0x52 build/am_map.o
- .debug_macro   0x000000000000278e       0x40 build/am_map.o
- .debug_macro   0x00000000000027ce       0x10 build/am_map.o
- .debug_macro   0x00000000000027de       0x40 build/am_map.o
- .debug_macro   0x000000000000281e       0xd7 build/am_map.o
- .debug_macro   0x00000000000028f5       0x1c build/am_map.o
- .debug_macro   0x0000000000002911       0x3d build/am_map.o
- .debug_macro   0x000000000000294e       0x16 build/am_map.o
- .debug_macro   0x0000000000002964      0x16f build/am_map.o
- .debug_macro   0x0000000000002ad3      0x1e5 build/am_map.o
- .debug_macro   0x0000000000002cb8       0x1c build/am_map.o
- .debug_macro   0x0000000000002cd4       0x28 build/am_map.o
- .debug_macro   0x0000000000002cfc       0x10 build/am_map.o
- .debug_macro   0x0000000000002d0c       0x10 build/am_map.o
- .debug_macro   0x0000000000002d1c      0x166 build/am_map.o
- .debug_macro   0x0000000000002e82       0x16 build/am_map.o
- .debug_macro   0x0000000000002e98       0x10 build/am_map.o
- .debug_macro   0x0000000000002ea8       0x34 build/am_map.o
- .debug_macro   0x0000000000002edc       0x1c build/am_map.o
- .debug_macro   0x0000000000002ef8       0x16 build/am_map.o
- .debug_macro   0x0000000000002f0e       0x16 build/am_map.o
- .debug_macro   0x0000000000002f24       0x58 build/am_map.o
- .debug_macro   0x0000000000002f7c       0x49 build/am_map.o
- .debug_macro   0x0000000000002fc5       0x28 build/am_map.o
- .debug_macro   0x0000000000002fed       0x22 build/am_map.o
- .debug_macro   0x000000000000300f       0x16 build/am_map.o
- .debug_macro   0x0000000000003025       0x66 build/am_map.o
- .debug_macro   0x000000000000308b       0x34 build/am_map.o
- .debug_macro   0x00000000000030bf       0x10 build/am_map.o
- .debug_macro   0x00000000000030cf       0xa7 build/am_map.o
- .debug_macro   0x0000000000003176       0x80 build/am_map.o
- .debug_macro   0x00000000000031f6       0x4c build/am_map.o
- .debug_macro   0x0000000000003242       0x10 build/am_map.o
- .debug_macro   0x0000000000003252       0x11 build/am_map.o
- .debug_macro   0x0000000000003263      0x78f build/am_map.o
- .debug_macro   0x00000000000039f2       0x10 build/am_map.o
- .debug_macro   0x0000000000003a02       0x1c build/am_map.o
- .debug_macro   0x0000000000003a1e      0x2de build/doomstat.o
- .debug_macro   0x0000000000003cfc       0x43 build/doomstat.o
- .debug_macro   0x0000000000003d3f       0x60 build/doomstat.o
- .debug_macro   0x0000000000003d9f       0x5e build/doomstat.o
- .debug_macro   0x0000000000003dfd       0x10 build/doomstat.o
- .debug_macro   0x0000000000003e0d       0x29 build/dstrings.o
- .debug_macro   0x0000000000003e36      0x186 build/d_event.o
- .debug_macro   0x0000000000003fbc      0x257 build/d_items.o
- .debug_macro   0x0000000000004213      0x305 build/d_iwad.o
- .debug_macro   0x0000000000004518      0x10b build/d_iwad.o
- .debug_macro   0x0000000000004623       0xca build/d_iwad.o
- .debug_macro   0x00000000000046ed       0x22 build/d_iwad.o
- .debug_macro   0x000000000000470f       0x1c build/d_iwad.o
- .debug_macro   0x000000000000472b      0x300 build/d_loop.o
- .debug_macro   0x0000000000004a2b       0x1c build/d_loop.o
- .debug_macro   0x0000000000004a47      0x51f build/d_main.o
- .debug_macro   0x0000000000004f66       0x22 build/d_main.o
- .debug_macro   0x0000000000004f88       0x10 build/d_main.o
- .debug_macro   0x0000000000004f98       0x58 build/d_main.o
- .debug_macro   0x0000000000004ff0       0x40 build/d_main.o
- .debug_macro   0x0000000000005030       0x28 build/d_main.o
- .debug_macro   0x0000000000005058      0x13f build/d_mode.o
- .debug_macro   0x0000000000005197      0x396 build/d_net.o
- .debug_macro   0x000000000000552d      0x3e2 build/f_finale.o
- .debug_macro   0x000000000000590f       0x1c build/f_finale.o
- .debug_macro   0x000000000000592b      0x264 build/f_wipe.o
- .debug_macro   0x0000000000005b8f       0x10 build/f_wipe.o
- .debug_macro   0x0000000000005b9f       0x22 build/f_wipe.o
- .debug_macro   0x0000000000005bc1      0x54e build/g_game.o
- .debug_macro   0x000000000000610f      0x1e1 build/g_game.o
- .debug_macro   0x00000000000062f0       0xca build/g_game.o
- .debug_macro   0x00000000000063ba       0x16 build/g_game.o
- .debug_macro   0x00000000000063d0      0x370 build/hu_lib.o
- .debug_macro   0x0000000000006740       0x16 build/hu_lib.o
- .debug_macro   0x0000000000006756      0x416 build/hu_stuff.o
- .debug_macro   0x0000000000006b6c       0x3a build/hu_stuff.o
- .debug_macro   0x0000000000006ba6      0x2c7 build/info.o
- .debug_macro   0x0000000000006e6d      0x235 build/i_endoom.o
- .debug_macro   0x00000000000070a2      0x28f build/i_joystick.o
- .debug_macro   0x0000000000007331      0x274 build/i_sound.o
- .debug_macro   0x00000000000075a5      0x332 build/i_system.o
- .debug_macro   0x00000000000078d7       0x16 build/i_system.o
- .debug_macro   0x00000000000078ed      0x51a build/i_system.o
- .debug_macro   0x0000000000007e07      0x19d build/i_timer.o
- .debug_macro   0x0000000000007fa4       0x58 build/i_timer.o
- .debug_macro   0x0000000000007ffc      0x295 build/m_argv.o
- .debug_macro   0x0000000000008291       0x8a build/m_bbox.o
- .debug_macro   0x000000000000831b       0x10 build/m_bbox.o
- .debug_macro   0x000000000000832b      0x161 build/m_cheat.o
- .debug_macro   0x000000000000848c      0x2e9 build/m_config.o
- .debug_macro   0x0000000000008775      0x111 build/m_config.o
- .debug_macro   0x0000000000008886       0x10 build/m_config.o
- .debug_macro   0x0000000000008896      0x241 build/m_config.o
- .debug_macro   0x0000000000008ad7      0x22d build/m_controls.o
- .debug_macro   0x0000000000008d04      0x19d build/m_fixed.o
- .debug_macro   0x0000000000008ea1      0x493 build/m_menu.o
- .debug_macro   0x0000000000009334      0x332 build/m_misc.o
- .debug_macro   0x0000000000009666       0x16 build/m_misc.o
- .debug_macro   0x000000000000967c       0x47 build/m_misc.o
- .debug_macro   0x00000000000096c3      0x122 build/m_misc.o
- .debug_macro   0x00000000000097e5       0x11 build/m_random.o
- .debug_macro   0x00000000000097f6      0x396 build/p_ceilng.o
- .debug_macro   0x0000000000009b8c      0x3c9 build/p_doors.o
- .debug_macro   0x0000000000009f55      0x3f7 build/p_enemy.o
- .debug_macro   0x000000000000a34c      0x396 build/p_floor.o
- .debug_macro   0x000000000000a6e2      0x40e build/p_inter.o
- .debug_macro   0x000000000000aaf0       0x16 build/p_inter.o
- .debug_macro   0x000000000000ab06      0x370 build/p_lights.o
- .debug_macro   0x000000000000ae76      0x422 build/p_map.o
- .debug_macro   0x000000000000b298       0xc4 build/p_map.o
- .debug_macro   0x000000000000b35c      0x3a4 build/p_maputl.o
- .debug_macro   0x000000000000b700      0x3e1 build/p_mobj.o
- .debug_macro   0x000000000000bae1      0x3b4 build/p_plats.o
- .debug_macro   0x000000000000be95      0x3ca build/p_pspr.o
- .debug_macro   0x000000000000c25f      0x441 build/p_saveg.o
- .debug_macro   0x000000000000c6a0      0x418 build/p_setup.o
- .debug_macro   0x000000000000cab8      0x363 build/p_sight.o
- .debug_macro   0x000000000000ce1b      0x453 build/p_spec.o
- .debug_macro   0x000000000000d26e       0xad build/p_spec.o
- .debug_macro   0x000000000000d31b      0x3c6 build/p_switch.o
- .debug_macro   0x000000000000d6e1      0x386 build/p_telept.o
- .debug_macro   0x000000000000da67      0x37f build/p_tick.o
- .debug_macro   0x000000000000dde6      0x385 build/p_user.o
- .debug_macro   0x000000000000e16b      0x355 build/r_bsp.o
- .debug_macro   0x000000000000e4c0       0x2e build/r_bsp.o
- .debug_macro   0x000000000000e4ee      0x3da build/r_data.o
- .debug_macro   0x000000000000e8c8      0x3c4 build/r_draw.o
- .debug_macro   0x000000000000ec8c      0x3b3 build/r_main.o
- .debug_macro   0x000000000000f03f      0x3d0 build/r_plane.o
- .debug_macro   0x000000000000f40f      0x3b5 build/r_segs.o
- .debug_macro   0x000000000000f7c4      0x2f5 build/r_sky.o
- .debug_macro   0x000000000000fab9      0x3eb build/r_things.o
- .debug_macro   0x000000000000fea4      0x2b5 build/sha1.o
- .debug_macro   0x0000000000010159       0x1c build/sha1.o
- .debug_macro   0x0000000000010175      0x19c build/sounds.o
- .debug_macro   0x0000000000010311      0x306 build/statdump.o
- .debug_macro   0x0000000000010617      0x3cd build/st_lib.o
- .debug_macro   0x00000000000109e4      0x759 build/st_stuff.o
- .debug_macro   0x000000000001113d      0x45b build/s_sound.o
- .debug_macro   0x0000000000011598      0x14d build/tables.o
- .debug_macro   0x00000000000116e5      0x2fa build/v_video.o
- .debug_macro   0x00000000000119df      0x4b4 build/wi_stuff.o
- .debug_macro   0x0000000000011e93      0x290 build/w_checksum.o
- .debug_macro   0x0000000000012123      0x224 build/w_file.o
- .debug_macro   0x0000000000012347      0x269 build/w_main.o
- .debug_macro   0x00000000000125b0       0x16 build/w_main.o
- .debug_macro   0x00000000000125c6      0x2d6 build/w_wad.o
- .debug_macro   0x000000000001289c      0x248 build/z_zone.o
- .debug_macro   0x0000000000012ae4      0x22d build/w_file_stdc.o
- .debug_macro   0x0000000000012d11      0x3a8 build/i_input.o
- .debug_macro   0x00000000000130b9      0x1e3 build/i_input.o
- .debug_macro   0x000000000001329c       0x10 build/i_input.o
- .debug_macro   0x00000000000132ac       0x16 build/i_input.o
- .debug_macro   0x00000000000132c2      0x373 build/i_video.o
- .debug_macro   0x0000000000013635       0x22 build/i_video.o
- .debug_macro   0x0000000000013657      0x254 build/doomgeneric.o
- .debug_macro   0x00000000000138ab      0x2bd build/doomgeneric_reduceOS.o
- .debug_macro   0x0000000000013b68       0x16 build/doomgeneric_reduceOS.o
- .debug_macro   0x0000000000013b7e       0x35 build/doomgeneric_reduceOS.o
- .debug_macro   0x0000000000013bb3       0x34 build/doomgeneric_reduceOS.o
- .debug_macro   0x0000000000013be7       0x10 build/doomgeneric_reduceOS.o
+ .debug_macro   0x0000000000001e8a      0x106 build/dummy.o
+ .debug_macro   0x0000000000001f90       0x19 build/dummy.o
+ .debug_macro   0x0000000000001fa9       0x1c build/dummy.o
+ .debug_macro   0x0000000000001fc5      0x564 build/am_map.o
+ .debug_macro   0x0000000000002529       0x16 build/am_map.o
+ .debug_macro   0x000000000000253f       0x9e build/am_map.o
+ .debug_macro   0x00000000000025dd      0x10b build/am_map.o
+ .debug_macro   0x00000000000026e8       0x10 build/am_map.o
+ .debug_macro   0x00000000000026f8       0x10 build/am_map.o
+ .debug_macro   0x0000000000002708       0x1c build/am_map.o
+ .debug_macro   0x0000000000002724       0x52 build/am_map.o
+ .debug_macro   0x0000000000002776       0x40 build/am_map.o
+ .debug_macro   0x00000000000027b6       0x10 build/am_map.o
+ .debug_macro   0x00000000000027c6       0x40 build/am_map.o
+ .debug_macro   0x0000000000002806       0xd7 build/am_map.o
+ .debug_macro   0x00000000000028dd       0x1c build/am_map.o
+ .debug_macro   0x00000000000028f9       0x3d build/am_map.o
+ .debug_macro   0x0000000000002936       0x16 build/am_map.o
+ .debug_macro   0x000000000000294c      0x16f build/am_map.o
+ .debug_macro   0x0000000000002abb      0x1e5 build/am_map.o
+ .debug_macro   0x0000000000002ca0       0x1c build/am_map.o
+ .debug_macro   0x0000000000002cbc       0x28 build/am_map.o
+ .debug_macro   0x0000000000002ce4       0x10 build/am_map.o
+ .debug_macro   0x0000000000002cf4       0x10 build/am_map.o
+ .debug_macro   0x0000000000002d04      0x166 build/am_map.o
+ .debug_macro   0x0000000000002e6a       0x16 build/am_map.o
+ .debug_macro   0x0000000000002e80       0x10 build/am_map.o
+ .debug_macro   0x0000000000002e90       0x34 build/am_map.o
+ .debug_macro   0x0000000000002ec4       0x1c build/am_map.o
+ .debug_macro   0x0000000000002ee0       0x16 build/am_map.o
+ .debug_macro   0x0000000000002ef6       0x16 build/am_map.o
+ .debug_macro   0x0000000000002f0c       0x58 build/am_map.o
+ .debug_macro   0x0000000000002f64       0x49 build/am_map.o
+ .debug_macro   0x0000000000002fad       0x28 build/am_map.o
+ .debug_macro   0x0000000000002fd5       0x22 build/am_map.o
+ .debug_macro   0x0000000000002ff7       0x16 build/am_map.o
+ .debug_macro   0x000000000000300d       0x66 build/am_map.o
+ .debug_macro   0x0000000000003073       0x34 build/am_map.o
+ .debug_macro   0x00000000000030a7       0x10 build/am_map.o
+ .debug_macro   0x00000000000030b7       0xa7 build/am_map.o
+ .debug_macro   0x000000000000315e       0x80 build/am_map.o
+ .debug_macro   0x00000000000031de       0x4c build/am_map.o
+ .debug_macro   0x000000000000322a       0x10 build/am_map.o
+ .debug_macro   0x000000000000323a       0x11 build/am_map.o
+ .debug_macro   0x000000000000324b      0x78f build/am_map.o
+ .debug_macro   0x00000000000039da       0x10 build/am_map.o
+ .debug_macro   0x00000000000039ea       0x1c build/am_map.o
+ .debug_macro   0x0000000000003a06      0x2de build/doomstat.o
+ .debug_macro   0x0000000000003ce4       0x43 build/doomstat.o
+ .debug_macro   0x0000000000003d27       0x60 build/doomstat.o
+ .debug_macro   0x0000000000003d87       0x5e build/doomstat.o
+ .debug_macro   0x0000000000003de5       0x10 build/doomstat.o
+ .debug_macro   0x0000000000003df5       0x29 build/dstrings.o
+ .debug_macro   0x0000000000003e1e      0x186 build/d_event.o
+ .debug_macro   0x0000000000003fa4      0x257 build/d_items.o
+ .debug_macro   0x00000000000041fb      0x305 build/d_iwad.o
+ .debug_macro   0x0000000000004500      0x10b build/d_iwad.o
+ .debug_macro   0x000000000000460b       0xca build/d_iwad.o
+ .debug_macro   0x00000000000046d5       0x22 build/d_iwad.o
+ .debug_macro   0x00000000000046f7       0x1c build/d_iwad.o
+ .debug_macro   0x0000000000004713      0x300 build/d_loop.o
+ .debug_macro   0x0000000000004a13       0x1c build/d_loop.o
+ .debug_macro   0x0000000000004a2f      0x51f build/d_main.o
+ .debug_macro   0x0000000000004f4e       0x22 build/d_main.o
+ .debug_macro   0x0000000000004f70       0x10 build/d_main.o
+ .debug_macro   0x0000000000004f80       0x58 build/d_main.o
+ .debug_macro   0x0000000000004fd8       0x40 build/d_main.o
+ .debug_macro   0x0000000000005018       0x28 build/d_main.o
+ .debug_macro   0x0000000000005040      0x13f build/d_mode.o
+ .debug_macro   0x000000000000517f      0x396 build/d_net.o
+ .debug_macro   0x0000000000005515      0x3e2 build/f_finale.o
+ .debug_macro   0x00000000000058f7       0x1c build/f_finale.o
+ .debug_macro   0x0000000000005913      0x264 build/f_wipe.o
+ .debug_macro   0x0000000000005b77       0x10 build/f_wipe.o
+ .debug_macro   0x0000000000005b87       0x22 build/f_wipe.o
+ .debug_macro   0x0000000000005ba9      0x54e build/g_game.o
+ .debug_macro   0x00000000000060f7      0x1e1 build/g_game.o
+ .debug_macro   0x00000000000062d8       0xca build/g_game.o
+ .debug_macro   0x00000000000063a2       0x16 build/g_game.o
+ .debug_macro   0x00000000000063b8      0x370 build/hu_lib.o
+ .debug_macro   0x0000000000006728       0x16 build/hu_lib.o
+ .debug_macro   0x000000000000673e      0x416 build/hu_stuff.o
+ .debug_macro   0x0000000000006b54       0x3a build/hu_stuff.o
+ .debug_macro   0x0000000000006b8e      0x2c7 build/info.o
+ .debug_macro   0x0000000000006e55      0x235 build/i_endoom.o
+ .debug_macro   0x000000000000708a      0x28f build/i_joystick.o
+ .debug_macro   0x0000000000007319      0x274 build/i_sound.o
+ .debug_macro   0x000000000000758d      0x332 build/i_system.o
+ .debug_macro   0x00000000000078bf       0x16 build/i_system.o
+ .debug_macro   0x00000000000078d5      0x51a build/i_system.o
+ .debug_macro   0x0000000000007def      0x19d build/i_timer.o
+ .debug_macro   0x0000000000007f8c       0x58 build/i_timer.o
+ .debug_macro   0x0000000000007fe4      0x295 build/m_argv.o
+ .debug_macro   0x0000000000008279       0x8a build/m_bbox.o
+ .debug_macro   0x0000000000008303       0x10 build/m_bbox.o
+ .debug_macro   0x0000000000008313      0x161 build/m_cheat.o
+ .debug_macro   0x0000000000008474      0x2e9 build/m_config.o
+ .debug_macro   0x000000000000875d      0x111 build/m_config.o
+ .debug_macro   0x000000000000886e       0x10 build/m_config.o
+ .debug_macro   0x000000000000887e      0x241 build/m_config.o
+ .debug_macro   0x0000000000008abf      0x22d build/m_controls.o
+ .debug_macro   0x0000000000008cec      0x19d build/m_fixed.o
+ .debug_macro   0x0000000000008e89      0x493 build/m_menu.o
+ .debug_macro   0x000000000000931c      0x332 build/m_misc.o
+ .debug_macro   0x000000000000964e       0x16 build/m_misc.o
+ .debug_macro   0x0000000000009664       0x47 build/m_misc.o
+ .debug_macro   0x00000000000096ab      0x122 build/m_misc.o
+ .debug_macro   0x00000000000097cd       0x11 build/m_random.o
+ .debug_macro   0x00000000000097de      0x396 build/p_ceilng.o
+ .debug_macro   0x0000000000009b74      0x3c9 build/p_doors.o
+ .debug_macro   0x0000000000009f3d      0x3f7 build/p_enemy.o
+ .debug_macro   0x000000000000a334      0x396 build/p_floor.o
+ .debug_macro   0x000000000000a6ca      0x40e build/p_inter.o
+ .debug_macro   0x000000000000aad8       0x16 build/p_inter.o
+ .debug_macro   0x000000000000aaee      0x370 build/p_lights.o
+ .debug_macro   0x000000000000ae5e      0x422 build/p_map.o
+ .debug_macro   0x000000000000b280       0xc4 build/p_map.o
+ .debug_macro   0x000000000000b344      0x3a4 build/p_maputl.o
+ .debug_macro   0x000000000000b6e8      0x3e1 build/p_mobj.o
+ .debug_macro   0x000000000000bac9      0x3b4 build/p_plats.o
+ .debug_macro   0x000000000000be7d      0x3ca build/p_pspr.o
+ .debug_macro   0x000000000000c247      0x441 build/p_saveg.o
+ .debug_macro   0x000000000000c688      0x418 build/p_setup.o
+ .debug_macro   0x000000000000caa0      0x363 build/p_sight.o
+ .debug_macro   0x000000000000ce03      0x453 build/p_spec.o
+ .debug_macro   0x000000000000d256       0xad build/p_spec.o
+ .debug_macro   0x000000000000d303      0x3c6 build/p_switch.o
+ .debug_macro   0x000000000000d6c9      0x386 build/p_telept.o
+ .debug_macro   0x000000000000da4f      0x37f build/p_tick.o
+ .debug_macro   0x000000000000ddce      0x385 build/p_user.o
+ .debug_macro   0x000000000000e153      0x355 build/r_bsp.o
+ .debug_macro   0x000000000000e4a8       0x2e build/r_bsp.o
+ .debug_macro   0x000000000000e4d6      0x3da build/r_data.o
+ .debug_macro   0x000000000000e8b0      0x3c4 build/r_draw.o
+ .debug_macro   0x000000000000ec74      0x3b3 build/r_main.o
+ .debug_macro   0x000000000000f027      0x3d0 build/r_plane.o
+ .debug_macro   0x000000000000f3f7      0x3b5 build/r_segs.o
+ .debug_macro   0x000000000000f7ac      0x2f5 build/r_sky.o
+ .debug_macro   0x000000000000faa1      0x3eb build/r_things.o
+ .debug_macro   0x000000000000fe8c      0x2b5 build/sha1.o
+ .debug_macro   0x0000000000010141       0x1c build/sha1.o
+ .debug_macro   0x000000000001015d      0x19c build/sounds.o
+ .debug_macro   0x00000000000102f9      0x306 build/statdump.o
+ .debug_macro   0x00000000000105ff      0x3cd build/st_lib.o
+ .debug_macro   0x00000000000109cc      0x759 build/st_stuff.o
+ .debug_macro   0x0000000000011125      0x45b build/s_sound.o
+ .debug_macro   0x0000000000011580      0x14d build/tables.o
+ .debug_macro   0x00000000000116cd      0x2fa build/v_video.o
+ .debug_macro   0x00000000000119c7      0x4b4 build/wi_stuff.o
+ .debug_macro   0x0000000000011e7b      0x290 build/w_checksum.o
+ .debug_macro   0x000000000001210b      0x224 build/w_file.o
+ .debug_macro   0x000000000001232f      0x269 build/w_main.o
+ .debug_macro   0x0000000000012598       0x16 build/w_main.o
+ .debug_macro   0x00000000000125ae      0x2d6 build/w_wad.o
+ .debug_macro   0x0000000000012884      0x248 build/z_zone.o
+ .debug_macro   0x0000000000012acc      0x22d build/w_file_stdc.o
+ .debug_macro   0x0000000000012cf9      0x3a8 build/i_input.o
+ .debug_macro   0x00000000000130a1      0x1e3 build/i_input.o
+ .debug_macro   0x0000000000013284       0x10 build/i_input.o
+ .debug_macro   0x0000000000013294       0x16 build/i_input.o
+ .debug_macro   0x00000000000132aa      0x373 build/i_video.o
+ .debug_macro   0x000000000001361d       0x22 build/i_video.o
+ .debug_macro   0x000000000001363f      0x254 build/doomgeneric.o
+ .debug_macro   0x0000000000013893      0x2bd build/doomgeneric_reduceOS.o
+ .debug_macro   0x0000000000013b50       0x16 build/doomgeneric_reduceOS.o
+ .debug_macro   0x0000000000013b66       0x35 build/doomgeneric_reduceOS.o
+ .debug_macro   0x0000000000013b9b       0x34 build/doomgeneric_reduceOS.o
+ .debug_macro   0x0000000000013bcf       0x10 build/doomgeneric_reduceOS.o
 
 .debug_names
  *(.debug_names)

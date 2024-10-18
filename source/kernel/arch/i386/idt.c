@@ -58,7 +58,5 @@ void idtInit() {
 
     isrInstall(); // Install handlers
 
-    install_idt((uint32_t)&idtPtr);
-
-    return;
+    __asm__ ("lidt %0" :: "m"(idtPtr));
 }
