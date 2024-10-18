@@ -51,5 +51,6 @@ int showmodes(int argc, char *args[]);
 int setmode(int argc, char *args[]);
 int leak_memory(int argc, char *args[]);
 int gtime(int argc, char *args[]);
+int drun(int argc, char *args[]);
 
 #endif

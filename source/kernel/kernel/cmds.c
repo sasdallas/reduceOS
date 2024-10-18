@@ -1007,11 +1007,13 @@ int loadELF(int argc, char *args[]) {
         printf("Successfully loaded ELF file at 0x%x\n", addr);
     }
 
-    if (addr != 0x0 && addr != NULL) {
-        entry_func *f = (entry_func*)addr;
-        int ret = f(1, NULL);
-        printf("Got %i from ELF file entry\n", ret);
+    uintptr_t usermode_stack = 0xC0000000;
+    for (uintptr_t i = usermode_stack - 512 * 0x400; i < usermode_stack; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, i, MEM_CREATE);
+        mem_allocatePage(page, MEM_DEFAULT);
     }
+
+    start_process(usermode_stack - 16 * 512, (uint32_t)addr);
 
     elf_cleanupFile(fbuf);
 
@@ -1271,5 +1273,70 @@ int gtime(int argc, char *args[]) {
     printf("The current time (in GMT) is %s\n", time_buf);
 
     return 0;
+
+}
+
+
+int drun(int argc, char *args[]) {
+    if (argc != 2) {
+        printf("Usage: drun <ELF file>\n");
+        return -1;
+    }
+
+    // First, get the file
+    fsNode_t* file = open_file(args[1], 0);
+    if (!file) {
+        return -1; // Not found
+    }
+
+    char* buffer = kmalloc(file->length);
+    uint32_t ret = file->read(file, 0, file->length, (uint8_t*)buffer);
+    if (ret != file->length) {
+        return -2; // Read error
+    }
+
+    // We basically have to take over ELF parsing.
+    Elf32_Ehdr* ehdr = (Elf32_Ehdr*)buffer;
+    if (elf_isCompatible(ehdr)) {
+        kfree(buffer);
+        return -3; // Not compatible
+    }
+    if (ehdr->e_type != ET_EXEC) {
+        kfree(buffer);
+        return -3; // Not compatible
+    }
+
+    // Now, we should start parsing.
+    uintptr_t heapBase = 0;
+    uintptr_t execBase = -1;
+    for (int i = 0; i < ehdr->e_phnum; i++) {
+        Elf32_Phdr* phdr = elf_getPHDR(ehdr, i);
+        if (phdr->p_type == PT_LOAD) {
+            
+            // We have to load it into memory
+            for (uint32_t i = phdr->p_vaddr; i < phdr->p_vaddr + phdr->p_memsize; i += 0x1000) {
+                pte_t *page = mem_getPage(NULL, i, MEM_CREATE);
+                if (page) mem_allocatePage(page, MEM_DEFAULT);
+            }
+
+            memcpy((void*)phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);
+            for (size_t i = phdr->p_filesize; i < phdr->p_memsize; i++) {
+                *(char*)(phdr->p_vaddr + i) = 0;
+            }
+        }
+
+        if (phdr->p_vaddr < execBase) execBase = phdr->p_vaddr;
+        if (phdr->p_vaddr + phdr->p_memsize > heapBase) heapBase = phdr->p_vaddr + phdr->p_memsize;
+    }
+
+    uintptr_t usermode_stack = 0xC0000000;
+    for (uintptr_t i = usermode_stack - 512 * 0x400; i < usermode_stack; i += 0x1000) {
+        pte_t *page = mem_getPage(NULL, i, MEM_CREATE);
+        mem_allocatePage(page, MEM_DEFAULT);
+    }
+
+    start_process(usermode_stack - 16 * 512, ehdr->e_entry);
+
+    return -1;
 
 }

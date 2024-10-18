@@ -270,7 +270,8 @@ static int elf_parsePHDR(Elf32_Ehdr *ehdr, char *buffer) {
                 uint32_t length = phdr->p_filesize + (4096 - (phdr->p_filesize % 4096));
                 
                 for (uint32_t i = phdr->p_vaddr; i < phdr->p_vaddr + length; i += 0x1000) {
-                    vmm_allocateRegionFlags((uintptr_t)(physicalLocation + (uint32_t)(i-phdr->p_vaddr)), (uintptr_t)i, PAGE_SIZE, 1, 1, 1);     
+                    //vmm_allocateRegionFlags((uintptr_t)(physicalLocation + (uint32_t)(i-phdr->p_vaddr)), (uintptr_t)i, PAGE_SIZE, 1, 1, 1);     
+                    mem_mapAddress(NULL, (uintptr_t)(physicalLocation + (uint32_t)(i - phdr->p_vaddr)), (uintptr_t)i);
                 }
 
                 memcpy((void*)phdr->p_vaddr, buffer + phdr->p_offset, phdr->p_filesize);

@@ -78,8 +78,10 @@ void process_switchNext() {
     // Get the next avialable process, discarding anything marked as finished
     do { currentProcess = process_getNextReadyProcess(); } while (currentProcess->flags & PROCESS_FLAG_FINISHED);
 
+
     currentProcess->time_in = clock_getTimer();
     currentProcess->time_switch = currentProcess->time_in;
+
 
     // Restore paging and task switch context
     spinlock_lock(&switch_lock);
@@ -188,7 +190,8 @@ process_t* spawn_kidle(int bsp) {
 
     // Create a stack for the image and map it to kernel (non-user)
     // This is DEFINITELY unsafe.
-    idle->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9));
+    idle->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9)) + KSTACK_SIZE;
+    memset((void*)idle->image.stack - KSTACK_SIZE, 0, KSTACK_SIZE);
 
 
 
@@ -246,7 +249,8 @@ process_t* spawn_init() {
     init->image.heap = 0;
     init->image.heap_start = 0;
     init->image.heap_end = 0;
-    init->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9));
+    init->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9)) + KSTACK_SIZE;
+    memset((void*)init->image.stack - KSTACK_SIZE, 0, KSTACK_SIZE);
 
     // Setup flags
     init->flags = PROCESS_FLAG_STARTED | PROCESS_FLAG_RUNNING;
@@ -313,7 +317,8 @@ process_t* spawn_process(volatile process_t* parent, int flags) {
 
     // Create a stack for the image and map it to kernel (non-user)
     // This is DEFINITELY unsafe.
-    proc->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9));
+    proc->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9)) + KSTACK_SIZE;
+    memset((void*)proc->image.stack - KSTACK_SIZE, 0, KSTACK_SIZE);
 
     proc->image.shm_heap = NULL; // Unused
 
@@ -1066,7 +1071,8 @@ process_t* spawn_worker_thread(void (*entrypoint)(void* argp), const char* name,
 
     // Setup the image stack
     // This is DEFINITELY unsafe.
-    proc->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9));
+    proc->image.stack = (uintptr_t)mem_remapPhys((uintptr_t)pmm_allocateBlocks(9)) + KSTACK_SIZE;
+
 
     // Setup page directory
     proc->thread.page_directory = cloneDirectory(mem_getKernelDirectory());

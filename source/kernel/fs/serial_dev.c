@@ -94,9 +94,14 @@ static fsNode_t *get_serial_device(char *port) {
 }
 
 void serialdev_init() {
-    uint16_t oldCOM = serial_getCOM();
+    // uint16_t oldCOM = serial_getCOM();
     vfs_mapDirectory("/device/serial");
     
+
+    vfsMount("/device/serial/COM1", get_serial_device("COM1"));
+
+    /*
+
     // Run a test to see what serial ports are actually connected
     if (serial_changeCOM(SERIAL_COM1) == 0) {
         serialPrintf("==== PORT COM1 IDENTIFIED ====\n");
@@ -125,4 +130,5 @@ void serialdev_init() {
         serial_changeCOM(oldCOM);
         vfsMount("/device/serial/COM4", get_serial_device("COM4"));
     }
+    */
 }

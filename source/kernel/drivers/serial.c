@@ -39,7 +39,7 @@ void serialWrite(void *user, char c) {
     
     // Monitors such as QEMU's and any authentic one will need a return carriage before a LF.
     // This is a hack, but it works.
-    if (c == '\n') outportb(selected_com, '\r');
+    // if (c == '\n') outportb(selected_com, '\r');
     outportb(selected_com, c);
 }
 
@@ -106,17 +106,15 @@ void serialInit() {
     outportb(selected_com + 4, 0x0B); // Enable IRQs, set RTS / DSR (RTS stands for "request to send" and DSR stands for "data set ready")
     
     // Test the serial port to make sure it works properly.
-    if (testSerial() == -1) {
+    /* if (testSerial() == -1) {
         printf("Failed to initialize serial logging.\n");
         serialTestPassed = false;
         return;
-    }
+    } */
 
     serialTestPassed = true;
     isSerialEnabled = true;
 
-    // Create the clock handler for output
-    clock_registerCallback(serialClock);
 
     printf("Serial logging initialized on COM1\n");
     serialPrintf("Serial logging started on COM1.\n");
@@ -128,13 +126,11 @@ int serial_changeCOM(uint16_t com) {
     uint16_t oldCOM = selected_com;
     selected_com = com;
 
-    // Run a test
+    // Run a test (bad)
     if (testSerial() == -1) {
         selected_com = oldCOM;
         return -1;
     }
-
-    
 
     return 0;
 }

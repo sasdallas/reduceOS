@@ -388,6 +388,7 @@ void useCommands() {
     registerCommand("setmode", (command*)setmode);
     registerCommand("leak", (command*)leak_memory);
     registerCommand("time", (command*)gtime);
+    registerCommand("drun", (command*)drun);
 
     serialPrintf("kmain: All commands registered successfully.\n");
 

@@ -5,7 +5,7 @@ int main(int argc, char **argv) {
     open("/device/console", 1);
     open("/device/console", 1); 
 
-    write(stdout, "Hello, world!", strlen("Hello, world!"));
+    write(1, "Hello, world!", strlen("Hello, world!"));
 
     printf("Hello, world from newlib function!\n");
     printf("Received %i arguments:\n", argc);
