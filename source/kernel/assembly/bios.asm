@@ -5,11 +5,6 @@ ENABLE_PAGING equ 0x80000001
 DISABLE_PAGING equ 0x7FFFFFFF
 
 
-
-
-; Written by pritamzope - not by me!
-; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 %define REBASE_ADDRESS(x)  (0x7c00 + ((x) - BIOS32_START))
 
 section .text
@@ -26,6 +21,7 @@ section .text
 
 ; 32 bit protected mode
 BIOS32_START:use32
+    ; Save registers to stack (EFLAGS & registers)
     pushf
     pusha
 
@@ -34,11 +30,10 @@ BIOS32_START:use32
     sidt [esp]
     sgdt [esp+16]
 
-    ; save current protected mode esp
+    ; Save protected mode ESP for context resuming
     mov [REBASE_ADDRESS(prot_esp)], esp
 
-    ; jumping to 16 bit protected mode
-    ; disable interrupts
+    ; Disable interrupts so we're not interrupted
     cli
 
     ; Turn off paging
@@ -52,32 +47,32 @@ BIOS32_START:use32
 
     ; Load GDT
     lgdt [REBASE_ADDRESS(bios32_gdt_ptr)]
+
     ; Load IDT
     lidt [REBASE_ADDRESS(bios32_idt_ptr)]
+
     ; Jump to 16-bit protected mode
     jmp 0x30:REBASE_ADDRESS(__protected_mode_16)
 
 ; 16 bit protected mode
 __protected_mode_16:use16
-    ; jumping to 16 bit real mode
+    ; Prepare to jump to 16-bit real mode
     mov ax, 0x38
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    ; turn off protected mode
-    ; set bit 0 to 0
+
+    ; Disable PE in CR0
     mov eax, cr0
     and al,  ~0x01
     mov cr0, eax
     jmp 0x0:REBASE_ADDRESS(__real_mode_16)
 
-
 ; 16 bit real mode
 __real_mode_16:use16
-
-
+    ; Clear segment registers (real mode)
     xor ax, ax
     mov ds, ax
     mov es, ax
@@ -85,12 +80,13 @@ __real_mode_16:use16
     mov gs, ax
     mov ss, ax
 
-    mov sp, 0x8c00
-    ; We can't enable STI because IRQs ahve been remapped and external interrupts will faila.
-    ; sti
+    mov sp, 0x8c00 ; Stack at 0x8c00
+    
+    ; We can't enable STI because IRQs haven't been remapped and external interrupts will fail.
+    ; TODO: Use custom IDT? Maybe find the old BIOS one?
+    ; stiw
 
-
-    ; save current context, all general, segment registers, flags
+    ; Save real mode context
     pusha
     mov cx, ss
     push cx
@@ -103,26 +99,33 @@ __real_mode_16:use16
     mov cx, ds
     push cx
     pushf
-    ; get current stack pointer & save it to current_esp
+
+    ; Store stack
     mov eax, esp
     mov edi, REBASE_ADDRESS(current_esp)
     stosd
-    ; load our custom registers context
+
+    ; Load stack to input registers
     mov sp, REBASE_ADDRESS(bios32_in_reg16_ptr)
-    ; only use some general register from the given context
+
+    ; TODO: We are only using general registers, meaning any changes to EFLAGS and such will break. Is this bad?
     popa
-    ; set a new stack for bios interrupt
+
+    ; Might've messed with the stack, clean that up.
     mov sp, 0x9c00
-    ; call immediate interrupt opcode to execute context
+    
+    ; CD = i386 INT opcode
     db 0xCD
 
-bios32_int_number_ptr: ; will be bios interrupt number passed
-    ; put the actual interrupt number here
+bios32_int_number_ptr: ; BIOS32 interrupt number
+    ; Overwritten with interrupt number
     db 0x00
-    ; get our output context here
+
+    ; Output context stored here
     mov esp, REBASE_ADDRESS(bios32_out_reg16_ptr)
-    add sp, 28 ; restore stack used for calling our context
-    ; save current context, all general, segment registers, flags
+    add sp, 28 ; Restore stack
+   
+    ; Save current context (output)
     pushf
     mov cx, ss
     push cx
@@ -135,11 +138,13 @@ bios32_int_number_ptr: ; will be bios interrupt number passed
     mov cx, ds
     push cx
     pusha
-    ; restore the current_esp to continue
+
+    ; Restore ESP
     mov esi, REBASE_ADDRESS(current_esp)
     lodsd
     mov esp, eax
-    ; restore all current context, all general, segment registers, flags
+
+    ; Restore old context
     popf
     pop cx
     mov ds, cx
@@ -153,16 +158,18 @@ bios32_int_number_ptr: ; will be bios interrupt number passed
     mov ss, cx
     popa
 
-    ; jumping to 32 bit protected mode
-    ; set bit 0 in cr0 to 1
+    ; Moving back to protected mode
     cli
     mov eax, cr0
     or eax, ENABLE_PAGING
     mov cr0, eax
+
+    ; Jump!
     jmp 0x08:REBASE_ADDRESS(__protected_mode_32)
 
 ; 32 bit protected mode
 __protected_mode_32:use32
+    ; Reset data segments
     mov ax, 0x10
     mov ds, ax
     mov es, ax
@@ -181,7 +188,7 @@ __protected_mode_32:use32
     ; Restore all registers
     popa
 
-    ; Restore flags including Interrupt flag state
+    ; Restore EFLAGS
     popf
     ret
 
@@ -190,14 +197,18 @@ align 4
 bios32_gdt_entries:
     ; 8 gdt entries
     TIMES 8 dq 0
+
 bios32_gdt_ptr:
     dd 0x00000000
     dd 0x00000000
+
 bios32_idt_ptr:
     dd 0x00000000
     dd 0x00000000
+
 bios32_in_reg16_ptr:
     TIMES 14 dw 0
+
 bios32_out_reg16_ptr:
     dd 0xaaaaaaaa
     dd 0xaaaaaaaa
