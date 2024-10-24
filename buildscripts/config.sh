@@ -1,5 +1,5 @@
 SYSTEM_HEADER_PROJECTS="libk_reduced kernel"
-PROJECTS="newlib kmods fonts libk_reduced kernel initial_ramdisk boot doomgeneric"
+PROJECTS="newlib kmods fonts libk_reduced kernel initial_ramdisk boot"
 
 export MAKE=${MAKE:-make}
 export HOST=${HOST:-$($BUILDSCRIPTS_ROOT/default_host.sh)}
