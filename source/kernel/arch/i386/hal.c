@@ -124,7 +124,7 @@ uint16_t inportw(uint16_t port) {
 
 // outportw(unsigned short port, unsigned short data) - Writes word to device
 void outportw(uint16_t port, uint16_t data) {
-    asm volatile ("outw %%eax, %%dx" :: "Nd"(port), "a"(data));
+    asm volatile ("outw %1, %0" :: "Nd"(port), "a"(data));
 }
 
 // uint32_t inportl(uint16_t port) - Reads data from device via port mapped IO

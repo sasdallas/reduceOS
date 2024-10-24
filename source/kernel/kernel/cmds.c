@@ -506,7 +506,7 @@ int ls(int argc, char *args[]) {
         uint32_t i = 0;
         while (true) {
             struct dirent *direntry = directory->readdir(directory, i);
-            if (!direntry || !direntry->name) break;  
+            if (!direntry) break;  
 
             printf("%s\n", direntry->name);
             i++;

@@ -50,16 +50,23 @@ uint32_t writeFilesystem(fsNode_t *node, off_t off, uint32_t size, uint8_t *buf)
 }
 
 // openFilesystem(fsNode_t *node, uint8_t read, uint8_t write) - Opens a node.
-void openFilesystem(fsNode_t *node, uint8_t read, uint8_t write) {
+uint32_t openFilesystem(fsNode_t *node, uint8_t read, uint8_t write) {
     if (node->open != 0) {
-        return node->open(node);
+        node->open(node);
+        return 0;
     }
+
+    return -EBADF;
 }
 
 // closeFilesystem(fsNode_t *node) - Closes a node.
-void closeFilesystem(fsNode_t *node) {
-    if (node->close != 0)
-        return node->close(node);
+uint32_t closeFilesystem(fsNode_t *node) {
+    if (node->close != 0) {
+        node->close(node);
+        return 0;
+    }
+
+    return -EBADF;
 }
 
 fsNode_t *cloneFilesystemNode(fsNode_t *node) {

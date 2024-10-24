@@ -49,9 +49,9 @@ static uint32_t modfs_write(fsNode_t* node, off_t off, uint32_t size, uint8_t* b
     return sizeToWrite;
 }
 
-static uint32_t modfs_open(fsNode_t* node) { return 0; }
+static void modfs_open(fsNode_t* node) {  }
 
-static uint32_t modfs_close(fsNode_t* node) { return 0; }
+static void modfs_close(fsNode_t* node) { }
 
 // Mounting functions (note that we don't do this the normal way)
 void mountModfs(multiboot_mod_t* mod, char* mountpoint) {

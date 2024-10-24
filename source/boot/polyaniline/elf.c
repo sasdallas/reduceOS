@@ -7,6 +7,7 @@
 #include <boot_terminal.h>
 #include <config.h>
 
+#include <libc_string.h>
 
 // checkELF() - Checks if the ELF file is valid, in both architecture-wise and identification wise
 int checkELF(Elf32_Ehdr *ehdr) {

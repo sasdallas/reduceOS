@@ -34,13 +34,15 @@ static int serialIsTransmitEmpty() {
 }
 
 // serialWrite(void *user, char c) - Writes character 'c' to serial when transmit is empty.
-void serialWrite(void *user, char c) {
+int serialWrite(void *user, char c) {
     while (serialIsTransmitEmpty() == 0);
     
     // Monitors such as QEMU's and any authentic one will need a return carriage before a LF.
     // This is a hack, but it works.
     // if (c == '\n') outportb(selected_com, '\r');
     outportb(selected_com, c);
+
+    return 0;
 }
 
 

@@ -9,7 +9,15 @@
 // TECHNICALLY this isn't supposed to be here but I don't care that much
 #define EOF -1
 
-// no function prototypes... they cause issues in the kernel :/
-// except for one
+// EFI function types cause issues in the kernel
+#ifdef BIOS_PLATFORM
 void *memchr(const void *src, int c, size_t n);
+
+// and maybe a few others
+int memcmp(const void *s1, const void *s2, size_t n);
+void* memcpy(void* __restrict destination, const void* __restrict source, size_t n);
+void* memmove(void* destination, const void* source, size_t n);
+void* memset(void *buf, char c, size_t n);
+#endif
+
 #endif

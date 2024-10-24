@@ -128,7 +128,7 @@ void itoa(void *n, char *buffer, int base) {
 void itoa_long(uint64_t value, char* str, int base) {
     if (base < 2 || base > 36) {
         *str = '\0'; // Invalid base; return an empty string
-        return str;
+        return;
     }
 
     char* digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
