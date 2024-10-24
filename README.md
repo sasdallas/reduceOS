@@ -7,23 +7,29 @@ If you would like to learn more about the development of the kernel, scroll down
 ![reduceOS image](reduceOSDemo.png)
 
 
-# What's different from reduceOS alpha?
-reduceOS has switched to a brand new kernel, with cleaner, commented code and more features. This kernel is also written entirely by me, without a base.
+# Features
+- VESA/VBE graphics drivers
+- Filesystem support for EXT2, FAT, and many other UNIX-style device.s
+- Support for kernel drivers
+- Strong memory manager with liballoc and sbrk support for kernel
+- Preemptive multitasking
+- ELF file support
+- Port of Newlib
 
-# Compiling
 
-### IMPORTANT NOTE: YOU MUST HAVE A CROSS-COMPILER (i686-elf) READY FOR YOUR SYSTEM. 
-**To build reduceOS, you need these packages:** `i686-elf-gcc`, `nasm`, `make`, `grub`\
-**To run reduceOS, you need these packages:** `qemu-system` (emulation), `grub2-common`, and `xorriso`
+# Building
 
-**BEFORE ANYTHING,** run `make clean`. I may or may not leave build files built on my machine, and if so I apologize (really bad habit) but to prevent anything always CLEAN
+### BUILD REQUIREMENTS
+**YOU WILL NEED A CROSS COMPILER (i686 / x86_64) TO BUILD REDUCEOS**
 
-There are **two targets** available to build reduceOS for - RELEASE and DEBUG.\
-To change the target you want to build, edit the `make.config` file to have BUILD_TARGET set to either release or debug.
+reduceOS requires `i686-elf-gcc`, `make`, `grub-mkrescue`, `xorriso`\
+You can emulate reduceOS with `qemu-system`
 
-Then, you can run `make build iso` to build an ISO in `out/iso`.
+Run `make targets` for a list of targets. To compile reduceOS fully, run `make all`.
 
-Run `make targets` to get a full list of targets.
+To run reduceOS, you can use the command `make qemu`.\
+To use a drive with reduceOS, run `make make_drive` to create a drive and `make qemu_drive` to run QEMU with the drive.
+
 
 # System Filesystem Structure
 On build, the kernel and its libc will place their headers in `source/sysroot`. For the kernel, it will be under `sysroot/usr/include/kernel`, and for libk it will be under `sysroot/usr/include/libk_reduced`.
@@ -41,9 +47,6 @@ Running `qemu make_drive` will create an ext2 drive with `sysroot` as its filesy
 # Real Hardware
 Scary! I wouldn't do this, but it's possible. Here are some issues I've encountered:
 
-**reduceOS will commonly fail to initialize a video driver.** If this happens you'll see the message that says "BIOS call failed". To fix this, add `--force_vga` to the boot arguments in GRUB (the only way you'll see the BIOS call failed message is with this anyways)
--  **IMPORTANT:** The kernel's bootloader will automatically (at default configuation) ask GRUB for a framebuffer in 1024x768x32 mode. If GRUB provides this, it will set the mode and render it useless. To fix this, you can add the `-DFORCE_VGA` argument in `source/kernel/build/i386.mk`. See there for more details.
-
 **Modules such as the prototype AHCI driver will fail to load.** Use the boot argument `--skip_modules=<filename>` to skip these modules. This should work.
 
 **Tasking (last stage) crashes the system** The boot argument `--no_tasking` should help here. Be warned the system will be unstable!
@@ -60,6 +63,7 @@ I've written an excellent README for the `source/kmods` folder, which can be fou
 reduceOS will automatically load and handle your modules without needing to modify the parent directory Makefile.
 
 # Known Bugs
+*These are going to be moved to GitHub issues.*
 - **Highest priority:** New memory subsystem not working with tasking (this is entirely tasking's fault)
 - **High priority:** `valloc` sucks
 - **High priority:** ATAPI drives cannot be read
@@ -79,5 +83,10 @@ BrokenThorn Entertainment - Incredible tutorials on kernel design, very useful. 
 
 ToaruOS - The Misaka kernel and it's modules provide a great example of easy-to-understand, yet robust code. Link [here](https://github.com/klange/ToaruOS)
 
-# To Developers
-If I used your code in your repo without properly crediting it, please create a GitHub issue and I will resolve it right away!
+# Licensing
+reduceOS is licensed under the BSD 3-clause license. This license falls under kernel code, kernel modules, libk, polyaniline, and any other source-code elements specific to reduceOS.\
+For more information on reduceOS licensing, see the LICENSE file.
+
+Other components will usually have a licensing file included, also called LICENSE, in their directories.
+
+If a copyright issue arises, start a GitHub issue or contact me directly for assistance. Thank you!
