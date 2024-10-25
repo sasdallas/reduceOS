@@ -34,12 +34,9 @@ clean:
 all: build iso
 
 
-
 iso:
 	$(MAKE) headerlog header="Building ISO file, please wait..."
 	bash -c "$(BUILDSCRIPTS_ROOT)/iso.sh"
-
-
 
 
 # Build targets
@@ -48,10 +45,13 @@ build:
 	$(MAKE) headerlog header="Building OS, please wait..."
 	bash -c "$(BUILDSCRIPTS_ROOT)/build.sh"
 
-buildkernel: buildfonts
+base:
+	$(MAKE) headerlog header="Building reduceOS, please wait..."
+	bash -c "$(BUILDSCRIPTS_ROOT)/build.sh kernel initial_ramdisk fonts kmods"
+
+buildkernel: buildfonts buildinitrd
 	$(MAKE) headerlog header="Building module 'kernel', please wait..."
 	bash -c "$(BUILDSCRIPTS_ROOT)/build.sh kernel"
-
 
 buildinitrd:
 	$(MAKE) headerlog header="Building module 'initrd', please wait..."
@@ -71,7 +71,6 @@ buildmods:
 updateheaders:
 	$(MAKE) headerlog header="Updating headers, please wait..."
 	bash -c "$(BUILDSCRIPTS_ROOT)/install_headers.sh"
-
 
 
 # QEMU Targets
