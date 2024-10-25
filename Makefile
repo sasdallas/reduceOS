@@ -48,6 +48,7 @@ build:
 base:
 	$(MAKE) headerlog header="Building reduceOS, please wait..."
 	bash -c "$(BUILDSCRIPTS_ROOT)/build.sh kernel initial_ramdisk fonts kmods"
+	$(MAKE) iso
 
 buildkernel: buildfonts buildinitrd
 	$(MAKE) headerlog header="Building module 'kernel', please wait..."

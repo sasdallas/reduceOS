@@ -30,6 +30,7 @@ Run `make targets` for a list of targets. To compile reduceOS fully, run `make a
 To run reduceOS, you can use the command `make qemu`.\
 To use a drive with reduceOS, run `make make_drive` to create a drive and `make qemu_drive` to run QEMU with the drive.
 
+You can use the `make base` target to just build the bare minimum OS.
 
 # System Filesystem Structure
 On build, the kernel and its libc will place their headers in `source/sysroot`. For the kernel, it will be under `sysroot/usr/include/kernel`, and for libk it will be under `sysroot/usr/include/libk_reduced`.
