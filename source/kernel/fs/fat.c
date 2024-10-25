@@ -590,13 +590,13 @@ uint32_t fatWrite(struct fsNode *node, off_t off, uint32_t size, uint8_t *buf) {
     return 0;
 }
 
-void fatOpen(struct fsNode *node) {
+int fatOpen(struct fsNode *node) {
     // All we do is just pass it to fatOpenInternal basically
     // node->name should contain the filename that we want to open, and node->impl_struct should contain the fat_t object.
     // However, as I'm writing this we're currently prototyping - so let's check to make sure fat_t is there, panic if it's not.
 
     // VFS is stupid so it will call this method in an attempt to open the FAT directory, which might corrupt it.
-    if (!strcmp(((fsNode_t*)node)->name, "FAT driver")) { return; }
+    if (!strcmp(((fsNode_t*)node)->name, "FAT driver")) { return 0; }
 
     if (((fat_t*)(((fsNode_t*)node)->impl_struct))->drive->bpb->bootjmp[0] != 0xEB) {
         panic("FAT", "fatOpen", "bootjmp[0] is not 0xEB");
@@ -619,10 +619,11 @@ void fatOpen(struct fsNode *node) {
     }
 
     // Done!
+    return 0;
 }
 
-void fatClose(struct fsNode *node) {
-    return; // So much closing happening here
+int fatClose(struct fsNode *node) {
+    return 0; // So much closing happening here
 }
 
 
