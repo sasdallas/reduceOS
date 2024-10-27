@@ -461,11 +461,7 @@ void pageFault(registers_t *reg) {
         serialPrintf("kernel: Process %i (%s) attempted to access a bad memory address (0x%x)\n", currentProcess->id, currentProcess->name, faultAddress);
         serialPrintf("kernel: Flags: %s%s%s%s\n", (present) ? "present, " : "not present, ", (rw) ? "write error, " : "read error, ", (user) ? "usermode, " : "kernel mode, ", (reserved) ? "reserved bits set, " : "\0");
 
-        
-
-        heavy_dprintf("Bad memory address in current process - pid %i name %s\n", currentProcess->id, currentProcess->name);
-        heavy_dprintf("\theap 0x%x - 0x%x\n", currentProcess->image.heap_start, currentProcess->image.heap_end);
-        heavy_dprintf("\tsending signal SIGSEGV\n");
+        printf("\nThe current process '%s' accessed a bad memory address (0x%x) and has been terminated.", currentProcess->name, faultAddress);
 
         send_signal(currentProcess->id, SIGSEGV, 1);
         return;

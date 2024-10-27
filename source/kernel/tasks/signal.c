@@ -221,6 +221,8 @@ int send_signal(pid_t process, int signal, int force_root) {
 
     serialPrintf("signal: Signal %i send to process %d (%s)\n", signal, process, receiver->name);
 
+    
+
     return 0;
 }
 

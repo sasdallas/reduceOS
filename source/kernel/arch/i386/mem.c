@@ -133,7 +133,7 @@ uintptr_t mem_remapPhys(uintptr_t frame_address) {
 int mem_switchDirectory(pagedirectory_t *pagedir) {
     if (!pagedir) return -EINVAL;
     
-    serialPrintf("mem: 0x%x - loading pdbr to 0x%x\n", pagedir, (uintptr_t)pagedir & ~IDENTITY_MAP_REGION);
+    //serialPrintf("mem: 0x%x - loading pdbr to 0x%x\n", pagedir, (uintptr_t)pagedir & ~IDENTITY_MAP_REGION);
 
     mem_load_pdbr((uintptr_t)pagedir & ~IDENTITY_MAP_REGION);
 

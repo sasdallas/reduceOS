@@ -30,8 +30,8 @@
 #undef errno
 extern int errno;
 
-void _exit() {
-    SYSCALL1(int, SYS_EXIT, 0);
+void _exit(int status_code) {
+    SYSCALL1(int, SYS_EXIT, status_code);
     __builtin_unreachable();
 }
 
