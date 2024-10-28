@@ -11,6 +11,7 @@ NASMFLAGS += -f elf32 -DARCH_I386
 
 # We'll also add our directory to the kernel
 SOURCE_DIRECTORIES += arch/i386/
+SOURCE_SUBDIRECTORIES += arch/i386
 ASM_SOURCE_DIRECTORIES += arch/i386
 
 # Specify the linker.ld file to use
