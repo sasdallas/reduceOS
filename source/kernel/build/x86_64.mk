@@ -11,8 +11,7 @@ NASMFLAGS += -f elf64 -DARCH_X86_64
 
 
 # We'll also add our directory to the kernel
-SOURCE_DIRECTORIES += arch
-SOURCE_SUBDIRECTORIES += arch/x86_64
+SOURCE_DIRECTORIES += arch/x86_64
 ASM_SOURCE_DIRECTORIES += arch/x86_64
 
 # Specify the linker.ld file to use
