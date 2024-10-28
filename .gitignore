@@ -12,4 +12,4 @@ source/newlib/newlib-build/**
 obj/**
 source/doomgeneric/build/**
 source/doomgeneric/doomgeneric
-source/sysroot/**
+source/sysroot
