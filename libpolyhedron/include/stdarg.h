@@ -12,6 +12,11 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+
+#include <sys/cheader.h>
+
+_Begin_C_Header
+
 #ifndef _STDARG_H
 #define _STDARG_H
 
@@ -33,3 +38,6 @@ typedef __builtin_va_list va_list;
 #define va_end(x) __builtin_va_end(x)
 
 #endif
+
+
+_End_C_Header

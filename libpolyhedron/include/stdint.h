@@ -6,6 +6,12 @@
  * is freely granted, provided that this notice is preserved.
  */
 
+/* TODO: We probably don't need this header. It's here for compatibility with older GCC versions/libgcc versions */
+
+
+#include <sys/cheader.h>
+_Begin_C_Header
+
 
 #ifndef _STDINT_H
 #define _STDINT_H
@@ -486,5 +492,7 @@ typedef unsigned long uintptr_t;
 
 
 
-
 #endif
+
+
+_End_C_Header

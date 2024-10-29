@@ -1,6 +1,6 @@
 /**
- * @file libpolyhedron/stdlib/abort.c
- * @brief Abort function
+ * @file libpolyhedron/include/sys/cdefs.h
+ * @brief C definitions
  * 
  * 
  * @copyright
@@ -11,4 +11,9 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#include <stdlib.h>
+#ifndef _SYS_CDEFS_H
+#define _SYS_CDEFS_H
+
+#define __libpolyhedron 1
+
+#endif

@@ -11,8 +11,13 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+#include <sys/cheader.h>
+_Begin_C_Header
+
 #ifndef _STDIO_H
 #define _STDIO_H
+
+
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -33,41 +38,12 @@ typedef int (*xvas_callback)(void *, char);
 
 /**** FUNCTIONS ****/
 
-/**
- * @brief Put character function
- */
 int putchar(int ch);
-
-
-/**
- * @brief printf() function, by default uses putchar()
- */
 int printf(const char * __restrict, ...);
-
-/**
- * @brief Put a string, using putchar()
- */
 int puts(const char *);
-
-/**
- * @brief Same as C standard vsnprintf
- */
 int vsnprintf(char *str, size_t size, const char *format, va_list ap);
-
-/**
- * @brief Same as C standard snprintf
- */
 int snprintf(char * str, size_t size, const char * format, ...);
-
-/**
- * @brief Same as C standard sprintf
- * @warning Use snprintf(), we need security here!
- */
 int sprintf(char * str, const char * format, ...);
-
-/**
- * @brief Same as C standard xvasprintf
- */
 size_t xvasprintf(xvas_callback callback, void * userData, const char * fmt, va_list args);
 
 #else
@@ -78,3 +54,5 @@ size_t xvasprintf(xvas_callback callback, void * userData, const char * fmt, va_
 
 
 #endif
+
+_End_C_Header

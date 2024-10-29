@@ -1,6 +1,6 @@
 /**
- * @file libpolyhedron/include/stdlib.h
- * @brief Standard library header file
+ * @file libpolyhedron/string/memset.c
+ * @brief memset() function
  * 
  * 
  * @copyright
@@ -11,15 +11,14 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#include <sys/cheader.h>
-
-_Begin_C_Header
-
-#ifndef _STDLIB_H
-#define _STDLIB_H
+#include <string.h>
 
 
-
-#endif
-
-_End_C_Header
+void* memset(void* destination_ptr, int value, size_t size) {
+    size_t i = 0;
+    for (; i < size; i++) {
+        ((char*)destination_ptr)[i] = value;
+    }
+    
+    return destination_ptr;
+}

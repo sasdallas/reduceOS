@@ -1,6 +1,6 @@
 /**
- * @file libpolyhedron/stdlib/abort.c
- * @brief Abort function
+ * @file libpolyhedron/string/strlen.c
+ * @brief String length function
  * 
  * 
  * @copyright
@@ -11,4 +11,11 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#include <stdlib.h>
+#include <string.h>
+
+size_t strlen(const char *str) {
+    size_t length = 0;
+    while (*str++)
+        length++;
+    return length;
+}

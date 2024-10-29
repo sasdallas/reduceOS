@@ -8,7 +8,7 @@ OUT_OBJ_LIBC = $(OUT_OBJ)/libc
 OUT_OBJ_LIBK = $(OUT_OBJ)/libk
 
 # SOURCE DIRECTORIES
-SOURCE_DIRECTORIES = stdlib stdio
+SOURCE_DIRECTORIES = stdlib stdio string
 
 # Include the architecture Make configuration to allow it to add to DIRECTORIES
 include arch/$(BUILD_ARCH)/make.config
@@ -73,3 +73,5 @@ install: PRINT_HEADER CREATE_BUILD_DIRECTORIES $(DESTDIR)$(LIB_DIRECTORY)/libkpo
 
 clean:
 	@-rm -r $(OUT_OBJ)
+	@-rm -r $(DESTDIR)$(LIB_DIRECTORY)/libkpolyhedron.a
+	@-rm -r $(DESTDIR)$(LIB_DIRECTORY)/libpolyhedron.a

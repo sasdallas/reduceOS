@@ -60,3 +60,7 @@ install-headers:
 	@-cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDE_DIRECTORY)
 
 install: CREATE_BUILD_DIRECTORIES $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
+
+clean:
+	@-rm -r $(OUT_OBJ)
+	@-rm -r $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
