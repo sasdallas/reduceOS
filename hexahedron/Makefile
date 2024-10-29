@@ -56,6 +56,7 @@ CREATE_BUILD_DIRECTORIES:
 
 # Main kernel build targets
 install-headers:
-	@echo "no"
+	@-mkdir -pv $(DESTDIR)$(INCLUDE_DIRECTORY)
+	@-cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDE_DIRECTORY)
 
 install: CREATE_BUILD_DIRECTORIES $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
