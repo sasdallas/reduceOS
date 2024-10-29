@@ -15,6 +15,8 @@
  */
 
 #include <stdint.h>
+#include <kernel/arch/i386/hal.h>
+
 
 
 /**
@@ -22,5 +24,6 @@
  * @note Does not return
  */
 __attribute__((noreturn)) void arch_main() {
+    hal_init();
     for (;;);
 }

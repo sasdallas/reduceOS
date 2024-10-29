@@ -54,12 +54,22 @@ CREATE_BUILD_DIRECTORIES:
 	@-mkdir -pv $(OUTPUT_DIRECTORIES)
 	@-mkdir -pv $(DESTDIR)$(BOOT_OUTPUT)
 
+# Cosmetic
+PRINT_HEADER:
+	@echo
+	@echo
+	@echo "[ Building Hexahedron, please wait... ]"
+	@echo
+	@echo
+
+
 # Main kernel build targets
 install-headers:
+	@echo "Installing Hexahedron headers..."
 	@-mkdir -pv $(DESTDIR)$(INCLUDE_DIRECTORY)
-	@-cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDE_DIRECTORY)
+	cp -rp include/kernel $(DESTDIR)$(INCLUDE_DIRECTORY)
 
-install: CREATE_BUILD_DIRECTORIES $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
+install: PRINT_HEADER CREATE_BUILD_DIRECTORIES $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
 
 clean:
 	@-rm -r $(OUT_OBJ)
