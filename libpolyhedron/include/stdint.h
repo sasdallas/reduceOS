@@ -7,13 +7,8 @@
  */
 
 
-#ifdef __reduceOS__
-// we're in newlib
-#include <stdint.h>
-#else
-
-#ifndef STDINT_H
-#define STDINT_H
+#ifndef _STDINT_H
+#define _STDINT_H
 
 
 
@@ -492,5 +487,4 @@ typedef unsigned long uintptr_t;
 
 
 
-#endif
 #endif
