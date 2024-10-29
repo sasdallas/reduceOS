@@ -20,10 +20,12 @@ _Begin_C_Header
 #ifndef _STDARG_H
 #define _STDARG_H
 
-#ifdef __LIBK
-// Define a va_list object here. This isn't compliant but it doesn't matter for the kernel.
+// Define a va_list object here.
+#if !defined(VA_LIST_DEFINED)
+#define VA_LIST_DEFINED
 typedef __builtin_va_list va_list;
 #endif
+
 
 /**** MACROS ****/
 #ifdef __LIBK

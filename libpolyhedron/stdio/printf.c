@@ -15,6 +15,11 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <stdarg.h>
+
+/* Temporary */
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 
 
 #define OUT(c) do { callback(userData, (c)); written++; } while (0)
@@ -425,15 +430,14 @@ int sprintf(char * str, const char * format, ...) {
 }
 
 static int cb_printf(void * user, char c) {
+	// Discard user. GCC will whine.
 	return 0;
 }
 
 int printf(const char * fmt, ...) {
-	/*
     va_list args;
 	va_start(args, fmt);
 	int out = xvasprintf(cb_printf, NULL, fmt, args);
 	va_end(args);
 	return out;
-    */
 }
