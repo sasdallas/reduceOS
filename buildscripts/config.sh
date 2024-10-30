@@ -3,6 +3,10 @@
 HEADER_PROJECTS="libpolyhedron hexahedron"      # Projects to install headers for. This is always done first
 PROJECTS="libpolyhedron hexahedron"             # Projects to enter and run make install.
 
+# !! EDIT THIS TO CHANGE BUILD CONFIGURATION !!
+export KERNEL_BUILD_CONF="DEBUG";
+
+
 export MAKE=${MAKE:-make}
 export HOST=${HOST:-$($BUILDSCRIPTS_ROOT/build-arch.sh)}
 
@@ -55,8 +59,8 @@ mkdir -p "$SYSROOT/"
 
 
 
-# Configure CFLAGS
-export CFLAGS="-D__HEXAHEDRON__ -D__REDUCEOS__ -DARCH=$BUILD_ARCH -D__ARCH_${BUILD_ARCH_UPPER}__"
+# Configure CFLAGS (TODO: Don't expose KERNEL_BUILD_CONFIGURATION)
+export CFLAGS="-D__HEXAHEDRON__ -D__REDUCEOS__ -D__ARCH__=$BUILD_ARCH -D__ARCH_${BUILD_ARCH_UPPER}__ -D__KERNEL_${KERNEL_BUILD_CONF}__"
 export CFLAGS="$CFLAGS -MD -MP --sysroot=$SYSROOT"
 
 # Work around that -elf targets don't have a sysroot include directory

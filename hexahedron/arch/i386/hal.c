@@ -19,6 +19,9 @@
 #include <kernel/arch/i386/hal.h>
 #include <kernel/hal.h>
 
+/* Generic drivers */
+#include <kernel/drivers/serial.h>
+
 
 /* Drivers. Find a better way to do this. */
 #include <kernel/drivers/x86/serial.h>
@@ -33,9 +36,6 @@
 void hal_init() {
     // Initialize serial logging.
     serial_initialize();
-
-    serial_printf("Hexahedrons rule!");
-
 }
 
 /* We do not need documentation comments for outportb/inportb/etc. */

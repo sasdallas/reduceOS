@@ -14,16 +14,40 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+// Polyhedron
 #include <stdint.h>
+
+// General
+#include <kernel/config.h>
+
+// Architecture-specific
 #include <kernel/arch/i386/hal.h>
+
+// Generic drivers
+#include <kernel/drivers/serial.h>
 
 
 
 /**
  * @brief Main architecture function
- * @note Does not return
+ * @returns Does not return
  */
 __attribute__((noreturn)) void arch_main() {
+    // Initialize the HAL
     hal_init();
+
+    // Print out a hello message
+    serial_printf("%s\n", __kernel_ascii_art_formatted);
+    serial_printf("Hexahedron %d.%d.%d-%s-%s (codename \"%s\")\n", 
+                    __kernel_version_major, 
+                    __kernel_version_minor, 
+                    __kernel_version_lower, 
+                    __kernel_architecture,
+                    __kernel_build_configuration,
+                    __kernel_version_codename);
+    
+    serial_printf("\tCompiled by %s on %s %s\n", __kernel_compiler, __kernel_build_date, __kernel_build_time);
+    
+                
     for (;;);
 }

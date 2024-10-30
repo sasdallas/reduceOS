@@ -20,8 +20,11 @@
 extern const char *__kernel_version_format;
 extern const char *__kernel_version_codename;
 extern const char *__kernel_build_date, *__kernel_build_time;
+extern const char *__kernel_build_configuration;
 extern const char *__kernel_architecture; 
 extern const char *__kernel_compiler;
+extern const char *__kernel_ascii_art_formatted;
+
 
 // Versioning information
 extern const int __kernel_version_major;

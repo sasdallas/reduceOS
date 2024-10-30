@@ -17,8 +17,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <kernel/arch/i386/hal.h> // !!!!!! BAD HAL PROBLEM
 #include <kernel/drivers/x86/serial.h>
+#include <kernel/drivers/serial.h>
+#include <kernel/arch/i386/hal.h> // !!!!!! BAD HAL PROBLEM
 #include <kernel/config.h>
 
 
@@ -104,27 +105,14 @@ int serial_initialize() {
     // Clear RBR
     inportb(serial_currentPort + SERIAL_RECEIVE_BUFFER);
 
+    // Set ourselves as the write method
+    serial_setWriteMethod(serial_writeCharacter);
+
     return 0;
 }
 
 
 
-static int serial_print(void *user, char ch) {
-    serial_writeCharacter(ch);
-    return 0;
-}
-
-/**
- * @brief Exposed serial printing method
- * @todo When a generic serial driver is created, move this here.
- */
-int serial_printf(char *format, ...) {
-    va_list ap;
-    va_start(ap, format);
-    int out = xvasprintf(serial_print, NULL, format, ap);
-    va_end(ap);
-    return out;
-}
 
 
 

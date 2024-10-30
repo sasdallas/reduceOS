@@ -34,6 +34,16 @@ const int __kernel_version_lower = 0;
 // Codename
 const char *__kernel_version_codename = "Phoenix";
 
+// ASCII art (looks weird because fmting)
+const char *__kernel_ascii_art_formatted = "\
+    .+------+\n \
+ .' |    .'|\n \
++---+--+'  |\tH E X A H E D R O N   K E R N E L\n \
+|   |  |   |\tCreated by @sasdallas\n \
+|  .+--+---+\n \
+|.'    | .'\n \
++------+'\n";
+
 
 
 /**** DEBUG SETTINGS ****/
@@ -58,10 +68,9 @@ const char *__kernel_build_configuration = "RELEASE";
 const char *__kernel_build_configuration = "UNKNOWN";
 #endif
 
-// Architecture information
-#ifdef __ARCH__
-#define ARCH_STR(x) #x
-const char *__kernel_architecture = ARCH_STR(__ARCH__);
+// Architecture information (TODO: Can't get the __ARCH__ variable working)
+#ifdef __ARCH_I386__
+const char *__kernel_architecture = "i386";
 #else
 const char *__kernel_architecture = "unknownarch";
 #endif
