@@ -26,9 +26,6 @@ _Begin_C_Header
 // libk/libc are differing
 #ifdef __LIBK 
 
-
-
-
 // Type definitions for xvas_callback
 typedef int (*xvas_callback)(void *, char);
 
