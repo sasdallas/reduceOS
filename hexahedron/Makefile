@@ -5,7 +5,8 @@ include ./make.config
 OUT_OBJ = $(OBJ_OUTPUT_DIRECTORY)/hexahedron/
 OUT_BUILD = $(BUILD_OUTPUT_DIRECTORY)/hexahedron
 
-SOURCE_DIRECTORIES = kernel
+# Edit this to add more source directories. MAKE SURE TO HAVE SUBDIRECTORIES SEPARATE!
+SOURCE_DIRECTORIES = kernel drivers
 
 # Include the architecture Make configuration
 include arch/$(BUILD_ARCH)/make.config
@@ -14,8 +15,8 @@ include arch/$(BUILD_ARCH)/make.config
 OUTPUT_DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES))
 
 # Compile a list of C sources and C assembly sources
-C_SOURCES = $(shell find $(SOURCE_DIRECTORIES) -name "*.c")
-C_ASM_SOURCES = $(shell find $(SOURCE_DIRECTORIES) -name "*.S")
+C_SOURCES = $(shell find $(SOURCE_DIRECTORIES) -maxdepth 1 -name "*.c" -type f)
+C_ASM_SOURCES = $(shell find $(SOURCE_DIRECTORIES) -maxdepth 1 -name "*.S" -type f)
 
 # Construct object lists
 C_OBJECTS = $(patsubst %.c, $(OUT_OBJ)/%.o, $(C_SOURCES)) $(patsubst %.S, $(OUT_OBJ)/%.o, $(C_ASM_SOURCES))

@@ -20,11 +20,52 @@
 #include <kernel/hal.h>
 
 
+/* Drivers. Find a better way to do this. */
+#include <kernel/drivers/x86/serial.h>
+
 /**
  * @brief Initialize the hardware abstraction layer
  * 
  * Initializes serial output, memory systems, and much more for I386.
+ *
+ * @todo A better driver interface is needed.
  */
 void hal_init() {
-    
+    // Initialize serial logging.
+    serial_initialize();
+
+    serial_printf("Hexahedrons rule!");
+
+}
+
+/* We do not need documentation comments for outportb/inportb/etc. */
+
+void outportb(unsigned short port, unsigned char data) {
+    __asm__ __volatile__("outb %b[Data], %w[Port]" :: [Port] "Nd" (port), [Data] "a" (data));
+}
+
+void outportw(unsigned short port, unsigned short data) {
+    __asm__ __volatile__("outw %w[Data], %w[Port]" :: [Port] "Nd" (port), [Data] "a" (data));
+}
+
+void outportl(unsigned short port, unsigned long data) {
+    __asm__ __volatile__("outl %k[Data], %w[Port]" :: [Port] "Nd"(port), [Data] "a" (data));
+}
+
+unsigned char inportb(unsigned short port) {
+    unsigned char returnValue;
+    __asm__ __volatile__("inb %w[Port]" : "=a"(returnValue) : [Port] "Nd" (port));
+    return returnValue;
+}
+
+unsigned short inportw(unsigned short port) {
+    unsigned short returnValue;
+    __asm__ __volatile__("inw %w[Port]" : "=a"(returnValue) : [Port] "Nd" (port));
+    return returnValue;
+}
+
+unsigned long inportl(unsigned short port) {
+    unsigned long returnValue;
+    __asm__ __volatile__("inl %w[Port]" : "=a"(returnValue) : [Port] "Nd" (port));
+    return returnValue;
 }
