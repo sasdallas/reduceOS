@@ -150,7 +150,13 @@ _start:
     // ??? why no works
     // call _init
 
+    // Clear EBP for backtrace
+    xor %ebp, %ebp
+
     // Call architecture main
+    push %esp // Stack
+    push %eax // Multiboot magic
+    push %ebx // Multiboot header ptr
     call arch_main
 
     // This shouldn't return. If it does, halt

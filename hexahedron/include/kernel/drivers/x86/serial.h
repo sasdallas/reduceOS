@@ -76,17 +76,10 @@ int serial_initialize();
  */
 int serial_setBaudRate(uint16_t baudrate);
 
-
-/**
- * @brief Exposed serial printing method
- * @todo When a generic serial driver is created, move this here.
- */
-int serial_printf(char *format, ...);
-
 /**
  * @brief Write a character to serial output
  */
-void serial_writeCharacter(char ch);
+int serial_writeCharacter(char ch);
 
 /**
  * @brief Retrieves a character from serial

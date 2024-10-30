@@ -2,7 +2,10 @@
   "files.associations": {
     "*.asm": "asm-collection",
     "*.S": "gas",
-    "hal.h": "c"
+    "hal.h": "c",
+    "debug.h": "c",
+    "stdarg.h": "c",
+    "stdio.h": "c"
   },
   "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "gcc",

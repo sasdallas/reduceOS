@@ -14,7 +14,7 @@
 
 #include <stdint.h>
 
-struct _multiboot_t
+typedef struct _multiboot_t
 {
 	uint32_t flags;
 	uint32_t mem_lower;
@@ -55,5 +55,10 @@ struct _multiboot_t
 	uint8_t  framebuffer_bpp;
 	uint8_t  framebuffer_type;
 } __attribute__ ((packed)) multiboot_t;
+
+
+// Numbers bootloader provides
+#define MULTIBOOT_MAGIC 0x2BADB002
+#define MULTIBOOT2_MAGIC 0x36D76289
 
 #endif

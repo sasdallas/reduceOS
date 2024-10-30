@@ -120,12 +120,14 @@ int serial_initialize() {
 /**
  * @brief Write a character to serial output
  */
-void serial_writeCharacter(char ch) {
+int serial_writeCharacter(char ch) {
     // Wait until transmit is empty
     while ((inportb(serial_currentPort + SERIAL_LINE_STATUS) & 0x20) == 0x0);
 
     // Write character
     outportb(serial_currentPort + SERIAL_TRANSMIT_BUFFER, ch);
+
+    return 0;
 }
 
 /**

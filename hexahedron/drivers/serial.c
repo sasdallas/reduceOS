@@ -21,7 +21,7 @@
 /*** PROTOTYPE: BAD IMPLEMENTATION ***/
 
 // Write character method
-void (*generic_serial_write_character)(char ch) = NULL;
+int (*generic_serial_write_character)(char ch) = NULL;
 
 static int serial_print(void *user, char ch) {
     if (generic_serial_write_character == NULL) return 0; // oh no
@@ -29,15 +29,13 @@ static int serial_print(void *user, char ch) {
     // Account for CRLF
     if (ch == '\n') generic_serial_write_character('\r');
 
-    generic_serial_write_character(ch);
-    return 0;
+    return generic_serial_write_character(ch);
 }
-
 
 /**
  * @brief Set the serial write method
  */
-void serial_setWriteMethod(void (*write_method)(char ch)) {
+void serial_setWriteMethod(int (*write_method)(char ch)) {
     if (write_method) {
         generic_serial_write_character = write_method;
     }

@@ -16,6 +16,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 /* Temporary */
 #pragma GCC diagnostic ignored "-Wunused-parameter"

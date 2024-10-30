@@ -18,6 +18,7 @@
 
 #include <kernel/arch/i386/hal.h>
 #include <kernel/hal.h>
+#include <kernel/debug.h>
 
 /* Generic drivers */
 #include <kernel/drivers/serial.h>
@@ -36,6 +37,9 @@
 void hal_init() {
     // Initialize serial logging.
     serial_initialize();
+
+    // TODO: Is it best practice to do this in HAL?
+    debug_setOutput(serial_writeCharacter);
 }
 
 /* We do not need documentation comments for outportb/inportb/etc. */

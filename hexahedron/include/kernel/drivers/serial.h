@@ -17,13 +17,14 @@
 /**** FUNCTIONS ****/
 
 /**
- * @brief Exposed serial printing method
- */
-int serial_printf(char *format, ...);
-
-/**
  * @brief Set the serial write method
  */
-void serial_setWriteMethod(void (*write_method)(char ch));
+void serial_setWriteMethod(int (*write_method)(char ch));
+
+/**
+ * @brief Exposed serial printing method
+ * @todo Not good
+ */
+int serial_printf(char *format, ...);
 
 #endif

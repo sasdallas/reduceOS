@@ -19,6 +19,8 @@
 
 // General
 #include <kernel/config.h>
+#include <kernel/multiboot.h>
+#include <kernel/debug.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
@@ -32,13 +34,13 @@
  * @brief Main architecture function
  * @returns Does not return
  */
-__attribute__((noreturn)) void arch_main() {
-    // Initialize the HAL
+__attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
+    // Initialize the HAL. This sets up interrupts & more.
     hal_init();
 
     // Print out a hello message
-    serial_printf("%s\n", __kernel_ascii_art_formatted);
-    serial_printf("Hexahedron %d.%d.%d-%s-%s (codename \"%s\")\n", 
+    dprintf(NOHEADER, "%s\n", __kernel_ascii_art_formatted);
+    dprintf(NOHEADER, "Hexahedron %d.%d.%d-%s-%s (codename \"%s\")\n", 
                     __kernel_version_major, 
                     __kernel_version_minor, 
                     __kernel_version_lower, 
@@ -46,8 +48,7 @@ __attribute__((noreturn)) void arch_main() {
                     __kernel_build_configuration,
                     __kernel_version_codename);
     
-    serial_printf("\tCompiled by %s on %s %s\n", __kernel_compiler, __kernel_build_date, __kernel_build_time);
-    
-                
+    dprintf(NOHEADER, "\tCompiled by %s on %s %s\n", __kernel_compiler, __kernel_build_date, __kernel_build_time);
+           
     for (;;);
 }
