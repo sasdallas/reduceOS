@@ -29,6 +29,11 @@
  */
 void hal_init();
 
+/**
+ * @brief Initialize HAL interrupts (IDT, GDT, TSS, etc.)
+ */
+void hal_initializeInterrupts();
+
 /* I/O port functions (no headers) */
 void outportb(unsigned short port, unsigned char data);
 void outportw(unsigned short port, unsigned short data);
@@ -36,6 +41,7 @@ void outportl(unsigned short port, unsigned long data);
 unsigned char inportb(unsigned short port);
 unsigned short inportw(unsigned short port);
 unsigned long inportl(unsigned short port);
+
 
 
 #endif

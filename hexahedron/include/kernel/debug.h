@@ -45,7 +45,7 @@ typedef enum {
 // I hate intellisense. Make it look nice! (quick hack)
 void dprintf(DEBUG_LOG_TYPE status, char *fmt, ...);
 #else
-#define dprintf(status, format, ...) dprintf_internal(__FILE__, __LINE__, status, format, __VA_ARGS__)
+#define dprintf(status, format, ...) dprintf_internal(__FILE__, __LINE__, status, format, ## __VA_ARGS__)
 #endif
 
 /**

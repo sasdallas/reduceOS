@@ -24,6 +24,7 @@
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
+#include <kernel/arch/i386/arch.h>
 
 // Generic drivers
 #include <kernel/drivers/serial.h>
@@ -31,13 +32,9 @@
 
 
 /**
- * @brief Main architecture function
- * @returns Does not return
+ * @brief Say hi! Prints the versioning message and ASCII art to NOHEADER dprintf
  */
-__attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
-    // Initialize the HAL. This sets up interrupts & more.
-    hal_init();
-
+void arch_say_hello() {
     // Print out a hello message
     dprintf(NOHEADER, "%s\n", __kernel_ascii_art_formatted);
     dprintf(NOHEADER, "Hexahedron %d.%d.%d-%s-%s (codename \"%s\")\n", 
@@ -49,6 +46,15 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
                     __kernel_version_codename);
     
     dprintf(NOHEADER, "\tCompiled by %s on %s %s\n", __kernel_compiler, __kernel_build_date, __kernel_build_time);
-           
+}
+
+/**
+ * @brief Main architecture function
+ * @returns Does not return
+ */
+__attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
+    // Initialize the HAL. This sets up interrupts & more.
+    hal_init();
+    
     for (;;);
 }

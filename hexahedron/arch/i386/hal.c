@@ -16,6 +16,7 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+#include <kernel/arch/i386/arch.h>
 #include <kernel/arch/i386/hal.h>
 #include <kernel/hal.h>
 #include <kernel/debug.h>
@@ -40,6 +41,10 @@ void hal_init() {
 
     // TODO: Is it best practice to do this in HAL?
     debug_setOutput(serial_writeCharacter);
+    arch_say_hello();
+
+    // Initialize interrupts
+    hal_initializeInterrupts();
 }
 
 /* We do not need documentation comments for outportb/inportb/etc. */
