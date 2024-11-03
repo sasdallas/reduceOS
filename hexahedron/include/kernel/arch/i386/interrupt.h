@@ -26,12 +26,12 @@ typedef struct _i386_interrupt_descriptor {
     uint8_t reserved;               // Reserved
     uint8_t flags;                  // Gate type, DPL, P fields, etc.
     uint16_t base_hi;               // High 16-bits of interrupt routine address
-} i386_interrupt_descriptor_t;
+} __attribute__((packed)) i386_interrupt_descriptor_t;
 
 typedef struct _i386_idtr {
     uint16_t limit;
     uint32_t base;
-} i386_idtr_t;
+} __attribute__((packed)) i386_idtr_t;
 
 /* GDT structures are unused for now. They were planned to be used but are now vestigal. */
 
@@ -51,6 +51,10 @@ typedef struct _i386_gdtr {
     uint32_t base;
 } i386_gdtr_t;
 
+
+typedef int (*interrupt_handler_t)();
+
+
 /**** DEFINITIONS ****/
 
 // Copied straight from old kernel. Provide interrupt descriptor types.
@@ -60,6 +64,7 @@ typedef struct _i386_gdtr {
 #define I86_IDT_DESC_RING2 0x20     // 00100000
 #define I86_IDT_DESC_RING3 0x60     // 01100000
 #define I86_IDT_DESC_PRESENT 0x80   // 10000000
+#define I86_MAX_INTERRUPTS  255
 
 // PIC definitions
 #define I86_PIC1_ADDR       0x20                // Master PIC address
@@ -83,5 +88,52 @@ typedef struct _i386_gdtr {
 #define I86_PIC_ICW4_BUF_SLAVE  0x08        // Enable buffered mode (slave)
 #define I86_PIC_ICW4_BUF_MASTER 0x0C        // Enable buffered mode (master)
 #define I86_PIC_ICW4_SFNM       0x10        // Special fully nested
+
+/**** FUNCTIONS ****/
+
+/* EXTERNAL HANDLERS FROM irq.S */
+extern void halDivisionException(void);
+extern void halDebugException(void);
+extern void halNMIException(void);
+extern void halBreakpointException(void);
+extern void halOverflowException(void);
+extern void halBoundException(void);
+extern void halInvalidOpcodeException(void);
+extern void halNoFPUException(void);
+extern void halDoubleFaultException(void);
+extern void halCoprocessorSegmentException(void);
+extern void halInvalidTSSException(void);
+extern void halSegmentNotPresentException(void);
+extern void halStackSegmentException(void);
+extern void halGeneralProtectionException(void);
+extern void halPageFaultException(void);
+extern void halReservedException(void);
+extern void halFloatingPointException(void);
+extern void halAlignmentCheck(void);
+extern void halMachineCheck(void);
+extern void halSIMDFloatingPointException(void);
+extern void halVirtualizationException(void);
+extern void halControlProtectionException(void);
+extern void halHypervisorInjectionException(void);
+extern void halVMMCommunicationException(void);
+extern void halSecurityException(void);
+extern void halReserved2Exception(void);
+
+extern void halIRQ0(void); // Interrupt number 32
+extern void halIRQ1(void); // Interrupt number 33
+extern void halIRQ2(void); // Interrupt number 34
+extern void halIRQ3(void); // Interrupt number 35
+extern void halIRQ4(void); // Interrupt number 36
+extern void halIRQ5(void); // Interrupt number 37
+extern void halIRQ6(void); // Interrupt number 38
+extern void halIRQ7(void); // Interrupt number 39
+extern void halIRQ8(void); // Interrupt number 40
+extern void halIRQ9(void); // Interrupt number 41
+extern void halIRQ10(void); // Interrupt number 42
+extern void halIRQ11(void); // Interrupt number 43
+extern void halIRQ12(void); // Interrupt number 44
+extern void halIRQ13(void); // Interrupt number 45
+extern void halIRQ14(void); // Interrupt number 46
+extern void halIRQ15(void); // Interrupt number 47
 
 #endif
