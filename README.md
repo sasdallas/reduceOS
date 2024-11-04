@@ -19,3 +19,4 @@ To change the build configuration, edit `buildscripts/config.sh`.
 - Header files in drivers/ when using #ifndef are not labelled as KERNEL_DRIVERS, but for readabililty the KERNEL_ is dropped
 - Certain functions do not have C doc headers.
 - HAL has an implementation issue. Certain x86 drivers will need outportb/inportb and that is not provided well on both x86_64 and i386.
+- Clock/serial/other generic devices do not use structure pointers, instead using stack ones. This is probably very bad but there is no way to fix without a memory allocator.
