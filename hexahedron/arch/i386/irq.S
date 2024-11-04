@@ -36,10 +36,9 @@
     push %eax
 
     /* Toss the stack to below the idtr (uint16 + uint32 = 6 bytes * 2 = 12 bytes) */
-    pushl $0
-    pushw $0
-    pushl $0
-    pushw $0
+    sub $12, %esp
+    sidt (%esp)
+    sgdt 6(%esp)
 .endm
 
 .macro RESTORE_REGISTERS
