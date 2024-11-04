@@ -226,4 +226,6 @@ void hal_initializeInterrupts() {
 
     // Enable interrupts
     __asm__ __volatile__("sti");
+
+    dprintf(INFO, "Interrupts enabled successfully\n");
 }

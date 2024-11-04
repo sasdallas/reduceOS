@@ -27,6 +27,9 @@
 
 /* Drivers. Find a better way to do this. */
 #include <kernel/drivers/x86/serial.h>
+#include <kernel/drivers/x86/clock.h>
+
+#include <time.h>
 
 /**
  * @brief Initialize the hardware abstraction layer
@@ -45,6 +48,16 @@ void hal_init() {
 
     // Initialize interrupts
     hal_initializeInterrupts();
+    
+    // Start the clock system
+    clock_initialize();
+
+    time_t rawtime;
+  struct tm * timeinfo;
+
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  dprintf(INFO, "Current time: %s\n", asctime(timeinfo));
 }
 
 /* We do not need documentation comments for outportb/inportb/etc. */

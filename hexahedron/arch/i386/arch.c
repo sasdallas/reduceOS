@@ -45,8 +45,15 @@ void arch_say_hello() {
                     __kernel_build_configuration,
                     __kernel_version_codename);
     
-    dprintf(NOHEADER, "\tCompiled by %s on %s %s\n", __kernel_compiler, __kernel_build_date, __kernel_build_time);
+    dprintf(NOHEADER, "\tCompiled by %s on %s %s\n\n", __kernel_compiler, __kernel_build_date, __kernel_build_time);
 }
+
+/** 
+ * @brief Parse a Multiboot 2 header.
+ *
+ * This is done by finding tags and such but then it is all packed into a Multiboot1 header
+ * for completeness. That header is the only thing stored, the tags are then freed up for usage elsewhere.
+ */
 
 /**
  * @brief Main architecture function
@@ -55,6 +62,14 @@ void arch_say_hello() {
 __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     // Initialize the HAL. This sets up interrupts & more.
     hal_init();
-    
+
+    // Let's get some multiboot information.
+
+
+    // The memory subsystem is SEPARATE from the HAL.
+    // This is intentional because it requires that we place certain objects such as multiboot information,
+    // ACPI tables, PMM bitmaps, etc. all below the required factor.    
+
+
     for (;;);
 }
