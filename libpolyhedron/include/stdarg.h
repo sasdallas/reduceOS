@@ -3,7 +3,8 @@
  * @brief Standard argument header
  * 
  * @warning This file is NOT FULLY compliant.
- * 
+ * 			It is also freestanding, so not sure why we're doing this.
+ *	
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
  * It is released under the terms of the BSD 3-clause license.

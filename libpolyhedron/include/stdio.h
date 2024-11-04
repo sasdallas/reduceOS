@@ -23,11 +23,13 @@ _Begin_C_Header
 #include <stddef.h>
 #include <stdint.h>
 
-// libk/libc are differing
-#ifdef __LIBK 
+/**** TYPES ****/
 
 // Type definitions for xvas_callback
 typedef int (*xvas_callback)(void *, char);
+
+
+/**** DEFINITIONS ****/
 
 #define SEEK_SET 0
 #define SEEK_CUR 1
@@ -42,11 +44,6 @@ int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 int snprintf(char * str, size_t size, const char * format, ...);
 int sprintf(char * str, const char * format, ...);
 size_t xvasprintf(xvas_callback callback, void * userData, const char * fmt, va_list args);
-
-#else
-
-
-#endif
 
 
 

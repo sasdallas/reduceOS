@@ -8,7 +8,7 @@ OUT_OBJ_LIBC = $(OUT_OBJ)/libc
 OUT_OBJ_LIBK = $(OUT_OBJ)/libk
 
 # SOURCE DIRECTORIES
-SOURCE_DIRECTORIES = stdlib stdio string
+SOURCE_DIRECTORIES = stdlib stdio string time
 
 # Include the architecture Make configuration to allow it to add to DIRECTORIES
 include arch/$(BUILD_ARCH)/make.config

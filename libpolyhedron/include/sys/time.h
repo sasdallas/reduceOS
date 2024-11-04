@@ -36,6 +36,10 @@ struct timezone {
     int tz_dsttime;     // Type of Daylight Savings Time correction
 };
 
+/**** FUNCTIONS ****/
+extern int gettimeofday(struct timeval *ptr, void *z);
+extern int settimeofday(struct timeval *ptr, void *z);
+
 #endif
 
 _End_C_Header
