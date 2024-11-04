@@ -42,7 +42,7 @@ void hal_initializeInterrupts();
  *                It will take registers and extended registers as arguments.
  * @returns 0 on success, -EINVAL if handler is taken
  */
-int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t *handler);
+int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler);
 
 /**
  * @brief Unregisters an interrupt handler

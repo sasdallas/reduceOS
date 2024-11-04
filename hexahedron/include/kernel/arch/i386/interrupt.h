@@ -17,6 +17,7 @@
 
 /**** INCLUDES ****/
 #include <stdint.h>
+#include <kernel/arch/i386/registers.h>
 
 /**** TYPES ****/
 

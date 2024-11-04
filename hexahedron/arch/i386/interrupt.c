@@ -32,7 +32,7 @@ extern void hal_installGDT();
 i386_interrupt_descriptor_t hal_idt_table[I86_MAX_INTERRUPTS];
 
 /* Interrupt handler table - TODO: More than one handler per interrupt? */
-interrupt_handler_t *hal_handler_table[I86_MAX_INTERRUPTS];
+interrupt_handler_t hal_handler_table[I86_MAX_INTERRUPTS];
 
 /**
  * @brief Handle ending an interrupt
@@ -81,12 +81,14 @@ void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registe
  *                It will take registers and extended registers as arguments.
  * @returns 0 on success, -EINVAL if handler is taken
  */
-int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t *handler) {
+int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler) {
     if (hal_handler_table[int_no] != NULL) {
         return -EINVAL;
     }
 
     hal_handler_table[int_no] = handler;
+
+    return 0;
 }
 
 /**
