@@ -17,6 +17,7 @@
 #define KERNEL_ARCH_I386_HAL_H
 
 /**** INCLUDES ****/
+#include <kernel/arch/i386/interrupt.h>
 #include <stdint.h>
 
 /**** FUNCTIONS ****/
@@ -33,6 +34,21 @@ void hal_init();
  * @brief Initialize HAL interrupts (IDT, GDT, TSS, etc.)
  */
 void hal_initializeInterrupts();
+
+/**
+ * @brief Register an interrupt handler
+ * @param int_no Interrupt number
+ * @param handler A handler. This should return 0 on success, anything else panics.
+ *                It will take registers and extended registers as arguments.
+ * @returns 0 on success, -EINVAL if handler is taken
+ */
+int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t *handler);
+
+/**
+ * @brief Unregisters an interrupt handler
+ */
+void hal_unregisterInterruptHandler(uint32_t int_no);
+
 
 /* I/O port functions (no headers) */
 void outportb(unsigned short port, unsigned char data);

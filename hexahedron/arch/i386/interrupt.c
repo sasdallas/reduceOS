@@ -23,12 +23,16 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <errno.h>
 
 /* irq.S functions (note: all handlers defined in interrupt.h) */
 extern void hal_installGDT();
 
 /* IDT */
 i386_interrupt_descriptor_t hal_idt_table[I86_MAX_INTERRUPTS];
+
+/* Interrupt handler table - TODO: More than one handler per interrupt? */
+interrupt_handler_t *hal_handler_table[I86_MAX_INTERRUPTS];
 
 /**
  * @brief Handle ending an interrupt
@@ -56,9 +60,42 @@ void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_
  * @brief Common interrupt handler
  */
 void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
-    dprintf(INFO, "interrupt %i exception %i\n", int_number, exception_index);
+    // Call any handler registered
+    if (hal_handler_table[int_number] != NULL) {
+        interrupt_handler_t handler = (hal_handler_table[int_number]);
+        int return_value = handler(regs, regs_extended);
+
+        if (return_value != 0) {
+            // TODO: Panic.
+            dprintf(ERR, "FAULT ME!!!!!\n");
+        }
+    }
+
     hal_endInterrupt(int_number);
 }
+
+/**
+ * @brief Register an interrupt handler
+ * @param int_no Interrupt number
+ * @param handler A handler. This should return 0 on success, anything else panics.
+ *                It will take registers and extended registers as arguments.
+ * @returns 0 on success, -EINVAL if handler is taken
+ */
+int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t *handler) {
+    if (hal_handler_table[int_no] != NULL) {
+        return -EINVAL;
+    }
+
+    hal_handler_table[int_no] = handler;
+}
+
+/**
+ * @brief Unregisters an interrupt handler
+ */
+void hal_unregisterInterruptHandler(uint32_t int_no) {
+    hal_handler_table[int_no] = NULL;
+}
+
 
 /**
  * @brief Register a vector in the IDT table.
