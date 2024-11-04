@@ -39,6 +39,7 @@ struct timezone {
 /**** FUNCTIONS ****/
 extern int gettimeofday(struct timeval *ptr, void *z);
 extern int settimeofday(struct timeval *ptr, void *z);
+extern unsigned long long now();
 
 #endif
 
