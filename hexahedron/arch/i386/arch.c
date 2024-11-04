@@ -55,6 +55,7 @@ void arch_say_hello() {
  * for completeness. That header is the only thing stored, the tags are then freed up for usage elsewhere.
  */
 
+
 /**
  * @brief Main architecture function
  * @returns Does not return

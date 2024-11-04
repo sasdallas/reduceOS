@@ -4,6 +4,7 @@
  * 
  * @todo Device checks! We can easily crash here if not careful!!!
  * @todo Maybe make clock_device a pointer. Memory is key though.
+ * @warning This driver sucks.
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
