@@ -13,7 +13,11 @@
  */
 
 #include <kernel/debug.h>
+#include <kernel/drivers/clock.h>
+
+#include <time.h>
 #include <stdarg.h>
+#include <string.h>
 #include <stdio.h>
 
 /* TODO: This should be replaced with a VFS node */
@@ -33,6 +37,17 @@ static int debug_print(void *user, char ch) {
 }
 
 /**
+ * @brief Write directly to debug_print
+ */
+static int debug_write(size_t length, char *buffer) {
+    for (size_t i = 0; i < length; i++) {
+        debug_print(NULL, buffer[i]);
+    }
+
+    return 0;
+}
+
+/**
  * @brief Internal function to print to debug line.
  * 
  * You can call this but it's not recommended. Use dprintf().
@@ -41,6 +56,41 @@ int dprintf_internal(char *file, int line, DEBUG_LOG_TYPE status, char *format, 
     if (status == NOHEADER) goto _write_format;
 
 
+    // Get the header we want to use
+    char header_prefix[5]; // strncpy?
+    switch (status) {
+        case INFO:
+            strncpy(header_prefix, "INFO", 4);
+            break;
+        case WARN:
+            strncpy(header_prefix, "WARN", 4);
+            break;
+        case ERR:
+            strncpy(header_prefix, "ERR ", 4);
+            break;
+        case DEBUG:
+            strncpy(header_prefix, "DBG ", 4);
+            break;
+        default:
+            strncpy(header_prefix, "??? ", 4);
+    }
+
+    header_prefix[4] = 0;
+
+    // If the clock driver isn't ready we just print a blank header.
+    char header[128];
+    size_t header_length = 0;
+    if (!clock_isReady()) {
+        header_length = snprintf(header, 128, "[no clock ready] [%s] ", header_prefix);
+    } else {
+        time_t rawtime;
+        time(&rawtime);
+        struct tm *timeinfo = localtime(&rawtime);
+
+        header_length = snprintf(header, 128, "[%s] [%s] ", asctime(timeinfo), header_prefix);
+    }
+
+    debug_write(header_length, header);
 
 _write_format: ;
     va_list ap;
