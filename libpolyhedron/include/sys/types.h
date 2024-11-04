@@ -1,0 +1,36 @@
+/**
+ * @file libpolyhedron/include/sys/types.h
+ * @brief Types
+ * 
+ * 
+ * @copyright
+ * This file is part of the Hexahedron kernel, which is part of reduceOS.
+ * It is released under the terms of the BSD 3-clause license.
+ * Please see the LICENSE file in the main repository for more details.
+ * 
+ * Copyright (C) 2024 Samuel Stuart
+ */
+
+#include <sys/cheader.h>
+
+_Begin_C_Header
+
+#ifndef _SYS_TYPES_H
+#define _SYS_TYPES_H
+
+/**** INCLUDES ****/
+#include <stdint.h>
+
+/**** TYPES ****/
+
+typedef long off_t;
+typedef long time_t;
+typedef long clock_t;
+
+typedef unsigned long useconds_t;
+typedef long suseconds_t;
+
+
+#endif
+
+_End_C_Header
