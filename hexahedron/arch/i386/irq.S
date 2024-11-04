@@ -14,15 +14,16 @@
 .code32
 
 .extern hal_exceptionHandler
+.extern hal_interruptHandler
 
 /* Save registers macro */
 .macro PUSH_REGISTERS
     /* This is pushing registers_t */
     pusha
 
-    pushl %ds
+    pushl %gs
     pushl %es
-    pushl %fs
+    pushl %ds
 
     /* This is pushing extended regiisters */
     movl %cr0, %eax
@@ -34,37 +35,73 @@
     movl %cr4, %eax
     push %eax
 
-    // Toss the stack to below the idtr (uint16 + uint32 = 6 bytes * 2 = 12 bytes)
-    sub $12, %esp
-    sidt (%esp)
-    sgdt 6(%esp)
+    /* Toss the stack to below the idtr (uint16 + uint32 = 6 bytes * 2 = 12 bytes) */
+    pushl $0
+    pushw $0
+    pushl $0
+    pushw $0
 .endm
+
+.macro RESTORE_REGISTERS
+    /* Skip over extended registers */
+    addl $28, %esp
+
+    /* Now we're at the beginning of registers_t */
+    popl %ecx
+    movl %ecx, %ds
+    popl %ecx
+    movl %ecx, %es
+    popl %ecx
+    movl %ecx, %gs
+    
+    /* Restore main registers */
+    popa
+.endm
+    
 
 
 /* Common exception handler */
 halCommonExceptionHandler:
     PUSH_REGISTERS // Push registers
 
-    leal 28(%esp), %eax
+    leal 28(%esp), %eax // Load registers_t structure
     pushl %esp
     pushl %eax
-    push $halExceptionIndex
+    pushl halExceptionIndex
     call hal_exceptionHandler
 
-    cli
-    hlt
+    // RESTORE_REGISTERS expects stack aligned
+    addl $12, %esp
+
+    RESTORE_REGISTERS
+
+    iret
 
 /* Common IRQ handler */
 halCommonIRQHandler:
-    cli
-    hlt
+    PUSH_REGISTERS // Push registers
+
+    leal 28(%esp), %eax // Load registers_t structure
+    
+    pushl %esp // extended_registers_t
+    pushl %eax // registers_t 
+    pushl halIRQIndex // IRQ index
+    pushl halExceptionIndex // Exception number
+    call hal_interruptHandler
+
+    // Negate last 4 pushes
+    addl $16, %esp
+
+    RESTORE_REGISTERS
+
+    iret
 
 
 /* Exception macros */
 .macro ISR_NOERRCODE name index
     .global \name
     &name:
-        push 0 // Push dummy error code
+        pushl $0 // Push dummy error code
         movl $\index, halExceptionIndex
         jmp halCommonExceptionHandler
 .endm

@@ -30,14 +30,30 @@ extern void hal_installGDT();
 /* IDT */
 i386_interrupt_descriptor_t hal_idt_table[I86_MAX_INTERRUPTS];
 
-
+/**
+ * @brief Handle ending an interrupt
+ */
+void hal_endInterrupt(uint32_t interrupt_number) {
+    if (interrupt_number > 8) outportb(I86_PIC2_COMMAND, I86_PIC_EOI);
+    outportb(I86_PIC1_COMMAND, I86_PIC_EOI);
+}
 
 /**
  * @brief Common exception handler
  */
 void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
-    dprintf(ERR, "EXCEPTION!\n");
+    dprintf(ERR, "Exception %i was found - you have a major skill issue\n", exception_index);
+    dprintf(INFO, "EDI %08x ESI %08x EBP %08x ESP %08x\n", regs->edi, regs->esi, regs->ebp, regs->esp);
+    dprintf(INFO, "EBX %08x EDX %08x ECX %08x EAX %08x\n", regs->ebx, regs->edx, regs->ecx, regs->eax);
     for (;;);
+}
+
+/**
+ * @brief Common interrupt handler
+ */
+void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
+    dprintf(INFO, "interrupt %i exception %i\n", int_number, exception_index);
+    hal_endInterrupt(int_number);
 }
 
 /**
@@ -139,22 +155,22 @@ void hal_initializeInterrupts() {
     hal_registerInterruptVector(30, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halSecurityException);
     hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halReserved2Exception);
 
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ0);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ1);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ2);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ3);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ4);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ5);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ6);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ7);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ8);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ9);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ10);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ11);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ12);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ13);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ14);
-    hal_registerInterruptVector(31, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ15);
+    hal_registerInterruptVector(32, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ0);
+    hal_registerInterruptVector(33, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ1);
+    hal_registerInterruptVector(34, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ2);
+    hal_registerInterruptVector(35, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ3);
+    hal_registerInterruptVector(36, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ4);
+    hal_registerInterruptVector(37, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ5);
+    hal_registerInterruptVector(38, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ6);
+    hal_registerInterruptVector(39, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ7);
+    hal_registerInterruptVector(40, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ8);
+    hal_registerInterruptVector(41, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ9);
+    hal_registerInterruptVector(42, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ10);
+    hal_registerInterruptVector(43, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ11);
+    hal_registerInterruptVector(44, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ12);
+    hal_registerInterruptVector(45, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ13);
+    hal_registerInterruptVector(46, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ14);
+    hal_registerInterruptVector(47, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ15);
 
     // Install the IDT
     i386_idtr_t idtr; 
@@ -162,8 +178,10 @@ void hal_initializeInterrupts() {
     idtr.limit = sizeof(hal_idt_table) - 1;
     __asm__ __volatile__("lidt %0" :: "m"(idtr));
 
-    // funny
-    int i = 0;
-    int b = 4 / i;
-    dprintf(INFO, "%i", b);
+    // Setup the PIC
+    hal_initializePIC();
+
+
+    // Enable interrupts
+    __asm__ __volatile__("sti");
 }
