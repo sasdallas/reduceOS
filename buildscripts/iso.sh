@@ -17,6 +17,7 @@ cd $PROJECT_ROOT
 mkdir -pv $ISO_OUTPUT_DIRECTORY/iso/boot/grub/
 cp $SYSROOT/$BOOT_DIRECTORY/hexahedron-kernel.elf $ISO_OUTPUT_DIRECTORY/iso/boot/
 cp conf/grub.cfg $ISO_OUTPUT_DIRECTORY/iso/boot/grub/
+cp -r conf/extra-boot-files/* $ISO_OUTPUT_DIRECTORY/iso/boot/
 
 # Pack it into an ISO
 grub-mkrescue -o $ISO_OUTPUT_DIRECTORY/hexahedron.iso $ISO_OUTPUT_DIRECTORY/iso
