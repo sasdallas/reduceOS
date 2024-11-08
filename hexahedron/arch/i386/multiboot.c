@@ -167,7 +167,7 @@ _done_modules:
  * @brief Mark/unmark valid spots in memory
  * @todo Work in tandem with mem.h to allow for a maximum amount of blocks to be used
  */
-void arch_mark_memory(generic_parameters_t *parameters) {
+void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_address) {
     generic_mmap_desc_t *mmap = parameters->mmap_start;
     while (mmap) {
         // Working with 64-bits in a 32-bit environment is scary...
@@ -186,7 +186,9 @@ void arch_mark_memory(generic_parameters_t *parameters) {
     }
 
     // Unmark kernel region
-    
+    extern uint32_t __text_start;
+    uint32_t kernel_start = (uint32_t)&__text_start;
+    pmm_deinitializeRegion(kernel_start, highest_address - kernel_start);    
 
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());
 }

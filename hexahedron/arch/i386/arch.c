@@ -72,7 +72,8 @@ void arch_panic_finalize() {
 
 
 extern uintptr_t __bss_end;
-static uintptr_t highest_kernel_address = ((uintptr_t)&__bss_end); 
+static uintptr_t highest_kernel_address = ((uintptr_t)&__bss_end);  // This is ONLY used until memory management is initialized.
+                                                                    // mm will take over this
 
 /**
  * @brief Zeroes and allocates bytes for a structure at the end of the kernel
@@ -134,7 +135,9 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     uintptr_t *pmm_frames = (uintptr_t*)arch_allocate_structure((parameters->mem_size * 1024) / PMM_BLOCK_SIZE);
     pmm_init(parameters->mem_size * 1024, pmm_frames);
 
-    arch_mark_memory(parameters);
+    // Mark memory as valid/invalid. 
+    arch_mark_memory(parameters, highest_kernel_address);
+
 
     // The memory subsystem is SEPARATE from the HAL.
     // This is intentional because it requires that we place certain objects such as multiboot information,
