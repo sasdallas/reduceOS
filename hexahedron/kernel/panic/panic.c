@@ -4,7 +4,8 @@
  * 
  * Hexahedron uses two panic systems:
  * - Generic errors can be handled using bugcodes, such as MEMORY_MANAGEMENT_ERROR
- * - Nongeneric errors can call arch_panic_prepare() and arch_panic_finalize() to handle the error in their own way
+ * - Nongeneric errors can call kernel_panic_prepare() and kernel_panic_finalize() to handle PRINT OUT the error in their own way
+ *      * IMPORTANT: If you need to handle the error in your own way, use arch_panic_prepare() and arch_panic_finalize()
  * 
  * These stop codes are supported by a string lookup table, that @todo should be moved to a separate file.
  * (ReactOS uses .mc files, dunno about Linux - that's for localization however)
@@ -17,6 +18,8 @@
  * print basic information
  * 
  * kernel_panic_extended() will take in a bugcode and a module, but will also take in va_args().
+ * 
+ * 
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -49,20 +52,29 @@ static int kernel_panic_putchar(void *user, char ch) {
  * @param format String to print out (this is va_args, you may use formatting)
  */
 void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
+    if ((int)bugcode >= __kernel_stop_codes) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, module, "*** kernel_panic_extended() received an invalid bugcode (0x%x)\n", bugcode);
+        // Doesn't return
+    }
+
     // Prepare for the panic
     arch_panic_prepare();
 
     // Start by printing out debug messages
     dprintf(NOHEADER, "\n\n");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
-    dprintf(NOHEADER, "This fault originated from within the kernel\n\n");
-    dprintf(NOHEADER, "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
+    dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
+    dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
     
+    dprintf(NOHEADER, "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
 
     va_list ap;
     va_start(ap, format);
     xvasprintf(kernel_panic_putchar, NULL, format, ap);
     va_end(ap);
+
+    // Print out a generic message
+    dprintf(NOHEADER, "\n%s\n", kernel_panic_messages[bugcode]);
 
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
@@ -86,11 +98,32 @@ void kernel_panic(uint32_t bugcode, char *module) {
     // Start by printing out debug messages
     dprintf(NOHEADER, "\n\n");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
-    dprintf(NOHEADER, "This fault originated from within the kernel\n\n");
+    dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
+    dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
     dprintf(NOHEADER, "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
     dprintf(NOHEADER, "*** %s", kernel_panic_messages[bugcode]);
     
     // Finish the panic
+    dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+    arch_panic_finalize();
+}
+
+/**
+ * @brief Prepare the system to enter a panic state
+ */
+void kernel_panic_prepare() {
+    arch_panic_prepare();
+
+    dprintf(NOHEADER, "\n\n");
+    dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
+    dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
+    dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
+}
+
+/**
+ * @brief Finalize the panic state
+ */
+void kernel_panic_finalize() {
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
     arch_panic_finalize();
 }

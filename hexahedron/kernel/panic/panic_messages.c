@@ -20,11 +20,13 @@ int __kernel_stop_codes = KERNEL_STOP_CODES; // Used to keep this as the only ne
 char *kernel_bugcode_strings[KERNEL_STOP_CODES] = {
     "KERNEL_DEBUG_TRAP",
     "MEMORY_MANAGEMENT_ERROR",
-    "KERNEL_BAD_ARGUMENT_ERROR"
+    "KERNEL_BAD_ARGUMENT_ERROR",
+    "OUT_OF_MEMORY"
 };
 
 char *kernel_panic_messages[KERNEL_STOP_CODES] = {
-    "This is a trap used to debug the kernel. Be careful when using debug!.\n",
-    "A generic fault has occurred in the memory management subsystem.\nThis is most likely a bug in the kernel - please contact for assistance.\n",
-    "A bad argument was passed to a critical function.\n"
+    "A trap was triggered to debug the kernel.\n",
+    "A fault has occurred in the memory management subsystem during a call.\n",
+    "A bad argument was passed to a critical function.\n",
+    "The system has run out of memory. Try closing applications or adjusting your pagefile.\n"
 };

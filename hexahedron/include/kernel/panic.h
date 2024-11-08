@@ -21,12 +21,12 @@
 
 /**** STOP CODES ****/
 
-#define     KERNEL_STOP_CODES               3
+#define     KERNEL_STOP_CODES               4
 
 #define     KERNEL_DEBUG_TRAP               0x00000000 // Debugging trap
 #define     MEMORY_MANAGEMENT_ERROR         0x00000001 // Memory management failure
 #define     KERNEL_BAD_ARGUMENT_ERROR       0x00000002 // Critical function was passed a bad argument
-
+#define     OUT_OF_MEMORY                   0x00000003 // Out of memory in the kernel (note that some mem_ functions take over panicking instead of this)
 
 /**** MESSAGES ****/
 
@@ -52,6 +52,16 @@ void kernel_panic(uint32_t bugcode, char *module);
  * @param format String to print out (this is va_args, you may use formatting)
  */
 void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...);
+
+/**
+ * @brief Prepare the system to enter a panic state
+ */
+void kernel_panic_prepare();
+
+/**
+ * @brief Finalize the panic state
+ */
+void kernel_panic_finalize();
 
 
 
