@@ -16,12 +16,16 @@
 
 // Polyhedron
 #include <stdint.h>
+#include <string.h>
 
 // General
 #include <kernel/config.h>
 #include <kernel/multiboot.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <kernel/mem/mem.h>
+#include <kernel/mem/pmm.h>
+#include <kernel/generic_mboot.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
@@ -29,8 +33,6 @@
 
 // Generic drivers
 #include <kernel/drivers/serial.h>
-
-
 
 /**
  * @brief Say hi! Prints the versioning message and ASCII art to NOHEADER dprintf
@@ -54,6 +56,7 @@ void arch_say_hello() {
  * moving things around, whatever you need to do
  */
 void arch_panic_prepare() {
+
 }
 
 /**
@@ -68,12 +71,35 @@ void arch_panic_finalize() {
 
 
 
-/** 
- * @brief Parse a Multiboot 2 header.
- *
- * This is done by finding tags and such but then it is all packed into a Multiboot1 header
- * for completeness. That header is the only thing stored, the tags are then freed up for usage elsewhere.
+extern uintptr_t __bss_end;
+static uintptr_t highest_kernel_address = ((uintptr_t)&__bss_end); 
+
+/**
+ * @brief Zeroes and allocates bytes for a structure at the end of the kernel
+ * @param bytes Amount of bytes to allocate
+ * @returns The address to which the structure can be placed at 
  */
+uintptr_t arch_allocate_structure(size_t bytes) {
+    uintptr_t ptr = highest_kernel_address;
+    highest_kernel_address += bytes;
+
+    memset((void*)ptr, 0x00, bytes);
+    return ptr;
+}
+
+/**
+ * @brief Copy & relocate a structure to the end of the kernel.
+ * @param structure_ptr A pointer to the structure
+ * @param size The size of the structure
+ * @returns The address to which it was relocated.
+ */
+uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
+    uintptr_t location = arch_allocate_structure(size);
+    memcpy((void*)location, (void*)structure_ptr, size);
+    return location;
+}
+
+
 
 
 /**
@@ -84,13 +110,36 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     // Initialize the HAL. This sets up interrupts & more.
     hal_init();
 
-    // Let's get some multiboot information.
+    // Align the kernel address
+    highest_kernel_address += PAGE_SIZE;
+    highest_kernel_address &= ~0xFFF;
 
+    // Let's get some multiboot information.
+    generic_parameters_t *parameters = NULL;
+
+    if (multiboot_magic == MULTIBOOT_MAGIC) {
+        dprintf(INFO, "Found a Multiboot1 structure\n");
+        parameters = arch_parse_multiboot1(bootinfo);
+    } else if (multiboot_magic == MULTIBOOT2_MAGIC) {
+        dprintf(INFO, "Found a Multiboot2 structure\n");
+        kernel_panic(KERNEL_DEBUG_TRAP, "arch");
+    } else {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** Unknown multiboot structure when checking kernel.\n");
+    }
+
+    dprintf(INFO, "Loaded by '%s' with command line '%s'\n", parameters->bootloader_name, parameters->kernel_cmdline);
+    dprintf(INFO, "Available physical memory to machine: %i KB\n", parameters->mem_size);
+
+    // Start the PMM system
+    uintptr_t *pmm_frames = (uintptr_t*)arch_allocate_structure((parameters->mem_size * 1024) / PMM_BLOCK_SIZE);
+    pmm_init(parameters->mem_size * 1024, pmm_frames);
+
+    arch_mark_memory(parameters);
 
     // The memory subsystem is SEPARATE from the HAL.
     // This is intentional because it requires that we place certain objects such as multiboot information,
     // ACPI tables, PMM bitmaps, etc. all below the required factor.    
-
+    mem_init(highest_kernel_address);
 
     for (;;);
 }
