@@ -6,7 +6,7 @@ OUT_OBJ = $(OBJ_OUTPUT_DIRECTORY)/hexahedron/
 OUT_BUILD = $(BUILD_OUTPUT_DIRECTORY)/hexahedron
 
 # Edit this to add more source directories. MAKE SURE TO HAVE SUBDIRECTORIES SEPARATE!
-SOURCE_DIRECTORIES = kernel drivers debug kernel/panic
+SOURCE_DIRECTORIES = kernel drivers debug kernel/panic mem
 
 # Include the architecture Make configuration
 include arch/$(BUILD_ARCH)/make.config
