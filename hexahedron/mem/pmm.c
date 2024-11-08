@@ -36,6 +36,8 @@ uintptr_t    pmm_maxBlocks = 0;
  * @param frames_bitmap The bitmap of frames allocated to the system (mapped into memory)
  */
 int pmm_init(uintptr_t memsize, uintptr_t *frames_bitmap) {
+    if (!memsize || !frames_bitmap) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "physmem");
+
     pmm_memorySize = memsize;
     pmm_maxBlocks = pmm_memorySize / PMM_BLOCK_SIZE;
     pmm_usedBlocks = pmm_maxBlocks; // By default, all is in use. You must mark valid memory manually
@@ -45,6 +47,8 @@ int pmm_init(uintptr_t memsize, uintptr_t *frames_bitmap) {
 
     // Set the bitmap to be all in use by default
     memset(frames, 0xF, nframes / 8);
+
+    return 0;
 }
 
 // Set a frame/bit in the frames array
@@ -206,9 +210,9 @@ void pmm_freeBlocks(uintptr_t base, size_t blocks) {
     if (!blocks) return;
     
     // Careful not to cause a div by zero on base.
-    int align = (base == 0x0) ? 0x0: base / PMM_BLOCK_SIZE;
+    int frame = (base == 0x0) ? 0x0: base / PMM_BLOCK_SIZE;
     
-    for (uint32_t i = 0; i < blocks; i++) pmm_clearFrame(base + i);
+    for (uint32_t i = 0; i < blocks; i++) pmm_clearFrame(frame + i);
 
     pmm_usedBlocks -= blocks;
 }
