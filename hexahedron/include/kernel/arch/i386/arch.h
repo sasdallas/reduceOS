@@ -22,4 +22,18 @@
 void arch_say_hello();
 
 
+/**
+ * @brief Parse a Multiboot 1 header and packs into a @c generic_parameters structure
+ * @param bootinfo The Multiboot information
+ * @returns A generic parameters structure
+ */
+generic_parameters_t *arch_parse_multiboot1(multiboot_t *bootinfo);
+
+/**
+ * @brief Mark/unmark valid spots in memory
+ * @todo Work in tandem with mem.h to allow for a maximum amount of blocks to be used
+ */
+void arch_mark_memory(generic_parameters_t *parameters);
+
+
 #endif
