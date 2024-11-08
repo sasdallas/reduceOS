@@ -1,9 +1,9 @@
 /**
  * @file hexahedron/include/kernel/multiboot.h
- * @brief Multiboot header
+ * @brief Multiboot1 header
  * 
  * This isn't architecture-specific. GRUB uses it to boot multiple architectures.
- * 
+ * @see include/kernel/multiboot2.h for the Multiboot2 header
  * 
  * @copyright
  * No copyright on this file. The structure was sourced from GRUB documentation.
@@ -12,8 +12,12 @@
 #ifndef _KERNEL_MULTIBOOT_H
 #define _KERNEL_MULTIBOOT_H
 
+/**** INCLUDES ****/
 #include <stdint.h>
 
+/**** TYPES ****/
+
+/* Multiboot 1 */
 typedef struct _multiboot_t
 {
 	uint32_t flags;
@@ -57,7 +61,8 @@ typedef struct _multiboot_t
 } __attribute__ ((packed)) multiboot_t;
 
 
-// Numbers bootloader provides
+
+/**** DEFINITIONS ****/
 #define MULTIBOOT_MAGIC 0x2BADB002
 #define MULTIBOOT2_MAGIC 0x36D76289
 
