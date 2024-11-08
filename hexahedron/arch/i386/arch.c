@@ -138,6 +138,12 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     // Mark memory as valid/invalid. 
     arch_mark_memory(parameters, highest_kernel_address);
 
+    extern uint32_t __text_start;
+    uintptr_t kernel_end = (uintptr_t)&__bss_end;
+    uintptr_t kernel_start = (uintptr_t)&__text_start;
+    dprintf(INFO, "Kernel is using %i KB in memory - extra datastructures are using %i KB\n", (kernel_end - kernel_start) / 1024, (highest_kernel_address - kernel_end) / 1024);
+
+
 
     // The memory subsystem is SEPARATE from the HAL.
     // This is intentional because it requires that we place certain objects such as multiboot information,

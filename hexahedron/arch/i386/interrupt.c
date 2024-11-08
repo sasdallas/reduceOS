@@ -46,12 +46,14 @@ void hal_endInterrupt(uint32_t interrupt_number) {
  * @brief Common exception handler
  */
 void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
-    dprintf(ERR, "\n!!! FATAL: CPU exception %i was found\n\n", exception_index);
+    // TODO: Replace with kernel panic handler
+    dprintf(NOHEADER, "\n\n");
+    dprintf(ERR, "!!! FATAL: CPU exception %i was found\n\n", exception_index);
     dprintf(INFO, "EDI %08x ESI %08x EBP %08x ESP %08x\n", regs->edi, regs->esi, regs->ebp, regs->esp);
     dprintf(INFO, "EBX %08x EDX %08x ECX %08x EAX %08x\n", regs->ebx, regs->edx, regs->ecx, regs->eax);
     dprintf(INFO, "ERR %08x EIP %08x\n\n", regs->err_code, regs->eip);
     dprintf(INFO, "CS %04x DS %04x ES %04x GS %04x\n", regs->cs, regs->ds, regs->es, regs->gs);
-    dprintf(INFO, "GDTR %08x %04x\nIDTR %08x %04x\n", regs_extended->gdtr.base, regs_extended->gdtr.limit, regs_extended->idtr.base, regs_extended->idtr.limit);
+    dprintf(INFO, "GDTR %08x %04x IDTR %08x %04x\n", regs_extended->gdtr.base, regs_extended->gdtr.limit, regs_extended->idtr.base, regs_extended->idtr.limit);
 
     for (;;);
 }

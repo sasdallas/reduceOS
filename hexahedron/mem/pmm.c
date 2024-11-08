@@ -162,6 +162,8 @@ uintptr_t pmm_allocateBlock() {
     pmm_setFrame(frame);
     pmm_usedBlocks++;
     
+
+    dprintf(DEBUG, "pmm: Frame %i allocated\n", frame);
     return (uintptr_t)(frame * PMM_BLOCK_SIZE);
 
 _oom:
@@ -174,9 +176,9 @@ _oom:
  * @param block The address of the block
  */
 void pmm_freeBlock(uintptr_t block) {
-    if (!block || block % PMM_BLOCK_SIZE != 0) return;
+    if (block % PMM_BLOCK_SIZE != 0) return;
 
-    int frame = block / PMM_BLOCK_SIZE;
+    int frame = (block == 0x0) ? 0: block / PMM_BLOCK_SIZE;
     pmm_clearFrame(frame);
     pmm_usedBlocks--;
 }

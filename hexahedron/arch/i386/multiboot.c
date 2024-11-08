@@ -147,13 +147,16 @@ _done_modules:
             
         }
 
-        dprintf(DEBUG, "Memory descriptor 0x%x - 0x%016llX len 0x%016llX type 0x%x last descriptor 0x%x\n", descriptor, descriptor->address, descriptor->length, descriptor->type, last_mmap_descriptor);
+        // Debugging output
+        // dprintf(DEBUG, "Memory descriptor 0x%x - 0x%016llX len 0x%016llX type 0x%x last descriptor 0x%x\n", descriptor, descriptor->address, descriptor->length, descriptor->type, last_mmap_descriptor);
 
+        // If we're not the first update the last memory map descriptor
         if ((uintptr_t)mmap != bootinfo->mmap_addr) {
             last_mmap_descriptor->next = descriptor;
             last_mmap_descriptor = descriptor;
         }
 
+        // Reallocate & repeat
         descriptor = (generic_mmap_desc_t*)arch_allocate_structure(sizeof(generic_mmap_desc_t));
     }
 
@@ -178,7 +181,7 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
         }
 
         if (mmap->type == GENERIC_MEMORY_AVAILABLE) {
-            dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB)\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024);
+            dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024);
             pmm_initializeRegion((uintptr_t)mmap->address, (uintptr_t)mmap->length);
         } 
 
@@ -187,7 +190,8 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
 
     // Unmark kernel region
     extern uint32_t __text_start;
-    uint32_t kernel_start = (uint32_t)&__text_start;
+    uintptr_t kernel_start = (uint32_t)&__text_start;
+    dprintf(DEBUG, "Marked memory descriptor %016X - %016X (%i KB) as kernel memory\n", kernel_start, highest_address, (highest_address - kernel_start) / 1024);
     pmm_deinitializeRegion(kernel_start, highest_address - kernel_start);    
 
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());

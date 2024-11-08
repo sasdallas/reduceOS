@@ -185,5 +185,5 @@ bad_page:
  * @param high_address The ending address of the kernel including all data structures copied. 
  */
 void mem_init(uintptr_t high_address) {
-
+    
 }
