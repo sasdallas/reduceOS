@@ -6,7 +6,7 @@ OUT_OBJ = $(OBJ_OUTPUT_DIRECTORY)/hexahedron/
 OUT_BUILD = $(BUILD_OUTPUT_DIRECTORY)/hexahedron
 
 # Edit this to add more source directories. MAKE SURE TO HAVE SUBDIRECTORIES SEPARATE!
-SOURCE_DIRECTORIES = kernel drivers debug
+SOURCE_DIRECTORIES = kernel drivers debug kernel/panic
 
 # Include the architecture Make configuration
 include arch/$(BUILD_ARCH)/make.config
@@ -63,6 +63,10 @@ PRINT_HEADER:
 	@echo
 	@echo
 
+# Recompilation
+DELETE_OBJECTS:
+	@-rm $(OUT_OBJ)/kernel/config.o 
+	@-rm $(OUT_OBJ)/kernel/panic/panic_messages.o
 
 # Main kernel build targets
 install-headers:
@@ -70,7 +74,7 @@ install-headers:
 	@-mkdir -pv $(DESTDIR)$(INCLUDE_DIRECTORY)
 	cp -rp include/kernel $(DESTDIR)$(INCLUDE_DIRECTORY)
 
-install: PRINT_HEADER CREATE_BUILD_DIRECTORIES $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
+install: PRINT_HEADER CREATE_BUILD_DIRECTORIES DELETE_OBJECTS $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
 
 clean:
 	@-rm -r $(OUT_OBJ)

@@ -21,6 +21,7 @@
 #include <kernel/config.h>
 #include <kernel/multiboot.h>
 #include <kernel/debug.h>
+#include <kernel/panic.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
@@ -47,6 +48,25 @@ void arch_say_hello() {
     
     dprintf(NOHEADER, "\tCompiled by %s on %s %s\n\n", __kernel_compiler, __kernel_build_date, __kernel_build_time);
 }
+
+/**
+ * @brief Prepare the architecture to enter a fatal state. This means cleaning up registers,
+ * moving things around, whatever you need to do
+ */
+void arch_panic_prepare() {
+}
+
+/**
+ * @brief Finish handling the panic, clean everything up and halt.
+ * @note Does not return
+ */
+void arch_panic_finalize() {
+    // Disable interrupts & halt
+    asm volatile ("cli\nhlt");
+    for (;;);
+}
+
+
 
 /** 
  * @brief Parse a Multiboot 2 header.
