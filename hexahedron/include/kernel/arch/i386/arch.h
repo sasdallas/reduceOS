@@ -13,6 +13,10 @@
 #ifndef KERNEL_ARCH_I386_ARCH_H
 #define KERNEL_ARCH_I386_ARCH_H
 
+/**** INCLUDES ****/
+#include <kernel/generic_mboot.h>
+#include <kernel/multiboot.h>
+
 
 /**** FUNCTIONS ****/
 

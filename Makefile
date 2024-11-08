@@ -44,3 +44,7 @@ headerlog:
 	@echo "[ $(header) ]"
 	@echo
 	@echo
+
+qemu:
+	$(MAKE) headerlog header="Launching QEMU..."
+	qemu-system-i386 -cdrom build-output/hexahedron.iso
