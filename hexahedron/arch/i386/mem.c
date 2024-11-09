@@ -29,8 +29,11 @@
 #include <kernel/arch/arch.h>
 
 
-static page_t  *mem_currentDirectory;       // Current page directory. Contains a list of page table entries (PTEs).
- 
+static page_t       *mem_currentDirectory;      // Current page directory. Contains a list of page table entries (PTEs).
+static page_t       *mem_kernelDirectory;       // Kernel page directory
+                                                // ! We're using this correctly, right?
+
+static uintptr_t    mem_kernelHeap;             // Location of the kernel heap in memory
 
 
 /**
@@ -78,11 +81,11 @@ void mem_setPaging(bool status) {
         uint32_t cr0, cr4;
 
         asm volatile ("mov %%cr4, %0" : "=r"(cr4));
-        cr4 = cr4 & ~CR4_PSE_BIT; // Clear PSE bit
+        cr4 = cr4 & 0xFFFFFFEF; // Clear PSE bit
         asm volatile ("mov %0, %%cr4" :: "r"(cr4));
 
         asm volatile ("mov %%cr0, %0" : "=r"(cr0));
-        cr0 = cr0 | CR0_PG_PE_BIT | CR0_WP_BIT; // Enable paging
+        cr0 = cr0 | 0x80010001; // Enable paging
         asm volatile ("mov %0, %%cr0" :: "r"(cr0));
     } else {
         uint32_t cr0;
@@ -162,7 +165,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
         pde->bits.present = 1;
         pde->bits.rw = 1;
         pde->bits.usermode = 1; // FIXME: Not upholding security 
-        pde->bits.address = block;
+        pde->bits.address = (block >> MEM_PAGE_SHIFT);
     }
 
     // Calculate the table index
@@ -175,7 +178,6 @@ bad_page:
     return NULL;
 }
 
-
 /**
  * @brief Initialize the memory management subsystem
  * 
@@ -185,5 +187,108 @@ bad_page:
  * @param high_address The ending address of the kernel including all data structures copied. 
  */
 void mem_init(uintptr_t high_address) {
+    if (!high_address) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "mem");
+    mem_kernelHeap = high_address;
+
+    // Get ourselves a page directory
+    // !!!: Is this okay? Do we need to again put things in data structures?
+    page_t *page_directory = (page_t*)pmm_allocateBlock();
+    memset(page_directory, 0, PMM_BLOCK_SIZE);
+
     
+    // We only have access to 4GB of VAS because of 32-bit protected mode
+    // If and when PAE support is implemented into the kernel, we'd get a little more but some machines
+    // have much more than that anyways. We need to access PMM memory or else we'll fault everything out of existence.
+    // Hexahedron uses a memory map that has mapped PMM memory accessible through a range,
+    // which is limited to something like 786 MB (see arch/i386/mem.h)
+
+    size_t frame_bytes = pmm_getMaximumBlocks() * PMM_BLOCK_SIZE;
+    size_t frame_pages = (frame_bytes >> MEM_PAGE_SHIFT);
+
+    if (frame_bytes > MEM_IDENTITY_MAP_SIZE) {
+        dprintf(WARN, "Too much memory in PMM bitmap. Maximum allowed memory size is %i KB and found %i KB - limiting size\n", MEM_IDENTITY_MAP_SIZE / 1024, frame_bytes / 1024);
+    }
+
+    // Identity map!
+    uintptr_t frame = 0x0;
+    uintptr_t table_frame = 0x0;
+    int loop_cycles = (frame_pages + 1024) / 1024;
+    int pages_mapped = 0;
+
+    for (int i = 0; i < loop_cycles; i++) {
+        page_t *page_table = (page_t*)pmm_allocateBlock();
+        memset(page_table, 0, PMM_BLOCK_SIZE);
+
+        for (int pg = 0; pg < 1024; pg++) {
+            page_t page = {.data = 0};
+            page.bits.present = 1;
+            page.bits.rw = 1;
+            page.bits.usermode = 1; // uhhhhh
+            page.bits.address = (frame >> MEM_PAGE_SHIFT);
+            
+            page_table[MEM_PAGETBL_INDEX(frame + MEM_IDENTITY_MAP_REGION)] = page;
+
+            pages_mapped++;
+            if (pages_mapped == (int)(frame_pages)) break;
+            frame += 0x1000;
+        }
+        
+        // Create a PDE
+        page_t *pde = &(page_directory[MEM_PAGEDIR_INDEX(table_frame + MEM_IDENTITY_MAP_REGION)]);
+        pde->bits.present = 1;
+        pde->bits.rw = 1;
+        pde->bits.usermode = 1; // uhhhhhhhhhh
+        pde->bits.address = ((uintptr_t)page_table >> MEM_PAGE_SHIFT);
+        table_frame += 0x1000 * 1024;
+
+        if (pages_mapped == (int)frame_pages) break;
+    }
+
+    uintptr_t heap_start_aligned = ((uintptr_t)mem_kernelHeap + 0xFFF) & ~0xFFF;
+    uintptr_t kernel_pages = (uintptr_t)heap_start_aligned >> MEM_PAGE_SHIFT;
+
+    // Calculate cycles and reset values
+    loop_cycles = (kernel_pages + 1024) / 1024;
+    pages_mapped = 0;
+
+    frame = 0x0;
+    table_frame = 0x0;
+
+    for (int i = 0; i < loop_cycles; i++) {
+        page_t *page_table = (page_t*)pmm_allocateBlock();
+        memset(page_table, 0, PMM_BLOCK_SIZE);
+
+        for (int pg = 0; pg < 1024; pg++) {
+            page_t page = {.data = 0};
+            page.bits.present = 1;
+            page.bits.rw = 1;
+            page.bits.address = (frame >> MEM_PAGE_SHIFT);
+            
+            page_table[MEM_PAGETBL_INDEX(frame)] = page;
+
+            pages_mapped++;
+            if (pages_mapped == (int)(frame_pages)) break;
+
+            frame += 0x1000;
+        }
+        
+        // Create a PDE
+        page_t *pde = &(page_directory[MEM_PAGEDIR_INDEX(table_frame)]);
+        pde->bits.present = 1;
+        pde->bits.rw = 1;
+        pde->bits.address = ((uintptr_t)page_table >> MEM_PAGE_SHIFT);
+        table_frame += 0x1000 * 1024;
+
+        if (pages_mapped == (int)frame_pages) break;
+    }
+
+    // All done mapping for now. The memory map should look something like this:
+    // 0x00000000 - 0x00400000 is kernel code (-RW)
+    // 0xB0000000 - 0xBFFFFFFF is PMM mapped memory (URW)
+    // !! PMM mapped memory is exposed. Very bad.
+
+    dprintf(INFO, "Finished creating memory map.\n");
+    mem_kernelDirectory = page_directory;
+    mem_switchDirectory(mem_kernelDirectory);
+    mem_setPaging(true);
 }

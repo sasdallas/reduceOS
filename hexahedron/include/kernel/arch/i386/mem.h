@@ -48,7 +48,7 @@ typedef union page {
         uint32_t pat:1;
         uint32_t global:1;
         uint32_t available:3;
-        uint32_t address:19;
+        uint32_t address:20;
     } bits;
 
     // Or you can manipulate the page raw

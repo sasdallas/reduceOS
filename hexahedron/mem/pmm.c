@@ -162,8 +162,6 @@ uintptr_t pmm_allocateBlock() {
     pmm_setFrame(frame);
     pmm_usedBlocks++;
     
-
-    dprintf(DEBUG, "pmm: Frame %i allocated\n", frame);
     return (uintptr_t)(frame * PMM_BLOCK_SIZE);
 
 _oom:
