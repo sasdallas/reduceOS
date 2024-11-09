@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-/**** TYPE DEFINITIONS ****/
+/**** TYPES ****/
 typedef int (*log_putchar_method_t)(char ch); // Put character method used by logger
 
 typedef enum {
@@ -31,6 +31,15 @@ typedef enum {
     ERR = 3,            // Prefix with [ERR ]
     DEBUG = 4,          // Prefix with [DBG ]
 } DEBUG_LOG_TYPE;
+
+/**** DEFINITIONS ****/
+
+// NOTE: These colors won't actually be used by dprintf. You have to manually specify them.
+#define INFO_COLOR_CODE     "\033[36m\033[36m"
+#define WARN_COLOR_CODE     "\033[33m\033[33m"
+#define ERR_COLOR_CODE      "\033[31m\033[31m"
+#define DEBUG_COLOR_CODE    "\033[37m\033[37m"
+
 
 /**** FUNCTIONS ****/
 

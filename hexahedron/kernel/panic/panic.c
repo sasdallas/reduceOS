@@ -61,7 +61,7 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     arch_panic_prepare();
 
     // Start by printing out debug messages
-    dprintf(NOHEADER, "\n\n");
+    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\n");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
@@ -96,7 +96,7 @@ void kernel_panic(uint32_t bugcode, char *module) {
     arch_panic_prepare();
 
     // Start by printing out debug messages
-    dprintf(NOHEADER, "\n\n");
+    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\n");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
@@ -111,20 +111,18 @@ void kernel_panic(uint32_t bugcode, char *module) {
 /**
  * @brief Prepare the system to enter a panic state
  * 
- * @param bugcode Optional bugcode to display. Leave as NULL.
+ * @param bugcode Optional bugcode to display. Leave as NULL to not use (note: generic string will not be printed)
  */
 void kernel_panic_prepare(uint32_t bugcode) {
     arch_panic_prepare();
 
-    dprintf(NOHEADER, "\n\n");
+    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\n\033[0;31m");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
 
     if (bugcode) {
-        dprintf(NOHEADER, "*** STOP: %s", kernel_bugcode_strings[bugcode]);
-        dprintf(NOHEADER, "*** %s\n", kernel_panic_messages[bugcode]);
-        dprintf(NOHEADER, "\nAdditional information will be printed below.\n");
+        dprintf(NOHEADER, "\033[1;31m*** STOP: %s\n", kernel_bugcode_strings[bugcode]);
     }
 }
 

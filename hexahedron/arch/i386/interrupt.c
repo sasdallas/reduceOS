@@ -20,6 +20,7 @@
 #include <kernel/hal.h>
 
 #include <kernel/debug.h>
+#include <kernel/panic.h>
 
 #include <stdint.h>
 #include <string.h>
@@ -34,6 +35,44 @@ i386_interrupt_descriptor_t hal_idt_table[I86_MAX_INTERRUPTS];
 /* Interrupt handler table - TODO: More than one handler per interrupt? */
 interrupt_handler_t hal_handler_table[I86_MAX_INTERRUPTS];
 
+
+/* String table for exceptions */
+const char *hal_exception_table[I86_MAX_EXCEPTIONS] = {
+    "division error",
+    "debug trap",
+    "NMI exception",
+    "breakpoint trap",
+    "overflow trap",
+    "bound range exceeded",
+    "invalid opcode",
+    "device not available",
+    "double fault",
+    "coprocessor segment overrun",
+    "invalid TSS",
+    "segment not present",
+    "stack-segment fault",
+    "general protection fault",
+    "page fault",
+    "reserved",
+    "FPU exception",
+    "alignment check",
+    "machine check",
+    "SIMD floating-point exception",
+    "virtualization exception",
+    "control protection exception",
+    "reserved",
+    "reserved",
+    "reserved",
+    "reserved",
+    "reserved",
+    "reserved",
+    "hypervisor injection exception",
+    "VMM communication exception",
+    "security exception"
+};
+
+
+
 /**
  * @brief Handle ending an interrupt
  */
@@ -46,15 +85,24 @@ void hal_endInterrupt(uint32_t interrupt_number) {
  * @brief Common exception handler
  */
 void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
-    // TODO: Replace with kernel panic handler
     // TODO: Exception handlers
-    dprintf(NOHEADER, "\n\n");
-    dprintf(ERR, "!!! FATAL: CPU exception %i was found\n\n", exception_index);
-    dprintf(INFO, "EDI %08x ESI %08x EBP %08x ESP %08x\n", regs->edi, regs->esi, regs->ebp, regs->esp);
-    dprintf(INFO, "EBX %08x EDX %08x ECX %08x EAX %08x\n", regs->ebx, regs->edx, regs->ecx, regs->eax);
-    dprintf(INFO, "ERR %08x EIP %08x\n\n", regs->err_code, regs->eip);
-    dprintf(INFO, "CS %04x DS %04x ES %04x GS %04x\n", regs->cs, regs->ds, regs->es, regs->gs);
-    dprintf(INFO, "GDTR %08x %04x IDTR %08x %04x\n", regs_extended->gdtr.base, regs_extended->gdtr.limit, regs_extended->idtr.base, regs_extended->idtr.limit);
+    kernel_panic_prepare(CPU_EXCEPTION_UNHANDLED);
+
+    if (exception_index < I86_MAX_EXCEPTIONS) {
+        dprintf(NOHEADER, "*** ISR detected exception %i - %s\n\n", exception_index, hal_exception_table[exception_index]);
+    } else {
+        dprintf(NOHEADER, "*** ISR detected exception %i - UNKNOWN TYPE\n\n", exception_index);
+    }
+    
+    dprintf(NOHEADER, "\033[1;31mFAULT REGISTERS:\n\033[0;31m");
+
+    dprintf(NOHEADER, "EAX %08x EBX %08x ECX %08x EDX %08x\n", regs->eax, regs->ebx, regs->ecx, regs->edx);
+    dprintf(NOHEADER, "EDI %08x ESI %08x EBP %08x ESP %08x\n", regs->edi, regs->esi, regs->ebp, regs->esp);
+    dprintf(NOHEADER, "ERR %08x EIP %08x\n\n", regs->err_code, regs->eip);
+    dprintf(NOHEADER, "CS %04x DS %04x ES %04x GS %04x\n", regs->cs, regs->ds, regs->es, regs->gs);
+    dprintf(NOHEADER, "GDTR %08x %04x\nIDTR %08x %04x\n", regs_extended->gdtr.base, regs_extended->gdtr.limit, regs_extended->idtr.base, regs_extended->idtr.limit);
+
+    kernel_panic_finalize();
 
     for (;;);
 }

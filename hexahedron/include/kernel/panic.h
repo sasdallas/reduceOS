@@ -59,7 +59,7 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...);
 /**
  * @brief Prepare the system to enter a panic state
  * 
- * @param bugcode Optional bugcode to display. Leave as NULL.
+ * @param bugcode Optional bugcode to display. Leave as NULL to not use (note: generic string will not be printed)
  */
 void kernel_panic_prepare(uint32_t bugcode);
 

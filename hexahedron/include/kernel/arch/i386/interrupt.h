@@ -66,6 +66,7 @@ typedef int (*interrupt_handler_t)(registers_t*, extended_registers_t*);
 #define I86_IDT_DESC_RING3 0x60     // 01100000
 #define I86_IDT_DESC_PRESENT 0x80   // 10000000
 #define I86_MAX_INTERRUPTS  255
+#define I86_MAX_EXCEPTIONS  31
 
 // PIC definitions
 #define I86_PIC1_ADDR       0x20                // Master PIC address
