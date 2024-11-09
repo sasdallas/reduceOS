@@ -30,14 +30,15 @@
 /**** DEFINITIONS ****/
 
 // Flags for the memory mapper
+// TODO: These are kinda gross.
 #define MEM_DEFAULT             0x00    // Default settings to memory allocator (usermode, writable, and present)
 #define MEM_CREATE              0x01    // Create the page. Commonly used with mem_getPage during mappings
 #define MEM_KERNEL              0x02    // The page is kernel-mode only
 #define MEM_READONLY            0x04    // The page is read-only
 #define MEM_WRITETHROUGH        0x08    // The page is marked as writethrough
 #define MEM_NOT_CACHEABLE       0x10    // The page is not cacheable
-#define MEM_NOALLOC             0x20    // Do not allocate the page and instead use what was given
-#define MEM_NOT_PRESENT         0x40    // The page is not present in memory
+#define MEM_NOT_PRESENT         0x20    // The page is not present in memory
+#define MEM_NOALLOC             0x40    // Do not allocate the page and instead use what was given
 #define MEM_FREE_PAGE           0x80    // Free the page. Sets it to zero if specified in mem_allocatePage
 
 /**** FUNCTIONS ****/
@@ -46,11 +47,13 @@
  * @brief Get the physical address of a virtual address
  * @param dir Can be NULL to use the current directory.
  * @param virtaddr The virtual address
+ * 
+ * @returns NULL on a PDE not being present or the address
  */
-uintptr_t mem_getPhysicalAddress(page_directory_t *dir, uintptr_t virtaddr);
+uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr);
 
 /**
- * @brief Returns the page entry requested as a PTE
+ * @brief Returns the page entry requested
  * @param dir The directory to search. Specify NULL for current directory
  * @param addr The virtual address of the page
  * @param flags The flags of the page to look for
@@ -74,12 +77,8 @@ int mem_switchDirectory(page_t *pagedir);
 /**
  * @brief Get the kernel page directory
  */
-page_directory_t *mem_getKernelDirectory();
+page_t *mem_getKernelDirectory();
 
-/**
- * @brief Finalize any changes to the memory system
- */
-void mem_finalize();
 
 /**
  * @brief Map a physical address to a virtual address
@@ -88,7 +87,7 @@ void mem_finalize();
  * @param phys The physical address
  * @param virt The virtual address
  */
-void mem_mapAddress(page_directory_t *dir, uintptr_t phys, uintptr_t virt);
+void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt);
 
 /**
  * @brief Allocate a page using the physical memory manager
@@ -97,9 +96,9 @@ void mem_mapAddress(page_directory_t *dir, uintptr_t phys, uintptr_t virt);
  * @param flags The flags to follow when setting up the page
  * 
  * @note You can also use this function to set bits of a specific page - just specify @c MEM_NOALLOC in @p flags.
- * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified.
+ * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified and there isn't a frame already set.
  */
-void mem_allocatePage(pte_t *page, uint32_t flags);
+void mem_allocatePage(page_t *page, uintptr_t flags);
 
 /**
  * @brief Remap a physical memory manager address to the identity mapped region
@@ -117,7 +116,7 @@ void mem_outofmemory(int bytes, char *seq);
 /**
  * @brief Get the current page directory
  */
-page_directory_t *mem_getCurrentDirectory();
+page_t *mem_getCurrentDirectory();
 
 /**
  * @brief Clone a page directory.
@@ -142,16 +141,16 @@ void mem_init(uintptr_t high_address);
  * 
  * @param page The page to free 
  */
-void mem_freePage(pte_t *page);
+void mem_freePage(page_t *page);
 
 
 /**
  * @brief Expand/shrink the kernel heap
  * 
- * @param b The amount of bytes to allocate, needs to a multiple of PAGE_SIZE
- * @returns Address of the start of the bytes 
+ * @param b The amount of bytes to allocate/free, needs to a multiple of PAGE_SIZE
+ * @returns Address of the start of the bytes when allocating, or the previous address when shrinking
  */
-void *mem_sbrk(int b);
+uintptr_t mem_sbrk(int b);
 
 /**
  * @brief Enable/disable paging

@@ -150,5 +150,8 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     // ACPI tables, PMM bitmaps, etc. all below the required factor.    
     mem_init(highest_kernel_address);
 
+    uintptr_t *a = (uintptr_t*)0xC0000000;
+    dprintf(DEBUG, "0x%x\n", *a);
+
     for (;;);
 }

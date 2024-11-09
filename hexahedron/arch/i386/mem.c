@@ -134,7 +134,64 @@ int mem_switchDirectory(page_t *pagedir) {
 
 
 /**
- * @brief Returns the page entry requested as a PTE
+ * @brief Get the current page directory
+ */
+page_t *mem_getCurrentDirectory() {
+    return mem_currentDirectory;
+}
+
+/**
+ * @brief Get the kernel page directory
+ */
+page_t *mem_getKernelDirectory() {
+    return mem_kernelDirectory;
+}
+
+
+/**
+ * @brief Get the physical address of a virtual address
+ * @param dir Can be NULL to use the current directory.
+ * @param virtaddr The virtual address
+ * 
+ * @returns NULL on a PDE not being present or the address
+ */
+uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
+    page_t *directory = (dir == NULL) ? mem_currentDirectory : dir;
+    
+    // Get the directory entry and its corresponding table
+    page_t *pde = &(directory[MEM_PAGEDIR_INDEX(virtaddr)]);
+    if (pde->bits.present == 0) {
+        // The PDE wasn't present
+        return (uintptr_t)NULL;
+    }
+
+    page_t *table = (page_t*)(mem_remapPhys(MEM_GET_FRAME(pde))); // Remember to remap any frames to that identity map area.
+    page_t *pte = &(table[MEM_PAGETBL_INDEX(virtaddr)]);
+    
+    return MEM_GET_FRAME(pte);
+}
+
+/**
+ * @brief Map a physical address to a virtual address
+ * 
+ * @param dir The directory to map them in (leave blank for current)
+ * @param phys The physical address
+ * @param virt The virtual address
+ */
+void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
+    page_t *directory = (dir == NULL) ? mem_currentDirectory : dir;
+
+    // Get the page
+    page_t *page = mem_getPage(directory, virt, MEM_CREATE);
+
+    // "Allocate" it but don't set a frame, instead set it to phys
+    mem_allocatePage(page, MEM_NOALLOC);
+    MEM_SET_FRAME(page, phys);
+}
+
+
+/**
+ * @brief Returns the page entry requested
  * @param dir The directory to search. Specify NULL for current directory
  * @param addr The virtual address of the page
  * @param flags The flags of the page to look for
@@ -158,17 +215,15 @@ page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
         // Allocate a new PDE and zero it
         uintptr_t block = pmm_allocateBlock();
         memset((void*)mem_remapPhys(block), 0, PAGE_SIZE);
-
-        dprintf(DEBUG, "Creating a PDE at 0x%x\n", block);
-
+        
         // Setup the bits in the directory index
         pde->bits.present = 1;
         pde->bits.rw = 1;
         pde->bits.usermode = 1; // FIXME: Not upholding security 
-        pde->bits.address = (block >> MEM_PAGE_SHIFT);
+        MEM_SET_FRAME(pde, block);
     }
 
-    // Calculate the table index
+    // Calculate the table index (complex bc MEM_GET_FRAME is for pointers, and I'm lazy)
     page_t *table = (page_t*)((uintptr_t)(directory[MEM_PAGEDIR_INDEX(addr)].bits.address << MEM_PAGE_SHIFT));
     
     // Return the page
@@ -176,6 +231,54 @@ page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
 
 bad_page:
     return NULL;
+}
+
+/**
+ * @brief Allocate a page using the physical memory manager
+ * 
+ * @param page The page object to use. Can be obtained with mem_getPage
+ * @param flags The flags to follow when setting up the page
+ * 
+ * @note You can also use this function to set bits of a specific page - just specify @c MEM_NOALLOC in @p flags.
+ * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified and there isn't a frame already set.
+ */
+void mem_allocatePage(page_t *page, uintptr_t flags) {
+    if (flags & MEM_FREE_PAGE) {
+        // Just free the page
+        mem_freePage(page);
+        return;
+    }
+
+    if (!page->bits.address && !(flags & MEM_NOALLOC)) {
+        // There isn't a frame configured, and the user wants to allocate one.
+        uintptr_t block = pmm_allocateBlock();
+        MEM_SET_FRAME(page, block);
+    }
+
+    // Configure page bits
+    page->bits.present          = (flags & MEM_NOT_PRESENT) ? 0 : 1;
+    page->bits.rw               = (flags & MEM_READONLY) ? 0 : 1;
+    page->bits.usermode         = (flags & MEM_KERNEL) ? 0 : 1;
+    page->bits.writethrough     = (flags & MEM_WRITETHROUGH) ? 1 : 0;
+    page->bits.cache_disable    = (flags & MEM_NOT_CACHEABLE) ? 1 : 0;
+}
+
+/**
+ * @brief Free a page
+ * 
+ * @param page The page to free
+ */
+void mem_freePage(page_t *page) {
+    if (!page) return;
+
+    // Mark the page as not present
+    page->bits.present = 0;
+    page->bits.rw = 0;
+    page->bits.usermode = 0;
+    
+    // Free the block
+    pmm_freeBlock(MEM_GET_FRAME(page));
+    MEM_SET_FRAME(page, 0x0);
 }
 
 /**
@@ -238,7 +341,8 @@ void mem_init(uintptr_t high_address) {
         pde->bits.present = 1;
         pde->bits.rw = 1;
         pde->bits.usermode = 1; // uhhhhhhhhhh
-        pde->bits.address = ((uintptr_t)page_table >> MEM_PAGE_SHIFT);
+        MEM_SET_FRAME(pde, page_table);
+
         table_frame += 0x1000 * 1024;
 
         if (pages_mapped == (int)frame_pages) break;
@@ -276,7 +380,8 @@ void mem_init(uintptr_t high_address) {
         page_t *pde = &(page_directory[MEM_PAGEDIR_INDEX(table_frame)]);
         pde->bits.present = 1;
         pde->bits.rw = 1;
-        pde->bits.address = ((uintptr_t)page_table >> MEM_PAGE_SHIFT);
+        MEM_SET_FRAME(pde, page_table);
+
         table_frame += 0x1000 * 1024;
 
         if (pages_mapped == (int)frame_pages) break;
@@ -291,4 +396,58 @@ void mem_init(uintptr_t high_address) {
     mem_kernelDirectory = page_directory;
     mem_switchDirectory(mem_kernelDirectory);
     mem_setPaging(true);
+}
+
+
+/**
+ * @brief Expand/shrink the kernel heap
+ * 
+ * @param b The amount of bytes to allocate/free, needs to a multiple of PAGE_SIZE
+ * @returns Address of the start of the bytes when allocating, or the previous address when shrinking
+ */
+uintptr_t mem_sbrk(int b) {
+    // Sanity checks
+    if (!mem_kernelHeap) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "Heap not yet ready\n");
+        __builtin_unreachable();
+    }
+
+    // Passing b as 0 means they just want the current heap address
+    if (!b) return mem_kernelHeap;
+
+    // Make sure the passed integer is a multiple of PAGE_SIZE
+    if (b % PAGE_SIZE != 0) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "Heap size expansion must be a multiple of 0x%x\n", PAGE_SIZE);
+        __builtin_unreachable();
+    }
+
+    // If you need to shrink the heap, you can pass a negative integer
+    if (b < 0) {
+        for (uintptr_t i = mem_kernelHeap; i >= mem_kernelHeap + b; i -= 0x1000) {
+            mem_freePage(mem_getPage(NULL, i, 0));
+        }
+
+        uintptr_t oldStart = mem_kernelHeap;
+        mem_kernelHeap += b; // Subtracting wouldn't be very good, would it?
+        return oldStart;
+    }
+
+    for (uintptr_t i = mem_kernelHeap; i < mem_kernelHeap + b; i += 0x1000) {
+        // Check if the page already exists
+        page_t *pagechk = mem_getPage(NULL, i, 0);
+        if (pagechk->bits.present) {
+            // hmmm
+            dprintf(WARN, "sbrk found odd pages at 0x%x - 0x%x\n", i, i + 0x1000);
+            
+            // whatever its free memory
+            continue;
+        }
+
+        page_t *page = mem_getPage(NULL, i, MEM_CREATE);
+        mem_allocatePage(page, MEM_KERNEL);
+    }
+
+    uintptr_t oldStart = mem_kernelHeap;
+    mem_kernelHeap += b;
+    return oldStart;
 }

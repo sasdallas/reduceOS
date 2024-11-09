@@ -47,6 +47,7 @@ void hal_endInterrupt(uint32_t interrupt_number) {
  */
 void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
     // TODO: Replace with kernel panic handler
+    // TODO: Exception handlers
     dprintf(NOHEADER, "\n\n");
     dprintf(ERR, "!!! FATAL: CPU exception %i was found\n\n", exception_index);
     dprintf(INFO, "EDI %08x ESI %08x EBP %08x ESP %08x\n", regs->edi, regs->esi, regs->ebp, regs->esp);
