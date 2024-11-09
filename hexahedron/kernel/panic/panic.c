@@ -110,14 +110,22 @@ void kernel_panic(uint32_t bugcode, char *module) {
 
 /**
  * @brief Prepare the system to enter a panic state
+ * 
+ * @param bugcode Optional bugcode to display. Leave as NULL.
  */
-void kernel_panic_prepare() {
+void kernel_panic_prepare(uint32_t bugcode) {
     arch_panic_prepare();
 
     dprintf(NOHEADER, "\n\n");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
+
+    if (bugcode) {
+        dprintf(NOHEADER, "*** STOP: %s", kernel_bugcode_strings[bugcode]);
+        dprintf(NOHEADER, "*** %s\n", kernel_panic_messages[bugcode]);
+        dprintf(NOHEADER, "\nAdditional information will be printed below.\n");
+    }
 }
 
 /**

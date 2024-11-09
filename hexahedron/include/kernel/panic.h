@@ -21,12 +21,15 @@
 
 /**** STOP CODES ****/
 
-#define     KERNEL_STOP_CODES               4
+#define     KERNEL_STOP_CODES               6
 
 #define     KERNEL_DEBUG_TRAP               0x00000000 // Debugging trap
 #define     MEMORY_MANAGEMENT_ERROR         0x00000001 // Memory management failure
 #define     KERNEL_BAD_ARGUMENT_ERROR       0x00000002 // Critical function was passed a bad argument
 #define     OUT_OF_MEMORY                   0x00000003 // Out of memory in the kernel (note that some mem_ functions take over panicking instead of this)
+#define     IRQ_HANDLER_FAILED              0x00000004 // An IRQ handler did not succeed
+#define     CPU_EXCEPTION_UNHANDLED         0x00000005 // A CPU exception was not handled
+
 
 /**** MESSAGES ****/
 
@@ -55,8 +58,10 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...);
 
 /**
  * @brief Prepare the system to enter a panic state
+ * 
+ * @param bugcode Optional bugcode to display. Leave as NULL.
  */
-void kernel_panic_prepare();
+void kernel_panic_prepare(uint32_t bugcode);
 
 /**
  * @brief Finalize the panic state

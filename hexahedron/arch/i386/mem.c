@@ -43,7 +43,7 @@ static uintptr_t    mem_kernelHeap;             // Location of the kernel heap i
  */
 void mem_outofmemory(int bytes, char *seq) {
     // Prepare to fault
-    kernel_panic_prepare();
+    kernel_panic_prepare(OUT_OF_MEMORY);
 
     // Print out debug messages
     dprintf(NOHEADER, "*** The memory manager failed to allocate enough memory.\n");
