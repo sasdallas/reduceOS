@@ -8,6 +8,9 @@ OUT_BUILD = $(BUILD_OUTPUT_DIRECTORY)/hexahedron
 # Edit this to add more source directories. MAKE SURE TO HAVE SUBDIRECTORIES SEPARATE!
 SOURCE_DIRECTORIES = kernel drivers debug kernel/panic mem
 
+# Edit this to change the allocator in use. ONLY ONE.
+SOURCE_DIRECTORIES += mem/toaru_alloc/
+
 # Include the architecture Make configuration
 include arch/$(BUILD_ARCH)/make.config
 

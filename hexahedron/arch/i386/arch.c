@@ -24,6 +24,7 @@
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 #include <kernel/mem/mem.h>
+#include <kernel/mem/alloc.h>
 #include <kernel/mem/pmm.h>
 #include <kernel/generic_mboot.h>
 
@@ -150,8 +151,10 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     // ACPI tables, PMM bitmaps, etc. all below the required factor.    
     mem_init(highest_kernel_address);
 
-    uintptr_t *a = (uintptr_t*)0xC0000000;
-    dprintf(DEBUG, "0x%x\n", *a);
+    allocator_info_t *info = alloc_getInfo();
+    dprintf(INFO, "Allocator information: %s version %i.%i (valloc %s, profiling %s)\n", info->name, info->version_major, info->version_minor,
+                                            info->support_valloc ? "supported" : "not supported",
+                                            info->support_profile ? "supported" : "not supported");
 
     for (;;);
 }
