@@ -30,7 +30,7 @@ extern uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size);
  * @returns A generic parameters structure
  */
 generic_parameters_t *arch_parse_multiboot2(multiboot_t *bootinfo) {
-    return NULL;
+    return NULL; // TODO
 }
 
 

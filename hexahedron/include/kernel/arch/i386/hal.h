@@ -20,6 +20,11 @@
 #include <kernel/arch/i386/interrupt.h>
 #include <stdint.h>
 
+/**** DEFINITIONS ****/
+
+#define HAL_STAGE_1     1   // Stage 1 of HAL initialization
+#define HAL_STAGE_2     2   // Stage 2 of HAL initialization
+
 /**** FUNCTIONS ****/
  
 
@@ -27,8 +32,12 @@
  * @brief Initialize the hardware abstraction layer
  * 
  * Initializes serial output, memory systems, and much more for I386.
+ *
+ * @param stage What stage of HAL initialization should be performed.
+ *              Specify HAL_STAGE_1 for initial startup, and specify HAL_STAGE_2 for post-memory initialization startup.
+ * @todo A better driver interface is needed.
  */
-void hal_init();
+void hal_init(int stage);
 
 /**
  * @brief Initialize HAL interrupts (IDT, GDT, TSS, etc.)

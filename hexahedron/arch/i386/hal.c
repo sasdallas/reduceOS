@@ -32,14 +32,11 @@
 
 #include <time.h>
 
+
 /**
- * @brief Initialize the hardware abstraction layer
- * 
- * Initializes serial output, memory systems, and much more for I386.
- *
- * @todo A better driver interface is needed.
+ * @brief Stage 1 startup
  */
-void hal_init() {
+static void hal_init_stage1() {
     // Initialize serial logging.
     serial_initialize();
 
@@ -55,6 +52,30 @@ void hal_init() {
 
     // Initialize the PIT
     pit_initialize();
+}
+
+/**
+ * @brief Stage 2 startup
+ */
+static void hal_init_stage2() {
+    
+}
+
+/**
+ * @brief Initialize the hardware abstraction layer
+ * 
+ * Initializes serial output, memory systems, and much more for I386.
+ *
+ * @param stage What stage of HAL initialization should be performed.
+ *              Specify HAL_STAGE_1 for initial startup, and specify HAL_STAGE_2 for post-memory initialization startup.
+ * @todo A better driver interface is needed.
+ */
+void hal_init(int stage) {
+    if (stage == HAL_STAGE_1) {
+        hal_init_stage1();
+    } else if (stage == HAL_STAGE_2) {
+        hal_init_stage2();
+    }
 }
 
 /* We do not need documentation comments for outportb/inportb/etc. */

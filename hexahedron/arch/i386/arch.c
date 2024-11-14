@@ -109,8 +109,8 @@ uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
  * @returns Does not return
  */
 __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
-    // Initialize the HAL. This sets up interrupts & more.
-    hal_init();
+    // Initialize the HAL in stage #1. This sets up interrupts & more.
+    hal_init(HAL_STAGE_1);
 
     // Align the kernel address
     highest_kernel_address += PAGE_SIZE;
