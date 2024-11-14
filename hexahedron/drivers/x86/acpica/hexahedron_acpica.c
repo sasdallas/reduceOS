@@ -16,3 +16,5 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+#include <include/platform/acenv.h>
+#include <include/actypes.h>
