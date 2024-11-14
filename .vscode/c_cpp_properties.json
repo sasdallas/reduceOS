@@ -1,26 +1,26 @@
 {
-    "configurations": [
-        {
-            "name": "linux-gcc-x64",
-            "includePath": [
-                "${workspaceFolder}/**"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "${default}",
-            "cppStandard": "${default}",
-            "intelliSenseMode": "linux-gcc-x64",
-            "compilerArgs": [
-                "-D__LIBK ",
-                "-D__KERNEL__ ",
-                "-D__REDUCEOS__ ",
-                "-ffreestanding",
-                "-D__ARCH_I386__",
-                "-m32",
-                "--sysroot",
-                "${workspaceFolder}/build-output/sysroot/"
-            ]
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "linux-gcc-x64",
+      "includePath": [
+        "${workspaceFolder}/**"
+      ],
+      "defines": [],
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "${default}",
+      "cppStandard": "${default}",
+      "intelliSenseMode": "linux-gcc-x64",
+      "compilerArgs": [
+        "-D__LIBK ",
+        "-D__KERNEL__ ",
+        "-D__REDUCEOS__ ",
+        "-ffreestanding",
+        "-D__ARCH_I386__",
+        "-m32",
+        "--sysroot",
+        "${workspaceFolder}/build-output/sysroot/"
+      ]
+    }
+  ],
+  "version": 4
 }

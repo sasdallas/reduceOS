@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/samuel/Desktop/Hexahedron",
-      "program": "/home/samuel/Desktop/Hexahedron/build/Debug/outDebug",
+      "cwd": "/home/samuel/Desktop/Hexahedron/hexahedron/drivers/x86",
+      "program": "/home/samuel/Desktop/Hexahedron/hexahedron/drivers/x86/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
