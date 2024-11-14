@@ -17,6 +17,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <errno.h>
+#include <string.h>
+#include <time.h>
+#include <sys/time.h>
 
 #include <kernel/mem/alloc.h>
 #include <kernel/mem/mem.h>
@@ -40,6 +43,14 @@ static profile_info_t *profile_data = NULL;
  * @returns A pointer. It will crash otherwise.
  */
 __attribute__((malloc)) void *kmalloc(size_t size) {
+    // Profile data
+    if (profile_data != NULL) {
+        profile_data->requests++;
+        profile_data->bytes_allocated += size;
+        if (size > profile_data->most_bytes_allocated) profile_data->most_bytes_allocated = size;
+        if (size < profile_data->least_bytes_allocated) profile_data->least_bytes_allocated = size;
+    }
+
     void *ptr = alloc_malloc(size);
     return ptr;
 }
@@ -52,6 +63,15 @@ __attribute__((malloc)) void *kmalloc(size_t size) {
  * @returns A pointer. It will crash otherwise.
  */
 __attribute__((malloc)) void *krealloc(void *ptr, size_t size) {
+    // Profile data
+    if (profile_data != NULL) {
+        profile_data->requests++;
+        profile_data->bytes_allocated += size;
+        if (size > profile_data->most_bytes_allocated) profile_data->most_bytes_allocated = size;
+        if (size < profile_data->least_bytes_allocated) profile_data->least_bytes_allocated = size;
+    }
+
+
     void *ret_ptr = alloc_realloc(ptr, size);
     return ret_ptr;
 }
@@ -64,6 +84,13 @@ __attribute__((malloc)) void *krealloc(void *ptr, size_t size) {
  * @returns A pointer. It will crash otherwise.
  */
 __attribute__((malloc)) void *kcalloc(size_t elements, size_t size) {
+    // Profile data
+    if (profile_data != NULL) {
+        profile_data->requests++;
+        profile_data->bytes_allocated += elements * size;
+        if (elements * size > profile_data->most_bytes_allocated) profile_data->most_bytes_allocated = elements * size;
+        if (elements * size < profile_data->least_bytes_allocated) profile_data->least_bytes_allocated = elements * size;
+    }
     void *ptr = alloc_calloc(elements, size);
     return ptr;
 }
@@ -77,6 +104,14 @@ __attribute__((malloc)) void *kcalloc(size_t elements, size_t size) {
  */
 __attribute__((malloc)) void *kvalloc(size_t size) {
     if (alloc_canHasValloc()) {
+        // Profile data
+        if (profile_data != NULL) {
+            profile_data->requests++;
+            profile_data->bytes_allocated += size;
+            if (size > profile_data->most_bytes_allocated) profile_data->most_bytes_allocated = size;
+            if (size < profile_data->least_bytes_allocated) profile_data->least_bytes_allocated = size;
+        }
+
         void *ptr = alloc_valloc(size);
         return ptr;
     } else {
@@ -128,11 +163,33 @@ int alloc_canHasValloc() {
  * 
  * @returns 0 on successful profiling start
  *          -EINPROGRESS if it was already started and @c force_begin_profiling was not specified.
+ *          -ENOTSUP if the allocator does not support it
  */
 int alloc_startProfiling(int force_begin_profiling) {
-    return -ENOTSUP; /* TODO */
+    // Check that it's even supported
+    if (!((alloc_getInfo())->support_profile)) {
+        dprintf(WARN, "Attempted to profile memory system, but it is unsupported.");
+        return -ENOTSUP;
+    }
 
+    if (profile_data != NULL) {
+        // Okay... did they want to force?
+        if (force_begin_profiling) {
+            dprintf(WARN, "No spinlock support added in allocator management system!\n");
+            return -ENOTSUP;
+        } else {
+            return -EINPROGRESS;
+        }
+    }
+
+    // Ready to go!
     profile_data = kmalloc(sizeof(profile_info_t));
+    memset((void*)profile_data, 0, sizeof(profile_info_t));
+
+    profile_data->time_start = now();
+    profile_data->least_bytes_allocated = UINT32_MAX;
+
+    return 0; // Started.
 }
 
 /**
@@ -143,5 +200,21 @@ int alloc_startProfiling(int force_begin_profiling) {
  * @returns Either a pointer to the @c profile_info_t structure or NULL.
  */
 profile_info_t *alloc_stopProfiling() {
-    return NULL; /* TODO */
+    if (!profile_data) {
+        // No profiling was ever started
+        return NULL;
+    } 
+
+    // Terminate the profiling system.
+    // First, set the end time.
+    profile_data->time_end = now();
+
+    // Save the pointer and clear it. Responsibility for freeing is on the caller.
+    profile_info_t *ptr = profile_data;
+    profile_data = NULL;
+
+    // Return
+    // TODO: Release spinlock
+
+    return ptr;
 }

@@ -50,8 +50,7 @@ typedef struct _allocator_info {
 typedef struct _profile_info {
     time_t      time_start, time_end;   // Starting and ending profiling times
     uint32_t    bytes_allocated;        // Total amount of bytes allocated
-    uint32_t    bytes_freed;            // Total amount of bytes freed
-    uint32_t    total_bytes_remaining;  // Total amount of bytes remaining (bytes_allocated - bytes_freed)
+    // TODO: There's gotta be a way to do bytes_freed.. right?
     int         requests;               // How many requests were made to the allocator in total.
 
     uint32_t    least_bytes_allocated;  // Least amount of bytes allocated
@@ -92,6 +91,7 @@ extern void alloc_free(void *ptr);
 
 /**
  * @brief Get information on the allocator.
+ * @note This will be called multiple times. Keep a local copy.
  */
 allocator_info_t *alloc_getInfo();
 
