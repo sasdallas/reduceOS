@@ -77,9 +77,6 @@ install-headers:
 	@-mkdir -pv $(DESTDIR)$(INCLUDE_DIRECTORY)
 	cp -rp include/kernel/ $(DESTDIR)$(INCLUDE_DIRECTORY)
 
-	@echo "Installing external headers ($(ARCH_HEADERS_DIRS))"
-	cp -rp $(ARCH_HEADERS_DIRS) $(DESTDIR)$(INCLUDE_DIRECTORY)
-
 
 install: PRINT_HEADER CREATE_BUILD_DIRECTORIES DELETE_OBJECTS $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
 
