@@ -8,7 +8,8 @@
     "stdio.h": "c",
     "arch.h": "c",
     "panic.h": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "alloc.h": "c"
   },
   "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "gcc",

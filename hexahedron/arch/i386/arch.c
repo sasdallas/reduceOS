@@ -36,6 +36,9 @@
 // Generic drivers
 #include <kernel/drivers/serial.h>
 
+// Parameters
+generic_parameters_t *parameters;
+
 /**
  * @brief Say hi! Prints the versioning message and ASCII art to NOHEADER dprintf
  */
@@ -71,6 +74,13 @@ void arch_panic_finalize() {
     for (;;);
 }
 
+
+/**
+ * @brief Get the generic parameters
+ */
+generic_parameters_t *arch_get_generic_parameters() {
+    return parameters;
+}
 
 
 extern uintptr_t __bss_end;
@@ -118,7 +128,7 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     highest_kernel_address &= ~0xFFF;
 
     // Let's get some multiboot information.
-    generic_parameters_t *parameters = NULL;
+    parameters = NULL;
 
     if (multiboot_magic == MULTIBOOT_MAGIC) {
         dprintf(INFO, "Found a Multiboot1 structure\n");

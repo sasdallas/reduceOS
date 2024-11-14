@@ -32,6 +32,9 @@
 
 #include <time.h>
 
+/* Root system descriptor pointer */
+static uint64_t hal_rsdp = 0x0; 
+
 
 /**
  * @brief Stage 1 startup
@@ -77,6 +80,28 @@ void hal_init(int stage) {
         hal_init_stage2();
     }
 }
+
+/**
+ * @brief Sets an RSDP if one was set
+ */
+void hal_setRSDP(uint64_t rsdp) {
+    hal_rsdp = rsdp;
+}
+
+/**
+ * @brief Returns a RSDP if one was found
+ * 
+ * You can call this method also to search for one (in EBDA/range)
+ */
+uint64_t hal_getRSDP() {
+    if (hal_rsdp != 0x0) return hal_rsdp;
+    
+    // TODO: We can check EBDA/BDA but ACPICA (ACPI components) provides a method to check those for us.
+    return 0x0;
+}
+
+
+
 
 /* We do not need documentation comments for outportb/inportb/etc. */
 

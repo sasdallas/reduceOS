@@ -58,6 +58,15 @@ int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler);
  */
 void hal_unregisterInterruptHandler(uint32_t int_no);
 
+/**
+ * @brief Sets an RSDP if one was set
+ */
+void hal_setRSDP(uint64_t rsdp);
+
+/**
+ * @brief Returns a RSDP if one was found
+ */
+uint64_t hal_getRSDP();
 
 /* I/O port functions (no headers) */
 void outportb(unsigned short port, unsigned char data);
