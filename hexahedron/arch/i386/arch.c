@@ -27,6 +27,7 @@
 #include <kernel/mem/alloc.h>
 #include <kernel/mem/pmm.h>
 #include <kernel/generic_mboot.h>
+#include <kernel/misc/spinlock.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
