@@ -291,7 +291,7 @@ void mem_freePage(page_t *page) {
  */
 void mem_init(uintptr_t high_address) {
     if (!high_address) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "mem");
-    mem_kernelHeap = high_address;
+    mem_kernelHeap = (high_address + 0x1000) & ~0xFFF;
 
     // Get ourselves a page directory
     // !!!: Is this okay? Do we need to again put things in data structures?
@@ -358,6 +358,8 @@ void mem_init(uintptr_t high_address) {
     frame = 0x0;
     table_frame = 0x0;
 
+
+
     for (int i = 0; i < loop_cycles; i++) {
         page_t *page_table = (page_t*)pmm_allocateBlock();
         memset(page_table, 0, PMM_BLOCK_SIZE);
@@ -371,7 +373,7 @@ void mem_init(uintptr_t high_address) {
             page_table[MEM_PAGETBL_INDEX(frame)] = page;
 
             pages_mapped++;
-            if (pages_mapped == (int)(frame_pages)) break;
+            if (pages_mapped == (int)(kernel_pages)) break;
 
             frame += 0x1000;
         }
@@ -384,8 +386,9 @@ void mem_init(uintptr_t high_address) {
 
         table_frame += 0x1000 * 1024;
 
-        if (pages_mapped == (int)frame_pages) break;
+        if (pages_mapped == (int)kernel_pages) break;
     }
+
 
     // All done mapping for now. The memory map should look something like this:
     // 0x00000000 - 0x00400000 is kernel code (-RW)
@@ -393,6 +396,8 @@ void mem_init(uintptr_t high_address) {
     // !! PMM mapped memory is exposed. Very bad.
 
     dprintf(INFO, "Finished creating memory map.\n");
+    dprintf(DEBUG, "\tKernel code is from 0x0 - 0x%x\n", high_address);
+    dprintf(DEBUG, "\tKernel heap will begin at 0x%x\n", mem_kernelHeap);
     mem_kernelDirectory = page_directory;
     mem_switchDirectory(mem_kernelDirectory);
     mem_setPaging(true);
