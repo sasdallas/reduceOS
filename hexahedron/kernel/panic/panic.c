@@ -20,7 +20,6 @@
  * kernel_panic_extended() will take in a bugcode and a module, but will also take in va_args().
  * 
  * 
- * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
  * It is released under the terms of the BSD 3-clause license.
@@ -61,7 +60,7 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     arch_panic_prepare();
 
     // Start by printing out debug messages
-    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\n");
+    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\n\033[0;31m");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
@@ -96,12 +95,12 @@ void kernel_panic(uint32_t bugcode, char *module) {
     arch_panic_prepare();
 
     // Start by printing out debug messages
-    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\n");
+    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\n\033[0;31m");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
     dprintf(NOHEADER, "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
-    dprintf(NOHEADER, "%s", kernel_panic_messages[bugcode]);
+    dprintf(NOHEADER, "*** %s", kernel_panic_messages[bugcode]);
     
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
