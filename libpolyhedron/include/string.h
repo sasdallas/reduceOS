@@ -31,6 +31,9 @@ int strncmp(const char*, const char*, size_t);
 char* strncpy(char*, const char*, size_t);
 char* strcpy(char*, const char*);
 
+char * strcat(char *dest, const char *src);
+char * strncat(char *dest, const char *src, size_t n);
+
 
 #endif
 

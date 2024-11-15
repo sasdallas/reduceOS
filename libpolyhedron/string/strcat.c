@@ -1,6 +1,6 @@
 /**
- * @file libpolyhedron/stdlib/abort.c
- * @brief Abort function
+ * @file libpolyhedron/string/strcat.c
+ * @brief strcat 
  * 
  * 
  * @copyright
@@ -11,5 +11,18 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#include <stdlib.h>
+#include <string.h>
 
+char * strcat(char *dest, const char *src) {
+	char * end = dest;
+	while (*end != '\0') {
+		++end;
+	}
+	while (*src) {
+		*end = *src;
+		end++;
+		src++;
+	}
+	*end = '\0';
+	return dest;
+}
