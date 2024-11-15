@@ -14,6 +14,9 @@ SOURCE_DIRECTORIES += mem/toaru_alloc/
 # Include the architecture Make configuration
 include arch/$(BUILD_ARCH)/make.config
 
+# NOW INCLUDE THE LIBK. LIBRARY ORDER MATTERS!
+LIBS += -lkpolyhedron
+
 # Construct object output directories
 OUTPUT_DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES))
 

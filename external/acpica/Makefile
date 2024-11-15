@@ -64,3 +64,7 @@ install-headers: CHECK_DIRECTORY MOD_HEADERS
 	-mkdir -pv $(DESTDIR)$(INCLUDE_DIRECTORY)/acpica/
 	cp -rp $(ACPICA_HEADERS_DIRECTORY)/* $(DESTDIR)$(INCLUDE_DIRECTORY)/acpica/
 	@echo "[ACPICA] Finished installing ACPICA headers"
+
+clean:
+	-rm -rf $(ACPICA_OBJ)
+	-rm -rf $(DESTDIR)$(LIB_DIRECTORY)/libacpica.a
