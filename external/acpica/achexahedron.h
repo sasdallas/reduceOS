@@ -1,5 +1,6 @@
 /*
  * Hexahedron ACPICA header 
+ * Original source: Acces2
  */
 
 #ifndef __ACHEXAHEDRON_H__
@@ -38,9 +39,13 @@
 #define ACPI_UINTPTR_T              uintptr_t
 
 
+// Certain compilation errors occur of multiple snprintf/vsnprintf definitions
+#define snprintf _snprintf
+#define vsnprintf _vsnprintf
 
+// CPU cache suppot not yet
 #define ACPI_FLUSH_CPU_CACHE() 
 
 #include "acgcc.h"
 
-#endif /* __ACACESS_H__ */
+#endif /* __ACHEXAHEDRON_H__ */
