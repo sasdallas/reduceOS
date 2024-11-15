@@ -1,6 +1,6 @@
 /**
  * @file libpolyhedron/string/memcmp.c
- * @brief memcmp() function
+ * @brief memcmp function
  * 
  * 
  * @copyright
