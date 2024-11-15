@@ -4,3 +4,7 @@
 # ACPICA settings
 USE_ACPICA = 1
 ACPI_DEBUG = 1
+
+ifeq ($(USE_ACPICA), 1)
+CFLAGS += -DACPICA_ENABLED
+endif
