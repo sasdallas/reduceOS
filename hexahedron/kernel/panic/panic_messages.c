@@ -24,7 +24,8 @@ char *kernel_bugcode_strings[KERNEL_STOP_CODES] = {
     "OUT_OF_MEMORY",
     "IRQ_HANDLER_FAILED",
     "CPU_EXCEPTION_UNHANDLED",
-    "UNSUPPORTED_FUNCTION_ERROR"
+    "UNSUPPORTED_FUNCTION_ERROR",
+    "ACPI_SYSTEM_ERROR"
 };
 
 char *kernel_panic_messages[KERNEL_STOP_CODES] = {
@@ -34,5 +35,6 @@ char *kernel_panic_messages[KERNEL_STOP_CODES] = {
     "The system has run out of memory. Try closing applications or adjusting your pagefile.\n",
     "An IRQ handler did not return a success value. This could be caused by an external driver or an internal kernel driver.\n",
     "A CPU exception in the kernel was not handled correctly.",
-    "An unsupported kernel function was called. This as a bug in the kernel - please contact the developers.\n"
+    "An unsupported kernel function was called. This as a bug in the kernel - please contact the developers.\n",
+    "Your computer is not compliant with ACPI specifications, or is not compatible with the ACPICA library.\n"
 };

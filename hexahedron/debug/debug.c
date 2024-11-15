@@ -25,9 +25,9 @@ static log_putchar_method_t debug_putchar_method = NULL;
 
 
 /**
- * @brief Internal function to print debug string
+ * @brief Function to print debug string
  */
-static int debug_print(void *user, char ch) {
+int debug_print(void *user, char ch) {
     if (!debug_putchar_method) return 0; // Log not yet initialized or failed to initialize correctly.
 
     /* Account for CRLF. It doesn't hurt any terminals (that I know of) */
@@ -107,4 +107,11 @@ _write_format: ;
  */
 void debug_setOutput(log_putchar_method_t logMethod) {
     debug_putchar_method = logMethod;    
+}
+
+/**
+ * @brief Get the debug putchar method.
+ */
+log_putchar_method_t debug_getOutput() {
+    return debug_putchar_method;
 }

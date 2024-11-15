@@ -70,6 +70,15 @@ int dprintf_internal(char *file, int line, DEBUG_LOG_TYPE status, char *format, 
  */
 void debug_setOutput(log_putchar_method_t logMethod);
 
+/**
+ * @brief Get the debug putchar method.
+ */
+log_putchar_method_t debug_getOutput();
+
+/**
+ * @brief Function to print debug string
+ */
+int debug_print(void *user, char ch);
 
 
 #endif

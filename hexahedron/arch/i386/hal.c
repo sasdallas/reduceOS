@@ -57,11 +57,13 @@ static void hal_init_stage1() {
     pit_initialize();
 }
 
+extern int ACPICA_Initialize();
+
 /**
  * @brief Stage 2 startup
  */
 static void hal_init_stage2() {
-    
+    ACPICA_Initialize();
 }
 
 /**
