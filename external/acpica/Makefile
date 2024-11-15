@@ -1,4 +1,4 @@
-include ./make.config
+include ./make.config@
 
 ifneq ($(USE_ACPICA), 1)
 $(error "USE_ACPICA is set to 0. You cannot compile ACPICA")
