@@ -7,6 +7,3 @@ Link: https://www.intel.com/content/www/us/en/developer/topic-technology/open/ac
 
 
 ----------- LICENSING -----------
-
-I could not find any licensing for the Intel-specific license they are stated to use.
-Please check: https://www.intel.com/content/www/us/en/developer/articles/license/acpica-licensing.html
