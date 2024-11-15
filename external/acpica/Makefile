@@ -56,6 +56,8 @@ MOD_HEADERS:
 	sed -i -e 's/_LINUX/__HEXAHEDRON__/' $(ACPICA_HEADERS_DIRECTORY)/platform/acenv.h
 
 install: CHECK_DIRECTORY MAKE_DIRECTORIES MOD_HEADERS $(ACPICA_OBJ)/libacpica.a
+	cp -r $(ACPICA_OBJ)/libacpica.a $(DESTDIR)$(LIB_DIRECTORY)/
+	@echo "[ACPICA] Finished building libacpica.a"
 
 
 install-headers: CHECK_DIRECTORY MOD_HEADERS
