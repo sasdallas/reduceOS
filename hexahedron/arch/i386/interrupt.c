@@ -88,12 +88,20 @@ void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_
     // TODO: Exception handlers
     kernel_panic_prepare(CPU_EXCEPTION_UNHANDLED);
 
-    if (exception_index < I86_MAX_EXCEPTIONS) {
+    
+    
+    if (exception_index == 14) {
+        uintptr_t page_fault_addr = 0x0;
+        asm volatile ("movl %%cr2, %0" : "=a"(page_fault_addr));
+        dprintf(NOHEADER, "*** ISR detected exception: Page fault at address 0x%x\n\n", page_fault_addr);
+    } else if (exception_index < I86_MAX_EXCEPTIONS) {
         dprintf(NOHEADER, "*** ISR detected exception %i - %s\n\n", exception_index, hal_exception_table[exception_index]);
     } else {
         dprintf(NOHEADER, "*** ISR detected exception %i - UNKNOWN TYPE\n\n", exception_index);
     }
     
+    
+
     dprintf(NOHEADER, "\033[1;31mFAULT REGISTERS:\n\033[0;31m");
 
     dprintf(NOHEADER, "EAX %08x EBX %08x ECX %08x EDX %08x\n", regs->eax, regs->ebx, regs->ecx, regs->edx);
@@ -101,6 +109,7 @@ void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_
     dprintf(NOHEADER, "ERR %08x EIP %08x\n\n", regs->err_code, regs->eip);
     dprintf(NOHEADER, "CS %04x DS %04x ES %04x GS %04x\n", regs->cs, regs->ds, regs->es, regs->gs);
     dprintf(NOHEADER, "GDTR %08x %04x\nIDTR %08x %04x\n", regs_extended->gdtr.base, regs_extended->gdtr.limit, regs_extended->idtr.base, regs_extended->idtr.limit);
+
 
     kernel_panic_finalize();
 

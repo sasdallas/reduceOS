@@ -175,10 +175,14 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
     while (mmap) {
         // Working with 64-bits in a 32-bit environment is scary...
         if (mmap->address > UINT32_MAX) {
-            dprintf(WARN, "Bad memory descriptor encountered - %016llX length %016llX (32-bit - 64-bit overflow)\n", mmap->address, mmap->length);
+            // The start is over the 32-bit integer limit, therefore we can't even bother (todo: check PAE?)
+            dprintf(WARN, "64-bit memory descriptor encountered - %016llX - %016llX (32-bit - 64-bit overflow)\n", mmap->address, mmap->length);
             mmap = mmap->next;
             continue;
         }
+
+
+        
 
         if (mmap->type == GENERIC_MEMORY_AVAILABLE) {
             dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024);
@@ -193,6 +197,9 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
     uintptr_t kernel_start = (uint32_t)&__text_start;
     dprintf(DEBUG, "Marked memory descriptor %016X - %016X (%i KB) as kernel memory\n", kernel_start, highest_address, (highest_address - kernel_start) / 1024);
     pmm_deinitializeRegion(kernel_start, highest_address - kernel_start);    
+
+    dprintf(WARN, "Marked memory descriptor 0x0000 - 0x20000 as invalid (DEBUG).\n");
+    pmm_deinitializeRegion(0x0, 0xFFFFF);
 
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());
 }
