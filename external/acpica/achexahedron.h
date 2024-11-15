@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 
 #define ACPI_SINGLE_THREADED // TODO: Uncomment
 

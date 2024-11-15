@@ -1,4 +1,4 @@
-include ./make.config
+include ./make.config@
 
 ifneq ($(USE_ACPICA), 1)
 $(error "USE_ACPICA is set to 0. You cannot compile ACPICA")
@@ -42,8 +42,8 @@ MAKE_DIRECTORIES:
 
 $(ACPICA_OBJ)/%.o: $(ACPICA_SOURCE_DIRECTORY)%.c
 	@echo "[ACPICA] Compiling $(shell basename $(dir $(abspath $(dir $<))))/$(notdir $<)"
-	-mkdir -pv $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	@-mkdir -pv $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(ACPICA_OBJ)/libacpica.a: $(ACPICA_OBJS)
 	@echo "[ACPICA] Packaging into $(ACPICA_OBJ)/libacpica.a"
