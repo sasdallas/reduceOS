@@ -11,7 +11,14 @@
             "cppStandard": "${default}",
             "intelliSenseMode": "linux-gcc-x64",
             "compilerArgs": [
-                "-D__LIBK -D__KERNEL__ -D__REDUCEOS__ -nostdinc -D__ARCH_I386__"
+                "-D__LIBK ",
+                "-D__KERNEL__ ",
+                "-D__REDUCEOS__ ",
+                "-nostdinc ",
+                "-D__ARCH_I386__",
+                "-m32",
+                "--sysroot",
+                "${workspaceFolder}/build-output/sysroot/"
             ]
         }
     ],
