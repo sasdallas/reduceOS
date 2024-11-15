@@ -16,7 +16,6 @@ endif
 # i love make i love make cmake is bad i love make i love make
 PROJECTS_HEADERS = $(addsuffix /installheaders, $(PROJECTS))
 PROJECTS_INSTALL = $(addsuffix /install, $(PROJECTS))
-PROJECTS_CLEAN   = $(addsuffix /clean, $(PROJECTS))
 
 # Target disabled
 all:
@@ -29,13 +28,9 @@ $(PROJECTS_HEADERS):
 $(PROJECTS_INSTALL):
 	make -C $(dir $@) install
 
-$(PROJECTS_CLEAN):
-	make -C $(dir $@) clean
-
 # Because I could care less each external project should at least have an
 # install-headers dummy target. Suck it.
 install-headers: $(PROJECTS_HEADERS)
 	@echo "[EXTERNAL] Finished headers: $(PROJECTS)"
 install: $(PROJECTS_INSTALL)
 	@echo "[EXTERNAL] Finished compiling: $(PROJECTS)"
-clean: $(PROJECTS_CLEAN)

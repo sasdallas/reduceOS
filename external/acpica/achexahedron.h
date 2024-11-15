@@ -1,6 +1,5 @@
 /*
  * Hexahedron ACPICA header 
- * Original source: Acces2
  */
 
 #ifndef __ACHEXAHEDRON_H__
@@ -10,7 +9,6 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
-#include <ctype.h>
 
 #define ACPI_SINGLE_THREADED // TODO: Uncomment
 
@@ -35,27 +33,13 @@
 #error "Unknown architecture"
 #endif
 
-
-// Spinlock/uintptr_t
 #define ACPI_SPINLOCK               spinlock_t*
 #define ACPI_UINTPTR_T              uintptr_t
 
-// Error messages to conform to our debug log system (in the most scuffed way possible due to lack of clock)
-// [ACPICA:INT] is for INTERNAL
-#define ACPI_MSG_ERROR          "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI Error: "
-#define ACPI_MSG_EXCEPTION      "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI Exception: "
-#define ACPI_MSG_WARNING        "[EXTERNAL                ] [WARN] [ACPICA:INT] ACPI Warning: "
-#define ACPI_MSG_INFO           "[EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: "
-#define ACPI_MSG_BIOS_ERROR     "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI BIOS Error: "
-#define ACPI_MSG_BIOS_WARNING   "[EXTERNAL                ] [WARN] [ACPICA:INT] ACPI BIOS Warning: "
 
-// Certain compilation errors occur of multiple snprintf/vsnprintf definitions
-#define snprintf _snprintf
-#define vsnprintf _vsnprintf
 
-// CPU cache suppot not yet
 #define ACPI_FLUSH_CPU_CACHE() 
 
 #include "acgcc.h"
 
-#endif /* __ACHEXAHEDRON_H__ */
+#endif /* __ACACESS_H__ */
