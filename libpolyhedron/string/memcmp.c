@@ -13,12 +13,15 @@
 
 #include <string.h>
 
+
 int memcmp(const void* aptr, const void* bptr, size_t n) {
-	const unsigned char* ptr1 = (const unsigned char*) aptr;
-	const unsigned char* ptr2 = (const unsigned char*) bptr;
-	for (size_t i = 0; i < n; i++) {
-		if (ptr1[i] < ptr2[i]) return -1;
-		else if (ptr2[i] < ptr1[i]) return 1;
+	const unsigned char* a = (const unsigned char*) aptr;
+	const unsigned char* b = (const unsigned char*) bptr;
+	
+    for (size_t i = 0; i < n; i++) {
+		if (a[i] < b[i]) return -1;
+		else if (b[i] < a[i]) return 1;
 	}
+
 	return 0;
 }
