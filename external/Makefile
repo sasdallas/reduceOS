@@ -1,0 +1,36 @@
+include ../make.config
+
+ifeq ($(HOSTARCH), i386)
+# Required for I386
+PROJECTS :
+
+# ACPICA
+ifeq ($(USE_ACPICA), 1)
+PROJECTS += acpica
+endif
+
+else
+PROJECTS :=
+endif
+
+# i love make i love make cmake is bad i love make i love make
+PROJECTS_HEADERS = $(addsuffix /installheaders, $(PROJECTS))
+PROJECTS_INSTALL = $(addsuffix /install, $(PROJECTS))
+
+# Target disabled
+all:
+	@echo "=== TARGET DISABLED ==="
+	@echo "Please use make install"
+
+$(PROJECTS_HEADERS):
+	make -C $(dir $@) install-headers
+
+$(PROJECTS_INSTALL):
+	make -C $(dir $@) install
+
+# Because I could care less each external project should at least have an
+# install-headers dummy target. Suck it.
+install-headers: $(PROJECTS_HEADERS)
+	@echo "[EXTERNAL] Finished headers: $(PROJECTS)"
+install: $(PROJECTS_INSTALL)
+	@echo "[EXTERNAL] Finished compiling: $(PROJECTS)"

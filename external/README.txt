@@ -1,0 +1,1 @@
+External resources will be placed here. See each subdirectory for instructions on installing the required resources if needed.
