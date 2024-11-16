@@ -24,29 +24,55 @@
 #include <kernel/mem/mem.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/misc/spinlock.h>
+#include <kernel/misc/semaphore.h>
 
 #include <stdarg.h>
 #include <errno.h>
 
 
 #define FUNC_UNIMPLEMENTED(FUNCTION)    \
-    dprintf(WARN, "ACPICA %s: Unimplemented\n", FUNCTION);    \
+    dprintf(WARN, "[ACPICA] %s: Unimplemented\n", FUNCTION);    \
     kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "acpica", "*** %s not implemented\n", FUNCTION);   \
     __builtin_unreachable();
 
 /* Exposed to kernel */
 int ACPICA_Initialize() {
-    dprintf(INFO, "ACPICA was compiled into kernel. Initializing ACPICA\n");
-    dprintf(INFO, "AcpiInitializeSubsystem\n");
+    dprintf(INFO, "[ACPICA] ACPICA was compiled into kernel. Initializing ACPICA\n");
+    dprintf(INFO, "[ACPICA] AcpiInitializeSubsystem\n");
     
     ACPI_STATUS status;
     
     status = AcpiInitializeSubsystem();
     if (ACPI_FAILURE(status)) {
-        dprintf(ERR, "AcpiInitializeSubsystem did not succeed. RSDP not found?\n");
+        dprintf(ERR, "[ACPICA] AcpiInitializeSubsystem did not succeed - status %i\n", status);
         return -1; 
     }
 
+    // Initialize tables
+    status = AcpiInitializeTables(NULL, 16, FALSE);
+    if (ACPI_FAILURE(status)) {
+        dprintf(ERR, "[ACPICA] AcpiInitializeTables did not succeed - status %i\n", status);
+        AcpiTerminate();
+        return -1;
+    }
+
+    // Load tables
+    status = AcpiLoadTables();
+    if (ACPI_FAILURE(status)) {
+        dprintf(ERR, "[ACPICA] AcpiLoadTables did not succeed - status %i\n", status);
+        AcpiTerminate();
+        return -1;
+    }
+
+    // Enable subsystem
+    status = AcpiEnableSubsystem(ACPI_FULL_INITIALIZATION);
+    if (ACPI_FAILURE(status)) {
+        dprintf(ERR, "[ACPICA] AcpiEnableSystem did not succeed - status %i\n", status);
+        AcpiTerminate();
+        return -1;
+    }
+
+    dprintf(INFO, "[ACPICA] Initialization completed successfully.\n");
     return 0;
 }
 
@@ -129,14 +155,14 @@ BOOLEAN AcpiOsWritable(void *Memory, ACPI_SIZE Length) {
     FUNC_UNIMPLEMENTED("AcpiOsWritable");
 }
 
-/* UNIMPLEMENTED THREAD FUNCTIONS */
+/* UNIMPLEMENTED THREAD FUNCTIONS (SINGLE-THREADED) */
 
 ACPI_THREAD_ID AcpiOsGetThreadId() {
-    FUNC_UNIMPLEMENTED("AcpiOsGetThreadId");
+    return 1; // Constant thread. According to ACPICA docs this should work.
 }
 
 ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Function, void *Context) {
-    FUNC_UNIMPLEMENTED("AcpiOsExecute");
+    return AE_OK;
 }
 
 void AcpiOsSleep(UINT64 Milliseconds) {
@@ -156,22 +182,48 @@ void AcpiOsWaitEventsComplete() {
 
 /* Create a semaphore */
 ACPI_STATUS AcpiOsCreateSemaphore(UINT32 MaxUnits, UINT32 InitialUnits, ACPI_SEMAPHORE *OutHandle) {
-    FUNC_UNIMPLEMENTED("AcpiOsCreateSemaphore");
+    *OutHandle = semaphore_create("acpica_sem", InitialUnits, MaxUnits);
+    return AE_OK;
 }
 
 /* Delete semaphore */
 ACPI_STATUS AcpiOsDeleteSemaphore(ACPI_SEMAPHORE Handle) {
-    FUNC_UNIMPLEMENTED("AcpiOsDeleteSemaphore");
+    semaphore_destroy((semaphore_t*)Handle);
+    return AE_OK;
 }
 
 /* Wait on semaphore */
 ACPI_STATUS AcpiOsWaitSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units, UINT16 Timeout) {
-    FUNC_UNIMPLEMENTED("AcpiOsWaitSemaphore");
+    if (Timeout == 0) {
+        // Don't wait at all? Just check if there are enough units
+        if ((UINT32)semaphore_getItems(Handle) >= Units) {
+            semaphore_wait(Handle, Units);
+            return AE_OK;
+        }
+
+        return AE_TIME;
+    }
+
+    time_t start_time = now(); // Start time in ms
+    UINT32 remaining = Units;
+    while (remaining > 0 && now() - start_time < Timeout) {
+        remaining -= semaphore_wait(Handle, remaining);
+    }
+
+    if (remaining > 0) {
+        // Timeout exceeded
+        semaphore_signal(Handle, Units - remaining);
+        return AE_TIME; 
+    }
+
+    return AE_OK;
 }
 
 /* Signal the semaphore */
 ACPI_STATUS AcpiOsSignalSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units) {
-    FUNC_UNIMPLEMENTED("AcpiOsSignalSemaphore");
+    int added = semaphore_signal(Handle, Units);
+    if ((UINT32)added != Units) return AE_LIMIT;
+    return AE_OK;
 }
 
 /* LOCK FUNCTIONS */

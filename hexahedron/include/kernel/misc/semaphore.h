@@ -36,13 +36,13 @@ typedef struct _semaphore {
  * @param value         The initialization value of the semaphore
  * @param max_value     The maximum value of the semaphore (afterwards, signal will wait)
  */
-semaphore_t *semaphore_init(char *name, int value, int max_value);
+semaphore_t *semaphore_create(char *name, int value, int max_value);
 
 /**
  * @brief Wait on the semaphore
  * @param semaphore     The semaphore to use
  * @param items         The amount of items to take from the semaphore
- * @returns 0 on success
+ * @returns Items taken
  */
 int semaphore_wait(semaphore_t *semaphore, int items);
 
@@ -50,7 +50,7 @@ int semaphore_wait(semaphore_t *semaphore, int items);
  * @brief Signal to the semaphore
  * @param semaphore     The semaphore to use
  * @param items         The amount of items to add to the semaphore
- * @returns 0 on success
+ * @returns Items added
  */
 int semaphore_signal(semaphore_t *semaphore, int items);
 
