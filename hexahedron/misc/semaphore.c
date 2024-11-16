@@ -21,7 +21,7 @@
  * @param value         The initialization value of the semaphore
  * @param max_value     The maximum value of the semaphore (afterwards, signal will wait)
  */
-semaphore_t *semaphore_create(char *name, int value, int max_value) {
+semaphore_t *semaphore_init(char *name, int value, int max_value) {
     semaphore_t *output = kmalloc(sizeof(semaphore_t));
     output->lock = spinlock_create("sem_lock");
     output->value = value;
@@ -34,19 +34,16 @@ semaphore_t *semaphore_create(char *name, int value, int max_value) {
  * @brief Wait on the semaphore
  * @param semaphore     The semaphore to use
  * @param items         The amount of items to take from the semaphore
- * @returns Items taken
+ * @returns 0 on success
  */
 int semaphore_wait(semaphore_t *semaphore, int items) {
     // Lock the semaphore
     spinlock_acquire(semaphore->lock);
 
-    int items_taken = 0;
-
     // Wait won't fault on not enough items taken
     if (semaphore->value > 0) {
-        if (semaphore->value > items) items_taken = items;
-        else items_taken = semaphore->value;
-        semaphore->value -= items_taken;
+        if (semaphore->value > items) semaphore->value -= items;
+        else semaphore->value = 0;
     } else {
         // Wait how do we do that again
         // Yeah I don't know what I am doing
@@ -56,20 +53,18 @@ int semaphore_wait(semaphore_t *semaphore, int items) {
     // Release the semaphore
     spinlock_release(semaphore->lock);
 
-    return items_taken;
+    return 0;
 }
 
 /**
  * @brief Signal to the semaphore
  * @param semaphore     The semaphore to use
  * @param items         The amount of items to add to the semaphore
- * @returns Items added
+ * @returns 0 on success
  */
 int semaphore_signal(semaphore_t *semaphore, int items) {
     // Lock the semaphore
     spinlock_acquire(semaphore->lock);
-
-    int items_added = 0;
 
     // Okay, do we need to wait?
     if (semaphore->max_value && semaphore->value >= semaphore->max_value) {
@@ -79,18 +74,16 @@ int semaphore_signal(semaphore_t *semaphore, int items) {
     } else {
         // Just add to semaphore. Make sure to limit though to prevent chaos
         if (semaphore->value + items > semaphore->max_value) {
-            items_added = semaphore->max_value - semaphore->value;
+            semaphore->value = semaphore->max_value;
         } else {
-            items_added = items;
+            semaphore->value += items;
         }
-
-        semaphore->value += items_added;
     }
 
     // Release the semaphore
     spinlock_release(semaphore->lock);
 
-    return items_added;
+    return 0;
 }
 
 /**
