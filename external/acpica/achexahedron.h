@@ -35,9 +35,19 @@
 #error "Unknown architecture"
 #endif
 
+
+// Spinlock/uintptr_t
 #define ACPI_SPINLOCK               spinlock_t*
 #define ACPI_UINTPTR_T              uintptr_t
 
+// Error messages to conform to our debug log system (in the most scuffed way possible due to lack of clock)
+// [ACPICA:INT] is for INTERNAL
+#define ACPI_MSG_ERROR          "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI Error: "
+#define ACPI_MSG_EXCEPTION      "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI Exception: "
+#define ACPI_MSG_WARNING        "[EXTERNAL                ] [WARN] [ACPICA:INT] ACPI Warning: "
+#define ACPI_MSG_INFO           "[EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: "
+#define ACPI_MSG_BIOS_ERROR     "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI BIOS Error: "
+#define ACPI_MSG_BIOS_WARNING   "[EXTERNAL                ] [WARN] [ACPICA:INT] ACPI BIOS Warning: "
 
 // Certain compilation errors occur of multiple snprintf/vsnprintf definitions
 #define snprintf _snprintf

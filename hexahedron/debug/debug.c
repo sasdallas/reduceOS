@@ -78,16 +78,21 @@ int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
     char header[128];
     size_t header_length = 0;
     if (!clock_isReady()) {
-        header_length = snprintf(header, 128, "[no clock ready] [%s] ", header_prefix);
+        if (module) {
+            header_length = snprintf(header, 128, "[no clock ready] [%s] [%s] ", header_prefix, module);
+        } else {
+            header_length = snprintf(header, 128, "[no clock ready] [%s] ", header_prefix);
+        }
     } else {
         time_t rawtime;
         time(&rawtime);
         struct tm *timeinfo = localtime(&rawtime);
-        header_length = snprintf(header, 128, "[%s] [%s] ", asctime(timeinfo), header_prefix);
-    }
-
-    if (module) {
-        header_length += snprintf(header, 128 - strlen(header), "[%s] ", module);
+        
+        if (module) {
+            header_length = snprintf(header, 128, "[%s] [%s] [%s] ", asctime(timeinfo), header_prefix, module);
+        } else {
+            header_length = snprintf(header, 128, "[%s] [%s] ", asctime(timeinfo), header_prefix);
+        }
     }
 
     debug_write(header_length, header);
