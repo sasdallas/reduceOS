@@ -10,7 +10,8 @@
     "panic.h": "c",
     "string.h": "c",
     "alloc.h": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "semaphore.h": "c"
   },
   "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "gcc",

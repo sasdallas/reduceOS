@@ -14,7 +14,7 @@
                 "-D__LIBK ",
                 "-D__KERNEL__ ",
                 "-D__REDUCEOS__ ",
-                "-nostdinc ",
+                "-ffreestanding",
                 "-D__ARCH_I386__",
                 "-m32",
                 "--sysroot",
