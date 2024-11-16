@@ -24,6 +24,7 @@
 extern uintptr_t arch_allocate_structure(size_t bytes);
 extern uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size);
 
+
 /** 
  * @brief Parse a Multiboot 2 header and packs into a @c generic_parameters structure
  * @param bootinfo A pointer to the multiboot informatino
@@ -32,6 +33,10 @@ extern uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size);
 generic_parameters_t *arch_parse_multiboot2(multiboot_t *bootinfo) {
     return NULL; // TODO
 }
+
+
+
+
 
 
 
@@ -175,14 +180,10 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
     while (mmap) {
         // Working with 64-bits in a 32-bit environment is scary...
         if (mmap->address > UINT32_MAX) {
-            // The start is over the 32-bit integer limit, therefore we can't even bother (todo: check PAE?)
-            dprintf(WARN, "64-bit memory descriptor encountered - %016llX - %016llX (32-bit - 64-bit overflow)\n", mmap->address, mmap->length);
+            dprintf(WARN, "Bad memory descriptor encountered - %016llX length %016llX (32-bit - 64-bit overflow)\n", mmap->address, mmap->length);
             mmap = mmap->next;
             continue;
         }
-
-
-        
 
         if (mmap->type == GENERIC_MEMORY_AVAILABLE) {
             dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024);
@@ -192,14 +193,19 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
         mmap = mmap->next;
     }
 
+    // While working on previous versions of reduceOS, I accidentally brute-forced this.
+    // QEMU doesn't properly unmark DMA regions, apparently - according to libvfio-user issue $493
+    // https://github.com/nutanix/libvfio-user/issues/463
+
+    // These DMA regions occur within the range of 0xC0000 - 0xF0000
+    dprintf(DEBUG, "Marked memory descriptor 0xC0000 - 0xE0000 as DMA memory (QEMU bug)\n");
+    pmm_deinitializeRegion(0xC0000, 0x20000);
+
     // Unmark kernel region
     extern uint32_t __text_start;
     uintptr_t kernel_start = (uint32_t)&__text_start;
     dprintf(DEBUG, "Marked memory descriptor %016X - %016X (%i KB) as kernel memory\n", kernel_start, highest_address, (highest_address - kernel_start) / 1024);
     pmm_deinitializeRegion(kernel_start, highest_address - kernel_start);    
-
-    dprintf(WARN, "Marked memory descriptor 0x0000 - 0x20000 as invalid (DEBUG).\n");
-    pmm_deinitializeRegion(0x0, 0xFFFFF);
 
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());
 }
