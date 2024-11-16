@@ -87,11 +87,19 @@ ACPI_STATUS AcpiOsInitialize() {
 ACPI_STATUS AcpiOsTerminate() {
     return AE_OK;
 }
+typedef struct {
+    char signature[8];
+    uint8_t checksum;
+    char OEMID[6];
+    uint8_t revision;
+    uint32_t rsdtAddress;
+} __attribute__((packed)) RSDPDescriptor;
 
 /* Get the RSDP */
 ACPI_PHYSICAL_ADDRESS AcpiOsGetRootPointer() {
     // Try to ask HAL (loading from EFI provides RSDP in ST)
     ACPI_PHYSICAL_ADDRESS rsdp = (ACPI_PHYSICAL_ADDRESS)hal_getRSDP();
+
     if (rsdp == 0x0) {
         ACPI_STATUS status = AcpiFindRootPointer(&rsdp); // Use ACPICA to find the pointer.
         if (ACPI_FAILURE(status)) return 0x0;
@@ -121,17 +129,20 @@ ACPI_STATUS AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER *ExistingTable, ACPI_P
 
 void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     // just like pmm it
+    LOG(DEBUG, "AcpiOsMapMemory 0x%x 0x%x\n", PhysicalAddress, Length);
     return (void*)mem_remapPhys((uintptr_t)PhysicalAddress);
 }
 
 /* Unmap memory */
 void AcpiOsUnmapMemory(void *where, ACPI_SIZE Length) {
     // Considering we're returning PMM-mapped memory, nah.
+    LOG(DEBUG, "AcpiOsUnmapMemory 0x%x 0x%x\n", where, Length);
 }
 
 /* Get a physical address */
 ACPI_STATUS AcpiOsGetPhysicalAddress(void *LogicalAddress, ACPI_PHYSICAL_ADDRESS *PhysicalAddress) {
     // It is possible to just call mem_getPhysicalAddress as well
+    LOG(DEBUG, "AcpiOsGetPhysicalAddress 0x%x\n", LogicalAddress);
     *PhysicalAddress = (ACPI_PHYSICAL_ADDRESS)(LogicalAddress - (void*)MEM_IDENTITY_MAP_REGION);
     return AE_OK;
 }
@@ -252,12 +263,61 @@ void AcpiOsReleaseLock(ACPI_SPINLOCK Handle, ACPI_CPU_FLAGS Flags) {
 }
 
 /* INTERRUPT FUNCTIONS */
+/* Hexahedron uses a different IRQ handler style, so we have to use a handler */
+
+#define MAX_ACPI_INTERRUPT_HANDLERS 16
+
+// Store data & handlers
+ACPI_OSD_HANDLER ACPI_interruptHandlers[MAX_ACPI_INTERRUPT_HANDLERS];
+void *ACPI_interruptContext[MAX_ACPI_INTERRUPT_HANDLERS];
+
+int ACPICA_InterruptHandler(uint32_t exception_number, uint32_t int_number, registers_t *registers, extended_registers_t *extended) {
+    if (ACPI_interruptHandlers[int_number]) {
+        ACPI_interruptHandlers[int_number](ACPI_interruptContext[int_number]);
+    }
+
+    return 0;
+}
+
+
 
 ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLER Handler, void *Context) {
-    FUNC_UNIMPLEMENTED("AcpiOsInstallInterruptHandler");
+    // Install the data
+    if (InterruptLevel > MAX_ACPI_INTERRUPT_HANDLERS || Handler == NULL) {
+        return AE_BAD_PARAMETER;
+    }
+
+    if (ACPI_interruptHandlers[InterruptLevel]) {
+        return AE_ALREADY_EXISTS;
+    }
+
+    ACPI_interruptHandlers[InterruptLevel] = Handler;
+    ACPI_interruptContext[InterruptLevel] = Context;
+
+    
+    int r = hal_registerInterruptHandler(InterruptLevel, ACPICA_InterruptHandler);
+    if (r != 0) {
+        // This seems like a kernel fault
+        LOG(ERR, "hal_registerInterruptHandler(%i, 0x%x) returned %i\n", InterruptLevel, ACPICA_InterruptHandler, r);
+        return AE_ERROR;
+    }
+    return AE_OK;
 }
-ACPI_STATUS AcpiOsRemoveInterruptHandler(UINT32 InterruptNumber, ACPI_OSD_HANDLER Handler) {
-    FUNC_UNIMPLEMENTED("AcpiOsRemoveInterruptHandler");
+ACPI_STATUS AcpiOsRemoveInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLER Handler) {
+    if (InterruptLevel >= MAX_ACPI_INTERRUPT_HANDLERS || Handler == NULL ) {
+        return AE_BAD_PARAMETER;
+    }
+
+    if (ACPI_interruptHandlers[InterruptLevel] != Handler) {
+        // Doesn't exist or wrong one
+        return AE_NOT_EXIST;
+    }
+
+    ACPI_interruptHandlers[InterruptLevel] = NULL;
+    ACPI_interruptContext[InterruptLevel] = NULL;
+    hal_unregisterInterruptHandler(InterruptLevel);
+    
+    return AE_OK;
 }
 
 /* LOGGING */
