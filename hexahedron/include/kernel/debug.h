@@ -43,18 +43,26 @@ typedef enum {
 
 /**** FUNCTIONS ****/
 
+#ifdef __INTELLISENSE__
 /**
  * @brief Print something to the debug log
  * 
  * @param status Whether this is debugging information, normal information, errors, or warnings. @see DEBUG_LOG_TYPE
  * @param format The text to print
  */
-
-#ifdef __INTELLISENSE__
-// I hate intellisense. Make it look nice! (quick hack)
 void dprintf(DEBUG_LOG_TYPE status, char *fmt, ...);
+
+/**
+ * @brief Print something to the debug log from a specific module
+ * 
+ * @param status Whether this is debugging information, normal information, errors, or warnings. @see DEBUG_LOG_TYPE
+ * @param module The module this is coming from
+ * @param format The text to print
+ */
+void dprintf_module(DEBUG_LOG_TYPE status, char *fmt, ...);
 #else
-#define dprintf(status, format, ...) dprintf_internal(__FILE__, __LINE__, status, format, ## __VA_ARGS__)
+#define dprintf(status, format, ...) dprintf_internal(NULL, status, format, ## __VA_ARGS__)
+#define dprintf_module(status, module, format, ...) dprintf_internal(module, status, format, ## __VA_ARGS__)
 #endif
 
 /**
@@ -62,7 +70,12 @@ void dprintf(DEBUG_LOG_TYPE status, char *fmt, ...);
  * 
  * You can call this but it's not recommended. Use dprintf().
  */
-int dprintf_internal(char *file, int line, DEBUG_LOG_TYPE status, char *format, ...);
+int dprintf_internal(char *module, DEBUG_LOG_TYPE status, char *format, ...);
+
+/**
+ * @brief dprintf that accepts va_args instead
+ */
+int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap);
 
 /**
  * @brief Set the debug putchar method

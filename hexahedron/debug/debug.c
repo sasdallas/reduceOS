@@ -48,13 +48,10 @@ static int debug_write(size_t length, char *buffer) {
 }
 
 /**
- * @brief Internal function to print to debug line.
- * 
- * You can call this but it's not recommended. Use dprintf().
+ * @brief dprintf that accepts va_args instead
  */
-int dprintf_internal(char *file, int line, DEBUG_LOG_TYPE status, char *format, ...) {
+int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
     if (status == NOHEADER) goto _write_format;
-
 
     // Get the header we want to use
     char header_prefix[5]; // strncpy?
@@ -86,18 +83,31 @@ int dprintf_internal(char *file, int line, DEBUG_LOG_TYPE status, char *format, 
         time_t rawtime;
         time(&rawtime);
         struct tm *timeinfo = localtime(&rawtime);
-
         header_length = snprintf(header, 128, "[%s] [%s] ", asctime(timeinfo), header_prefix);
+    }
+
+    if (module) {
+        header_length += snprintf(header, 128 - strlen(header), "[%s] ", module);
     }
 
     debug_write(header_length, header);
 
 _write_format: ;
+    int returnValue = xvasprintf(debug_print, NULL, format, ap);
+
+    return returnValue;
+}
+
+/**
+ * @brief Internal function to print to debug line.
+ * 
+ * You can call this but it's not recommended. Use dprintf().
+ */
+int dprintf_internal(char *module, DEBUG_LOG_TYPE status, char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    int returnValue = xvasprintf(debug_print, NULL, format, ap);
+    int returnValue = dprintf_va(module, status, format, ap);
     va_end(ap);
-
     return returnValue;
 }
 
