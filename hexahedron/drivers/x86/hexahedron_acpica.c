@@ -31,27 +31,28 @@
 
 
 #define FUNC_UNIMPLEMENTED(FUNCTION)    \
-    dprintf(WARN, "[ACPICA] %s: Unimplemented\n", FUNCTION);    \
-    kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "acpica", "*** %s not implemented\n", FUNCTION);   \
+    LOG(WARN, "%s: Unimplemented\n", FUNCTION);    \
+    kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "ACPICA", "*** %s not implemented\n", FUNCTION);   \
     __builtin_unreachable();
+
+#define LOG(status, message, ...) dprintf_module(status, "ACPICA:OSL", message, ## __VA_ARGS__)
 
 /* Exposed to kernel */
 int ACPICA_Initialize() {
-    dprintf(INFO, "[ACPICA] ACPICA was compiled into kernel. Initializing ACPICA\n");
-    dprintf(INFO, "[ACPICA] AcpiInitializeSubsystem\n");
+    LOG(INFO, "ACPICA was compiled into kernel. Initializing ACPICA\n");
     
     ACPI_STATUS status;
     
     status = AcpiInitializeSubsystem();
     if (ACPI_FAILURE(status)) {
-        dprintf(ERR, "[ACPICA] AcpiInitializeSubsystem did not succeed - status %i\n", status);
+        LOG(ERR, "AcpiInitializeSubsystem did not succeed - status %i\n", status);
         return -1; 
     }
 
     // Initialize tables
     status = AcpiInitializeTables(NULL, 16, FALSE);
     if (ACPI_FAILURE(status)) {
-        dprintf(ERR, "[ACPICA] AcpiInitializeTables did not succeed - status %i\n", status);
+        LOG(ERR, "AcpiInitializeTables did not succeed - status %i\n", status);
         AcpiTerminate();
         return -1;
     }
@@ -59,7 +60,7 @@ int ACPICA_Initialize() {
     // Load tables
     status = AcpiLoadTables();
     if (ACPI_FAILURE(status)) {
-        dprintf(ERR, "[ACPICA] AcpiLoadTables did not succeed - status %i\n", status);
+        LOG(ERR, "AcpiLoadTables did not succeed - status %i\n", status);
         AcpiTerminate();
         return -1;
     }
@@ -67,12 +68,12 @@ int ACPICA_Initialize() {
     // Enable subsystem
     status = AcpiEnableSubsystem(ACPI_FULL_INITIALIZATION);
     if (ACPI_FAILURE(status)) {
-        dprintf(ERR, "[ACPICA] AcpiEnableSystem did not succeed - status %i\n", status);
+        LOG(ERR, "AcpiEnableSystem did not succeed - status %i\n", status);
         AcpiTerminate();
         return -1;
     }
 
-    dprintf(INFO, "[ACPICA] Initialization completed successfully.\n");
+    LOG(INFO, "Initialization completed successfully.\n");
     return 0;
 }
 
@@ -175,7 +176,7 @@ void AcpiOsStall(UINT32 Microseconds) {
 }
 
 void AcpiOsWaitEventsComplete() {
-    dprintf(WARN, "Unimplemented AcpiOsWaitEventsComplete - not critical\n");
+    LOG(WARN, "Unimplemented AcpiOsWaitEventsComplete - not critical\n");
 }
 
 /* SEMAPHORE FUNCTIONS */
@@ -260,15 +261,20 @@ ACPI_STATUS AcpiOsRemoveInterruptHandler(UINT32 InterruptNumber, ACPI_OSD_HANDLE
 }
 
 /* LOGGING */
+
+/* 
+ * NOTE: Most logs come in with a header (e.g. "Firmware Error (ACPI)") that is in AcpiOsPrintf,
+ * and then error content is put into AcpiOsVprintf
+ */
 void AcpiOsPrintf(const char *Format, ...) {
     va_list ap;
     va_start(ap, Format);
-    xvasprintf(debug_print, NULL, Format, ap);
+    dprintf_va("ACPICA", NOHEADER, (char*)Format, ap);
     va_end(ap);
 }
 
 void AcpiOsVprintf(const char *Format, va_list Args) {
-    xvasprintf(debug_print, NULL, Format, Args);
+    dprintf_va("ACPICA", NOHEADER, (char*)Format, Args);
 }
 
 /* MORE MEMORY */
@@ -291,7 +297,7 @@ ACPI_STATUS AcpiOsReadMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 *Value, UINT3
             *Value = *(UINT64*)ptr; 
             break;
         default:
-            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "acpica", "*** AcpiOsReadMemory received bad width argument 0x%x\n", Width);
+            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "ACPICA", "*** AcpiOsReadMemory received bad width argument 0x%x\n", Width);
     }
     return AE_OK;
 }
@@ -313,7 +319,7 @@ ACPI_STATUS AcpiOsWriteMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 Value, UINT3
             *(UINT64*)ptr = Value;
             break;
         default:
-            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "acpica", "*** AcpiOsReadMemory received bad width argument 0x%x\n", Width);
+            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "ACPICA", "*** AcpiOsReadMemory received bad width argument 0x%x\n", Width);
     }
 
     return AE_OK;
@@ -334,7 +340,7 @@ ACPI_STATUS AcpiOsReadPort(ACPI_IO_ADDRESS Address, UINT32 *Value, UINT32 Width)
             *Value = inportl(Address);
             break;
         default:
-            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "acpica", "*** AcpiOsReadPort received bad width argument 0x%x\n", Width);
+            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "ACPICA", "*** AcpiOsReadPort received bad width argument 0x%x\n", Width);
     }
 
     return AE_OK;
@@ -352,7 +358,7 @@ ACPI_STATUS AcpiOsWritePort(ACPI_IO_ADDRESS Address, UINT32 Value, UINT32 Width)
             outportl(Address, Value);
             break;
         default:
-            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "acpica", "*** AcpiOsReadPort received bad width argument 0x%x\n", Width);
+            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "ACPICA", "*** AcpiOsReadPort received bad width argument 0x%x\n", Width);
     }
 
     return AE_OK;
@@ -381,13 +387,13 @@ ACPI_STATUS AcpiOsSignal(UINT32 Function, void *Info) {
     switch (Function) {
         case ACPI_SIGNAL_FATAL:
             ACPI_SIGNAL_FATAL_INFO *error_info = Info;
-            kernel_panic_extended(ACPI_SYSTEM_ERROR, "acpica", "*** ACPI AML error: Fatal error detected. Type: 0x%x Code: 0x%x Argument: 0x%x", 
+            kernel_panic_extended(ACPI_SYSTEM_ERROR, "ACPICA", "*** ACPI AML error: Fatal error detected. Type: 0x%x Code: 0x%x Argument: 0x%x", 
                     error_info->Type,
                     error_info->Code,
                     error_info->Argument);
             break;
         default:
-            dprintf(DEBUG, "ACPI AML signal 0x%x received\n", Function);
+            LOG(DEBUG, "ACPI AML signal 0x%x received\n", Function);
     }
 
     return AE_OK;

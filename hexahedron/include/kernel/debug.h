@@ -59,7 +59,7 @@ void dprintf(DEBUG_LOG_TYPE status, char *fmt, ...);
  * @param module The module this is coming from
  * @param format The text to print
  */
-void dprintf_module(DEBUG_LOG_TYPE status, char *fmt, ...);
+void dprintf_module(DEBUG_LOG_TYPE status, char *module, char *fmt, ...);
 #else
 #define dprintf(status, format, ...) dprintf_internal(NULL, status, format, ## __VA_ARGS__)
 #define dprintf_module(status, module, format, ...) dprintf_internal(module, status, format, ## __VA_ARGS__)
