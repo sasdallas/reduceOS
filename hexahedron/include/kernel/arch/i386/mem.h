@@ -1,3 +1,4 @@
+
 /**
  * @file hexahedron/include/kernel/arch/i386/mem.h
  * @brief i386-specific memory systems
@@ -101,12 +102,15 @@ typedef union page {
 // 0x00000000 - 0x00200000: Kernel code. This can be expanded since heap is positioned right after
 // 0x00200000 - 0x00400000: Kernel heap. This is just an example heap.
 // 0xA0000000 - 0xB0000000: Driver memory space.
-// 0xB0000000 - 0xF0000000: Physical memory. This is a space of memory used for identity mapping
+// 0xB0000000 - 0xC0000000: Physical memory cache
+// 0xC0000000 - 0xF0000000: Physical memory mapping region. Basically one big pool.
 // 0xFD000000 - 0xFFFFFFFF: Framebuffer for the kernel. It can be unmapped for later usage if needed.
 
-#define MEM_IDENTITY_MAP_REGION     0xB0000000
-#define MEM_IDENTITY_MAP_SIZE       0x30000000
-#define MEM_FRAMEBUFFER_REGION      0xFD000000
+#define MEM_PHYSMEM_CACHE_REGION        0xB0000000
+#define MEM_PHYSMEM_CACHE_SIZE          0x10000000
+#define MEM_PHYSMEM_MAP_REGION          0xC0000000
+#define MEM_PHYSMEM_MAP_SIZE            0x20000000
+#define MEM_FRAMEBUFFER_REGION          0xFD000000
 
 
 /**** MACROS ****/

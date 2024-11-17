@@ -101,10 +101,11 @@ void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt);
 void mem_allocatePage(page_t *page, uintptr_t flags);
 
 /**
- * @brief Remap a physical memory manager address to the identity mapped region
+ * @brief Remap a PMM address to the identity mapped region
  * @param frame_address The address of the frame to remap
+ * @param size The size of the address to remap
  */
-uintptr_t mem_remapPhys(uintptr_t frame_address);
+uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) ;
 
 /**
  * @brief Die in the cold winter

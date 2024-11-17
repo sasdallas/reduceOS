@@ -99,16 +99,28 @@ void mem_setPaging(bool status) {
 /**
  * @brief Remap a PMM address to the identity mapped region
  * @param frame_address The address of the frame to remap
+ * @param size The size of the address to remap
  */
-uintptr_t mem_remapPhys(uintptr_t frame_address) {    
-    if (frame_address > mem_identityMapSize) {
-        // We've run out of space in the identity map. That's not great!
-        // There should be a system in place to prevent this - it should just trigger a generic OOM error but this is also here to prevent overruns.
-        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Too much physical memory is in use. Reached the maximum size of the identity mapped region (call 0x%x).\n", frame_address);
-        __builtin_unreachable();
+uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {    
+    if (frame_address + size < mem_identityMapSize) {
+        return frame_address | MEM_PHYSMEM_CACHE_REGION;
     }
 
-    return frame_address | MEM_IDENTITY_MAP_REGION;
+    // We've run out of space in the identity map. That's not great!
+    // There should be a system in place to prevent this - it should just trigger a generic OOM error but this is also here to prevent overruns.
+    kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Too much physical memory is in use. Reached the maximum size of the identity mapped region (call 0x%x).\n", frame_address);
+    __builtin_unreachable();
+}
+
+/**
+ * @brief Unmap a PMM address in the identity mapped region
+ * @param frame_address The address of the frame to unmap
+ * @param size The size of the frame to unmap
+ */
+void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
+    if (frame_address + size < mem_identityMapSize) {
+        return; // No work to be done. It's in the cache.
+    }
 }
 
 /**
@@ -127,7 +139,7 @@ int mem_switchDirectory(page_t *pagedir) {
     mem_currentDirectory = pagedir;
 
     // Load PDBR
-    mem_load_pdbr((uintptr_t)pagedir & ~MEM_IDENTITY_MAP_REGION);
+    mem_load_pdbr((uintptr_t)pagedir & ~MEM_PHYSMEM_CACHE_REGION);
 
     return 0;
 }
@@ -165,9 +177,12 @@ uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
         return (uintptr_t)NULL;
     }
 
-    page_t *table = (page_t*)(mem_remapPhys(MEM_GET_FRAME(pde))); // Remember to remap any frames to that identity map area.
+    // Remember to remap any frames to that identity map area.
+    page_t *table = (page_t*)(mem_remapPhys(MEM_GET_FRAME(pde), PMM_BLOCK_SIZE)); 
     page_t *pte = &(table[MEM_PAGETBL_INDEX(virtaddr)]);
     
+    mem_unmapPhys((uintptr_t)table, PMM_BLOCK_SIZE);
+
     return MEM_GET_FRAME(pte);
 }
 
@@ -214,7 +229,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
 
         // Allocate a new PDE and zero it
         uintptr_t block = pmm_allocateBlock();
-        memset((void*)mem_remapPhys(block), 0, PMM_BLOCK_SIZE);
+        memset((void*)mem_remapPhys(block, PMM_BLOCK_SIZE), 0, PMM_BLOCK_SIZE);
         
         // Setup the bits in the directory index
         pde->bits.present = 1;
@@ -222,14 +237,17 @@ page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
         pde->bits.usermode = 1; // FIXME: Not upholding security 
         MEM_SET_FRAME(pde, block);
         
-        dprintf(DEBUG, "Created a new block at 0x%x\n", block);
+        mem_unmapPhys(block, PMM_BLOCK_SIZE);
     }
 
     // Calculate the table index (complex bc MEM_GET_FRAME is for pointers, and I'm lazy)
-    page_t *table = (page_t*)mem_remapPhys((uintptr_t)(directory[MEM_PAGEDIR_INDEX(addr)].bits.address << MEM_PAGE_SHIFT));
+    page_t *table = (page_t*)mem_remapPhys((uintptr_t)(directory[MEM_PAGEDIR_INDEX(addr)].bits.address << MEM_PAGE_SHIFT), PMM_BLOCK_SIZE);
+
+    page_t *ret = &(table[MEM_PAGETBL_INDEX(addr)]);
+    mem_unmapPhys((uintptr_t)table, PMM_BLOCK_SIZE);
 
     // Return the page
-    return &(table[MEM_PAGETBL_INDEX(addr)]);
+    return ret;
 
 bad_page:
     return NULL;
@@ -313,8 +331,8 @@ void mem_init(uintptr_t high_address) {
     size_t frame_bytes = pmm_getMaximumBlocks() * PMM_BLOCK_SIZE;
     size_t frame_pages = (frame_bytes >> MEM_PAGE_SHIFT);
 
-    if (frame_bytes > MEM_IDENTITY_MAP_SIZE) {
-        dprintf(WARN, "Too much memory in PMM bitmap. Maximum allowed memory size is %i KB and found %i KB - limiting size\n", MEM_IDENTITY_MAP_SIZE / 1024, frame_bytes / 1024);
+    if (frame_bytes > MEM_PHYSMEM_CACHE_SIZE) {
+        dprintf(WARN, "Too much memory in PMM bitmap. Maximum allowed memory size is %i KB and found %i KB - limiting size\n", MEM_PHYSMEM_CACHE_SIZE / 1024, frame_bytes / 1024);
     }
 
     // Update size
@@ -340,7 +358,7 @@ void mem_init(uintptr_t high_address) {
             page.bits.usermode = 1; // uhhhhh
             page.bits.address = (frame >> MEM_PAGE_SHIFT);
             
-            page_table[MEM_PAGETBL_INDEX(frame + MEM_IDENTITY_MAP_REGION)] = page;
+            page_table[MEM_PAGETBL_INDEX(frame + MEM_PHYSMEM_CACHE_REGION)] = page;
 
             pages_mapped++;
             if (pages_mapped == (int)(frame_pages)) break;
@@ -348,7 +366,7 @@ void mem_init(uintptr_t high_address) {
         }
         
         // Create a PDE
-        page_t *pde = &(page_directory[MEM_PAGEDIR_INDEX(table_frame + MEM_IDENTITY_MAP_REGION)]);
+        page_t *pde = &(page_directory[MEM_PAGEDIR_INDEX(table_frame + MEM_PHYSMEM_CACHE_REGION)]);
         pde->bits.present = 1;
         pde->bits.rw = 1;
         pde->bits.usermode = 1; // uhhhhhhhhhh
