@@ -2,7 +2,7 @@ include ../make.config
 
 ifeq ($(HOSTARCH), i386)
 # Required for I386
-PROJECTS :
+PROJECTS := 
 
 # ACPICA
 ifeq ($(USE_ACPICA), 1)
@@ -14,9 +14,9 @@ PROJECTS :=
 endif
 
 # i love make i love make cmake is bad i love make i love make
-PROJECTS_HEADERS = $(addsuffix /installheaders, $(PROJECTS))
-PROJECTS_INSTALL = $(addsuffix /install, $(PROJECTS))
-PROJECTS_CLEAN   = $(addsuffix /clean, $(PROJECTS))
+PROJECTS_HEADERS := $(addsuffix /installheaders, $(PROJECTS))
+PROJECTS_INSTALL := $(addsuffix /install, $(PROJECTS))
+PROJECTS_CLEAN := $(addsuffix /clean, $(PROJECTS))
 
 # Target disabled
 all:
