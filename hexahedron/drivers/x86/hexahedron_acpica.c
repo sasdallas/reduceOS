@@ -129,7 +129,7 @@ ACPI_STATUS AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER *ExistingTable, ACPI_P
 
 void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     // just like pmm it
-    LOG(DEBUG, "AcpiOsMapMemory 0x%x 0x%x\n", PhysicalAddress, Length);
+    LOG(DEBUG, "AcpiOsMapMemory 0x%x 0x%x\n", (uintptr_t)PhysicalAddress, Length);
     return (void*)mem_remapPhys((uintptr_t)PhysicalAddress);
 }
 

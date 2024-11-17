@@ -60,10 +60,10 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     arch_panic_prepare();
 
     // Start by printing out debug messages
-    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\n\033[0;31m");
+    dprintf(NOHEADER, "\033[1;31m\n\nFATAL: Kernel panic detected!\033[0;31m\n");
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
-    dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
+    dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\033[1;31m\n\n");
     
     dprintf(NOHEADER, "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
 
@@ -73,7 +73,7 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     va_end(ap);
 
     // Print out a generic message
-    dprintf(NOHEADER, "\n%s", kernel_panic_messages[bugcode]);
+    dprintf(NOHEADER, "\033[0;31m\n%s", kernel_panic_messages[bugcode]);
 
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
@@ -99,8 +99,8 @@ void kernel_panic(uint32_t bugcode, char *module) {
     dprintf(NOHEADER, "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
-    dprintf(NOHEADER, "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
-    dprintf(NOHEADER, "*** %s", kernel_panic_messages[bugcode]);
+    dprintf(NOHEADER, "\033[1;31m\n*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
+    dprintf(NOHEADER, "*** %s\n\033[0;31m", kernel_panic_messages[bugcode]);
     
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
@@ -129,6 +129,6 @@ void kernel_panic_prepare(uint32_t bugcode) {
  * @brief Finalize the panic state
  */
 void kernel_panic_finalize() {
-    dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+    dprintf(NOHEADER, "\n\033[0;31mThe kernel will now permanently halt. Connect a debugger for more information.\n");
     arch_panic_finalize();
 }

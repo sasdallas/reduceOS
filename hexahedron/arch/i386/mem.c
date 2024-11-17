@@ -31,10 +31,10 @@
 
 static page_t       *mem_currentDirectory;      // Current page directory. Contains a list of page table entries (PTEs).
 static page_t       *mem_kernelDirectory;       // Kernel page directory
-                                                // !!!: We're using this correctly, right?
+                                                // ! We're using this correctly, right?
 
 static uintptr_t    mem_kernelHeap;             // Location of the kernel heap in memory
-static uintptr_t    mem_identityMapLimit;       // Limit of the identity map region
+
 
 /**
  * @brief Die in the cold winter
@@ -98,12 +98,10 @@ void mem_setPaging(bool status) {
 
 /**
  * @brief Remap a PMM address to the identity mapped region
- * @todo    Rework this whole system. This should be a dynamic-allocated sort of system that can map PMM chunks
- *          into memory sections.
  * @param frame_address The address of the frame to remap
  */
 uintptr_t mem_remapPhys(uintptr_t frame_address) {    
-    if (frame_address > mem_identityMapLimit) {
+    if (frame_address > MEM_IDENTITY_MAP_SIZE) {
         // We've run out of space in the identity map. That's not great!
         // There should be a system in place to prevent this - it should just trigger a generic OOM error but this is also here to prevent overruns.
         kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Too much physical memory is in use. Reached the maximum size of the identity mapped region (call 0x%x).\n", frame_address);
@@ -310,15 +308,11 @@ void mem_init(uintptr_t high_address) {
     // which is limited to something like 786 MB (see arch/i386/mem.h)
 
     size_t frame_bytes = pmm_getMaximumBlocks() * PMM_BLOCK_SIZE;
+    size_t frame_pages = (frame_bytes >> MEM_PAGE_SHIFT);
 
     if (frame_bytes > MEM_IDENTITY_MAP_SIZE) {
         dprintf(WARN, "Too much memory in PMM bitmap. Maximum allowed memory size is %i KB and found %i KB - limiting size\n", MEM_IDENTITY_MAP_SIZE / 1024, frame_bytes / 1024);
-        frame_bytes = MEM_IDENTITY_MAP_SIZE;
     }
-
-    size_t frame_pages = (frame_bytes >> MEM_PAGE_SHIFT);
-
-    mem_identityMapLimit = frame_bytes;
 
     // Identity map!
     uintptr_t frame = 0x0;
@@ -329,9 +323,6 @@ void mem_init(uintptr_t high_address) {
     for (int i = 0; i < loop_cycles; i++) {
         page_t *page_table = (page_t*)pmm_allocateBlock();
         memset(page_table, 0, PMM_BLOCK_SIZE);
-
-
-        dprintf(DEBUG, "\ttable_frame = 0x%x page_table = 0x%x\n", table_frame, page_table);
 
         for (int pg = 0; pg < 1024; pg++) {
             page_t page = {.data = 0};
@@ -348,7 +339,7 @@ void mem_init(uintptr_t high_address) {
         }
         
         // Create a PDE
-        page_t *pde = &(page_directory[MEM_PAGEDIR_INDEX(frame + MEM_IDENTITY_MAP_REGION)]);
+        page_t *pde = &(page_directory[MEM_PAGEDIR_INDEX(table_frame + MEM_IDENTITY_MAP_REGION)]);
         pde->bits.present = 1;
         pde->bits.rw = 1;
         pde->bits.usermode = 1; // uhhhhhhhhhh
@@ -358,8 +349,6 @@ void mem_init(uintptr_t high_address) {
 
         if (pages_mapped == (int)frame_pages) break;
     }
-
-    
 
     uintptr_t heap_start_aligned = ((uintptr_t)mem_kernelHeap + 0xFFF) & ~0xFFF;
     uintptr_t kernel_pages = (uintptr_t)heap_start_aligned >> MEM_PAGE_SHIFT;
@@ -376,8 +365,6 @@ void mem_init(uintptr_t high_address) {
     for (int i = 0; i < loop_cycles; i++) {
         page_t *page_table = (page_t*)pmm_allocateBlock();
         memset(page_table, 0, PMM_BLOCK_SIZE);
-
-        dprintf(DEBUG, "\ttable_frame = 0x%x page_table = 0x%x\n", table_frame, page_table);
 
         for (int pg = 0; pg < 1024; pg++) {
             page_t page = {.data = 0};
@@ -413,8 +400,6 @@ void mem_init(uintptr_t high_address) {
     dprintf(INFO, "Finished creating memory map.\n");
     dprintf(DEBUG, "\tKernel code is from 0x0 - 0x%x\n", high_address);
     dprintf(DEBUG, "\tKernel heap will begin at 0x%x\n", mem_kernelHeap);
-
-    dprintf(INFO, "Page directory is available at: 0x%x\n", page_directory);
     mem_kernelDirectory = page_directory;
     mem_switchDirectory(mem_kernelDirectory);
     mem_setPaging(true);

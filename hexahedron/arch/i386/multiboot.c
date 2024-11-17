@@ -200,6 +200,7 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
     // These DMA regions occur within the range of 0xC0000 - 0xF0000
     dprintf(DEBUG, "Marked memory descriptor 0xC0000 - 0xE0000 as DMA memory (QEMU bug)\n");
     pmm_deinitializeRegion(0xC0000, 0x20000);
+    pmm_deinitializeRegion(0x00000, 0x10000);
 
     // Unmark kernel region
     extern uint32_t __text_start;

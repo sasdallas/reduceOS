@@ -128,20 +128,7 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     highest_kernel_address += PAGE_SIZE;
     highest_kernel_address &= ~0xFFF;
 
-    // ACPI????
-    uintptr_t start_ptr = 0x000E0000;
-    uintptr_t end_ptr = 0x000FFFFF;
-    uintptr_t i = start_ptr;
-    while (i < end_ptr) {
-        uint64_t signature = *(uint64_t*)i;
-        if (signature == 0x2052545020445352) {
-            dprintf(INFO, "Found RSDP signature at 0x%x\n", i);
-            hal_setRSDP(i);
-        }
-
-        i += 16;
-    }
-
+    
     // Let's get some multiboot information.
     parameters = NULL;
 
