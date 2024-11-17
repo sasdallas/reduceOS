@@ -121,6 +121,11 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad size to remapPhys: 0x%x\n", size);
     }
 
+    if (frame_address % PAGE_SIZE != 0) {
+        // TODO: Add support for this?
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad frame to remapPhys: 0x%x\n", frame_address);
+    }
+
     // Now try to get a pool address
     uintptr_t start_addr = pool_allocateChunks(mem_mapPool, size / PAGE_SIZE);
     if (start_addr == (uintptr_t)NULL) {
@@ -130,11 +135,8 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
         __builtin_unreachable();
     }
 
-    for (uintptr_t i = start_addr; i < start_addr + size; i++) {
-        page_t *page = mem_getPage(NULL, i, MEM_CREATE);
-
-        mem_allocatePage(page, MEM_NOALLOC);
-        MEM_SET_FRAME(page, i);
+    for (uintptr_t i = frame_address; i < frame_address + size; i += PAGE_SIZE) {
+        mem_mapAddress(NULL, i, start_addr + (i - frame_address));
     }
 
     return start_addr;
@@ -152,6 +154,10 @@ void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
 
     if ((frame_address - MEM_PHYSMEM_CACHE_REGION) + size < mem_identityMapCacheSize) {
         return; // No work to be done. It's in the cache.
+    }
+
+    if (frame_address % PAGE_SIZE != 0) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad frame to unmapPhys: 0x%x\n", frame_address);
     }
 
     if (size % PAGE_SIZE != 0) {
@@ -211,7 +217,8 @@ uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
     page_t *directory = (dir == NULL) ? mem_currentDirectory : dir;
     
     // Get the directory entry and its corresponding table
-    page_t *pde = &(directory[MEM_PAGEDIR_INDEX(virtaddr)]);
+    uintptr_t addr = (virtaddr % PAGE_SIZE == 0) ? virtaddr : MEM_ALIGN_PAGE(virtaddr);
+    page_t *pde = &(directory[MEM_PAGEDIR_INDEX(addr)]);
     if (pde->bits.present == 0) {
         // The PDE wasn't present
         return (uintptr_t)NULL;
@@ -219,7 +226,7 @@ uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
 
     // Remember to remap any frames to that identity map area.
     page_t *table = (page_t*)(mem_remapPhys(MEM_GET_FRAME(pde), PMM_BLOCK_SIZE)); 
-    page_t *pte = &(table[MEM_PAGETBL_INDEX(virtaddr)]);
+    page_t *pte = &(table[MEM_PAGETBL_INDEX(addr)]);
     
     mem_unmapPhys((uintptr_t)table, PMM_BLOCK_SIZE);
 

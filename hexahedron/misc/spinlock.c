@@ -32,9 +32,6 @@ spinlock_t *spinlock_create(char *name) {
     // https://stackoverflow.com/questions/31526556/initializing-an-atomic-flag-in-a-mallocd-structure
     atomic_flag_clear(&(ret->lock));
 
-
-    dprintf(DEBUG, "Spinlock '%s' created\n", name);
-
     return ret;
 }
 

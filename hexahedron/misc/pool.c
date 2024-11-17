@@ -196,6 +196,7 @@ uintptr_t pool_allocateChunks(pool_t *pool, uintptr_t chunks) {
     spinlock_acquire(pool->lock);
 
     if (pool->allocated - pool->used < pool->chunk_size * chunks) {
+        dprintf(DEBUG, "underflow? pool->allocated = 0x%x pool->used = 0x%x\n", pool->allocated, pool->used);
         goto _oom;
     }
 

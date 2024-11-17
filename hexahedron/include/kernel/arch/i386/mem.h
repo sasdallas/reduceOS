@@ -115,7 +115,7 @@ typedef union page {
 
 /**** MACROS ****/
 
-#define MEM_ALIGN_PAGE(addr) ((addr & 0xFFFFF000) + 4096) // Align an address to the nearest page
+#define MEM_ALIGN_PAGE(addr) ((addr + PAGE_SIZE) & ~0xFFF) // Align an address to the nearest page
 #define MEM_PAGEDIR_INDEX(x) (((x) >> 22) & 0x3ff) // Returns the index of x within the page directory
 #define MEM_PAGETBL_INDEX(x) (((x) >> 12) & 0x3ff) // Returns the index of x within the page table
 #define MEM_VIRTUAL_TO_PHYS(addr) (*addr & ~0xFFF) // Returns the physical frame address of a page.

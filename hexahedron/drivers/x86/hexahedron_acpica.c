@@ -17,6 +17,7 @@
  */
 
 #include <acpica/acpi.h>
+#include <acpica/actypes.h>
 
 #include <kernel/arch/i386/hal.h>
 #include <kernel/debug.h>
@@ -36,6 +37,7 @@
     __builtin_unreachable();
 
 #define LOG(status, message, ...) dprintf_module(status, "ACPICA:OSL", message, ## __VA_ARGS__)
+
 
 /* Exposed to kernel */
 int ACPICA_Initialize() {
@@ -68,12 +70,20 @@ int ACPICA_Initialize() {
     // Enable subsystem
     status = AcpiEnableSubsystem(ACPI_FULL_INITIALIZATION);
     if (ACPI_FAILURE(status)) {
-        LOG(ERR, "AcpiEnableSystem did not succeed - status %i\n", status);
+        LOG(ERR, "AcpiEnableSubsystem did not succeed - status %i\n", status);
+        AcpiTerminate();
+        return -1;
+    }
+
+    status = AcpiInitializeObjects(ACPI_FULL_INITIALIZATION);
+    if (ACPI_FAILURE(status)) {
+        LOG(ERR, "AcpiInitializeObjects did not succeed - status %i\n", status);
         AcpiTerminate();
         return -1;
     }
 
     LOG(INFO, "Initialization completed successfully.\n");
+
     return 0;
 }
 
@@ -122,21 +132,32 @@ ACPI_STATUS AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER *ExistingTable, ACPI_P
 
 void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     // just like pmm it
-    LOG(DEBUG, "AcpiOsMapMemory 0x%x 0x%x\n", (uintptr_t)PhysicalAddress, Length);
-    return (void*)mem_remapPhys((uintptr_t)PhysicalAddress);
+    // LOG(DEBUG, "AcpiOsMapMemory 0x%x 0x%x\n", (uintptr_t)PhysicalAddress, Length);
+
+    uintptr_t phys_aligned = ((uintptr_t)PhysicalAddress & ~0xFFF);
+    uintptr_t phys_diff = ((uintptr_t)PhysicalAddress & 0xFFF);
+    uintptr_t phys_size = MEM_ALIGN_PAGE(((uintptr_t)Length + phys_diff));
+
+    uintptr_t phys_start = mem_remapPhys(phys_aligned, phys_size);
+    return (void*)(phys_start + phys_diff);
 }
 
 /* Unmap memory */
 void AcpiOsUnmapMemory(void *where, ACPI_SIZE Length) {
-    // Considering we're returning PMM-mapped memory, nah.
-    LOG(DEBUG, "AcpiOsUnmapMemory 0x%x 0x%x\n", where, Length);
+    // LOG(DEBUG, "AcpiOsUnmapMemory 0x%x 0x%x\n", where, Length);
+
+    // !!!: HORRIBLY WASTEFUL. ACPICA WILL UNMAP MANY BITS OF MEMORY WITHIN OUR CHUNK SIZES!
+    // uintptr_t phys_aligned = ((uintptr_t)where & ~0xFFF);
+    // uintptr_t phys_diff = ((uintptr_t)where & 0xFFF);
+    // uintptr_t phys_size = MEM_ALIGN_PAGE(((uintptr_t)Length + phys_diff));
+    // mem_unmapPhys(phys_aligned, phys_size);
 }
 
 /* Get a physical address */
 ACPI_STATUS AcpiOsGetPhysicalAddress(void *LogicalAddress, ACPI_PHYSICAL_ADDRESS *PhysicalAddress) {
     // It is possible to just call mem_getPhysicalAddress as well
     LOG(DEBUG, "AcpiOsGetPhysicalAddress 0x%x\n", LogicalAddress);
-    *PhysicalAddress = (ACPI_PHYSICAL_ADDRESS)(LogicalAddress - (void*)MEM_IDENTITY_MAP_REGION);
+    *PhysicalAddress = (ACPI_PHYSICAL_ADDRESS)mem_getPhysicalAddress(NULL, (uintptr_t)LogicalAddress);
     return AE_OK;
 }
 
@@ -334,7 +355,7 @@ void AcpiOsVprintf(const char *Format, va_list Args) {
 
 ACPI_STATUS AcpiOsReadMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 *Value, UINT32 Width) {
 
-    void *ptr = (void*)mem_remapPhys((uintptr_t)Address);
+    void *ptr = (void*)mem_remapPhys((uintptr_t)Address, 0x1000); // !!!: HORRIBLY INEFFICIENT!!!!!!!!!
 
     switch (Width) {
         case 8:
@@ -352,11 +373,13 @@ ACPI_STATUS AcpiOsReadMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 *Value, UINT3
         default:
             kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "ACPICA", "*** AcpiOsReadMemory received bad width argument 0x%x\n", Width);
     }
+
+    mem_unmapPhys((uintptr_t)ptr, 0x1000);
     return AE_OK;
 }
 
 ACPI_STATUS AcpiOsWriteMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 Value, UINT32 Width) {
-    void *ptr = (void*)mem_remapPhys((uintptr_t)Address);
+    void *ptr = (void*)mem_remapPhys((uintptr_t)Address, 0x1000); // !!!: HORRIBLY INEFFICIENT!!!!!!!!!
 
     switch (Width) {
         case 8:
@@ -375,6 +398,7 @@ ACPI_STATUS AcpiOsWriteMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 Value, UINT3
             kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "ACPICA", "*** AcpiOsReadMemory received bad width argument 0x%x\n", Width);
     }
 
+    mem_unmapPhys((uintptr_t)ptr, 0x1000);
     return AE_OK;
 }
 
