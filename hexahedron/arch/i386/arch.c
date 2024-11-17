@@ -135,7 +135,7 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
         parameters = arch_parse_multiboot1(bootinfo);
     } else if (multiboot_magic == MULTIBOOT2_MAGIC) {
         dprintf(INFO, "Found a Multiboot2 structure\n");
-        kernel_panic(KERNEL_DEBUG_TRAP, "arch");
+        parameters = arch_parse_multiboot2(bootinfo);
     } else {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** Unknown multiboot structure when checking kernel.\n");
     }

@@ -33,6 +33,13 @@ void arch_say_hello();
  */
 generic_parameters_t *arch_parse_multiboot1(multiboot_t *bootinfo);
 
+/** 
+ * @brief Parse a Multiboot 2 header and packs into a @c generic_parameters structure
+ * @param bootinfo A pointer to the multiboot informatino
+ * @returns A generic parameters structure
+ */
+generic_parameters_t *arch_parse_multiboot2(multiboot_t *bootinfo);
+
 /**
  * @brief Mark/unmark valid spots in memory
  * @todo Work in tandem with mem.h to allow for a maximum amount of blocks to be used
