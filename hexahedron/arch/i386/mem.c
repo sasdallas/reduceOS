@@ -34,7 +34,7 @@ static page_t       *mem_kernelDirectory;       // Kernel page directory
                                                 // ! We're using this correctly, right?
 
 static uintptr_t    mem_kernelHeap;             // Location of the kernel heap in memory
-
+static uintptr_t    mem_identityMapSize;        // Size of our actual identity map (it is basically a cache)
 
 /**
  * @brief Die in the cold winter
@@ -101,7 +101,7 @@ void mem_setPaging(bool status) {
  * @param frame_address The address of the frame to remap
  */
 uintptr_t mem_remapPhys(uintptr_t frame_address) {    
-    if (frame_address > MEM_IDENTITY_MAP_SIZE) {
+    if (frame_address > mem_identityMapSize) {
         // We've run out of space in the identity map. That's not great!
         // There should be a system in place to prevent this - it should just trigger a generic OOM error but this is also here to prevent overruns.
         kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Too much physical memory is in use. Reached the maximum size of the identity mapped region (call 0x%x).\n", frame_address);
@@ -307,12 +307,18 @@ void mem_init(uintptr_t high_address) {
     // Hexahedron uses a memory map that has mapped PMM memory accessible through a range,
     // which is limited to something like 786 MB (see arch/i386/mem.h)
 
+    // TODO: We can do something much better than this. Create a PMM remapper that can create
+    // caches of commonly used blocks of memory and remap on the fly.
+
     size_t frame_bytes = pmm_getMaximumBlocks() * PMM_BLOCK_SIZE;
     size_t frame_pages = (frame_bytes >> MEM_PAGE_SHIFT);
 
     if (frame_bytes > MEM_IDENTITY_MAP_SIZE) {
         dprintf(WARN, "Too much memory in PMM bitmap. Maximum allowed memory size is %i KB and found %i KB - limiting size\n", MEM_IDENTITY_MAP_SIZE / 1024, frame_bytes / 1024);
     }
+
+    // Update size
+    mem_identityMapSize = frame_bytes; 
 
     // Identity map!
     uintptr_t frame = 0x0;
