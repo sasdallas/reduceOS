@@ -104,7 +104,7 @@ uintptr_t mem_remapPhys(uintptr_t frame_address) {
     if (frame_address > MEM_IDENTITY_MAP_SIZE) {
         // We've run out of space in the identity map. That's not great!
         // There should be a system in place to prevent this - it should just trigger a generic OOM error but this is also here to prevent overruns.
-        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Too much physical memory is in use. Reached the maximum size of the identity mapped region.");
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Too much physical memory is in use. Reached the maximum size of the identity mapped region (call 0x%x).\n", frame_address);
         __builtin_unreachable();
     }
 
@@ -214,18 +214,20 @@ page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
 
         // Allocate a new PDE and zero it
         uintptr_t block = pmm_allocateBlock();
-        memset((void*)mem_remapPhys(block), 0, PAGE_SIZE);
+        memset((void*)mem_remapPhys(block), 0, PMM_BLOCK_SIZE);
         
         // Setup the bits in the directory index
         pde->bits.present = 1;
         pde->bits.rw = 1;
         pde->bits.usermode = 1; // FIXME: Not upholding security 
         MEM_SET_FRAME(pde, block);
+        
+        dprintf(DEBUG, "Created a new block at 0x%x\n", block);
     }
 
     // Calculate the table index (complex bc MEM_GET_FRAME is for pointers, and I'm lazy)
-    page_t *table = (page_t*)((uintptr_t)(directory[MEM_PAGEDIR_INDEX(addr)].bits.address << MEM_PAGE_SHIFT));
-    
+    page_t *table = (page_t*)mem_remapPhys((uintptr_t)(directory[MEM_PAGEDIR_INDEX(addr)].bits.address << MEM_PAGE_SHIFT));
+
     // Return the page
     return &(table[MEM_PAGETBL_INDEX(addr)]);
 

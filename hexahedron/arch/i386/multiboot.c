@@ -198,8 +198,8 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
     // https://github.com/nutanix/libvfio-user/issues/463
 
     // These DMA regions occur within the range of 0xC0000 - 0xF0000
-    dprintf(DEBUG, "Marked memory descriptor 0xC0000 - 0xE0000 as DMA memory (QEMU bug)\n");
-    pmm_deinitializeRegion(0xC0000, 0x20000);
+    dprintf(DEBUG, "Marked memory descriptor 0x00000 - 0xFF000 as DMA memory (QEMU bug)\n");
+    pmm_deinitializeRegion(0x00000, 0x100000);
 
     // Unmark kernel region
     extern uint32_t __text_start;
