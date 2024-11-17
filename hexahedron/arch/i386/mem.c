@@ -38,6 +38,8 @@ static uintptr_t    mem_kernelHeap;             // Location of the kernel heap i
 static uintptr_t    mem_identityMapCacheSize;   // Size of our actual identity map (it is basically a cache)
 static pool_t       *mem_mapPool = NULL;        // Identity map pool
 
+
+
 /**
  * @brief Die in the cold winter
  * @param bytes How many bytes were trying to be allocated
@@ -377,11 +379,14 @@ void mem_init(uintptr_t high_address) {
     // caches of commonly used blocks of memory and remap on the fly.
 
     size_t frame_bytes = pmm_getMaximumBlocks() * PMM_BLOCK_SIZE;
-    size_t frame_pages = (frame_bytes >> MEM_PAGE_SHIFT);
 
     if (frame_bytes > MEM_PHYSMEM_CACHE_SIZE) {
         dprintf(WARN, "Too much memory in PMM bitmap. Maximum allowed memory size is %i KB and found %i KB - limiting size\n", MEM_PHYSMEM_CACHE_SIZE / 1024, frame_bytes / 1024);
+        frame_bytes = MEM_PHYSMEM_CACHE_SIZE;
     }
+
+
+    size_t frame_pages = (frame_bytes >> MEM_PAGE_SHIFT);
 
     // Update size
     mem_identityMapCacheSize = frame_bytes; 
@@ -396,14 +401,10 @@ void mem_init(uintptr_t high_address) {
         page_t *page_table = (page_t*)pmm_allocateBlock();
         memset(page_table, 0, PMM_BLOCK_SIZE);
 
-
-        dprintf(DEBUG, "\ttable_frame = 0x%x page_table = 0x%x\n", table_frame, page_table);
-
         for (int pg = 0; pg < 1024; pg++) {
             page_t page = {.data = 0};
             page.bits.present = 1;
             page.bits.rw = 1;
-            page.bits.usermode = 1; // uhhhhh
             page.bits.address = (frame >> MEM_PAGE_SHIFT);
             
             page_table[MEM_PAGETBL_INDEX(frame + MEM_PHYSMEM_CACHE_REGION)] = page;
@@ -417,7 +418,6 @@ void mem_init(uintptr_t high_address) {
         page_t *pde = &(page_directory[MEM_PAGEDIR_INDEX(table_frame + MEM_PHYSMEM_CACHE_REGION)]);
         pde->bits.present = 1;
         pde->bits.rw = 1;
-        pde->bits.usermode = 1; // uhhhhhhhhhh
         MEM_SET_FRAME(pde, page_table);
 
         table_frame += 0x1000 * 1024;
@@ -440,8 +440,6 @@ void mem_init(uintptr_t high_address) {
     for (int i = 0; i < loop_cycles; i++) {
         page_t *page_table = (page_t*)pmm_allocateBlock();
         memset(page_table, 0, PMM_BLOCK_SIZE);
-
-        dprintf(DEBUG, "\ttable_frame = 0x%x page_table = 0x%x\n", table_frame, page_table);
 
         for (int pg = 0; pg < 1024; pg++) {
             page_t page = {.data = 0};
@@ -478,11 +476,10 @@ void mem_init(uintptr_t high_address) {
     dprintf(DEBUG, "\tKernel code is from 0x0 - 0x%x\n", high_address);
     dprintf(DEBUG, "\tKernel heap will begin at 0x%x\n", mem_kernelHeap);
 
-    dprintf(INFO, "Page directory is available at: 0x%x\n", page_directory);
     mem_kernelDirectory = page_directory;
     mem_switchDirectory(mem_kernelDirectory);
     mem_setPaging(true);
-    dprintf(INFO, "Memory system online\n");
+    dprintf(INFO, "Memory system online and enabled.\n");
 }
 
 

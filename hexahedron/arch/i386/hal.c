@@ -57,13 +57,19 @@ static void hal_init_stage1() {
     pit_initialize();
 }
 
-extern int ACPICA_Initialize();
-
 /**
  * @brief Stage 2 startup
  */
 static void hal_init_stage2() {
-    ACPICA_Initialize();
+#ifdef ACPICA_ENABLED
+    extern int ACPICA_Initialize();
+    int return_value = ACPICA_Initialize();
+    if (return_value != 0) {
+        dprintf(ERR, "ACPICA failed to initialize correctly.\n");
+    }
+#else
+    dprintf(WARN, "No ACPI subsystem is available to kernel\n");
+#endif
 }
 
 /**

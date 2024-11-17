@@ -22,6 +22,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define LOG(status, format, ...) dprintf_module(status, "CLOCK", format, ## __VA_ARGS__)
+
 uint64_t boottime = 0;
 uint64_t tsc_baseline = 0;
 uint64_t tsc_mhz = 0;
@@ -262,15 +264,15 @@ void clock_initialize() {
     tsc_mhz = (end - start) / 10000;
 
     if (!tsc_mhz) {
-        dprintf(WARN, "clock: Failed to calculate the TSC MHz - defaulting to 2000\n");
+        LOG(WARN, "Failed to calculate the TSC MHz - defaulting to 2000\n");
         tsc_mhz = 2000;
     }
 
     tsc_baseline = start / tsc_mhz;
 
-    dprintf(INFO, "clock: TSC calculated speed is %lu MHz\n", tsc_mhz);
-    dprintf(INFO, "clock: Initial boot time is %lu (UNIX timestamp)\n", boottime);
-    dprintf(INFO, "clock: TSC baseline is %luus\n", tsc_baseline);
+    LOG(INFO, "TSC calculated speed is %lu MHz\n", tsc_mhz);
+    LOG(INFO, "Initial boot time is %lu (UNIX timestamp)\n", boottime);
+    LOG(INFO, "TSC baseline is %luus\n", tsc_baseline);
 
     // Construct and install a clock device
     clock_device_t device;
