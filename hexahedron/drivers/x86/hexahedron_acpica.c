@@ -87,13 +87,6 @@ ACPI_STATUS AcpiOsInitialize() {
 ACPI_STATUS AcpiOsTerminate() {
     return AE_OK;
 }
-typedef struct {
-    char signature[8];
-    uint8_t checksum;
-    char OEMID[6];
-    uint8_t revision;
-    uint32_t rsdtAddress;
-} __attribute__((packed)) RSDPDescriptor;
 
 /* Get the RSDP */
 ACPI_PHYSICAL_ADDRESS AcpiOsGetRootPointer() {
