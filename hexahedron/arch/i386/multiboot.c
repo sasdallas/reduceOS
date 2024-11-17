@@ -197,8 +197,11 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
     // QEMU doesn't properly unmark DMA regions, apparently - according to libvfio-user issue $493
     // https://github.com/nutanix/libvfio-user/issues/463
 
-    // These DMA regions occur within the range of 0xC0000 - 0xF0000
-    dprintf(DEBUG, "Marked memory descriptor 0x00000 - 0xFF000 as DMA memory (QEMU bug)\n");
+    // These DMA regions occur within the range of 0xC0000 - 0xF0000, but we'll unmap
+    // the rest of the memory too. x86 real mode's memory map dictates that the first 1MB
+    // or so is reserved from like 0x0-0xFFFFF for BIOS structures.
+    // TODO: It may be possible to reinitialize this memory later
+    dprintf(DEBUG, "Marked memory descriptor 0x000000 - 0x100000 as reserved memory (QEMU bug)\n");
     pmm_deinitializeRegion(0x00000, 0x100000);
 
     // Unmark kernel region
