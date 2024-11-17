@@ -123,11 +123,11 @@ void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registe
     // Call any handler registered
     if (hal_handler_table[int_number] != NULL) {
         interrupt_handler_t handler = (hal_handler_table[int_number]);
-        int return_value = handler(regs, regs_extended);
+        int return_value = handler(exception_index, int_number, regs, regs_extended);
 
         if (return_value != 0) {
-            // TODO: Panic.
-            dprintf(ERR, "FAULT ME!!!!!\n");
+            kernel_panic(IRQ_HANDLER_FAILED, "hal");
+            __builtin_unreachable();
         }
     }
 
@@ -138,7 +138,7 @@ void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registe
  * @brief Register an interrupt handler
  * @param int_no Interrupt number
  * @param handler A handler. This should return 0 on success, anything else panics.
- *                It will take registers and extended registers as arguments.
+ *                It will take an exception number, irq number, registers, and extended registers as arguments.
  * @returns 0 on success, -EINVAL if handler is taken
  */
 int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler) {

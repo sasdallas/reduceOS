@@ -37,7 +37,7 @@ void pit_setTimerPhase(long hz) {
 /**
  * @brief IRQ handler
  */
-int pit_irqHandler(registers_t *regs, extended_registers_t *regs_extended) {
+int pit_irqHandler(uint32_t exception_index, uint32_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
     pit_ticks++;
     clock_update(pit_ticks);
 
