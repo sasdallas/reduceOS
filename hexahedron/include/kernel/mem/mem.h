@@ -108,6 +108,13 @@ void mem_allocatePage(page_t *page, uintptr_t flags);
 uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) ;
 
 /**
+ * @brief Unmap a PMM address in the identity mapped region
+ * @param frame_address The address of the frame to unmap, as returned by @c mem_remapPhys
+ * @param size The size of the frame to unmap
+ */
+void mem_unmapPhys(uintptr_t frame_address, uintptr_t size);
+
+/**
  * @brief Die in the cold winter
  * @param bytes How many bytes were trying to be allocated
  * @param seq The sequence of failure
@@ -143,7 +150,6 @@ void mem_init(uintptr_t high_address);
  * @param page The page to free 
  */
 void mem_freePage(page_t *page);
-
 
 /**
  * @brief Expand/shrink the kernel heap

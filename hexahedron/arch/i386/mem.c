@@ -27,6 +27,7 @@
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 #include <kernel/arch/arch.h>
+#include <kernel/misc/pool.h>
 
 
 static page_t       *mem_currentDirectory;      // Current page directory. Contains a list of page table entries (PTEs).
@@ -34,7 +35,8 @@ static page_t       *mem_kernelDirectory;       // Kernel page directory
                                                 // ! We're using this correctly, right?
 
 static uintptr_t    mem_kernelHeap;             // Location of the kernel heap in memory
-static uintptr_t    mem_identityMapSize;        // Size of our actual identity map (it is basically a cache)
+static uintptr_t    mem_identityMapCacheSize;   // Size of our actual identity map (it is basically a cache)
+static pool_t       *mem_mapPool = NULL;        // Identity map pool
 
 /**
  * @brief Die in the cold winter
@@ -102,25 +104,63 @@ void mem_setPaging(bool status) {
  * @param size The size of the address to remap
  */
 uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {    
-    if (frame_address + size < mem_identityMapSize) {
+    if (frame_address + size < mem_identityMapCacheSize) {
         return frame_address | MEM_PHYSMEM_CACHE_REGION;
     }
 
-    // We've run out of space in the identity map. That's not great!
-    // There should be a system in place to prevent this - it should just trigger a generic OOM error but this is also here to prevent overruns.
-    kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Too much physical memory is in use. Reached the maximum size of the identity mapped region (call 0x%x).\n", frame_address);
-    __builtin_unreachable();
+    if (mem_mapPool == NULL) {
+        // Initialize the map pool! We'll allocate a pool to the address.
+        // !!!: There is a potential for a disaster if mem_getPage tries to remap phys. and the pool hasn't been initialized.  
+        // !!!: Luckily this system is abstracted enugh that we can fix this, hopefully.
+        // !!!: However if the allocator hasn't been initialized, we are so screwed.
+        mem_mapPool = pool_create("map_pool", PAGE_SIZE, MEM_PHYSMEM_MAP_SIZE, MEM_PHYSMEM_MAP_REGION);
+        dprintf(INFO, "Memory map pool created\n");
+    }
+
+    if (size % PAGE_SIZE != 0) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad size to remapPhys: 0x%x\n", size);
+    }
+
+    // Now try to get a pool address
+    uintptr_t start_addr = pool_allocateChunks(mem_mapPool, size / PAGE_SIZE);
+    if (start_addr == (uintptr_t)NULL) {
+        // We've run out of space in the identity map. That's not great!
+        // There should be a system in place to prevent this - it should just trigger a generic OOM error but this is also here to prevent overruns.
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Too much physical memory is in use. Reached the maximum size of the identity mapped region (call 0x%x size 0x%x).\n", frame_address, size);
+        __builtin_unreachable();
+    }
+
+    for (uintptr_t i = start_addr; i < start_addr + size; i++) {
+        page_t *page = mem_getPage(NULL, i, MEM_CREATE);
+
+        mem_allocatePage(page, MEM_NOALLOC);
+        MEM_SET_FRAME(page, i);
+    }
+
+    return start_addr;
 }
 
 /**
  * @brief Unmap a PMM address in the identity mapped region
- * @param frame_address The address of the frame to unmap
+ * @param frame_address The address of the frame to unmap, as returned by @c mem_remapPhys
  * @param size The size of the frame to unmap
  */
 void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
-    if (frame_address + size < mem_identityMapSize) {
+    if (frame_address < MEM_PHYSMEM_CACHE_REGION) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** 0x%x < 0x%x\n", frame_address, MEM_PHYSMEM_CACHE_REGION);
+    }
+
+    if ((frame_address - MEM_PHYSMEM_CACHE_REGION) + size < mem_identityMapCacheSize) {
         return; // No work to be done. It's in the cache.
     }
+
+    if (size % PAGE_SIZE != 0) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad size to unmapPhys: 0x%x\n", size);
+    }
+
+    // See if we can just free those chunks. Because mem_remapPhys doesn't actually use pmm_allocateBlock,
+    // we have no need to mess with pages
+    pool_freeChunks(mem_mapPool, frame_address, size / PAGE_SIZE);
 }
 
 /**
@@ -229,7 +269,8 @@ page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
 
         // Allocate a new PDE and zero it
         uintptr_t block = pmm_allocateBlock();
-        memset((void*)mem_remapPhys(block, PMM_BLOCK_SIZE), 0, PMM_BLOCK_SIZE);
+        uintptr_t block_remap = mem_remapPhys(block, PMM_BLOCK_SIZE);
+        memset((void*)block_remap, 0, PMM_BLOCK_SIZE);
         
         // Setup the bits in the directory index
         pde->bits.present = 1;
@@ -237,7 +278,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
         pde->bits.usermode = 1; // FIXME: Not upholding security 
         MEM_SET_FRAME(pde, block);
         
-        mem_unmapPhys(block, PMM_BLOCK_SIZE);
+        mem_unmapPhys(block_remap, PMM_BLOCK_SIZE);
     }
 
     // Calculate the table index (complex bc MEM_GET_FRAME is for pointers, and I'm lazy)
@@ -336,7 +377,7 @@ void mem_init(uintptr_t high_address) {
     }
 
     // Update size
-    mem_identityMapSize = frame_bytes; 
+    mem_identityMapCacheSize = frame_bytes; 
 
     // Identity map!
     uintptr_t frame = 0x0;
@@ -434,6 +475,7 @@ void mem_init(uintptr_t high_address) {
     mem_kernelDirectory = page_directory;
     mem_switchDirectory(mem_kernelDirectory);
     mem_setPaging(true);
+    dprintf(INFO, "Memory system online\n");
 }
 
 

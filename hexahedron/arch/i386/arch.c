@@ -167,9 +167,9 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
                                             info->support_valloc ? "supported" : "not supported",
                                             info->support_profile ? "supported" : "not supported");
 
+
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2);
 
-    
     for (;;);
 }

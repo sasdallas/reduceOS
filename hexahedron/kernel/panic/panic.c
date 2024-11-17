@@ -100,7 +100,7 @@ void kernel_panic(uint32_t bugcode, char *module) {
     dprintf(NOHEADER, "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, "Apologies for any inconveniences caused by this error.\n\n");
     dprintf(NOHEADER, "\033[1;31m\n*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
-    dprintf(NOHEADER, "*** %s\n\033[0;31m", kernel_panic_messages[bugcode]);
+    dprintf(NOHEADER, "*** %s\033[0;31m", kernel_panic_messages[bugcode]);
     
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");

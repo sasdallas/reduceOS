@@ -14,6 +14,7 @@
 
 #include <kernel/misc/spinlock.h>
 #include <kernel/mem/alloc.h>
+#include <kernel/debug.h>
 #include <stdatomic.h>
 
 /**
@@ -30,6 +31,9 @@ spinlock_t *spinlock_create(char *name) {
     // we must use atomic_flag_clear to set this variable.
     // https://stackoverflow.com/questions/31526556/initializing-an-atomic-flag-in-a-mallocd-structure
     atomic_flag_clear(&(ret->lock));
+
+
+    dprintf(DEBUG, "Spinlock '%s' created\n", name);
 
     return ret;
 }

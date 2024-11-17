@@ -198,7 +198,7 @@ uintptr_t pmm_allocateBlocks(size_t blocks) {
     }
 
     pmm_usedBlocks += blocks;
-    return (uintptr_t)(frame * 4096);
+    return (uintptr_t)(frame * PMM_BLOCK_SIZE);
 }
 
 /**
