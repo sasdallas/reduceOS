@@ -324,6 +324,9 @@ void mem_init(uintptr_t high_address) {
         page_t *page_table = (page_t*)pmm_allocateBlock();
         memset(page_table, 0, PMM_BLOCK_SIZE);
 
+
+        dprintf(DEBUG, "\ttable_frame = 0x%x page_table = 0x%x\n", table_frame, page_table);
+
         for (int pg = 0; pg < 1024; pg++) {
             page_t page = {.data = 0};
             page.bits.present = 1;
@@ -366,6 +369,8 @@ void mem_init(uintptr_t high_address) {
         page_t *page_table = (page_t*)pmm_allocateBlock();
         memset(page_table, 0, PMM_BLOCK_SIZE);
 
+        dprintf(DEBUG, "\ttable_frame = 0x%x page_table = 0x%x\n", table_frame, page_table);
+
         for (int pg = 0; pg < 1024; pg++) {
             page_t page = {.data = 0};
             page.bits.present = 1;
@@ -400,6 +405,8 @@ void mem_init(uintptr_t high_address) {
     dprintf(INFO, "Finished creating memory map.\n");
     dprintf(DEBUG, "\tKernel code is from 0x0 - 0x%x\n", high_address);
     dprintf(DEBUG, "\tKernel heap will begin at 0x%x\n", mem_kernelHeap);
+
+    dprintf(INFO, "Page directory is available at: 0x%x\n", page_directory);
     mem_kernelDirectory = page_directory;
     mem_switchDirectory(mem_kernelDirectory);
     mem_setPaging(true);
