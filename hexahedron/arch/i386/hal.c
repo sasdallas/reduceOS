@@ -62,11 +62,18 @@ static void hal_init_stage1() {
  */
 static void hal_init_stage2() {
 #ifdef ACPICA_ENABLED
+    // Initialize ACPICA
     extern int ACPICA_Initialize();
     int return_value = ACPICA_Initialize();
     if (return_value != 0) {
         dprintf(ERR, "ACPICA failed to initialize correctly.\n");
     }
+
+    // Print namespace
+    extern void ACPICA_PrintNamespace();
+    ACPICA_PrintNamespace();
+
+
 #else
     dprintf(WARN, "No ACPI subsystem is available to kernel\n");
 #endif

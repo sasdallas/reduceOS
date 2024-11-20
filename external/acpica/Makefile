@@ -17,13 +17,12 @@ ACPICA_SOURCE_DIRECTORY = $(ACPICA_BASE_DIRECTORY)/source/components/
 ACPICA_OBJ = $(OBJ_OUTPUT_DIRECTORY)/acpica
 
 # ACPICA sources. We will compile in this Makefile.
-ACPICA_SRCS := $(wildcard $(ACPICA_SOURCE_DIRECTORY)*/*.c)
-ACPICA_SRCS := $(filter-out $(ACPICA_SOURCE_DIRECTORY)debugger/%,$(ACPICA_SRCS)) 
+ACPICA_SRCS := $(wildcard $(ACPICA_SOURCE_DIRECTORY)*/*.c) 
 
-ifneq ($(ACPI_DEBUG), 1)
+# debugging is not supported
+ACPICA_SRCS := $(filter-out $(ACPICA_SOURCE_DIRECTORY)debugger/%,$(ACPICA_SRCS)) 
 ACPICA_SRCS := $(filter-out $(ACPICA_SOURCE_DIRECTORY)disassembler/%,$(ACPICA_SRCS))
 ACPICA_SRCS := $(filter-out %/resources/rsdump.c,$(ACPICA_SRCS))
-endif
 
 ACPICA_OBJS = $(ACPICA_SRCS:$(ACPICA_SOURCE_DIRECTORY)%.c=$(ACPICA_OBJ)/%.o)
 

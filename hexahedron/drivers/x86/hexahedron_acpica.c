@@ -16,6 +16,8 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+#ifdef ACPICA_ENABLED
+
 #include <acpica/acpi.h>
 #include <acpica/actypes.h>
 
@@ -475,3 +477,39 @@ ACPI_STATUS AcpiOsSignal(UINT32 Function, void *Info) {
 
     return AE_OK;
 }
+
+
+/* NAMESPACE ENUMERATION */
+
+ACPI_STATUS AcpiWalkCallback(ACPI_HANDLE Object, UINT32 NestingLevel, void *Context, void **ReturnValue) {
+    ACPI_STATUS Status;
+    ACPI_DEVICE_INFO *Info;
+    ACPI_BUFFER Name;
+    char buffer[256];
+    Name.Length = sizeof(buffer);
+    Name.Pointer = buffer;
+
+    Status = AcpiGetName(Object, ACPI_FULL_PATHNAME, &Name);
+    if (ACPI_SUCCESS(Status)) {
+        LOG(DEBUG, "Enumeration of object: %s\n", buffer);
+    } else {
+
+    }
+
+    Status = AcpiGetObjectInfo(Object, &Info);
+    if (ACPI_SUCCESS(Status)) {
+        LOG(DEBUG, "\t\tHID %08x ADR: %08x\n", Info->HardwareId, Info->Address);
+    } else {
+        LOG(DEBUG, "\t\tAcpiGetObjectInfo returned ACPI_STATUS 0x%x\n", Status);
+    }
+
+
+    *ReturnValue = NULL;
+    return AE_OK;
+}
+
+void ACPICA_PrintNamespace() {
+    
+    AcpiWalkNamespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT, 256, AcpiWalkCallback, NULL, NULL, NULL);
+}
+#endif

@@ -14,15 +14,21 @@
 #include <stddef.h>
 #include <string.h>
 
-char * strcat(char *dest, const char *src) {
-	char * end = dest;
+char * strncat(char *dest, const char *src, size_t n) {
+	
+	// Get the end of the dest ptr
+	char *end = dest;
 	while (*end != '\0') {
-		++end;
+		end++;
 	}
-	while (*src) {
+
+	size_t i = 0;
+
+	while (*src && i < n) {
 		*end = *src;
 		end++;
 		src++;
+		i++;
 	}
 	*end = '\0';
 	return dest;
