@@ -24,11 +24,11 @@
 /* Generic drivers */
 #include <kernel/drivers/serial.h>
 
-
 /* Drivers. Find a better way to do this. */
 #include <kernel/drivers/x86/serial.h>
 #include <kernel/drivers/x86/clock.h>
 #include <kernel/drivers/x86/pit.h>
+#include <kernel/drivers/x86/acpica.h> // #ifdef ACPICA_ENABLED in this file
 
 #include <time.h>
 
@@ -63,17 +63,13 @@ static void hal_init_stage1() {
 static void hal_init_stage2() {
 #ifdef ACPICA_ENABLED
     // Initialize ACPICA
-    extern int ACPICA_Initialize();
-    int return_value = ACPICA_Initialize();
-    if (return_value != 0) {
-        dprintf(ERR, "ACPICA failed to initialize correctly.\n");
+    int init_status = ACPICA_Initialize();
+    if (init_status != 0) {
+        dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
     }
 
     // Print namespace
-    extern void ACPICA_PrintNamespace();
     ACPICA_PrintNamespace();
-
-
 #else
     dprintf(WARN, "No ACPI subsystem is available to kernel\n");
 #endif
