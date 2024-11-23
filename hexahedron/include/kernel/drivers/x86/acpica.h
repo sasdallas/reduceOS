@@ -28,6 +28,11 @@
 int ACPICA_Initialize();
 
 /**
+ * @brief Start SMP. Communicates with x86 SMP system
+ */
+int ACPICA_StartSMP();
+
+/**
  * @brief Print the ACPICA namespace to serial (for debug)
  */
 void ACPICA_PrintNamespace();

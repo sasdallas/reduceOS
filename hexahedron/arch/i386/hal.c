@@ -68,9 +68,11 @@ static void hal_init_stage2() {
         dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
     }
 
-    // Print namespace
-    ACPICA_PrintNamespace();
+
+    ACPICA_StartSMP();
+
 #else
+    // TODO: We can create a minified ACPI system that just handles SMP
     dprintf(WARN, "No ACPI subsystem is available to kernel\n");
 #endif
 }

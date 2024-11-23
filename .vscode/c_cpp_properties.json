@@ -9,7 +9,7 @@
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "${default}",
             "cppStandard": "${default}",
-            "intelliSenseMode": "linux-gcc-x64",
+            "intelliSenseMode": "linux-gcc-x86",
             "compilerArgs": [
                 "-D__LIBK ",
                 "-D__KERNEL__ ",
