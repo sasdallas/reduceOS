@@ -36,6 +36,9 @@
 // Generic drivers
 #include <kernel/drivers/serial.h>
 
+// Structures
+#include <structs/list.h>
+
 // Parameters
 generic_parameters_t *parameters;
 
@@ -170,6 +173,7 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
 
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2);
+
 
     for (;;);
 }

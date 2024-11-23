@@ -29,6 +29,10 @@ typedef struct _list {
     size_t  length;         // Length of the list, in nodes
 } list_t;
 
+/**** DEFINITIONS ****/
+
+#define foreach(i, list) for (node_t *i = list->head; i != NULL; i = i->next)
+
 /**** FUNCTIONS ****/
 
 /**

@@ -11,7 +11,7 @@ SOURCE_DIRECTORIES = list
 OUTPUT_DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES))
 
 # Construct a basic list of C sources
-C_SOURCES = $(shell find $(SOURCE_DIRECTORIES) -name "*.c" -maxdepth 1)
+C_SOURCES = $(shell find $(SOURCE_DIRECTORIES) -maxdepth 1 -name "*.c")
 C_OBJECTS = $(patsubst %.c, $(OUT_OBJ)/%.o, $(C_SOURCES))
 
 # Include the architecture Make configuration to allow it to add to DIRECTORIES

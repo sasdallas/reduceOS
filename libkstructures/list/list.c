@@ -65,8 +65,7 @@ void list_append_node(list_t *list, node_t *node) {
         node_t *last = list->tail;
         last->next = node;
         node->prev = last;
-        node->next = NULL;
-        list->tail = node;   
+        node->next = NULL;  
     } else {
         // Fresh list
         node->next = NULL;
@@ -74,6 +73,7 @@ void list_append_node(list_t *list, node_t *node) {
         list->head = node;
     }
 
+    list->tail = node;
     list->length++;
 }
 
@@ -229,3 +229,4 @@ void list_delete_index(list_t *list, size_t index) {
         list_delete(list, node);
     }
 }
+
