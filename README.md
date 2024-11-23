@@ -4,10 +4,13 @@ Hexahedron is a modern replacement for the reduceOS kernel.
 ## What is this?
 A replacement for the reduceOS kernel, developed to follow standards better and have higher code quality.
 
-## What's 'polyhedron'?
-Polyhedron (or libpolyhedron) is the libk designed to go with Hexahedron and its libc. The naming conventions are dumb, sorry.
-
-Polyhedron serves as both a built-in C library and the kernel C library. The two are distinguished in the codebase.
+## Project structure
+- `buildscripts`: Contains buildscripts for the build system
+- `conf`: Contains misc. configuration files, such as architecture files, GRUB configs, extra boot files, etc.
+- `external`: Contains external projects, such as ACPICA. See External Components.
+- `hexahedron`: The main kernel project
+- `libpolyhedron`: The libc/libk for the project.
+- `libkstructures`: Contains misc. kernel structures, like lists/hashmaps/parsers/whatever
 
 ## Building
 First, gather the prerequisites. See the section on External Components.

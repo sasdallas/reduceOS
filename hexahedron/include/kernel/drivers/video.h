@@ -20,36 +20,33 @@
 
 /**** TYPES ****/
 
-// This structure should be returned by the getinfo_t function
-typedef struct _video_driver_info_t {
-    uint32_t    screenWidth;
-    uint32_t    screenHeight;
-    uint32_t    screenPitch;
-    uint32_t    screenBPP;
-    uint8_t     *videoBuffer;
-    int         allowsGraphics;
-} video_driver_info_t;
-
 typedef void (*putchar_t)(char ch, int x, int y, uint8_t color);
 typedef void (*putpixel_t)(int x, int y, uint32_t color);
 typedef void (*updcursor_t)(size_t x, size_t y);
 typedef void (*clearscreen_t)(uint8_t fg, uint8_t bg);
 typedef void (*updscreen_t)();
-typedef video_driver_info_t* (*getinfo_t)();
 
-typedef struct _video_driver_t {
+typedef struct _video_driver {
     // Driver information
-    char            name[128];
+    char            name[64];
     
+    // Information/fields of the video driver
+    // Optional, you can fill these fields with anything - these are to help the video driver.
+    uint32_t    screenWidth;            // Width
+    uint32_t    screenHeight;           // Height
+    uint32_t    screenPitch;            // Pitch
+    uint32_t    screenBPP;              // BPP
+    uint8_t     *videoBuffer;           // Video buffer
+    int         allowsGraphics;         // Whether it allows graphics (WARNING: This may be used. It is best to leave this correct!)
+
     // Functions
-    getinfo_t       getinfo;
     putchar_t       putchar;
     putpixel_t      putpixel;
     updcursor_t     cursor;
     clearscreen_t   clear;
     updscreen_t     update;
 
-    // Font information
+    // Font information - this must be set
     size_t          fontWidth;
     size_t          fontHeight;
 } video_driver_t;
