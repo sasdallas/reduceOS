@@ -17,6 +17,7 @@
 /**** INCLUDES ****/
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <structs/node.h>
 
 /**** TYPES ****/

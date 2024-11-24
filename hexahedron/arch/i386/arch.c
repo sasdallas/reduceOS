@@ -38,6 +38,7 @@
 
 // Structures
 #include <structs/list.h>
+#include <structs/tree.h>
 
 // Parameters
 generic_parameters_t *parameters;
@@ -116,6 +117,12 @@ uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
 }
 
 
+int test_comparator(void *value, void *search) {
+    dprintf(DEBUG, "0x%x\n", value);
+    return 0;
+}
+
+
 /**
  * @brief Main architecture function
  * @returns Does not return
@@ -173,7 +180,6 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
 
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2);
-
 
     for (;;);
 }

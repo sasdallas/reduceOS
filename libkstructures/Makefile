@@ -6,7 +6,7 @@ include ./make.config
 OUT_OBJ = $(OBJ_OUTPUT_DIRECTORY)/libkstructures
 
 # SOURCE DIRECTORIES
-SOURCE_DIRECTORIES = list
+SOURCE_DIRECTORIES = list tree
 
 OUTPUT_DIRECTORIES = $(addprefix $(OUT_OBJ)/,$(SOURCE_DIRECTORIES))
 
