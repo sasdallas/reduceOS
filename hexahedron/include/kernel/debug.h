@@ -40,6 +40,14 @@ typedef enum {
 #define ERR_COLOR_CODE      "\033[31m\033[31m"
 #define DEBUG_COLOR_CODE    "\033[37m\033[37m"
 
+// Some other color codes
+#define COLOR_CODE_RESET        "\033[0m"
+#define COLOR_CODE_RED          "\033[0;31m"
+#define COLOR_CODE_RED_BOLD     "\033[1;31m"
+#define COLOR_CODE_YELLOW       "\033[0;33m"
+#define COLOR_CODE_YELLOW_BOLD  "\033[1;33m"
+
+
 
 /**** FUNCTIONS ****/
 
