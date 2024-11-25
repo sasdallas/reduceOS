@@ -37,7 +37,6 @@
 /* Root system descriptor pointer */
 static uint64_t hal_rsdp = 0x0; 
 
-
 /**
  * @brief Stage 1 startup
  */
@@ -79,8 +78,12 @@ static void hal_init_stage2() {
 #endif
 
     // Next, initialize video subsystem.
+    video_init();
+
     video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
-    
+    if (driver) {
+        video_switchDriver(driver);
+    }
 }
 
 /**

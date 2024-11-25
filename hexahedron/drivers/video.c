@@ -19,7 +19,7 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#include <drivers/video.h>
+#include <kernel/drivers/video.h>
 #include <structs/list.h>
 #include <string.h>
 
@@ -41,6 +41,8 @@ void video_init() {
  * @param driver The driver to add
  */
 void video_addDriver(video_driver_t *driver) {
+    if (!driver) return;
+
     list_append(video_driver_list, driver);
 }
 
@@ -49,6 +51,8 @@ void video_addDriver(video_driver_t *driver) {
  * @param driver The driver to switch to. If not found in the list it will be added.
  */
 void video_switchDriver(video_driver_t *driver) {
+    if (!driver) return;
+
     if (list_find(video_driver_list, driver) == NULL) {
         video_addDriver(driver);
     }
