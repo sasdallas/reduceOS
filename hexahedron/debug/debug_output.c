@@ -1,6 +1,6 @@
 /**
- * @file hexahedron/debug/debug.c
- * @brief Debug/log interface
+ * @file hexahedron/debug/debug_output.c
+ * @brief Debug log interface
  * 
  * @note The dprintf() macro is defined in debug.h
  * 

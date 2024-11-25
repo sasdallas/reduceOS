@@ -30,7 +30,7 @@ uint16_t serial_currentBaud = 9600;
 
 // Internal function to get the COM port address using configuration info.
 static uint16_t serial_getDefaultCOMPort() {
-    switch (__debug_com_port) {
+    switch (__debug_output_com_port) {
         case 1:
             return SERIAL_COM1_PORT;
         case 2:
@@ -93,7 +93,7 @@ int serial_initialize() {
                 SERIAL_MODEMCTRL_DTR | SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2);
         
     // Set baud rate
-    serial_setBaudRate(__debug_baud_rate);
+    serial_setBaudRate(__debug_output_baud_rate);
 
     // Configure port bit parameters
     outportb(serial_currentPort + SERIAL_LINE_CONTROL,

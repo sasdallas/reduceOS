@@ -32,7 +32,7 @@ extern const int __kernel_version_minor;
 extern const int __kernel_version_lower;
 
 // Debug settings
-extern const int __debug_com_port, __debug_baud_rate;
+extern const int __debug_output_com_port, __debug_output_baud_rate;
 
 
 

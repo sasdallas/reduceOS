@@ -48,13 +48,20 @@ const char *__kernel_ascii_art_formatted = "\
 
 /**** DEBUG SETTINGS ****/
 
-#define DEBUG_COM_PORT 1        // This is the default COM port that Hexahedron will initialize and provide.
+#define DEBUG_COM_PORT 1        // This is the default COM port that Hexahedron will initialize and provide debug logging.
                                 // WARNING: It is very much not recommended to use any port besides COM1.
 
 #define DEBUG_BAUD_RATE 9600    // This is the default baud rate Hexahedron will set
 
-const int __debug_com_port = DEBUG_COM_PORT;
-const int __debug_baud_rate = DEBUG_BAUD_RATE;
+const int __debug_output_com_port = DEBUG_COM_PORT;
+const int __debug_output_baud_rate = DEBUG_BAUD_RATE;
+
+#define DEBUGGER_COM_PORT 2     // This is the default COM port that Hexahedron will (try to) initialize and provide debug packets on
+#define DEBUGGER_BAUD_RATE 9600 
+
+const int __debug_com_port = DEBUGGER_COM_PORT;
+const int __debug_baud_rate = DEBUGGER_BAUD_RATE;
+
 
 /**** AUTO-GENERATED VERSIONING INFO ****/
 
