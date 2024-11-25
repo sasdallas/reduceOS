@@ -18,6 +18,16 @@ _Begin_C_Header
 #ifndef _STDLIB_H
 #define _STDLIB_H
 
+/**** INCLUDES ****/
+#include <stdint.h>
+
+/**** FUNCTIONS ****/
+
+unsigned long long int strtoull(const char*, char**, int);
+unsigned long int strtoul(const char*, char**, int);
+long int strtol(const char*, char**, int);
+long long int strtoll(const char*, char**, int);
+double strtod(const char*, char**);
 
 
 #endif
