@@ -45,7 +45,7 @@ static void hal_init_stage1() {
     serial_initialize();
 
     // TODO: Is it best practice to do this in HAL?
-    debug_setOutput(serial_writeCharacter);
+    debug_setOutput(serial_print);
     arch_say_hello();
 
     // Initialize interrupts

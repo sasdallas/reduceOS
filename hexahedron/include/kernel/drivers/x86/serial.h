@@ -76,14 +76,4 @@ int serial_initialize();
  */
 int serial_setBaudRate(uint16_t baudrate);
 
-/**
- * @brief Write a character to serial output
- */
-int serial_writeCharacter(char ch);
-
-/**
- * @brief Retrieves a character from serial
- */
-char serial_receiveCharacter();
-
 #endif

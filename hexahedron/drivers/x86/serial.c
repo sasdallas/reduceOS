@@ -2,6 +2,9 @@
  * @file hexahedron/drivers/x86/serial.c
  * @brief x86 serial driver
  * 
+ * @todo    serial_setBaudRate and this entire implementation is flawed. 
+ *          With the introduction of the port structure, I can't find a good way to
+ *          reliably make this work before allocation.
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -29,8 +32,8 @@ uint16_t serial_currentBaud = 9600;
 
 
 // Internal function to get the COM port address using configuration info.
-static uint16_t serial_getDefaultCOMPort() {
-    switch (__debug_output_com_port) {
+static uint16_t serial_getCOMAddress(int com_port) {
+    switch (com_port) {
         case 1:
             return SERIAL_COM1_PORT;
         case 2:
@@ -44,7 +47,6 @@ static uint16_t serial_getDefaultCOMPort() {
             return SERIAL_COM1_PORT;
     }
 }
-
 
 
 /**
@@ -75,6 +77,45 @@ int serial_setBaudRate(uint16_t baudrate) {
 }
 
 /**
+ * @brief Write a character to serial output (early output)
+ */
+static int write_early(char ch) {
+    // Wait until transmit is empty
+    while ((inportb(serial_currentPort + SERIAL_LINE_STATUS) & 0x20) == 0x0);
+
+    // Write character
+    outportb(serial_currentPort + SERIAL_TRANSMIT_BUFFER, ch);
+
+    return 0;
+}
+
+/**
+ * @brief Write a character to a serial device
+ */
+static int write_method(serial_port_t *device, char ch) {
+    // Wait until transmit is empty
+    while ((inportb(device->io_address + SERIAL_LINE_STATUS) & 0x20) == 0x0);
+
+    // Write character
+    outportb(device->io_address + SERIAL_TRANSMIT_BUFFER, ch);
+
+    return 0;
+}
+
+/**
+ * @brief Retrieves a character from serial
+ */
+static char receive_method(serial_port_t *device) {
+    // Wait until receive has something
+    while ((inportb(device->io_address + SERIAL_LINE_STATUS) & 0x01) == 0x0);
+
+    // Return the character
+    return inportb(device->io_address + SERIAL_RECEIVE_BUFFER);
+}
+
+
+
+/**
  * @brief Initialize the serial system.
  * 
  * Sets baud rate to whatever's configured in config, enables FIFO,
@@ -82,7 +123,7 @@ int serial_setBaudRate(uint16_t baudrate) {
  */
 int serial_initialize() {
     // Create basic port data
-    serial_currentPort = serial_getDefaultCOMPort();
+    serial_currentPort = serial_getCOMAddress(__debug_output_com_port);
 
     // Disable port interrupts
     outportb(serial_currentPort + SERIAL_LINE_CONTROL, 0);
@@ -106,37 +147,7 @@ int serial_initialize() {
     inportb(serial_currentPort + SERIAL_RECEIVE_BUFFER);
 
     // Set ourselves as the write method
-    serial_setWriteMethod(serial_writeCharacter);
+    serial_setEarlyWriteMethod(write_early);
 
     return 0;
-}
-
-
-
-
-
-
-
-/**
- * @brief Write a character to serial output
- */
-int serial_writeCharacter(char ch) {
-    // Wait until transmit is empty
-    while ((inportb(serial_currentPort + SERIAL_LINE_STATUS) & 0x20) == 0x0);
-
-    // Write character
-    outportb(serial_currentPort + SERIAL_TRANSMIT_BUFFER, ch);
-
-    return 0;
-}
-
-/**
- * @brief Retrieves a character from serial
- */
-char serial_receiveCharacter() {
-    // Wait until receive has something
-    while ((inportb(serial_currentPort + SERIAL_LINE_STATUS) & 0x01) == 0x0);
-
-    // Return the character
-    return inportb(serial_currentPort + SERIAL_RECEIVE_BUFFER);
 }

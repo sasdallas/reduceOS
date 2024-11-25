@@ -22,7 +22,7 @@
 #include <stdarg.h>
 
 /**** TYPES ****/
-typedef int (*log_putchar_method_t)(char ch); // Put character method used by logger
+typedef int (*log_putchar_method_t)(void *user, char ch); // Put character method used by logger
 
 typedef enum {
     NOHEADER = 0,       // Do not use any header, including file/timestamp/etc. This is mainly used for some "cool" formatting.

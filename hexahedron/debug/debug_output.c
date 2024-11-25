@@ -31,9 +31,9 @@ int debug_print(void *user, char ch) {
     if (!debug_putchar_method) return 0; // Log not yet initialized or failed to initialize correctly.
 
     /* Account for CRLF. It doesn't hurt any terminals (that I know of) */
-    if (ch == '\n') debug_putchar_method('\r');
+    if (ch == '\n') debug_putchar_method(NULL, '\r');
 
-    return debug_putchar_method(ch);
+    return debug_putchar_method(NULL, ch);
 }
 
 /**

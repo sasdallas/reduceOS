@@ -14,16 +14,55 @@
 #ifndef DRIVERS_SERIAL_H
 #define DRIVERS_SERIAL_H
 
+/**** INCLUDES ****/
+
+#include <stdint.h>
+
+/**** TYPES ****/
+
+struct _serial_port;
+
+typedef int (*serial_port_write_t)(struct _serial_port *port, char ch);
+typedef char (*serial_port_read_t)(struct _serial_port *port);
+
+/* TODO: Replace this with a VFS node */
+typedef struct _serial_port {
+    int com_port;               // COM port
+    uint32_t baud_rate;         // Baud rate
+    
+    uint32_t io_address;        // I/O address (for use by driver)
+
+    serial_port_read_t read;    // Read method
+    serial_port_write_t write;  // Write method
+} serial_port_t;
+
+
+/**** DEFINITIONS ****/
+
+#define MAX_COM_PORTS 5
+
 /**** FUNCTIONS ****/
+
+/**
+ * @brief Set port
+ * @param port The port to set. Depending on the value of COM port it will be added.
+ * @param is_main_port Whether this port should be classified as the main port
+ * @warning This will overwrite any driver/port already configured
+ */
+void serial_setPort(serial_port_t *port, int is_main_port);
 
 /**
  * @brief Set the serial write method
  */
-void serial_setWriteMethod(int (*write_method)(char ch));
+void serial_setEarlyWriteMethod(int (*write_method)(char ch));
+
+/**
+ * @brief Put character method
+ */
+int serial_print(void *user, char ch);
 
 /**
  * @brief Exposed serial printing method
- * @todo Not good
  */
 int serial_printf(char *format, ...);
 
