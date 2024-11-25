@@ -17,6 +17,8 @@
 
 // Forwarders to kernel functions
 #include <kernel/mem/alloc.h>
+#include <kernel/debug.h>
+
 
 __attribute__((malloc)) void *malloc( size_t size ) {
     return kmalloc(size);
