@@ -1,6 +1,6 @@
 /**
- * @file libpolyhedron/stdlib/abort.c
- * @brief Abort function
+ * @file libpolyhedron/stdlib/assert.c
+ * @brief provides __assert_fail
  * 
  * 
  * @copyright
@@ -11,22 +11,18 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <assert.h>
 
-__attribute__((__noreturn__)) void abort(void) {
+void __assert_failed(char *file, int line, char *stmt) {
 #if defined(__LIBK)
-
 #include <kernel/panic.h>
-#include <kernel/debug.h>
+   kernel_panic_extended(ASSERTION_FAILED, "libpoly", "*** Assertion (%s:%i) failed: %s\n", file, line, stmt);
 
-    dprintf_module(ERR, "LIBPOLY", "abort() was called\n");
-    kernel_panic(KERNEL_DEBUG_TRAP, "libpolyhedron");
-
-#else
-    printf("abort()\n");
+#elif defined(__LIBC)
+    printf("Assertion at %s:%i failed: %s\n", file, line, stmt);
+    abort();
 #endif
 
     while (1);
     __builtin_unreachable();
-} 
+}

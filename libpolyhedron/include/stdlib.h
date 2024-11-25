@@ -20,8 +20,12 @@ _Begin_C_Header
 
 /**** INCLUDES ****/
 #include <stdint.h>
+#include <stddef.h>
+#include <assert.h>
 
 /**** FUNCTIONS ****/
+
+__attribute__((__noreturn__)) void abort(void);
 
 unsigned long long int strtoull(const char*, char**, int);
 unsigned long int strtoul(const char*, char**, int);
@@ -29,6 +33,11 @@ long int strtol(const char*, char**, int);
 long long int strtoll(const char*, char**, int);
 double strtod(const char*, char**);
 
+
+__attribute__((malloc)) void *malloc( size_t size );
+__attribute__((malloc)) void *calloc( size_t num, size_t size );
+__attribute__((malloc)) void *realloc( void *ptr, size_t new_size );
+void free( void *ptr );
 
 #endif
 
