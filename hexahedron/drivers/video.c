@@ -18,3 +18,8 @@
  * 
  * Copyright (C) 2024 Samuel Stuart
  */
+
+#include <drivers/video.h>
+#include <structs/list.h>
+
+

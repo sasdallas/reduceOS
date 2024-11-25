@@ -2,6 +2,8 @@
  * @file hexahedron/arch/i386/mem.c
  * @brief i386 memory subsystem
  * 
+ * @todo A locking subsystem NEEDS to be implemented
+ * @todo Reference bitmap for pages and cloning functions, but usermode is far away.
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.

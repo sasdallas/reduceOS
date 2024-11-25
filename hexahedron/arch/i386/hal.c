@@ -23,6 +23,8 @@
 
 /* Generic drivers */
 #include <kernel/drivers/serial.h>
+#include <kernel/drivers/grubvid.h>
+#include <kernel/drivers/video.h>
 
 /* Drivers. Find a better way to do this. */
 #include <kernel/drivers/x86/serial.h>
@@ -61,6 +63,8 @@ static void hal_init_stage1() {
  * @brief Stage 2 startup
  */
 static void hal_init_stage2() {
+
+    // First step is to initialize ACPICA. This is a bit hacky and hard to read.
 #ifdef ACPICA_ENABLED
     // Initialize ACPICA
     int init_status = ACPICA_Initialize();
@@ -68,13 +72,15 @@ static void hal_init_stage2() {
         dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
     }
 
-
     ACPICA_StartSMP();
-
 #else
     // TODO: We can create a minified ACPI system that just handles SMP
     dprintf(WARN, "No ACPI subsystem is available to kernel\n");
 #endif
+
+    // Next, initialize video subsystem.
+    video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
+    
 }
 
 /**
