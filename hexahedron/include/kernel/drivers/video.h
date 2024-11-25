@@ -33,7 +33,7 @@ typedef union _color {
 struct _video_driver; // Prototype
 
 typedef void (*putpixel_t)(struct _video_driver *driver, int x, int y, color_t color); // Place a pixel
-typedef void (*clearscreen_t)(struct _video_driver *driver, color_t fg, color_t bg); // Clear the screen
+typedef void (*clearscreen_t)(struct _video_driver *driver, color_t bg); // Clear the screen
 typedef void (*updscreen_t)(struct _video_driver *driver); // Update the screen if double-buffering is used
 
 typedef struct _video_driver {
@@ -88,6 +88,49 @@ typedef struct _video_driver {
 
 /**** FUNCTIONS ****/
 
+/**
+ * @brief Initialize and prepare the video system.
+ * 
+ * This doesn't actually initialize any drivers, just starts the system.
+ */
+void video_init();
 
+/**
+ * @brief Add a new driver
+ * @param driver The driver to add
+ */
+void video_addDriver(video_driver_t *driver);
+
+/**
+ * @brief Switch to a specific driver
+ * @param driver The driver to switch to. If not found in the list it will be added.
+ */
+void video_switchDriver(video_driver_t *driver);
+
+/**
+ * @brief Find a driver by name
+ * @param name The name to look for
+ * @returns NULL on not found, else it returns a driver
+ */
+video_driver_t *video_findDriver(char *name);
+
+/**
+ * @brief Plot a pixel on the screen
+ * @param x The x coordinate of where to plot the pixel
+ * @param y The y coordinate of where to plot the pixel
+ * @param color The color to plot
+ */
+void video_plotPixel(int x, int y, color_t color);
+
+/**
+ * @brief Clear the screen with colors
+ * @param bg The background of the screen
+ */
+void video_clearScreen(color_t bg);
+
+/**
+ * @brief Update the screen
+ */
+void video_updateScreen();
 
 #endif

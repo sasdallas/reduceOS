@@ -26,7 +26,6 @@ clock_device_t clock_device;
 uint64_t tick_count = 0;
 
 static int is_ready = 0;
-
 static clock_callback_t clock_callback_table[MAX_CLOCK_CALLBACKS];
 
 /**

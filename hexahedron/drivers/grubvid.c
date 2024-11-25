@@ -38,7 +38,7 @@ void grubvid_putPixel(video_driver_t *driver, int x, int y, color_t color) {
 /**
  * @brief Clear screen function
  */
-void grubvid_clearScreen(video_driver_t *driver, color_t fg, color_t bg) {
+void grubvid_clearScreen(video_driver_t *driver, color_t bg) {
     // fg is ignored, fill screen with bg
     uint8_t *buffer = driver->videoBuffer;
     for (uint32_t y = 0; y < driver->screenHeight; y++) {
