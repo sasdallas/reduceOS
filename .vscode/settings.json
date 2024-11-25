@@ -5,7 +5,8 @@
     "*.S": "gas",
     "errno.h": "c",
     "alloc.h": "c",
-    "semaphore.h": "c"
+    "semaphore.h": "c",
+    "stdlib.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",

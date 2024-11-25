@@ -17,6 +17,7 @@
 // Polyhedron
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 // General
 #include <kernel/config.h>
@@ -114,13 +115,6 @@ uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
     return location;
 }
 
-
-int test_comparator(void *value, void *search) {
-    dprintf(DEBUG, "0x%x\n", value);
-    return 0;
-}
-
-
 /**
  * @brief Main architecture function
  * @returns Does not return
@@ -133,8 +127,6 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     highest_kernel_address += PAGE_SIZE;
     highest_kernel_address &= ~0xFFF;
 
-    
-    
     // Let's get some multiboot information.
     parameters = NULL;
 
@@ -162,8 +154,6 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     uintptr_t kernel_end = (uintptr_t)&__bss_end;
     uintptr_t kernel_start = (uintptr_t)&__text_start;
     dprintf(INFO, "Kernel is using %i KB in memory - extra datastructures are using %i KB\n", (kernel_end - kernel_start) / 1024, (highest_kernel_address - kernel_end) / 1024);
-
-
 
     // The memory subsystem is SEPARATE from the HAL.
     // This is intentional because it requires that we place certain objects such as multiboot information,
