@@ -63,6 +63,9 @@ mkdir -p "$SYSROOT/"
 export CFLAGS="-D__HEXAHEDRON__ -D__REDUCEOS__ -D__ARCH__=$BUILD_ARCH -D__ARCH_${BUILD_ARCH_UPPER}__ -D__KERNEL_${KERNEL_BUILD_CONF}__"
 export CFLAGS="$CFLAGS -MD -MP --sysroot=$SYSROOT"
 
+# polyhedron/kstructures are given, these are mainly just for external projects
+export KERNEL_LIBS=""
+
 # Work around that -elf targets don't have a sysroot include directory
 if echo "$HOST" | grep -Eq -- '-elf($|-)'; then
     export CFLAGS="$CFLAGS -isystem=$INCLUDE_DIRECTORY"

@@ -21,7 +21,7 @@
 
 /**** STOP CODES ****/
 
-#define     KERNEL_STOP_CODES               8
+#define     KERNEL_STOP_CODES               9
 
 #define     KERNEL_DEBUG_TRAP               0x00000000 // Debugging trap
 #define     MEMORY_MANAGEMENT_ERROR         0x00000001 // Memory management failure
@@ -31,6 +31,7 @@
 #define     CPU_EXCEPTION_UNHANDLED         0x00000005 // A CPU exception was not handled
 #define     UNSUPPORTED_FUNCTION_ERROR      0x00000006 // A function that was not supported was called
 #define     ACPI_SYSTEM_ERROR               0x00000007 // An ACPI error by the HW occurred
+#define     ASSERTION_FAILED                0x00000008 // An assertion by assert() failed
 
 /**** MESSAGES ****/
 
