@@ -34,7 +34,7 @@ cpuid: movbe=false, adx=false, aes=false, sha=false, xsave=false, xsaveopt=false
 cpuid: smap=false, mwait=true, vmx=1
 print_timestamps: enabled=0
 debugger_log: -
-magic_break: enabled=1 0x0
+magic_break: enabled=1 0x8
 port_e9_hack: enabled=false, all_rings=false
 iodebug: all_rings=0
 private_colormap: enabled=0
@@ -51,7 +51,7 @@ mouse: type=ps2, enabled=false, toggle=ctrl+mbutton
 speaker: enabled=true, mode=system
 parport1: enabled=true, file=none
 parport2: enabled=false
-com1: enabled=true, mode=null
+com1: enabled=true, mode=file, dev="ser_output.txt"
 com2: enabled=false
 com3: enabled=false
 com4: enabled=false

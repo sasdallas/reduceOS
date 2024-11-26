@@ -17,6 +17,7 @@
 
 /**** INCLUDES ****/
 #include <stdint.h>
+#include <kernel/drivers/serial.h>
 
 /**** DEFINITIONS ****/
 
@@ -36,12 +37,12 @@
 #define SERIAL_BAUDRATE_LSB             0   // (1) LSB of baud rate
 #define SERIAL_BAUDRATE_MSB             1   // (1) MSB of baud rate
 #define SERIAL_IDENTIFICATION           2   // (N) Interrupt identification
-#define SERIAL_FIFO_CONTROL             3   // (N) FIFO control register
-#define SERIAL_LINE_CONTROL             4   // (N) Line control register
-#define SERIAL_MODEM_CONTROL            5   // (N) Modem control register
-#define SERIAL_LINE_STATUS              6   // (N) Line status register
-#define SERIAL_MODEM_STATUS             7   // (N) Modem status register
-#define SERIAL_SCRATCH                  8   // (N) Scratch register
+#define SERIAL_FIFO_CONTROL             2   // (N) FIFO control register
+#define SERIAL_LINE_CONTROL             3   // (N) Line control register
+#define SERIAL_MODEM_CONTROL            4   // (N) Modem control register
+#define SERIAL_LINE_STATUS              5   // (N) Line status register
+#define SERIAL_MODEM_STATUS             6   // (N) Modem status register
+#define SERIAL_SCRATCH                  7   // (N) Scratch register
 
 // Bitmasks. Only define what we currently use for now.
 // TODO: Define the rest.
@@ -61,7 +62,7 @@
 /**** FUNCTIONS ****/
 
 /**
- * @brief Initialize the serial system.
+ * @brief Initialize the serial system with the debug port.
  * 
  * Sets baud rate to whatever's configured in config, enables FIFO,
  * sets up an interface, you know the drill.
@@ -71,9 +72,10 @@ int serial_initialize();
 /**
  * @brief Changes the serial port baud rate
  * 
+ * @param device The device to perform (NOTE: Providing NULL should only be done by serial_initialize, it will set baud rate of debug port.)
  * @param baudrate The baud rate to set
  * @returns -EINVAL on bad baud rate, 0 on success.
  */
-int serial_setBaudRate(uint16_t baudrate);
+int serial_setBaudRate(serial_port_t *device, uint16_t baudrate);
 
 #endif
