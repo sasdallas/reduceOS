@@ -51,6 +51,7 @@
 #define SERIAL_MODEMCTRL_DTR            0x01    // Data transmit ready
 #define SERIAL_MODEMCTRL_RTS            0x02    // Ready to send     
 #define SERIAL_MODEMCTRL_OUT2           0x08    // Hardware pin OUT2 for IRQs
+#define SERIAL_MODEMCTRL_LOOPBACK       0x10    // Loopback diagnostic mode
 
 #define SERIAL_8_DATA                   0x03    // Specify 8 data bits
 #define SERIAL_1_STOP                   0x00    // One stop bit

@@ -1,3 +1,4 @@
+Not faulty
     .+------+
   .' |    .'|
  +---+--+'  |	H E X A H E D R O N   K E R N E L
@@ -7,30 +8,30 @@
  +------+'
 
 Hexahedron 1.0.1-i386-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Nov 26 2024 09:21:23
+	Compiled by GCC 14.1.0 on Nov 26 2024 09:41:50
 
 [no clock ready] [INFO] Interrupts enabled successfully
 [no clock ready] [INFO] [CLOCK] TSC calculated speed is 4 MHz
-[no clock ready] [INFO] [CLOCK] Initial boot time is 1732612943 (UNIX timestamp)
-[no clock ready] [INFO] [CLOCK] TSC baseline is 25962707us
-[Tue Nov 26 09:22:23 2024] [INFO] [PIT] Programmable interval timer initialized
-[Tue Nov 26 09:22:23 2024] [INFO] Found a Multiboot1 structure
-[Tue Nov 26 09:22:23 2024] [INFO] Loaded by 'GRUB 2.06-2ubuntu7.2+zorin1' with command line ''
-[Tue Nov 26 09:22:23 2024] [INFO] Available physical memory to machine: 32316 KB
-[Tue Nov 26 09:22:23 2024] [DBG ] Marked memory descriptor 0000000000000000 - 000000000009F000 (636 KB) as available memory
-[Tue Nov 26 09:22:23 2024] [DBG ] Marked memory descriptor 0000000000100000 - 0000000001FF0000 (31680 KB) as available memory
-[Tue Nov 26 09:22:23 2024] [DBG ] Marked memory descriptor 0000000000000000 - 0000000000100000 (1024 KB) as reserved memory (QEMU bug)
-[Tue Nov 26 09:22:24 2024] [DBG ] Marked memory descriptor 00000000001000B0 - 0000000000149083 (291 KB) as kernel memory
-[Tue Nov 26 09:22:24 2024] [DBG ] Marked valid memory - PMM has 7751 free blocks / 8079 max blocks
-[Tue Nov 26 09:22:24 2024] [INFO] Kernel is using 281 KB in memory - extra datastructures are using 10 KB
-[Tue Nov 26 09:22:24 2024] [INFO] Finished creating memory map.
-[Tue Nov 26 09:22:24 2024] [DBG ] 	Kernel code is from 0x0 - 0x149083
-[Tue Nov 26 09:22:24 2024] [DBG ] 	Kernel heap will begin at 0x14a000
-[Tue Nov 26 09:22:24 2024] [INFO] Memory system online and enabled.
-[Tue Nov 26 09:22:24 2024] [INFO] Allocator information: toaru_alloc version 1.0 (valloc supported, profiling supported)
-[Tue Nov 26 09:22:25 2024] [INFO] [ACPICA:KRN] ACPICA was compiled into kernel. Initializing ACPICA
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1732614159 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 38300528us
+[Tue Nov 26 09:42:39 2024] [INFO] [PIT] Programmable interval timer initialized
+[Tue Nov 26 09:42:39 2024] [INFO] Found a Multiboot1 structure
+[Tue Nov 26 09:42:39 2024] [INFO] Loaded by 'GRUB 2.06-2ubuntu7.2+zorin1' with command line ''
+[Tue Nov 26 09:42:39 2024] [INFO] Available physical memory to machine: 32316 KB
+[Tue Nov 26 09:42:39 2024] [DBG ] Marked memory descriptor 0000000000000000 - 000000000009F000 (636 KB) as available memory
+[Tue Nov 26 09:42:39 2024] [DBG ] Marked memory descriptor 0000000000100000 - 0000000001FF0000 (31680 KB) as available memory
+[Tue Nov 26 09:42:39 2024] [DBG ] Marked memory descriptor 0000000000000000 - 0000000000100000 (1024 KB) as reserved memory (QEMU bug)
+[Tue Nov 26 09:42:40 2024] [DBG ] Marked memory descriptor 00000000001000B0 - 0000000000149083 (291 KB) as kernel memory
+[Tue Nov 26 09:42:40 2024] [DBG ] Marked valid memory - PMM has 7751 free blocks / 8079 max blocks
+[Tue Nov 26 09:42:40 2024] [INFO] Kernel is using 281 KB in memory - extra datastructures are using 10 KB
+[Tue Nov 26 09:42:40 2024] [INFO] Finished creating memory map.
+[Tue Nov 26 09:42:40 2024] [DBG ] 	Kernel code is from 0x0 - 0x149083
+[Tue Nov 26 09:42:40 2024] [DBG ] 	Kernel heap will begin at 0x14a000
+[Tue Nov 26 09:42:40 2024] [INFO] Memory system online and enabled.
+[Tue Nov 26 09:42:40 2024] [INFO] Allocator information: toaru_alloc version 1.0 (valloc supported, profiling supported)
+[Tue Nov 26 09:42:41 2024] [INFO] [ACPICA:KRN] ACPICA was compiled into kernel. Initializing ACPICA
 [EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: RSDP 0x       0   FA380 000014 (v00 BOCHS )
-[Tue Nov 26 09:22:25 2024] [INFO] Memory map pool created
+[Tue Nov 26 09:42:41 2024] [INFO] Memory map pool created
 [EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: RSDT 0x       0 1FF0000 000034 (v01 BOCHS  BXPCRSDT 00000001 BXPC 00000001)
 [EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: FACP 0x       0 1FF0034 000074 (v01 BOCHS  BXPCFACP 00000001 BXPC 00000001)
 [EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: DSDT 0x       0 1FF0100 000E38 (v01 BXPC   BXDSDT   00000001 INTL 20130823)
@@ -39,8 +40,8 @@ Hexahedron 1.0.1-i386-DEBUG (codename "Phoenix")
 [EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: SSDT 0x       0 1FF0F38 000037 (v01 BOCHS  BXPCSSDT 00000001 BXPC 00000001)
 [EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: HPET 0x       0 1FF0FC0 000038 (v01 BOCHS  BXPCHPET 00000001 BXPC 00000001)
 [EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: 2 ACPI AML tables successfully acquired and loaded
-[Tue Nov 26 09:22:29 2024] [INFO] [ACPICA:KRN] Initialization completed successfully.
-[Tue Nov 26 09:22:29 2024] [DBG ] [ACPICA:KRN] MADT Local APIC address = 0xfee00000
-[Tue Nov 26 09:22:29 2024] [DBG ] [ACPICA:KRN] LOCAL APIC - ID 0x0 FLAGS 0x1 PROCESSOR ID 0x0
-[Tue Nov 26 09:22:29 2024] [DBG ] [ACPICA:KRN] I/O APIC - ADDR 0xfec00000 GLOBAL IRQ 0x0 ID 0x1
-[Tue Nov 26 09:22:29 2024] [DBG ] [ACPICA:KRN] INTERRUPT OVERRIDE - SRCIRQ 0x0 BUS 0x0 GLOBAL IRQ 0x2 INTI FLAGS 0x0
+[Tue Nov 26 09:42:45 2024] [INFO] [ACPICA:KRN] Initialization completed successfully.
+[Tue Nov 26 09:42:45 2024] [DBG ] [ACPICA:KRN] MADT Local APIC address = 0xfee00000
+[Tue Nov 26 09:42:45 2024] [DBG ] [ACPICA:KRN] LOCAL APIC - ID 0x0 FLAGS 0x1 PROCESSOR ID 0x0
+[Tue Nov 26 09:42:45 2024] [DBG ] [ACPICA:KRN] I/O APIC - ADDR 0xfec00000 GLOBAL IRQ 0x0 ID 0x1
+[Tue Nov 26 09:42:45 2024] [DBG ] [ACPICA:KRN] INTERRUPT OVERRIDE - SRCIRQ 0x0 BUS 0x0 GLOBAL IRQ 0x2 INTI FLAGS 0x0

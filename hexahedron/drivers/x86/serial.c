@@ -147,7 +147,21 @@ int serial_initialize() {
     
     // Enable FIFO & clear transmit/receive
     outportb(serial_defaultPort + SERIAL_FIFO_CONTROL, SERIAL_FIFO_ENABLE);
-    
+
+    // Now try to test the serial port. Configure the chip in loopback mode
+    outportb(serial_defaultPort + SERIAL_MODEM_CONTROL, 
+                SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2 | SERIAL_MODEMCTRL_LOOPBACK);
+
+    // Now send a byte and check if we get it back.
+    outportb(serial_defaultPort + SERIAL_TRANSMIT_BUFFER, 0xAE);
+    if (inportb(serial_defaultPort + SERIAL_TRANSMIT_BUFFER) != 0xAE) {
+        return -1; // The chip must be faulty :(
+    } 
+
+    // Not faulty! Reset in normal mode, aka RTS/DTR/OUT2
+    outportb(serial_defaultPort + SERIAL_MODEM_CONTROL,
+                SERIAL_MODEMCTRL_DTR | SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2);
+
     // Clear RBR
     inportb(serial_defaultPort + SERIAL_RECEIVE_BUFFER);
 
@@ -211,6 +225,20 @@ serial_port_t *serial_initializePort(int com_port, uint16_t baudrate) {
     
     // Enable FIFO & clear transmit and receive
     outportb(ser_port->io_address + SERIAL_FIFO_CONTROL, SERIAL_FIFO_ENABLE);
+
+    // Now try to test the serial port. Configure the chip in loopback mode
+    outportb(serial_defaultPort + SERIAL_MODEM_CONTROL, 
+                SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2 | SERIAL_MODEMCTRL_LOOPBACK);
+
+    // Now send a byte and check if we get it back.
+    outportb(serial_defaultPort + SERIAL_TRANSMIT_BUFFER, 0xAE);
+    if (inportb(serial_defaultPort + SERIAL_TRANSMIT_BUFFER) != 0xAE) {
+        return -1; // The chip must be faulty :(
+    } 
+
+    // Not faulty! Reset in normal mode, aka RTS/DTR/OUT2
+    outportb(serial_defaultPort + SERIAL_MODEM_CONTROL,
+                SERIAL_MODEMCTRL_DTR | SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2);
 
     // Clear RBR
     inportb(ser_port->io_address + SERIAL_RECEIVE_BUFFER);
