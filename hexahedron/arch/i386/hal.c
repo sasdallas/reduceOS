@@ -21,6 +21,7 @@
 #include <kernel/hal.h>
 #include <kernel/debug.h>
 #include <kernel/config.h>
+#include <kernel/debugger.h>
 
 /* Generic drivers */
 #include <kernel/drivers/serial.h>
@@ -43,7 +44,9 @@ static uint64_t hal_rsdp = 0x0;
  */
 static void hal_init_stage1() {
     // Initialize serial logging.
-    serial_initialize();
+    if (serial_initialize()) {
+        // didn't work... do something
+    }
 
     // TODO: Is it best practice to do this in HAL?
     debug_setOutput(serial_print);
@@ -66,6 +69,14 @@ static void hal_init_stage2() {
 
     // We need to reconfigure the serial ports and initialize the debugger.
     serial_setPort(serial_createPortData(__debug_output_com_port, __debug_output_baud_rate), 1);
+    
+    serial_port_t *port = serial_initializePort(__debugger_com_port, __debugger_baud_rate);
+    if (port) {
+        serial_setPort(port, 0);
+        debugger_initialize(port);
+    } else {
+        dprintf(WARN, "Failed to initialize COM%i for debugging\n", __debugger_com_port);
+    }
 
     // Next step is to initialize ACPICA. This is a bit hacky and hard to read.
 #ifdef ACPICA_ENABLED
