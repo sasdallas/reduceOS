@@ -132,21 +132,23 @@ int serial_initialize() {
 
     // Disable port interrupts
     outportb(serial_defaultPort + SERIAL_LINE_CONTROL, 0);
-    outportb(serial_defaultPort + SERIAL_INTENABLE, 0);
     
+    // Set baud rate of debug port
+    serial_setBaudRate(NULL, __debug_output_baud_rate);
+    
+    // Configure port bit parameters
+    outportb(serial_defaultPort + SERIAL_LINE_CONTROL,
+                SERIAL_8_DATA | SERIAL_1_STOP | SERIAL_NO_PARITY);
+
+    // Enable FIFO & clear transmit/receive
+    outportb(serial_defaultPort + SERIAL_FIFO_CONTROL, 0xC7);
+
     // Enable DTR, RTS, and OUT2
     outportb(serial_defaultPort + SERIAL_MODEM_CONTROL,
                 SERIAL_MODEMCTRL_DTR | SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2);
         
-    // Set baud rate of debug port
-    serial_setBaudRate(NULL, __debug_output_baud_rate);
-
-    // Configure port bit parameters
-    outportb(serial_defaultPort + SERIAL_LINE_CONTROL,
-                SERIAL_8_DATA | SERIAL_1_STOP | SERIAL_NO_PARITY);
-    
-    // Enable FIFO & clear transmit/receive
-    outportb(serial_defaultPort + SERIAL_FIFO_CONTROL, SERIAL_FIFO_ENABLE);
+    // Sleep for just an eency weency bit (Bochs)
+    for (int i = 0; i < 10000; i++);
 
     // Now try to test the serial port. Configure the chip in loopback mode
     outportb(serial_defaultPort + SERIAL_MODEM_CONTROL, 
@@ -200,17 +202,15 @@ serial_port_t *serial_createPortData(int com_port, uint16_t baudrate) {
 serial_port_t *serial_initializePort(int com_port, uint16_t baudrate) {
     // Create the port data
     serial_port_t *ser_port = serial_createPortData(com_port, baudrate);
-    if (!ser_port) return NULL;
+    if (!ser_port) {
+        dprintf(ERR, "Could not create port data\n");
+        return NULL;
+    }
 
     // Now let's get to the initialization
     // Disable all interrupts
     outportb(ser_port->io_address + SERIAL_INTENABLE, 0);
-    outportb(ser_port->io_address + SERIAL_LINE_CONTROL, 0);
 
-    // Enable DTR, RTS, and OUT2
-    outportb(ser_port->io_address + SERIAL_MODEM_CONTROL,
-                SERIAL_MODEMCTRL_DTR | SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2);
-    
     // Set baud rate of the port
     if (serial_setBaudRate(ser_port, baudrate)) {
         // Something went wrong.. hope the debug port is initialized
@@ -222,26 +222,36 @@ serial_port_t *serial_initializePort(int com_port, uint16_t baudrate) {
     // Configure port bit parameters
     outportb(ser_port->io_address + SERIAL_LINE_CONTROL,
                 SERIAL_8_DATA | SERIAL_1_STOP | SERIAL_NO_PARITY);
-    
+
     // Enable FIFO & clear transmit and receive
-    outportb(ser_port->io_address + SERIAL_FIFO_CONTROL, SERIAL_FIFO_ENABLE);
+    outportb(ser_port->io_address + SERIAL_FIFO_CONTROL, 0xC7);
+
+    // Enable DTR, RTS, and OUT2
+    outportb(ser_port->io_address + SERIAL_MODEM_CONTROL,
+                SERIAL_MODEMCTRL_DTR | SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2);
+
+    // Sleep for just an eency weency bit (Bochs)
+    for (int i = 0; i < 10000; i++);
 
     // Now try to test the serial port. Configure the chip in loopback mode
-    outportb(serial_defaultPort + SERIAL_MODEM_CONTROL, 
+    outportb(ser_port->io_address + SERIAL_MODEM_CONTROL,
                 SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2 | SERIAL_MODEMCTRL_LOOPBACK);
 
     // Now send a byte and check if we get it back.
-    outportb(serial_defaultPort + SERIAL_TRANSMIT_BUFFER, 0xAE);
-    if (inportb(serial_defaultPort + SERIAL_TRANSMIT_BUFFER) != 0xAE) {
+    outportb(ser_port->io_address + SERIAL_TRANSMIT_BUFFER, 0xAE);
+    if (inportb(ser_port->io_address + SERIAL_TRANSMIT_BUFFER) != 0xAE) {
+        dprintf(WARN, "COM%i is faulty\n", com_port);
         return NULL; // The chip must be faulty :(
     } 
 
     // Not faulty! Reset in normal mode, aka RTS/DTR/OUT2
-    outportb(serial_defaultPort + SERIAL_MODEM_CONTROL,
+    outportb(ser_port->io_address + SERIAL_MODEM_CONTROL,
                 SERIAL_MODEMCTRL_DTR | SERIAL_MODEMCTRL_RTS | SERIAL_MODEMCTRL_OUT2);
 
     // Clear RBR
     inportb(ser_port->io_address + SERIAL_RECEIVE_BUFFER);
 
+    dprintf(INFO, "Successfully initialized COM%i\n", com_port);
+    serial_portPrintf(ser_port, "Hello, COM%i!\n", com_port);
     return ser_port;
 }

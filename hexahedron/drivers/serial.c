@@ -58,7 +58,7 @@ int serial_print(void *user, char ch) {
     // If user was specified and not NULL, then we are probably trying to print to a specific port
     if (user) {
         if (ch == '\n') ((serial_port_t*)user)->write((serial_port_t*)user, '\r');
-        ((serial_port_t*)user)->write((serial_port_t*)user, ch);
+        return ((serial_port_t*)user)->write((serial_port_t*)user, ch);
     }
 
     // Else, do we have a main port?
@@ -89,6 +89,18 @@ int serial_printf(char *format, ...) {
     va_list ap;
     va_start(ap, format);
     int out = xvasprintf(serial_print, NULL, format, ap);
+    va_end(ap);
+    return out;
+}
+
+/**
+ * @brief Serial printing method - writes to a specific port
+ * @param port The port to write to
+ */
+int serial_portPrintf(serial_port_t *port, char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    int out = xvasprintf(serial_print, (void*)port, format, ap);
     va_end(ap);
     return out;
 }

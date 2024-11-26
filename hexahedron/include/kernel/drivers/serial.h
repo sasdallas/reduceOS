@@ -74,4 +74,10 @@ int serial_print(void *user, char ch);
  */
 int serial_printf(char *format, ...);
 
+/**
+ * @brief Serial printing method - writes to a specific port
+ * @param port The port to write to
+ */
+int serial_portPrintf(serial_port_t *port, char *format, ...);
+
 #endif
