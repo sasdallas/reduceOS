@@ -233,7 +233,7 @@ serial_port_t *serial_initializePort(int com_port, uint16_t baudrate) {
     // Now send a byte and check if we get it back.
     outportb(serial_defaultPort + SERIAL_TRANSMIT_BUFFER, 0xAE);
     if (inportb(serial_defaultPort + SERIAL_TRANSMIT_BUFFER) != 0xAE) {
-        return -1; // The chip must be faulty :(
+        return NULL; // The chip must be faulty :(
     } 
 
     // Not faulty! Reset in normal mode, aka RTS/DTR/OUT2
