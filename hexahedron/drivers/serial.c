@@ -20,7 +20,7 @@
 #include <stdio.h>
 
 /* Early write character method */
-int (*generic_serial_write_character)(char ch) = NULL;
+int (*serial_write_character_early)(char ch) = NULL;
 
 /* Port data */
 static serial_port_t *ports[MAX_COM_PORTS];
@@ -41,32 +41,49 @@ void serial_setPort(serial_port_t *port, int is_main_port) {
 }
 
 /**
- * @brief Put character method
+ * @brief Returns the port configured
+ * @param port The port configured.
+ * @returns Either the port or NULL. Whatever's in the list.
+ */
+serial_port_t *serial_getPort(int port) {
+    if (port < 1 || port > MAX_COM_PORTS) return NULL;
+    return ports[port-1];
+} 
+
+/**
+ * @brief Put character method - puts characters to main_port or early write method.
+ * @param user Can be put as a serial_port object to write to that, or can be NULL.
  */
 int serial_print(void *user, char ch) {
+    // If user was specified and not NULL, then we are probably trying to print to a specific port
+    if (user) {
+        if (ch == '\n') ((serial_port_t*)user)->write((serial_port_t*)user, '\r');
+        ((serial_port_t*)user)->write((serial_port_t*)user, ch);
+    }
+
+    // Else, do we have a main port?
     if (!main_port) {
-        // Account for CRLF
-        if (ch == '\n') generic_serial_write_character('\r');
-
-        return generic_serial_write_character(ch);
+        // No, use early write method.
+        if (ch == '\n') serial_write_character_early('\r');
+        return serial_write_character_early(ch);
     } else {
+        // Yes, use that.
         if (ch == '\n') main_port->write(main_port, '\r');
-
         return main_port->write(main_port, ch);
     }
 }
 
 /**
- * @brief Set the serial write method
+ * @brief Set the serial early write method
  */
 void serial_setEarlyWriteMethod(int (*write_method)(char ch)) {
     if (write_method) {
-        generic_serial_write_character = write_method;
+        serial_write_character_early = write_method;
     }
 }
 
 /**
- * @brief Exposed serial printing method
+ * @brief Serial printing method - writes to main_port
  */
 int serial_printf(char *format, ...) {
     va_list ap;
@@ -75,5 +92,3 @@ int serial_printf(char *format, ...) {
     va_end(ap);
     return out;
 }
-
-

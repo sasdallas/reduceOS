@@ -20,6 +20,7 @@
 #include <kernel/arch/i386/hal.h>
 #include <kernel/hal.h>
 #include <kernel/debug.h>
+#include <kernel/config.h>
 
 /* Generic drivers */
 #include <kernel/drivers/serial.h>
@@ -63,7 +64,10 @@ static void hal_init_stage1() {
  */
 static void hal_init_stage2() {
 
-    // First step is to initialize ACPICA. This is a bit hacky and hard to read.
+    // We need to reconfigure the serial ports and initialize the debugger.
+    serial_setPort(serial_createPortData(__debug_output_com_port, __debug_output_baud_rate), 1);
+
+    // Next step is to initialize ACPICA. This is a bit hacky and hard to read.
 #ifdef ACPICA_ENABLED
     // Initialize ACPICA
     int init_status = ACPICA_Initialize();

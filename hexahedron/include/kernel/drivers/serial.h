@@ -52,17 +52,25 @@ typedef struct _serial_port {
 void serial_setPort(serial_port_t *port, int is_main_port);
 
 /**
- * @brief Set the serial write method
+ * @brief Returns the port configured
+ * @param port The port configured.
+ * @returns Either the port or NULL. Whatever's in the list.
+ */
+serial_port_t *serial_getPort(int port);
+
+/**
+ * @brief Set the serial early write method
  */
 void serial_setEarlyWriteMethod(int (*write_method)(char ch));
 
 /**
- * @brief Put character method
+ * @brief Put character method - puts characters to main_port or early write method.
+ * @param user Can be put as a serial_port object to write to that, or can be NULL.
  */
 int serial_print(void *user, char ch);
 
 /**
- * @brief Exposed serial printing method
+ * @brief Serial printing method - writes to main_port
  */
 int serial_printf(char *format, ...);
 

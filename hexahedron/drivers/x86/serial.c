@@ -157,6 +157,25 @@ int serial_initialize() {
     return 0;
 }
 
+/**
+ * @brief Create serial port data
+ * @param com_port The port to create the data from
+ * @param baudrate The baudrate to use
+ * @returns Port structure or NULL
+ */
+serial_port_t *serial_createPortData(int com_port, uint16_t baudrate) {
+    if (com_port < 1 || com_port > 4) return NULL;      // Bad COM port
+    if (SERIAL_CLOCK_RATE % baudrate != 0) return NULL; // Bad baud rate
+
+    serial_port_t *ser_port = kmalloc(sizeof(serial_port_t));
+    ser_port->baud_rate = baudrate;
+    ser_port->com_port = com_port;
+    ser_port->read = receive_method;
+    ser_port->write = write_method;
+    ser_port->io_address = serial_getCOMAddress(com_port);
+    return ser_port;
+}
+
 
 /**
  * @brief Initialize a specific serial port
@@ -165,16 +184,9 @@ int serial_initialize() {
  * @returns A serial port structure or NULL if bad.
  */
 serial_port_t *serial_initializePort(int com_port, uint16_t baudrate) {
-    if (com_port < 1 || com_port > 4) return NULL;      // Bad COM port
-    if (SERIAL_CLOCK_RATE % baudrate != 0) return NULL; // Bad baud rate
-
-    // Setup port structure
-    serial_port_t *ser_port = kmalloc(sizeof(serial_port_t));
-    ser_port->baud_rate = baudrate;
-    ser_port->com_port = com_port;
-    ser_port->read = receive_method;
-    ser_port->write = write_method;
-    ser_port->io_address = serial_getCOMAddress(com_port);
+    // Create the port data
+    serial_port_t *ser_port = serial_createPortData(com_port, baudrate);
+    if (!ser_port) return NULL;
 
     // Now let's get to the initialization
     // Disable all interrupts

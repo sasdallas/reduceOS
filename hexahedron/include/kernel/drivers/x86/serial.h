@@ -78,4 +78,20 @@ int serial_initialize();
  */
 int serial_setBaudRate(serial_port_t *device, uint16_t baudrate);
 
+/**
+ * @brief Initialize a specific serial port
+ * @param com_port The port to initialize. Can be from 1-4 for COM1-4. It is not recommended to go past COM2.
+ * @param baudrate The baudrate to use
+ * @returns A serial port structure or NULL if bad.
+ */
+serial_port_t *serial_initializePort(int com_port, uint16_t baudrate);
+
+/**
+ * @brief Create serial port data
+ * @param com_port The port to create the data from
+ * @param baudrate The baudrate to use
+ * @returns Port structure or NULL
+ */
+serial_port_t *serial_createPortData(int com_port, uint16_t baudrate);
+
 #endif
