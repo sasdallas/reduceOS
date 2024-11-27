@@ -16,7 +16,7 @@
 /**** INCLUDES ****/
 #include <kernel/generic_mboot.h>
 #include <kernel/multiboot.h>
-
+#include <kernel/arch/arch.h>
 
 /**** FUNCTIONS ****/
 
@@ -46,10 +46,5 @@ generic_parameters_t *arch_parse_multiboot2(multiboot_t *bootinfo);
  */
 void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_address);
 
-
-/**
- * @brief Get the generic parameters
- */
-generic_parameters_t *arch_get_generic_parameters();
 
 #endif

@@ -61,7 +61,9 @@ const int __debug_output_baud_rate = DEBUG_BAUD_RATE;
 
 const int __debugger_com_port = DEBUGGER_COM_PORT;
 const int __debugger_baud_rate = DEBUGGER_BAUD_RATE;
-const int __debugger_enabled = 1; // The debugger may annoy you because it requires a connection.
+const int __debugger_enabled = 1;       // The debugger may annoy you because it requires a connection.
+const int __debugger_wait_time = 5000;  // Wait time (in ms) for the debugger to wait on a packet
+
 
 /**** AUTO-GENERATED VERSIONING INFO ****/
 

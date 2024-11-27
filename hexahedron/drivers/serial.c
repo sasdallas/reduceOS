@@ -14,6 +14,7 @@
 #include <kernel/config.h>
 #include <kernel/drivers/serial.h>
 #include <kernel/mem/alloc.h>
+#include <kernel/debug.h>
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -118,7 +119,7 @@ int serial_readBuffer(char *buffer, serial_port_t *port, size_t size, size_t tim
 
     size_t i = 0;
     while (i < size) {
-        buffer[i] = port->read(port, timeout); 
+        buffer[i] = port->read(port, timeout);
         i++;
     }
     

@@ -22,6 +22,7 @@
 #include <kernel/debug.h>
 #include <kernel/config.h>
 #include <kernel/debugger.h>
+#include <kernel/mem/alloc.h>
 
 /* Generic drivers */
 #include <kernel/drivers/serial.h>
@@ -69,14 +70,22 @@ static void hal_init_stage2() {
 
     // We need to reconfigure the serial ports and initialize the debugger.
     serial_setPort(serial_createPortData(__debug_output_com_port, __debug_output_baud_rate), 1);
-    
+
+    if (!__debugger_enabled) goto _no_debug;
+
     serial_port_t *port = serial_initializePort(__debugger_com_port, __debugger_baud_rate);
-    if (port) {
-        serial_setPort(port, 0);
-        debugger_initialize(port);
-    } else {
+    if (!port) {
         dprintf(WARN, "Failed to initialize COM%i for debugging\n", __debugger_com_port);
+        goto _no_debug;
     }
+
+    serial_setPort(port, 0);
+    if (debugger_initialize(port) != 1) {
+        dprintf(WARN, "Debugger failed to initialize or connect.\n");
+    }
+
+
+_no_debug:
 
     // Next step is to initialize ACPICA. This is a bit hacky and hard to read.
 #ifdef ACPICA_ENABLED

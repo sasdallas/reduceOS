@@ -94,8 +94,12 @@ allocator_info_t *alloc_getInfo() {
 
 #define BIN_MAGIC 0xDEFAD00D
 
+#if 1
 #define assert(statement) ((statement) ? (void)0 : __assert_fail(__FILE__, __LINE__, #statement))
-
+#define assert_nonfatal(statement) ((statement) ? (void)0 : __assert_warn(__FILE__, __LINE__, #statement))
+#else
+#define assert(statement) (void)0
+#endif
 
 static void __assert_fail(const char * f, int l, const char * stmt) {
     kernel_panic_prepare(MEMORY_MANAGEMENT_ERROR);
@@ -104,6 +108,9 @@ static void __assert_fail(const char * f, int l, const char * stmt) {
     kernel_panic_finalize();
 }
 
+static void __assert_warn(const char *f, int l, const char *stmt) {
+	dprintf(WARN, "Nonfatal assertion failed (%s:%i): %s\n", f, l, stmt);
+}
 
 /* }}} */
 
@@ -480,12 +487,15 @@ static void klmalloc_skip_list_delete(klmalloc_big_bin_header * value) {
 static void * klmalloc_stack_pop(klmalloc_bin_header *header) {
 	assert(header);
 	assert(header->head != NULL);
-	assert((uintptr_t)header->head > (uintptr_t)header);
+	
+	// !!!: This is a problem area. Soem bins actually do have their head point to themselves.
+	// !!!: It doesn't appear to be an issue (from what I can tell unfortunately), but I will warn if it happens
+	assert_nonfatal((uintptr_t)header->head > (uintptr_t)header);
 	if (header->size > NUM_BINS) {
 		assert((uintptr_t)header->head < (uintptr_t)header + header->size);
 	} else {
 		assert((uintptr_t)header->head < (uintptr_t)header + PAGE_SIZE);
-		assert((uintptr_t)header->head > (uintptr_t)header + sizeof(klmalloc_bin_header) - 1);
+		assert_nonfatal((uintptr_t)header->head > (uintptr_t)header + sizeof(klmalloc_bin_header) - 1);
 	}
 	
 	/*

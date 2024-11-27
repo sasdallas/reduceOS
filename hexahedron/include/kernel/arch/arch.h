@@ -23,7 +23,7 @@
 
 /**** INCLUDES ****/
 #include <stdint.h>
-
+#include <kernel/generic_mboot.h>
 
 /**** FUNCTIONS ****/
 
@@ -39,5 +39,10 @@ extern void arch_panic_prepare();
  * @note Does not return
  */
 extern void arch_panic_finalize();
+
+/**
+ * @brief Get the generic parameters
+ */
+extern generic_parameters_t *arch_get_generic_parameters();
 
 #endif

@@ -36,9 +36,9 @@ static page_t       *mem_currentDirectory;      // Current page directory. Conta
 static page_t       *mem_kernelDirectory;       // Kernel page directory
                                                 // ! We're using this correctly, right?
 
-static uintptr_t    mem_kernelHeap;             // Location of the kernel heap in memory
-static uintptr_t    mem_identityMapCacheSize;   // Size of our actual identity map (it is basically a cache)
-static pool_t       *mem_mapPool = NULL;        // Identity map pool
+uintptr_t    mem_kernelHeap;                    // Location of the kernel heap in memory
+uintptr_t    mem_identityMapCacheSize;          // Size of our actual identity map (it is basically a cache)
+pool_t       *mem_mapPool = NULL;               // Identity map pool
 
 
 

@@ -30,12 +30,17 @@ typedef json_value debug_packet_t;
 
 /**** DEFINITIONS ****/
 
+// General
+#define MAXIMUM_PACKET_LENGTH   4       // WARNING: THIS IS IN PLACES. With 4, you can go up to 9999 (4 #s)
+
 // Packet bytes
 #define PACKET_START            0xAA
 #define PACKET_END              0xBB
 
 // Packet types
 #define PACKET_TYPE_HELLO       0x01    // This is a hello packet
+#define PACKET_TYPE_HELLO_RESP  0x02    // Debugger's response to our HELLO packet.
+
 
 /**** FUNCTIONS ****/
 
@@ -53,5 +58,19 @@ int debugger_initialize(serial_port_t *port);
  * @returns 0 on success, non-zero is failure.
  */
 int debugger_sendPacket(uint32_t type, json_value *object);
+
+/**
+ * @brief Waits to receive a packet
+ * @param timeout How long to wait before stopping
+ * @returns NULL on nothing found, else a packet
+ */
+debug_packet_t *debugger_receivePacket(size_t timeout);
+
+/**
+ * @brief Create a new packet that you can add to
+ * @param type The type of the packet
+ * @returns A packet object or NULL on failure
+ */
+debug_packet_t *debugger_createPacket(uint32_t type);
 
 #endif

@@ -106,15 +106,14 @@ void AcpiOsUnmapMemory(void *where, ACPI_SIZE Length) {
 
 /* Get a physical address */
 ACPI_STATUS AcpiOsGetPhysicalAddress(void *LogicalAddress, ACPI_PHYSICAL_ADDRESS *PhysicalAddress) {
-    // It is possible to just call mem_getPhysicalAddress as well
-    LOG(DEBUG, "AcpiOsGetPhysicalAddress 0x%x\n", LogicalAddress);
     *PhysicalAddress = (ACPI_PHYSICAL_ADDRESS)mem_getPhysicalAddress(NULL, (uintptr_t)LogicalAddress);
     return AE_OK;
 }
 
 /* Allocate */
 void *AcpiOsAllocate(ACPI_SIZE Size) {
-    return kmalloc(Size);
+    void *ptr = kmalloc(Size);
+    return ptr;
 }
 
 /* Free */

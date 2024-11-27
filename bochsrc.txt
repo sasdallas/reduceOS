@@ -52,6 +52,6 @@ speaker: enabled=true, mode=system
 parport1: enabled=true, file=none
 parport2: enabled=false
 com1: enabled=true, mode=file, dev="ser_output.txt"
-com2: enabled=true, mode=file, dev="ser_output2.txt"
+com2: enabled=true, mode=socket-server, dev=localhost:8888
 com3: enabled=false
 com4: enabled=false
