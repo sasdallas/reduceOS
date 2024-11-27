@@ -36,6 +36,8 @@ char* strncat(char *dest, const char *src, size_t n);
 
 char* strchr(const char*, int);
 
+char* strdup( const char* );
+
 #endif
 
 _End_C_Header

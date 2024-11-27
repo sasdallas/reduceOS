@@ -27,6 +27,8 @@ _Begin_C_Header
 
 __attribute__((__noreturn__)) void abort(void);
 
+
+int atoi(const char*);
 unsigned long long int strtoull(const char*, char**, int);
 unsigned long int strtoul(const char*, char**, int);
 long int strtol(const char*, char**, int);
