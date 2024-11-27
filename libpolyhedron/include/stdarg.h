@@ -29,7 +29,7 @@ typedef __builtin_va_list va_list;
 
 
 /**** MACROS ****/
-#ifdef __LIBK
+#if defined(__LIBK) || defined(__KERNEL__)
 // VA_SIZE(TYPE) - Round up width of objects pushed on stack.
 #define	VA_SIZE(TYPE)					\
 	((sizeof(TYPE) + sizeof(STACKITEM) - 1)	\

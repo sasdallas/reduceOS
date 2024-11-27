@@ -23,6 +23,7 @@ _Begin_C_Header
 
 void __assert_failed(char *file, int line, char *stmt);
 #define assert(statement) (statement) ? (void)0 : __assert_failed(__FILE__, __LINE__, #statement)
+#define ASSERT assert
 
 #endif
 
