@@ -26,6 +26,7 @@
 #include <kernel/config.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
+#include <kernel/drivers/clock.h>
 
 // Main configured serial port (TODO: Move this to a structure)
 uint16_t serial_defaultPort = SERIAL_COM1_PORT;
@@ -109,13 +110,20 @@ static int write_method(serial_port_t *device, char ch) {
 
 /**
  * @brief Retrieves a character from serial
+ * @param timeout The time to wait in seconds 
  */
-static char receive_method(serial_port_t *device) {
-    // Wait until receive has something
-    while ((inportb(device->io_address + SERIAL_LINE_STATUS) & 0x01) == 0x0);
+static char receive_method(serial_port_t *device, size_t timeout) {
+    // Wait until receive has something or the timeout hits
+    unsigned long long finish_time = (now() * 1000) + timeout;
 
-    // Return the character
-    return inportb(device->io_address + SERIAL_RECEIVE_BUFFER);
+    while ((timeout == 0) ? 1 : (finish_time > now() * 1000)) {
+        if ((inportb(device->io_address + SERIAL_LINE_STATUS) & 0x01) != 0x0) {
+            // Return the character
+            return inportb(device->io_address + SERIAL_RECEIVE_BUFFER);
+        }
+    };
+
+    return 0; 
 }
 
 

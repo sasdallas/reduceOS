@@ -44,6 +44,13 @@ void clock_update(uint64_t ticks) {
     }
 }
 
+/**
+ * @brief Get the current tick count
+ * @returns The tick count
+ */
+uint64_t clock_getTickCount() {
+    return tick_count;
+}
 
 /**
  * @brief Get the current time of day

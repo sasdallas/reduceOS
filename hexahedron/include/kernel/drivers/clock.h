@@ -71,6 +71,12 @@ void clock_relative(unsigned long seconds, unsigned long subseconds, unsigned lo
 void clock_update(uint64_t ticks);
 
 /**
+ * @brief Get the current tick count
+ * @returns The tick count
+ */
+uint64_t clock_getTickCount();
+
+/**
  * @brief Register an update callback
  * @returns -EINVAL on too many full, else it returns the index.
  */

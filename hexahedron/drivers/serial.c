@@ -104,3 +104,51 @@ int serial_portPrintf(serial_port_t *port, char *format, ...) {
     va_end(ap);
     return out;
 }
+
+/**
+ * @brief Serial reading method
+ * @param buffer The string to output to
+ * @param port The port to read from
+ * @param size How many characters to read.
+ * @param timeout How long to wait for each character in milliseconds. If zeroed, it will wait forever
+ * @returns The amount of characters read
+ */
+int serial_readBuffer(char *buffer, serial_port_t *port, size_t size, size_t timeout) {
+    if (!buffer || !port) return 0;
+
+    size_t i = 0;
+    while (i < size) {
+        buffer[i] = port->read(port, timeout); 
+        i++;
+    }
+    
+
+    return i;
+}
+
+
+/**
+ * @brief Serial reading method - reads from a specific port
+ * @param port The port to read from
+ * @param size How many characters to read
+ * @param timeout How long to wait for each character in milliseconds. If zeroed, it will wait forever
+ * @returns A pointer to the allocated buffer
+ */
+char *serial_readPort(serial_port_t *port, size_t size, size_t timeout) {
+    if (!port || !size) return NULL;
+    
+    char *buffer = kmalloc(size);
+    serial_readBuffer(buffer, port, size, timeout);
+    return buffer;
+}
+
+
+/**
+ * @brief Serial reading method - reads from main_port
+ * @param size How many characters to read.
+ * @param timeout How long to wait for each character in milliseconds. If zeroed, it will wait forever
+ * @returns The amount of characters read
+ */
+char *serial_read(size_t size, size_t timeout) {
+    return serial_readPort(main_port, size, timeout);
+}

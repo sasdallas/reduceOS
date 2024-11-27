@@ -17,22 +17,25 @@
 /**** INCLUDES ****/
 
 #include <stdint.h>
+#include <stddef.h>
 
 /**** TYPES ****/
 
 struct _serial_port;
 
+// Write method
 typedef int (*serial_port_write_t)(struct _serial_port *port, char ch);
-typedef char (*serial_port_read_t)(struct _serial_port *port);
 
-/* TODO: Replace this with a VFS node */
+// Read method (if timeout is 0, wait forever)
+typedef char (*serial_port_read_t)(struct _serial_port *port, size_t timeout);
+
 typedef struct _serial_port {
     int com_port;               // COM port
     uint32_t baud_rate;         // Baud rate
     
     uint32_t io_address;        // I/O address (for use by driver)
 
-    serial_port_read_t read;    // Read method
+    serial_port_read_t read;    // Read method 
     serial_port_write_t write;  // Write method
 } serial_port_t;
 
@@ -79,5 +82,32 @@ int serial_printf(char *format, ...);
  * @param port The port to write to
  */
 int serial_portPrintf(serial_port_t *port, char *format, ...);
+
+/**
+ * @brief Serial reading method
+ * @param buffer The string to output to
+ * @param port The port to read from
+ * @param size How many characters to read.
+ * @param timeout How long to wait for each character. If zeroed, it will wait forever
+ * @returns The amount of characters read
+ */
+int serial_readBuffer(char *buffer, serial_port_t *port, size_t size, size_t timeout);
+
+/**
+ * @brief Serial reading method - reads from a specific port
+ * @param port The port to read from
+ * @param size How many characters to read
+ * @param timeout How long to wait for each character. If zeroed, it will wait forever
+ * @returns A pointer to the allocated buffer
+ */
+char *serial_readPort(serial_port_t *port, size_t size, size_t timeout);
+
+/**
+ * @brief Serial reading method - reads from main_port
+ * @param size How many characters to read.
+ * @param timeout How long to wait for each character. If zeroed, it will wait forever
+ * @returns The amount of characters read
+ */
+char *serial_read(size_t size, size_t timeout);
 
 #endif
