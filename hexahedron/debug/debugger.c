@@ -39,6 +39,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__ARCH_I386__)
+#include <kernel/arch/i386/hal.h>
+#endif
+
 /**** VARIABLES ****/
 
 /* Log method */
@@ -136,13 +140,48 @@ extern pool_t *mem_mapPool;
     debug_packet_t *response = debugger_receivePacket(__debugger_wait_time);
     if (!response) goto _cleanup;
 
-    dprintf(DEBUG, "Received a response from the debugger!\n");
+    json_builder_free(data);
     return 1;
 
 _cleanup:
     json_builder_free(data);
     return 0;
 }
+
+#if defined(__ARCH_I386__)
+/**
+ * @brief Interrupt 3 breakpoint handler
+ */
+int debugger_breakpointHandler(uint32_t exception_number, registers_t *regs, extended_registers_t *extended) {
+    json_value *breakpoint_data = json_object_new(3);
+    json_object_push(breakpoint_data, "type", json_integer_new(BREAKPOINT_TYPE_INT3));
+
+    // Encode the registers structure as bytes
+    json_value *registers_encoded = json_array_new(sizeof(regs));
+    uint8_t *ptr = (uint8_t*)regs;
+    for (size_t i = 0; i < sizeof(registers_t); i++) {
+        json_array_push(registers_encoded, json_integer_new((int)ptr[i]));
+    }
+
+    json_object_push(breakpoint_data, "registers", registers_encoded);
+
+    // Now do the same for the extended registers structure
+    json_value *ext_registers_encoded = json_array_new(sizeof(extended));
+    ptr = (uint8_t*)extended;
+    for (size_t i = 0; i < sizeof(extended_registers_t); i++) {
+        json_array_push(ext_registers_encoded, json_integer_new((int)ptr[i]));
+    }
+
+    json_object_push(breakpoint_data, "extended_registers", ext_registers_encoded);
+
+    // Send the packet!
+    LOG(DEBUG, "Entering breakpoint state (INT3 triggered)\n");
+    debugger_sendPacket(PACKET_TYPE_BREAKPOINT, breakpoint_data);
+
+    // Enter a permanent loop waiting for more packets
+    for (;;); // jk 
+}
+#endif
 
 /**
  * @brief Initialize the debugger. This will wait for a hello packet if configured.
@@ -158,11 +197,17 @@ int debugger_initialize(serial_port_t *port) {
 
 
     int handshake = debugger_handshake();
-    if (handshake) {
-        LOG(INFO, "Communication with debugger established\n");
-        return 1;
-    }
-    
+    if (!handshake) goto _no_debug;
+
+#if defined(__ARCH_I386__)
+    // Register an exception handler for INT3
+    hal_registerExceptionHandler(0x03, debugger_breakpointHandler);
+    asm volatile ("int $0x03");
+#endif
+
+    return 1;
+
+_no_debug:
     debugger_port = NULL; // Null these out to prevent any stupidity
     return 0;
 }

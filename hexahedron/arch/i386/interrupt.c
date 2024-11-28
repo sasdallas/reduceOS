@@ -35,6 +35,8 @@ i386_interrupt_descriptor_t hal_idt_table[I86_MAX_INTERRUPTS];
 /* Interrupt handler table - TODO: More than one handler per interrupt? */
 interrupt_handler_t hal_handler_table[I86_MAX_INTERRUPTS];
 
+/* Exception handler table - TODO: More than one handlers per exception? */
+exception_handler_t hal_exception_handler_table[I86_MAX_EXCEPTIONS];
 
 /* String table for exceptions */
 const char *hal_exception_table[I86_MAX_EXCEPTIONS] = {
@@ -85,11 +87,24 @@ void hal_endInterrupt(uint32_t interrupt_number) {
  * @brief Common exception handler
  */
 void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
-    // TODO: Exception handlers
+    // Call the exception handler
+    if (hal_exception_handler_table[exception_index] != NULL) {
+        exception_handler_t handler = (hal_exception_handler_table[exception_index]);
+        int return_value = handler(exception_index, regs, regs_extended);
+
+        if (return_value != 0) {
+            kernel_panic(IRQ_HANDLER_FAILED, "hal");
+            __builtin_unreachable();
+        }
+
+        // Now we're finished - EOI and return.
+        hal_endInterrupt(exception_index);
+        return;
+    }
+
+
     kernel_panic_prepare(CPU_EXCEPTION_UNHANDLED);
 
-    
-    
     if (exception_index == 14) {
         uintptr_t page_fault_addr = 0x0;
         asm volatile ("movl %%cr2, %0" : "=a"(page_fault_addr));
@@ -157,6 +172,31 @@ int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler) {
 void hal_unregisterInterruptHandler(uint32_t int_no) {
     hal_handler_table[int_no] = NULL;
 }
+
+/**
+ * @brief Register an exception handler
+ * @param int_no Exception number
+ * @param handler A handler. This should return 0 on success, anything else panics.
+ *                It will take an exception number, registers, and extended registers as arguments.
+ * @returns 0 on success, -EINVAL if handler is taken
+ */
+int hal_registerExceptionHandler(uint32_t int_no, exception_handler_t handler) {
+    if (hal_exception_handler_table[int_no] != NULL) {
+        return -EINVAL;
+    }
+
+    hal_exception_handler_table[int_no] = handler;
+
+    return 0;
+}
+
+/**
+ * @brief Unregisters an exception handler
+ */
+void hal_unregisterExceptionHandler(uint32_t int_no) {
+    hal_exception_handler_table[int_no] = NULL;
+}
+
 
 
 /**

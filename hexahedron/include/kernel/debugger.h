@@ -40,7 +40,10 @@ typedef json_value debug_packet_t;
 // Packet types
 #define PACKET_TYPE_HELLO       0x01    // This is a hello packet
 #define PACKET_TYPE_HELLO_RESP  0x02    // Debugger's response to our HELLO packet.
+#define PACKET_TYPE_BREAKPOINT  0x03    // Kernel will register handlers on INT3 for this and report state back.
 
+// Breakpoint types
+#define BREAKPOINT_TYPE_INT3    0x01    // INT3 breakpoint
 
 /**** FUNCTIONS ****/
 

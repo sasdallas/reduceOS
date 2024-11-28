@@ -59,6 +59,20 @@ int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler);
 void hal_unregisterInterruptHandler(uint32_t int_no);
 
 /**
+ * @brief Register an exception handler
+ * @param int_no Exception number
+ * @param handler A handler. This should return 0 on success, anything else panics.
+ *                It will take an exception number, registers, and extended registers as arguments.
+ * @returns 0 on success, -EINVAL if handler is taken
+ */
+int hal_registerExceptionHandler(uint32_t int_no, exception_handler_t handler);
+
+/**
+ * @brief Unregisters an exception handler
+ */
+void hal_unregisterExceptionHandler(uint32_t int_no);
+
+/**
  * @brief Sets an RSDP if one was set
  */
 void hal_setRSDP(uint64_t rsdp);
