@@ -28,6 +28,12 @@
 // Debug packets are just JSON objects
 typedef json_value debug_packet_t;
 
+/* Breakpoint structure */
+typedef struct _breakpoint {
+    uintptr_t   address;
+    uint8_t     original_instruction;
+} breakpoint_t;
+
 /**** DEFINITIONS ****/
 
 // General
@@ -45,9 +51,7 @@ typedef json_value debug_packet_t;
 #define PACKET_TYPE_READMEM     0x05    // Read memory request
 #define PACKET_TYPE_WRITEMEM    0x06    // Write memory request
 #define PACKET_TYPE_PANIC       0x07    // Panic! Sent by kernel
-
-// Breakpoint types
-#define BREAKPOINT_TYPE_INT3    0x01    // INT3 breakpoint
+#define PACKET_TYPE_BP_UPDATE   0x08    // Update breakpoint (add/remove)
 
 /**** FUNCTIONS ****/
 
@@ -102,5 +106,19 @@ void debugger_enterBreakpointState();
  * @brief Returns whether we are in a breakpoint state
  */
 int debugger_isInBreakpointState();
+
+/**
+ * @brief Set a breakpoint at a specified address
+ * @param address The address to set the breakpoint at
+ * @returns 0 on success, -EEXIST if it exists, or -EINVAL if the address is invavlid
+ */
+int debugger_setBreakpoint(uintptr_t address);
+
+/**
+ * @brief Removes a breakpoint at a specified address and resets the instruction
+ * @param address The address to remove the breakpoint from
+ * @returns 0 on success or -EEXIST if it does not exist
+ */
+int debugger_removeBreakpoint(uintptr_t address);
 
 #endif

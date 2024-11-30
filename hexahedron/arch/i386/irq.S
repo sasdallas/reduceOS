@@ -15,7 +15,6 @@
 
 .extern hal_exceptionHandler
 .extern hal_interruptHandler
-.glba
 
 /* Save registers macro */
 .macro PUSH_REGISTERS
@@ -56,6 +55,9 @@
     
     /* Restore main registers */
     popa
+
+    /* Skip over the err code */
+    addl $4, %esp
 .endm
     
 
@@ -98,12 +100,13 @@ halCommonIRQHandler:
 
 
 read_eip:
-    mov eax, [esp]
-    ret
+    movl (%esp), %eax
+    retl
 
 
 /* Get registers function */
 /* This is passed an empty structure as an argument */
+.global halGetRegistersInternal
 halGetRegistersInternal:
     // Load registers structure
     movl 4(%esp), %ecx
@@ -112,9 +115,9 @@ halGetRegistersInternal:
     leal 8(%esp), %eax
 
     // DS/ES/GS
-    movl %ds, 0(%ecx)
-    movl %es, 4(%ecx)
-    movl %gs, 8(%ecx)
+    movw %ds, 0(%ecx)
+    movw %es, 4(%ecx)
+    movw %gs, 8(%ecx)
 
     // EDI/ESI/EBP/ESP/EBX/EDX/ECX/EAX
     movl %edi, 12(%ecx)
@@ -128,12 +131,12 @@ halGetRegistersInternal:
     // err_code is NULLed because there is none
     call read_eip
     movl %eax, 48(%ecx) // EIP
-    movl %cs, 52(%ecx)  // CS
+    movw %cs, 52(%ecx)  // CS
     pushfl
     popl %eax
     movl %eax, 58(%ecx) // EFLAGS
     // useresp is NULLED because it is for processes
-    movl %ss, 66(%ecx)  // SS
+    movw %ss, 66(%ecx)  // SS
 
     // Return
     ret
@@ -160,6 +163,7 @@ halGetRegistersInternal:
 .macro IRQ name index
     .global \name 
     &name:
+        pushl $0 // Push dummy error code 
         movl $\index, halExceptionIndex
         movl $\index - 32, halIRQIndex 
         jmp halCommonIRQHandler

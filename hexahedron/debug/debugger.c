@@ -34,7 +34,9 @@
 #include <kernel/mem/pmm.h>
 #include <kernel/debug.h>
 #include <kernel/config.h>
+#include <kernel/panic.h>
 #include <kernel/misc/pool.h>
+#include <structs/list.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,6 +49,7 @@
 
 /* Log method */
 #define LOG(status, format, ...) dprintf_module(status, "DEBUGGER", format, ## __VA_ARGS__)
+#define UNIMPLEMENTED(func) kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "debugger", "*** %s\n", func)
 
 /* Debugger interface port */
 serial_port_t *debugger_port = NULL;
@@ -56,6 +59,9 @@ spinlock_t *debug_lock = NULL;
 
 /* Breakpoint state */
 int debugger_inBreakpointState = 0;
+
+/* Breakpoints */
+extern list_t *breakpoints;
 
 /**** FUNCTIONS ****/
 
@@ -117,6 +123,7 @@ extern pool_t *mem_mapPool;
     json_object_push(sys_info, "cmdline", json_string_new(parameters->kernel_cmdline));
 
     // Create memory map information (subset of sysinfo)
+    // !!! json_array_new(0) appears to have issues or something (breaks allocator), so this is disabled.
     // json_value *mmap_info = json_array_new(0);
 
     // generic_mmap_desc_t *desc = parameters->mmap_start;
@@ -183,19 +190,22 @@ void debugger_packetLoop() {
         json_value *type = debugger_getPacketField(packet, "type");
         if (!type) {
             LOG(WARN, "Invalid packet received (no type field/bad data)\n");
-            continue;
+            goto _next_packet;
         }
 
 
         json_value *data  = debugger_getPacketField(packet, "data");
         if (!data) {
             LOG(ERR, "Invalid packet received (no data field/bad data)\n");
-            continue;
+            goto _next_packet;
         }
+
+        json_value *resp_data; // gcc will whine if this is declared mult. times
 
         switch (type->u.integer) {
             case PACKET_TYPE_CONTINUE:
                 LOG(INFO, "Continue packet received - exiting breakpoint state");
+                json_builder_free(packet);
                 return;
 
             case PACKET_TYPE_READMEM:
@@ -204,7 +214,7 @@ void debugger_packetLoop() {
 
                 if (!addr_val || !length_val) {
                     LOG(ERR, "Invalid packet received (addr/length field not found in data)\n");
-                    continue;
+                    goto _next_packet;
                 }
 
                 char *addr_str = addr_val->u.string.ptr;
@@ -229,13 +239,45 @@ void debugger_packetLoop() {
                     for (int i = 0; i < PAGE_SIZE ; i++) json_array_push(arr, json_integer_new(*(uint8_t*)(cur + (uintptr_t)i)));
                 }
 
-                json_value *data = json_object_new(1);
-                json_object_push(data, "buffer", arr);
-                debugger_sendPacket(PACKET_TYPE_READMEM, data);
-                
+                resp_data = json_object_new(1);
+                json_object_push(resp_data, "buffer", arr);
+                debugger_sendPacket(PACKET_TYPE_READMEM, resp_data);
+                json_builder_free(resp_data);
+                break;
+            
+            case PACKET_TYPE_WRITEMEM:
+                UNIMPLEMENTED("PACKET_TYPE_WRITEMEM");
+                __builtin_unreachable();
+            
+            case PACKET_TYPE_BP_UPDATE:
+                json_value *address = debugger_getPacketField(data, "address");
+                json_value *operation = debugger_getPacketField(data, "operation");
 
+                if (!address || !operation || address->type != json_string || operation->type != json_integer) {
+                    LOG(ERR, "Invalid packet received (addr/operation field not found in data)\n");
+                    goto _next_packet;
+                }
+
+
+                int success;
+                if (operation->u.integer == 0) {
+                    // Add breakpoint
+                    success = debugger_setBreakpoint(strtoull(address->u.string.ptr, NULL, 16));
+                } else {
+                    // Remove breakpoint
+                    success = debugger_removeBreakpoint(strtoull(address->u.string.ptr, NULL, 16));
+                }
+
+                resp_data = json_object_new(1);
+                json_object_push(resp_data, "return_value", json_integer_new(success));
+                debugger_sendPacket(PACKET_TYPE_BP_UPDATE, resp_data);
+                json_builder_free(resp_data);
                 break;
         }
+
+    _next_packet:
+        // Free the packet
+        json_builder_free(packet);
     }
 }
 
@@ -245,9 +287,7 @@ void debugger_packetLoop() {
 void debugger_enterBreakpointState() {
     if (!debugger_isConnected()) return;
 
-    debugger_inBreakpointState = 1;
-    debugger_packetLoop();
-    debugger_inBreakpointState = 0;
+    asm volatile ("int $0x03");
 }
 
 /**
@@ -263,8 +303,7 @@ int debugger_isInBreakpointState() {
  * @brief Interrupt 3 breakpoint handler
  */
 int debugger_breakpointHandler(uint32_t exception_number, registers_t *regs, extended_registers_t *extended) {
-    json_value *breakpoint_data = json_object_new(3);
-    json_object_push(breakpoint_data, "type", json_integer_new(BREAKPOINT_TYPE_INT3));
+    json_value *breakpoint_data = json_object_new(2);
 
     // Encode the registers structure as bytes
     json_value *registers_encoded = json_array_new(sizeof(regs));
@@ -289,7 +328,10 @@ int debugger_breakpointHandler(uint32_t exception_number, registers_t *regs, ext
     debugger_sendPacket(PACKET_TYPE_BREAKPOINT, breakpoint_data);
 
     // Enter a permanent loop waiting for more packets
-    debugger_enterBreakpointState();
+    debugger_inBreakpointState = 1;
+    debugger_packetLoop();
+    debugger_inBreakpointState = 0;
+
     return 0;
 }
 #endif
@@ -304,6 +346,7 @@ int debugger_initialize(serial_port_t *port) {
     if (!port || !port->read || !port->write) return -EINVAL;
     debugger_port = port;
     debug_lock = spinlock_create("debugger_lock");
+    breakpoints = list_create("breakpoints");
 
     LOG(INFO, "Trying to initialize the debugger...\n");
 
@@ -316,6 +359,9 @@ int debugger_initialize(serial_port_t *port) {
     // Register an exception handler for INT3
     hal_registerExceptionHandler(0x03, debugger_breakpointHandler);
 #endif
+
+    // Enter breakpoint state and wait for packets
+    debugger_enterBreakpointState(); 
 
     return 1;
 
