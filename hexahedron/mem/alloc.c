@@ -125,6 +125,10 @@ __attribute__((malloc)) void *kvalloc(size_t size) {
  * @param ptr A pointer to the previous memory
  */
 void kfree(void *ptr) {
+    if (profile_data != NULL) {
+        profile_data->requests++;
+    }
+    
     alloc_free(ptr);
 }
 

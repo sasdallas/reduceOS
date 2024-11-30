@@ -31,6 +31,7 @@
 #include <kernel/panic.h>
 #include <kernel/debug.h>
 #include <kernel/arch/arch.h>
+#include <kernel/debugger.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -41,6 +42,18 @@
 static int kernel_panic_putchar(void *user, char ch) {
     dprintf(NOHEADER, "%c", ch);
     return 0;
+}
+
+/**
+ * @brief Send panic packet to debugger
+ */
+void kernel_panic_sendPacket(uint32_t bugcode, char *module, char *additional) {
+    json_value *data = json_object_new(3);
+    if (bugcode) json_object_push(data, "bugcode", json_integer_new(bugcode));
+    if (module) json_object_push(data, "module", json_string_new(module));
+    if (additional) json_object_push(data, "additional", json_string_new(additional));
+
+    debugger_sendPacket(PACKET_TYPE_PANIC, data);
 }
 
 /**
@@ -67,16 +80,23 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
 
+    char additional[512];
+
     va_list ap;
     va_start(ap, format);
     xvasprintf(kernel_panic_putchar, NULL, format, ap);
+    vsnprintf(additional, 512, format, ap);
     va_end(ap);
+    
+    // Notify debugger
+    kernel_panic_sendPacket(bugcode, module, additional);
 
     // Print out a generic message
     dprintf(NOHEADER, COLOR_CODE_RED        "\nAdditional information: %s", kernel_panic_messages[bugcode]);
 
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+    if (debugger_isConnected()) debugger_enterBreakpointState();
     arch_panic_finalize();
 }
 
@@ -102,8 +122,11 @@ void kernel_panic(uint32_t bugcode, char *module) {
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** %s" COLOR_CODE_RED, kernel_panic_messages[bugcode]);
     
+    kernel_panic_sendPacket(bugcode, module, NULL);
+
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+    if (debugger_isConnected()) debugger_enterBreakpointState();
     arch_panic_finalize();
 }
 
@@ -123,6 +146,8 @@ void kernel_panic_prepare(uint32_t bugcode) {
     if (bugcode) {
         dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: %s\n", kernel_bugcode_strings[bugcode]);
     }
+
+    kernel_panic_sendPacket(bugcode, NULL, NULL);
 }
 
 /**
@@ -130,5 +155,6 @@ void kernel_panic_prepare(uint32_t bugcode) {
  */
 void kernel_panic_finalize() {
     dprintf(NOHEADER, COLOR_CODE_RED "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+    if (debugger_isConnected()) debugger_enterBreakpointState();
     arch_panic_finalize();
 }

@@ -7,7 +7,8 @@
     "alloc.h": "c",
     "semaphore.h": "c",
     "stdlib.h": "c",
-    "spinlock.h": "c"
+    "spinlock.h": "c",
+    "system_error": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",

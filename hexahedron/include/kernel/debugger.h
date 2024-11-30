@@ -41,6 +41,10 @@ typedef json_value debug_packet_t;
 #define PACKET_TYPE_HELLO       0x01    // This is a hello packet
 #define PACKET_TYPE_HELLO_RESP  0x02    // Debugger's response to our HELLO packet.
 #define PACKET_TYPE_BREAKPOINT  0x03    // Kernel will register handlers on INT3 for this and report state back.
+#define PACKET_TYPE_CONTINUE    0x04    // Continue execution
+#define PACKET_TYPE_READMEM     0x05    // Read memory request
+#define PACKET_TYPE_WRITEMEM    0x06    // Write memory request
+#define PACKET_TYPE_PANIC       0x07    // Panic! Sent by kernel
 
 // Breakpoint types
 #define BREAKPOINT_TYPE_INT3    0x01    // INT3 breakpoint
@@ -75,5 +79,28 @@ debug_packet_t *debugger_receivePacket(size_t timeout);
  * @returns A packet object or NULL on failure
  */
 debug_packet_t *debugger_createPacket(uint32_t type);
+
+/**
+ * @brief Get a field in a packet
+ * @param packet The packet to check
+ * @param field The field to look for
+ * @returns The value of the field or NULL
+ */
+json_value *debugger_getPacketField(debug_packet_t *packet, char *field);
+
+/**
+ * @brief Returns whether a debugger is connected
+ */
+int debugger_isConnected();
+
+/**
+ * @brief Enters into a breakpoint state
+ */
+void debugger_enterBreakpointState();
+
+/**
+ * @brief Returns whether we are in a breakpoint state
+ */
+int debugger_isInBreakpointState();
 
 #endif

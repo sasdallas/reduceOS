@@ -91,7 +91,7 @@ static debug_packet_t *debugger_receivePacketInternal(size_t timeout_ms) {
     // Wait for a PACKET_START byte or timeout.
     uint8_t start_byte = 0x00;
     uint64_t timeout = (now() * 1000) + timeout_ms;
-    while ((timeout == 0) ? 1 : timeout > (now() * 1000)) {
+    while ((timeout_ms == 0) ? 1 : timeout > (now() * 1000)) {
         if (start_byte == PACKET_START) break;
         start_byte = debugger_port->read(debugger_port, timeout_ms);
     }
@@ -221,4 +221,24 @@ debug_packet_t *debugger_receivePacket(size_t timeout) {
     debug_packet_t *packet = debugger_receivePacketInternal(timeout);
     if (packet) LOG(DEBUG, "PACKET_RECV 0x%x\n", packet);
     return packet;
+}
+
+/**
+ * @brief Get a field in a packet
+ * @param packet The packet to check
+ * @param field The field to look for
+ * @returns The value of the field or NULL
+ */
+json_value *debugger_getPacketField(debug_packet_t *packet, char *field) {
+    if (packet->type != json_object) return NULL;
+
+    for (unsigned int i = 0; i < packet->u.object.length; i++) {
+        if (!strncmp(packet->u.object.values[i].name, field, strlen(packet->u.object.values[i].name))) {
+            // These don't have to end in a \0 but if their lengths match then its good
+            if (strlen(packet->u.object.values[i].name) != strlen(field)) continue;
+            return packet->u.object.values[i].value;
+        }
+    }
+
+    return NULL;
 }

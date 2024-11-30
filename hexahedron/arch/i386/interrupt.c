@@ -97,8 +97,7 @@ void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_
             __builtin_unreachable();
         }
 
-        // Now we're finished - EOI and return.
-        hal_endInterrupt(exception_index);
+        // Now we're finished so return
         return;
     }
 

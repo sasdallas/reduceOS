@@ -54,6 +54,9 @@ serial_port_t *debugger_port = NULL;
 /* Debugger lock */ 
 spinlock_t *debug_lock = NULL;
 
+/* Breakpoint state */
+int debugger_inBreakpointState = 0;
+
 /**** FUNCTIONS ****/
 
 /**
@@ -89,11 +92,11 @@ extern uintptr_t mem_identityMapCacheSize;
 extern pool_t *mem_mapPool;
 
     json_value *heap_info = json_object_new(7);
-    char temp_string[128];
+    char *temp_string = kmalloc(512);
 
     snprintf(temp_string, 16, "%x", mem_kernelHeap);
     json_object_push(heap_info, "heap_location", json_string_new(temp_string));
-    json_object_push(heap_info, "im_pool_usage", json_integer_new(mem_mapPool->allocated));
+    json_object_push(heap_info, "im_pool_usage", json_integer_new(mem_mapPool ? mem_mapPool->allocated : 0));
     json_object_push(heap_info, "im_cache_size", json_integer_new(mem_identityMapCacheSize));
 
     json_object_push(heap_info, "total_pmm_blocks", json_integer_new(pmm_getMaximumBlocks()));
@@ -114,23 +117,42 @@ extern pool_t *mem_mapPool;
     json_object_push(sys_info, "cmdline", json_string_new(parameters->kernel_cmdline));
 
     // Create memory map information (subset of sysinfo)
-    json_value *mmap_info = json_array_new(0);
+    // json_value *mmap_info = json_array_new(0);
 
-    generic_mmap_desc_t *desc = parameters->mmap_start;
-    while (desc) {
-        json_value *desc_value = json_object_new(4);
-        snprintf(temp_string, 16, "%016llX", desc->address);
-        json_object_push(desc_value, "address", json_string_new(temp_string));
-        snprintf(temp_string, 16, "%016llX", desc->length);
-        json_object_push(desc_value, "length", json_string_new(temp_string));
-        json_object_push(desc_value, "type", json_integer_new(desc->type));
-        json_array_push(mmap_info, desc_value);
+    // generic_mmap_desc_t *desc = parameters->mmap_start;
+    // while (desc) {
+    //     json_value *desc_value = json_object_new(4);
+    //     snprintf(temp_string, 16, "%016llX", desc->address);
+    //     json_object_push(desc_value, "address", json_string_new(temp_string));
+    //     snprintf(temp_string, 16, "%016llX", desc->length);
+    //     json_object_push(desc_value, "length", json_string_new(temp_string));
+    //     json_object_push(desc_value, "type", json_integer_new(desc->type));
+    //     json_array_push(mmap_info, desc_value);
 
-        desc = desc->next;
-    }
+    //     desc = desc->next;
+    // }
+    // json_object_push(sys_info, "mmap", mmap_info);
 
-    json_object_push(sys_info, "mmap", mmap_info);
     json_object_push(data, "sysinfo", sys_info);
+
+    // Finally, collect a bit of image information
+extern uint32_t __kernel_start, __text_start, __rodata_start, __data_start, __bss_start, __kernel_end;
+    json_value *image_info = json_object_new(6);
+
+    snprintf(temp_string, 16, "%08x", &__kernel_start);
+    json_object_push(image_info, "kernel_start", json_string_new(temp_string));    
+    snprintf(temp_string, 16, "%08x", &__text_start);
+    json_object_push(image_info, "text", json_string_new(temp_string));    
+    snprintf(temp_string, 16, "%08x", &__rodata_start);
+    json_object_push(image_info, "rodata", json_string_new(temp_string));    
+    snprintf(temp_string, 16, "%08x", &__data_start);
+    json_object_push(image_info, "data", json_string_new(temp_string));    
+    snprintf(temp_string, 16, "%08x", &__bss_start);
+    json_object_push(image_info, "bss", json_string_new(temp_string));    
+    snprintf(temp_string, 16, "%08x", &__kernel_end);
+    json_object_push(image_info, "kernel_end", json_string_new(temp_string));    
+
+    json_object_push(data, "image", image_info);
 
     // Send it off!
     int packet = debugger_sendPacket(PACKET_TYPE_HELLO, data);
@@ -141,12 +163,100 @@ extern pool_t *mem_mapPool;
     if (!response) goto _cleanup;
 
     json_builder_free(data);
+    kfree(temp_string);
     return 1;
 
 _cleanup:
     json_builder_free(data);
+    kfree(temp_string);
+
     return 0;
 }
+
+/**
+ * @brief Permanent loop waiting for packets until a continue one is received
+ */
+void debugger_packetLoop() {
+    while (1) {
+        debug_packet_t *packet = debugger_receivePacket(0);
+
+        json_value *type = debugger_getPacketField(packet, "type");
+        if (!type) {
+            LOG(WARN, "Invalid packet received (no type field/bad data)\n");
+            continue;
+        }
+
+
+        json_value *data  = debugger_getPacketField(packet, "data");
+        if (!data) {
+            LOG(ERR, "Invalid packet received (no data field/bad data)\n");
+            continue;
+        }
+
+        switch (type->u.integer) {
+            case PACKET_TYPE_CONTINUE:
+                LOG(INFO, "Continue packet received - exiting breakpoint state");
+                return;
+
+            case PACKET_TYPE_READMEM:
+                json_value *addr_val = debugger_getPacketField(data, "addr");
+                json_value *length_val = debugger_getPacketField(data, "length");
+
+                if (!addr_val || !length_val) {
+                    LOG(ERR, "Invalid packet received (addr/length field not found in data)\n");
+                    continue;
+                }
+
+                char *addr_str = addr_val->u.string.ptr;
+                uintptr_t addr = strtoull(addr_str, NULL, 16);
+
+                int length = length_val->u.integer;
+                LOG(DEBUG, "READMEM 0x%x %i\n", addr, length);
+
+                // Start reading memory!
+                json_value *arr = json_array_new(MEM_ALIGN_PAGE(length));
+                for (uintptr_t cur = addr; cur < MEM_ALIGN_PAGE(addr + length); cur += PAGE_SIZE) {
+                    if (mem_getPage(NULL, cur, 0)->bits.present == 0) {
+                        json_value *error = json_object_new(1);
+                        char err_str[32];
+                        snprintf(err_str, 32, "%x not present", addr);
+                        json_object_push(error, "error", json_string_new("Page not present"));
+                        debugger_sendPacket(PACKET_TYPE_READMEM, error);
+                        break;
+                    }
+
+
+                    for (int i = 0; i < PAGE_SIZE ; i++) json_array_push(arr, json_integer_new(*(uint8_t*)(cur + (uintptr_t)i)));
+                }
+
+                json_value *data = json_object_new(1);
+                json_object_push(data, "buffer", arr);
+                debugger_sendPacket(PACKET_TYPE_READMEM, data);
+                
+
+                break;
+        }
+    }
+}
+
+/**
+ * @brief Enters into a breakpoint state
+ */
+void debugger_enterBreakpointState() {
+    if (!debugger_isConnected()) return;
+
+    debugger_inBreakpointState = 1;
+    debugger_packetLoop();
+    debugger_inBreakpointState = 0;
+}
+
+/**
+ * @brief Returns whether we are in a breakpoint state
+ */
+int debugger_isInBreakpointState() {
+    return debugger_inBreakpointState;
+}
+
 
 #if defined(__ARCH_I386__)
 /**
@@ -179,9 +289,11 @@ int debugger_breakpointHandler(uint32_t exception_number, registers_t *regs, ext
     debugger_sendPacket(PACKET_TYPE_BREAKPOINT, breakpoint_data);
 
     // Enter a permanent loop waiting for more packets
-    for (;;); // jk 
+    debugger_enterBreakpointState();
+    return 0;
 }
 #endif
+
 
 /**
  * @brief Initialize the debugger. This will wait for a hello packet if configured.
@@ -195,6 +307,7 @@ int debugger_initialize(serial_port_t *port) {
 
     LOG(INFO, "Trying to initialize the debugger...\n");
 
+    
 
     int handshake = debugger_handshake();
     if (!handshake) goto _no_debug;
@@ -202,7 +315,6 @@ int debugger_initialize(serial_port_t *port) {
 #if defined(__ARCH_I386__)
     // Register an exception handler for INT3
     hal_registerExceptionHandler(0x03, debugger_breakpointHandler);
-    asm volatile ("int $0x03");
 #endif
 
     return 1;
@@ -210,5 +322,12 @@ int debugger_initialize(serial_port_t *port) {
 _no_debug:
     debugger_port = NULL; // Null these out to prevent any stupidity
     return 0;
+}
+
+/**
+ * @brief Returns whether a debugger is connected
+ */
+int debugger_isConnected() {
+    return debugger_port == NULL ? 0 : 1;
 }
 
