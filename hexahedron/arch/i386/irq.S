@@ -15,6 +15,7 @@
 
 .extern hal_exceptionHandler
 .extern hal_interruptHandler
+.glba
 
 /* Save registers macro */
 .macro PUSH_REGISTERS
@@ -94,6 +95,49 @@ halCommonIRQHandler:
     RESTORE_REGISTERS
 
     iret
+
+
+read_eip:
+    mov eax, [esp]
+    ret
+
+
+/* Get registers function */
+/* This is passed an empty structure as an argument */
+halGetRegistersInternal:
+    // Load registers structure
+    movl 4(%esp), %ecx
+
+    // Load ESP -> EAX
+    leal 8(%esp), %eax
+
+    // DS/ES/GS
+    movl %ds, 0(%ecx)
+    movl %es, 4(%ecx)
+    movl %gs, 8(%ecx)
+
+    // EDI/ESI/EBP/ESP/EBX/EDX/ECX/EAX
+    movl %edi, 12(%ecx)
+    movl %esi, 16(%ecx)
+    movl %ebp, 20(%ecx)
+    movl %eax, 24(%ecx) // ESP was loaded earlier
+    movl %ebx, 28(%ecx)
+    movl %edx, 32(%ecx)
+    // ECX/EAX are clobberable. Zeroed anyways by halGetRegisters
+    
+    // err_code is NULLed because there is none
+    call read_eip
+    movl %eax, 48(%ecx) // EIP
+    movl %cs, 52(%ecx)  // CS
+    pushfl
+    popl %eax
+    movl %eax, 58(%ecx) // EFLAGS
+    // useresp is NULLED because it is for processes
+    movl %ss, 66(%ecx)  // SS
+
+    // Return
+    ret
+
 
 
 /* Exception macros */

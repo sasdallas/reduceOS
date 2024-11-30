@@ -15,6 +15,17 @@
 #ifndef KERNEL_HAL_H
 #define KERNEL_HAL_H
 
+/**** TYPES ****/
+
+struct _registers;
+struct _extended_registers;
+
+/**
+ * @brief Get registers from architecture
+ * @returns Registers structure
+ */
+extern struct _registers *halGetRegisters();
+
 
 
 #endif

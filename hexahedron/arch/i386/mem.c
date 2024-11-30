@@ -259,13 +259,15 @@ void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
 /**
  * @brief Returns the page entry requested
  * @param dir The directory to search. Specify NULL for current directory
- * @param addr The virtual address of the page
+ * @param address The virtual address of the page (will be aligned for you if not aligned)
  * @param flags The flags of the page to look for
  * 
  * @warning Specifying MEM_CREATE will only create needed structures, it will NOT allocate the page!
  *          Please use a function such as mem_allocatePage to do that.
  */
-page_t *mem_getPage(page_t *dir, uintptr_t addr, uintptr_t flags) {
+page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
+    uintptr_t addr = (address % PAGE_SIZE != 0) ? MEM_ALIGN_PAGE(address) : address;
+
     page_t *directory = (dir) ? dir : mem_currentDirectory;
 
     // Page addresses are divided into 3 parts:

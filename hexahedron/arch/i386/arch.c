@@ -119,6 +119,8 @@ uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
     return location;
 }
 
+
+
 /**
  * @brief Main architecture function
  * @returns Does not return

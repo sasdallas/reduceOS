@@ -102,6 +102,7 @@ void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_
     }
 
 
+    // Looks like no one caught this exception.
     kernel_panic_prepare(CPU_EXCEPTION_UNHANDLED);
 
     if (exception_index == 14) {

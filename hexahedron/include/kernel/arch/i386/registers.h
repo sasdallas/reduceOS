@@ -21,14 +21,14 @@
 /**** TYPES ****/
 
 // Descriptor (e.g. gdtr, idtr)
-typedef struct _descriptor_t {
+typedef struct _descriptor {
     uint16_t limit;
     uint32_t base;
 } __attribute__((packed)) descriptor_t;
 
 // Registers (Used by interrupts & exceptions)
 // Some of these are pushed by the CPU
-typedef struct _registers_t {
+typedef struct _registers {
     uint32_t ds, es, gs;
     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax; // Pushed by pusha
 
@@ -38,7 +38,7 @@ typedef struct _registers_t {
 } __attribute__((packed)) registers_t;
 
 // Extended registers. Interrupts/exceptions will push this.
-typedef struct _extended_registers_t {
+typedef struct _extended_registers {
     uint32_t cr0;
     uint32_t cr2;
     uint32_t cr3;

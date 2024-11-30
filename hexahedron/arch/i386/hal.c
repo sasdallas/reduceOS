@@ -148,6 +148,20 @@ uint64_t hal_getRSDP() {
 
 
 
+/* External functions given to kernel */
+extern void halGetRegistersInternal(registers_t *regs);
+
+/**
+ * @brief Get registers from architecture
+ * @returns Registers structure
+ */
+struct _registers *halGetRegisters() {
+    registers_t *output = kmalloc(sizeof(registers_t));
+    memset(output, 0, sizeof(registers_t));
+    halGetRegistersInternal(output);
+    return output;
+}
+
 
 /* We do not need documentation comments for outportb/inportb/etc. */
 
