@@ -204,7 +204,7 @@ void debugger_packetLoop() {
 
         switch (type->u.integer) {
             case PACKET_TYPE_CONTINUE:
-                LOG(INFO, "Continue packet received - exiting breakpoint state");
+                LOG(INFO, "Continue packet received - exiting breakpoint state\n");
                 json_builder_free(packet);
                 return;
 
@@ -223,7 +223,7 @@ void debugger_packetLoop() {
                 int length = length_val->u.integer;
                 LOG(DEBUG, "READMEM 0x%x %i\n", addr, length);
 
-                // Start reading memory!
+                // Check the memory to make sure its okay
                 json_value *arr = json_array_new(MEM_ALIGN_PAGE(length));
                 for (uintptr_t cur = addr; cur < MEM_ALIGN_PAGE(addr + length); cur += PAGE_SIZE) {
                     if (mem_getPage(NULL, cur, 0)->bits.present == 0) {
@@ -232,11 +232,13 @@ void debugger_packetLoop() {
                         snprintf(err_str, 32, "%x not present", addr);
                         json_object_push(error, "error", json_string_new("Page not present"));
                         debugger_sendPacket(PACKET_TYPE_READMEM, error);
+                        json_builder_free(arr);
                         break;
                     }
+                }
 
-
-                    for (int i = 0; i < PAGE_SIZE ; i++) json_array_push(arr, json_integer_new(*(uint8_t*)(cur + (uintptr_t)i)));
+                for (uint8_t *cur = (uint8_t*)addr; cur < (uint8_t*)(addr + (uintptr_t)length); cur++) {
+                    json_array_push(arr, json_integer_new(*cur));
                 }
 
                 resp_data = json_object_new(1);
@@ -260,11 +262,13 @@ void debugger_packetLoop() {
 
 
                 int success;
-                if (operation->u.integer == 0) {
+                if (operation->u.integer == 1) {
                     // Add breakpoint
+                    LOG(DEBUG, "Adding breakpoint to %s\n", address->u.string.ptr);
                     success = debugger_setBreakpoint(strtoull(address->u.string.ptr, NULL, 16));
                 } else {
                     // Remove breakpoint
+                    LOG(DEBUG, "Removing breakpoint from %s\n", address->u.string.ptr);
                     success = debugger_removeBreakpoint(strtoull(address->u.string.ptr, NULL, 16));
                 }
 
@@ -282,15 +286,6 @@ void debugger_packetLoop() {
 }
 
 /**
- * @brief Enters into a breakpoint state
- */
-void debugger_enterBreakpointState() {
-    if (!debugger_isConnected()) return;
-
-    asm volatile ("int $0x03");
-}
-
-/**
  * @brief Returns whether we are in a breakpoint state
  */
 int debugger_isInBreakpointState() {
@@ -303,6 +298,8 @@ int debugger_isInBreakpointState() {
  * @brief Interrupt 3 breakpoint handler
  */
 int debugger_breakpointHandler(uint32_t exception_number, registers_t *regs, extended_registers_t *extended) {
+    // First thing - check if breakpoint needs to be resolved.
+
     json_value *breakpoint_data = json_object_new(2);
 
     // Encode the registers structure as bytes
@@ -361,7 +358,7 @@ int debugger_initialize(serial_port_t *port) {
 #endif
 
     // Enter breakpoint state and wait for packets
-    debugger_enterBreakpointState(); 
+    BREAKPOINT(); 
 
     return 1;
 

@@ -100,7 +100,6 @@ static debug_packet_t *debugger_receivePacketInternal(size_t timeout_ms) {
     if (start_byte != PACKET_START) goto _cleanup; 
 
     // We found a start byte!
-    LOG(DEBUG, "Received a start byte from the debugger\n");
     
     // Try to read the length. The maximum length for packets is defined in MAXIMUM_PACKET_LENGTH,
     // and it is terms of length of the number.
@@ -139,8 +138,6 @@ static debug_packet_t *debugger_receivePacketInternal(size_t timeout_ms) {
         kfree(json_string);
         goto _cleanup;
     }
-
-    LOG(INFO, "Response packet from debugger parsed successfully.\n");
 
     kfree(json_string);
 

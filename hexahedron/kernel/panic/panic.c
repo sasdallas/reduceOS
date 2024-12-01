@@ -96,7 +96,7 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
 
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
-    if (debugger_isConnected()) debugger_enterBreakpointState();
+    if (debugger_isConnected()) BREAKPOINT();
     arch_panic_finalize();
 }
 
@@ -126,7 +126,7 @@ void kernel_panic(uint32_t bugcode, char *module) {
 
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
-    if (debugger_isConnected()) debugger_enterBreakpointState();
+    if (debugger_isConnected()) BREAKPOINT();
     arch_panic_finalize();
 }
 
@@ -155,6 +155,6 @@ void kernel_panic_prepare(uint32_t bugcode) {
  */
 void kernel_panic_finalize() {
     dprintf(NOHEADER, COLOR_CODE_RED "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
-    if (debugger_isConnected()) debugger_enterBreakpointState();
+    if (debugger_isConnected()) BREAKPOINT();
     arch_panic_finalize();
 }

@@ -22,7 +22,9 @@
 list_t *breakpoints = NULL;
 
 /* Breakpoint instruction */
+#ifdef __ARCH_I386__
 #define BREAKPOINT_INSTRUCTION 0xCC // shorthand for INT3
+#endif
 
 /**
  * @brief Set a breakpoint at a specified address
@@ -69,3 +71,4 @@ int debugger_removeBreakpoint(uintptr_t address) {
 
     return -EEXIST;
 }
+

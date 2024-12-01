@@ -53,6 +53,10 @@ typedef struct _breakpoint {
 #define PACKET_TYPE_PANIC       0x07    // Panic! Sent by kernel
 #define PACKET_TYPE_BP_UPDATE   0x08    // Update breakpoint (add/remove)
 
+/**** MACROS ****/
+
+#define BREAKPOINT() if (debugger_isConnected()) asm volatile ("int $0x03")
+
 /**** FUNCTIONS ****/
 
 /**
@@ -96,11 +100,6 @@ json_value *debugger_getPacketField(debug_packet_t *packet, char *field);
  * @brief Returns whether a debugger is connected
  */
 int debugger_isConnected();
-
-/**
- * @brief Enters into a breakpoint state
- */
-void debugger_enterBreakpointState();
 
 /**
  * @brief Returns whether we are in a breakpoint state
