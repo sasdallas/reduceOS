@@ -46,8 +46,11 @@ void font_init() {
  * Implementation of a small backup font stored within the kernel. This backup font
  * doesn't have to be compiled.
  */
-void font_putCharacterBackup(int c, int x, int y, color_t fg, color_t bg) {
+void font_putCharacterBackup(int c, int _x, int _y, color_t fg, color_t bg) {
     uint8_t* fc = backup_large_font[c];
+
+    int x = _x * current_font->width;
+    int y = _y * current_font->height;
 
     for (uint8_t h = 0; h < font_getHeight(); h++) {
         for (uint8_t w = 0; w < font_getWidth(); w++) {
@@ -66,8 +69,8 @@ void font_putCharacterBackup(int c, int x, int y, color_t fg, color_t bg) {
 /**
  * @brief Put a character to the screen
  * @param c The character
- * @param x X coordinate - this is expected as a screen coordinate
- * @param y Y coordinate - this is expected as a screen coordinate
+ * @param x X coordinate - this is expected as a coordinate relative to the terminal
+ * @param y Y coordinate - this is expected as a coordinate relative to the terminal
  * @param fg The foreground color to use
  * @param bg The background color to use
  */

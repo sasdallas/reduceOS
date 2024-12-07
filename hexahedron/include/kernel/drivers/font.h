@@ -43,8 +43,8 @@ void font_init();
 /**
  * @brief Put a character to the screen
  * @param c The character
- * @param x X coordinate - this is expected as a screen coordinate
- * @param y Y coordinate - this is expected as a screen coordinate
+ * @param x X coordinate - this is expected as a coordinate relative to the terminal
+ * @param y Y coordinate - this is expected as a coordinate relative to the terminal
  * @param fg The foreground color to use
  * @param bg The background color to use
  */
