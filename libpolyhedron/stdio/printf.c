@@ -431,7 +431,13 @@ int sprintf(char * str, const char * format, ...) {
 }
 
 static int cb_printf(void * user, char c) {
-	// Discard user. GCC will whine.
+#ifdef __LIBK
+	// Terminal printing!
+	// TODO: Replace with changeable thing?
+	extern int terminal_print(void *user, char c);
+	return terminal_print(user, c);
+#endif
+
 	return 0;
 }
 

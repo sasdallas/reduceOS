@@ -29,6 +29,7 @@
 #include <kernel/config.h>
 #include <kernel/debugger.h>
 #include <kernel/mem/alloc.h>
+#include <kernel/misc/term.h>
 
 /* Generic drivers */
 #include <kernel/drivers/serial.h>
@@ -76,7 +77,7 @@ static void hal_init_stage1() {
 
     // TODO: Is it best practice to do this in HAL?
     debug_setOutput(serial_print);
-    arch_say_hello();
+    arch_say_hello(1);
 
     // Initialize interrupts
     hal_initializeInterrupts();
@@ -136,6 +137,17 @@ _no_debug: ;
 
     // Now, fonts - just do the backup one for now.
     font_init();
+
+    // Terminal!
+    int term = terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+    if (term != 0) {
+        dprintf(WARN, "Terminal failed to initialize (return code %i)\n", term);
+    }
+
+    // Say hi again!
+    arch_say_hello(0);
+
+
 }
 
 /**

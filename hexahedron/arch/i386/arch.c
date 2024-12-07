@@ -49,7 +49,21 @@ generic_parameters_t *parameters;
 /**
  * @brief Say hi! Prints the versioning message and ASCII art to NOHEADER dprintf
  */
-void arch_say_hello() {
+void arch_say_hello(int is_debug) {
+
+    if (!is_debug) {
+        printf("Hexahedron %d.%d.%d-%s-%s (codename \"%s\")\n", 
+                    __kernel_version_major, 
+                    __kernel_version_minor, 
+                    __kernel_version_lower, 
+                    __kernel_architecture,
+                    __kernel_build_configuration,
+                    __kernel_version_codename);
+
+        
+        return;
+    }
+
     // Print out a hello message
     dprintf(NOHEADER, "%s\n", __kernel_ascii_art_formatted);
     dprintf(NOHEADER, "Hexahedron %d.%d.%d-%s-%s (codename \"%s\")\n", 

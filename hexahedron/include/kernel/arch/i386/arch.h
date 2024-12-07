@@ -22,8 +22,9 @@
 
 /**
  * @brief Say hi! Prints the versioning message and ASCII art to NOHEADER dprintf
+ * @param is_debug Print to regular printf or dprintf
  */
-void arch_say_hello();
+void arch_say_hello(int is_debug);
 
 
 /**
