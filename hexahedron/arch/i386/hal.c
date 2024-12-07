@@ -16,6 +16,12 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+
+/* General includes */
+#include <time.h>
+#include <string.h>
+
+/* Kernel includes */
 #include <kernel/arch/i386/arch.h>
 #include <kernel/arch/i386/hal.h>
 #include <kernel/hal.h>
@@ -28,20 +34,39 @@
 #include <kernel/drivers/serial.h>
 #include <kernel/drivers/grubvid.h>
 #include <kernel/drivers/video.h>
+#include <kernel/drivers/font.h>
 
-/* Drivers. Find a better way to do this. */
+/* Architecture drivers */
 #include <kernel/drivers/x86/serial.h>
 #include <kernel/drivers/x86/clock.h>
 #include <kernel/drivers/x86/pit.h>
 #include <kernel/drivers/x86/acpica.h> // #ifdef ACPICA_ENABLED in this file
 
-#include <time.h>
-
 /* Root system descriptor pointer */
 static uint64_t hal_rsdp = 0x0; 
 
+
 /**
- * @brief Stage 1 startup
+ * @brief Sets an RSDP if one was set
+ */
+void hal_setRSDP(uint64_t rsdp) {
+    hal_rsdp = rsdp;
+}
+
+/**
+ * @brief Returns a RSDP if one was found
+ * 
+ * You can call this method also to search for one (in EBDA/range)
+ */
+uint64_t hal_getRSDP() {
+    if (hal_rsdp != 0x0) return hal_rsdp;
+    
+    // TODO: We can check EBDA/BDA but ACPICA (ACPI components) provides a method to check those for us.
+    return 0x0;
+}
+
+/**
+ * @brief Stage 1 startup - initializes logging, interrupts, clock, etc.
  */
 static void hal_init_stage1() {
     // Initialize serial logging.
@@ -64,7 +89,7 @@ static void hal_init_stage1() {
 }
 
 /**
- * @brief Stage 2 startup
+ * @brief Stage 2 startup - initializes debugger, ACPI, etc.
  */
 static void hal_init_stage2() {
 
@@ -85,7 +110,7 @@ static void hal_init_stage2() {
     }
 
 
-_no_debug:
+_no_debug: ;
 
     // Next step is to initialize ACPICA. This is a bit hacky and hard to read.
 #ifdef ACPICA_ENABLED
@@ -108,6 +133,9 @@ _no_debug:
     if (driver) {
         video_switchDriver(driver);
     }
+
+    // Now, fonts - just do the backup one for now.
+    font_init();
 }
 
 /**
@@ -127,26 +155,6 @@ void hal_init(int stage) {
     }
 }
 
-/**
- * @brief Sets an RSDP if one was set
- */
-void hal_setRSDP(uint64_t rsdp) {
-    hal_rsdp = rsdp;
-}
-
-/**
- * @brief Returns a RSDP if one was found
- * 
- * You can call this method also to search for one (in EBDA/range)
- */
-uint64_t hal_getRSDP() {
-    if (hal_rsdp != 0x0) return hal_rsdp;
-    
-    // TODO: We can check EBDA/BDA but ACPICA (ACPI components) provides a method to check those for us.
-    return 0x0;
-}
-
-
 
 /* External functions given to kernel */
 extern void halGetRegistersInternal(registers_t *regs);
@@ -164,7 +172,10 @@ struct _registers *hal_getRegisters() {
 }
 
 
-/* We do not need documentation comments for outportb/inportb/etc. */
+
+
+
+/* PORT I/O FUNCTIONS */
 
 void outportb(unsigned short port, unsigned char data) {
     __asm__ __volatile__("outb %b[Data], %w[Port]" :: [Port] "Nd" (port), [Data] "a" (data));
