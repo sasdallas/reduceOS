@@ -1,9 +1,10 @@
 /**
  * @file hexahedron/drivers/grubvid.c
- * @brief Generic GRUB video driver.
+ * @brief Generic LFB/GRUB video driver
  * 
  * This isn't a driver model, it's just a video driver that can work with a framebuffer
  * passed by GRUB (unless its EGA, blegh.)
+ * Also, this is better known as an LFB video driver, since that's what GRUB passes, but whatever.
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -19,9 +20,9 @@
 #include <kernel/mem/mem.h>
 #include <kernel/mem/pmm.h>
 #include <kernel/debug.h>
-
 #include <string.h>
 
+/* Log method */
 #define LOG(status, message, ...) dprintf_module(status, "GRUBVID", message, ## __VA_ARGS__)
 
 /**
@@ -60,6 +61,16 @@ void grubvid_updateScreen(struct _video_driver *driver) {
 }
 
 /**
+ * @brief Communication function. Allows for ioctl on video-specific drivers.
+ * 
+ * See @c grubvid.c for specific calls
+ */
+int grubvid_communicate(struct _video_driver *driver, int type, uint32_t *data) {
+    // Unimplemented
+    return 0;
+}
+
+/**
  * @brief Initialize the GRUB video driver
  * @param parameters Generic parameters containing the LFB driver.
  * @returns NULL on failure to initialize, else a video driver structure
@@ -80,6 +91,7 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
     driver->putpixel = grubvid_putPixel;
     driver->clear = grubvid_clearScreen;
     driver->update = grubvid_updateScreen;
+    driver->communicate = grubvid_communicate;
 
     // BEFORE WE DO ANYTHING, WE HAVE TO REMAP THE FRAMEBUFFER TO SPECIFIED ADDRESS
     for (uint32_t phys = parameters->framebuffer->framebuffer_addr, virt = MEM_FRAMEBUFFER_REGION;

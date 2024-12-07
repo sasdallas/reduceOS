@@ -34,7 +34,8 @@ struct _video_driver; // Prototype
 
 typedef void (*putpixel_t)(struct _video_driver *driver, int x, int y, color_t color); // Place a pixel
 typedef void (*clearscreen_t)(struct _video_driver *driver, color_t bg); // Clear the screen
-typedef void (*updscreen_t)(struct _video_driver *driver); // Update the screen if double-buffering is used
+typedef void (*updscreen_t)(struct _video_driver *driver); // Update the screen
+typedef int (*communicate_t)(struct _video_driver *driver, int type, uint32_t *data); // Communication. Allows for a sort of ioctl between drivers.
 
 typedef struct _video_driver {
     // Driver information
@@ -53,6 +54,7 @@ typedef struct _video_driver {
     putpixel_t      putpixel;
     clearscreen_t   clear;
     updscreen_t     update;
+    communicate_t   communicate;
 
     // Fonts and other information will be handled by the font driver
 } video_driver_t;
@@ -113,6 +115,11 @@ void video_switchDriver(video_driver_t *driver);
  * @returns NULL on not found, else it returns a driver
  */
 video_driver_t *video_findDriver(char *name);
+
+/**
+ * @brief Get the current driver
+ */
+video_driver_t *video_getDriver();
 
 /**
  * @brief Plot a pixel on the screen

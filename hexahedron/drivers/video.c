@@ -22,9 +22,12 @@
 #include <kernel/drivers/video.h>
 #include <structs/list.h>
 #include <string.h>
+#include <errno.h>
 
-
+/* List of available drivers */
 static list_t *video_driver_list = NULL;
+
+/* Current driver */
 static video_driver_t *current_driver = NULL;
 
 /**
@@ -75,6 +78,14 @@ video_driver_t *video_findDriver(char *name) {
     return NULL;
 }
 
+/**
+ * @brief Get the current driver
+ */
+video_driver_t *video_getDriver() {
+    return current_driver;
+}
+
+
 /**** INTERFACING FUNCTIONS ****/
 
 /**
@@ -106,4 +117,21 @@ void video_updateScreen() {
     if (current_driver != NULL && current_driver->update) {
         current_driver->update(current_driver);
     }
+}
+
+/**
+ * @brief Communicate with the internal driver.
+ * @param type The type of communication
+ * @param data The data of this communication
+ * @returns A success value (-EINVAL is returned if driver is invalid/no comm method)
+ * 
+ * This allows for a sort of ioctl between drivers. A driver that can accelerate if used with grubvid
+ * can use an identify command (instead of wasting cycles on strcmp) and then accelerate with specific commands.
+ */
+int video_communicate(int type, uint32_t *data) {
+    if (current_driver != NULL && current_driver->communicate) {
+        return current_driver->communicate(current_driver, type, data);
+    }
+
+    return -EINVAL;
 }
