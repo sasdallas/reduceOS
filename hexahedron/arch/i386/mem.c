@@ -124,7 +124,7 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
         // !!!: Luckily this system is abstracted enugh that we can fix this, hopefully.
         // !!!: However if the allocator hasn't been initialized, we are so screwed.
         mem_mapPool = pool_create("map_pool", PAGE_SIZE, MEM_PHYSMEM_MAP_SIZE, MEM_PHYSMEM_MAP_REGION);
-        dprintf(INFO, "Memory map pool created\n");
+        dprintf(INFO, "Physical memory identity map pool created (0x%x - 0x%x)\n", MEM_PHYSMEM_MAP_REGION, MEM_PHYSMEM_MAP_REGION + MEM_PHYSMEM_MAP_SIZE);
     }
 
     if (size % PAGE_SIZE != 0) {
