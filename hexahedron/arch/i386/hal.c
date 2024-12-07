@@ -154,8 +154,9 @@ extern void halGetRegistersInternal(registers_t *regs);
 /**
  * @brief Get registers from architecture
  * @returns Registers structure
+ * @warning Untested
  */
-struct _registers *halGetRegisters() {
+struct _registers *hal_getRegisters() {
     registers_t *output = kmalloc(sizeof(registers_t));
     memset(output, 0, sizeof(registers_t));
     halGetRegistersInternal(output);

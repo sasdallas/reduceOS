@@ -24,7 +24,7 @@ struct _extended_registers;
  * @brief Get registers from architecture
  * @returns Registers structure
  */
-extern struct _registers *halGetRegisters();
+extern struct _registers *hal_getRegisters();
 
 
 
