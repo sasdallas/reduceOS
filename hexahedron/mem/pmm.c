@@ -12,6 +12,7 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+// Includes
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
@@ -20,6 +21,7 @@
 #include <kernel/mem/pmm.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <kernel/misc/spinlock.h>
 
 // Frames bitmap 
 uintptr_t    *frames;
@@ -29,6 +31,9 @@ uintptr_t    nframes = 0;
 uintptr_t    pmm_memorySize = 0;
 uintptr_t    pmm_usedBlocks = 0;
 uintptr_t    pmm_maxBlocks = 0;
+
+// Spinlock
+static spinlock_t frame_lock = { 0 };
 
 /**
  * @brief Initialize the physical memory system.
@@ -119,6 +124,8 @@ int pmm_findFirstFrames(size_t n) {
 void pmm_initializeRegion(uintptr_t base, uintptr_t size) {
     if (!size) return;
 
+    spinlock_acquire(&frame_lock);
+
     // Careful not to cause a div by zero on base.
     int align = (base == 0x0) ? 0x0: base / PMM_BLOCK_SIZE;
     int blocks = size / PMM_BLOCK_SIZE;
@@ -127,6 +134,8 @@ void pmm_initializeRegion(uintptr_t base, uintptr_t size) {
         pmm_clearFrame(align++);
         pmm_usedBlocks--;
     }
+
+    spinlock_release(&frame_lock);
 }
 
 /**
@@ -137,6 +146,8 @@ void pmm_initializeRegion(uintptr_t base, uintptr_t size) {
 void pmm_deinitializeRegion(uintptr_t base, uintptr_t size) {
     if (!size) return;
 
+    spinlock_acquire(&frame_lock);
+
     // Careful not to cause a div by zero on base.
     int align = (base == 0x0) ? 0x0: base / PMM_BLOCK_SIZE;
     int blocks = size / PMM_BLOCK_SIZE;
@@ -145,6 +156,8 @@ void pmm_deinitializeRegion(uintptr_t base, uintptr_t size) {
         pmm_setFrame(align++);
         pmm_usedBlocks++;
     }
+
+    spinlock_release(&frame_lock);
 }
 
 /**
@@ -156,15 +169,18 @@ uintptr_t pmm_allocateBlock() {
         goto _oom;
     }
 
+    spinlock_acquire(&frame_lock);
+
     int frame = pmm_findFirstFrame();
     if (frame == -ENOMEM) goto _oom;
-
     pmm_setFrame(frame);
     pmm_usedBlocks++;
-    
+
+    spinlock_release(&frame_lock);    
     return (uintptr_t)(frame * PMM_BLOCK_SIZE);
 
 _oom:
+    spinlock_release(&frame_lock);
     kernel_panic(OUT_OF_MEMORY, "physmem");
     __builtin_unreachable();
 }
@@ -176,9 +192,13 @@ _oom:
 void pmm_freeBlock(uintptr_t block) {
     if (block % PMM_BLOCK_SIZE != 0) return;
 
+    spinlock_acquire(&frame_lock);
+
     int frame = (block == 0x0) ? 0: block / PMM_BLOCK_SIZE;
     pmm_clearFrame(frame);
     pmm_usedBlocks--;
+
+    spinlock_release(&frame_lock);
 }
 
 /**
@@ -187,17 +207,20 @@ void pmm_freeBlock(uintptr_t block) {
  */
 uintptr_t pmm_allocateBlocks(size_t blocks) {
     if (!blocks) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "physmem");
-
     if ((pmm_maxBlocks - pmm_usedBlocks) <= blocks) kernel_panic(OUT_OF_MEMORY, "physmem");
-
+    
+    spinlock_acquire(&frame_lock);
     int frame = pmm_findFirstFrames(blocks);
-    if (frame == -ENOMEM) kernel_panic(OUT_OF_MEMORY, "physmem");
+    if (frame == -ENOMEM) {
+        kernel_panic(OUT_OF_MEMORY, "physmem");
+    }
 
     for (uint32_t i = 0; i < blocks; i++) {
         pmm_setFrame(frame + i);
     }
 
     pmm_usedBlocks += blocks;
+    spinlock_release(&frame_lock);
     return (uintptr_t)(frame * PMM_BLOCK_SIZE);
 }
 
@@ -209,12 +232,14 @@ uintptr_t pmm_allocateBlocks(size_t blocks) {
 void pmm_freeBlocks(uintptr_t base, size_t blocks) {
     if (!blocks) return;
     
+    spinlock_acquire(&frame_lock);
+
     // Careful not to cause a div by zero on base.
     int frame = (base == 0x0) ? 0x0: base / PMM_BLOCK_SIZE;
-    
     for (uint32_t i = 0; i < blocks; i++) pmm_clearFrame(frame + i);
-
     pmm_usedBlocks -= blocks;
+
+    spinlock_release(&frame_lock);
 }
 
 /**

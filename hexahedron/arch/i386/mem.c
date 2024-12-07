@@ -30,15 +30,21 @@
 #include <kernel/panic.h>
 #include <kernel/arch/arch.h>
 #include <kernel/misc/pool.h>
+#include <kernel/misc/spinlock.h>
 
 
+// Current & kernel directories
 static page_t       *mem_currentDirectory;      // Current page directory. Contains a list of page table entries (PTEs).
 static page_t       *mem_kernelDirectory;       // Kernel page directory
                                                 // ! We're using this correctly, right?
 
+// Heap/identity map stuff
 uintptr_t    mem_kernelHeap;                    // Location of the kernel heap in memory
 uintptr_t    mem_identityMapCacheSize;          // Size of our actual identity map (it is basically a cache)
 pool_t       *mem_mapPool = NULL;               // Identity map pool
+
+// Spinlocks (stack-allocated - no spinlock for ID map is required as pool system handles that)
+static spinlock_t heap_lock = { 0 };
 
 
 
@@ -509,6 +515,10 @@ uintptr_t mem_sbrk(int b) {
         __builtin_unreachable();
     }
 
+
+    // Now lock
+    spinlock_acquire(&heap_lock);
+
     // If you need to shrink the heap, you can pass a negative integer
     if (b < 0) {
         for (uintptr_t i = mem_kernelHeap; i >= mem_kernelHeap + b; i -= 0x1000) {
@@ -517,6 +527,7 @@ uintptr_t mem_sbrk(int b) {
 
         uintptr_t oldStart = mem_kernelHeap;
         mem_kernelHeap += b; // Subtracting wouldn't be very good, would it?
+        spinlock_release(&heap_lock);
         return oldStart;
     }
 
@@ -537,5 +548,6 @@ uintptr_t mem_sbrk(int b) {
 
     uintptr_t oldStart = mem_kernelHeap;
     mem_kernelHeap += b;
+    spinlock_release(&heap_lock);
     return oldStart;
 }
