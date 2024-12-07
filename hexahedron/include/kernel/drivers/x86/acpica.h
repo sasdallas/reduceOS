@@ -20,6 +20,16 @@
 #include <acpica/acpi.h>
 #include <stdint.h>
 
+/* Architecture-specific includes */
+#if defined(__ARCH_I386__)
+#include <kernel/arch/i386/smp.h>
+#elif defined(__ARCH_X86_64__)
+#error "No support"
+#else
+#error "Unsupported architecture - do not compile this file"
+#endif
+
+
 /**** FUNCTIONS ****/
 
 /**
@@ -28,9 +38,10 @@
 int ACPICA_Initialize();
 
 /**
- * @brief Start SMP. Communicates with x86 SMP system
+ * @brief Get SMP information from MADT
+ * @returns A pointer to the SMP information object, or NULL if there was an error.
  */
-int ACPICA_StartSMP();
+smp_info_t *ACPICA_GetSMPInfo();
 
 /**
  * @brief Print the ACPICA namespace to serial (for debug)

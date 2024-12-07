@@ -24,6 +24,7 @@
 /* Kernel includes */
 #include <kernel/arch/i386/arch.h>
 #include <kernel/arch/i386/hal.h>
+#include <kernel/arch/i386/smp.h>
 #include <kernel/hal.h>
 #include <kernel/debug.h>
 #include <kernel/config.h>
@@ -119,13 +120,26 @@ _no_debug: ;
     int init_status = ACPICA_Initialize();
     if (init_status != 0) {
         dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
+        goto _no_smp;
     }
 
-    ACPICA_StartSMP();
+    // Get SMP information
+    smp_info_t *smp = ACPICA_GetSMPInfo();
+    if (!smp) {
+        dprintf(WARN, "SMP is not supported on this computer");
+        goto _no_smp;
+    }
+
 #else
     // TODO: We can create a minified ACPI system that just handles SMP
-    dprintf(WARN, "No ACPI subsystem is available to kernel\n");
+    dprintf(WARN, "No ACPI subsystem is available to kernel - SMP disabled\n");
+    goto _no_smp;
 #endif
+
+    // Now that we have our SMP information one way or another, we can initialize SMP.
+    // TODO: this
+    
+_no_smp:
 
     // Next, initialize video subsystem.
     video_init();
