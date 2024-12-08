@@ -45,4 +45,9 @@ extern void arch_panic_finalize();
  */
 extern generic_parameters_t *arch_get_generic_parameters();
 
+/**
+ * @brief Returns the current CPU active in the system
+ */
+int arch_current_cpu();
+
 #endif

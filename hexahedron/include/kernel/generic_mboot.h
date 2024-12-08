@@ -60,7 +60,10 @@ typedef struct generic_parameters {
 
     /* Memory */
     generic_mmap_desc_t *mmap_start;        // Starting point of the memory map
-    uint32_t mem_size;                      // Memory size in KB
+    uint64_t mem_size;                      // Memory size in KB
+
+    /* SMP */
+    uint32_t cpu_count;                     // System processor count
 } generic_parameters_t;
 
 

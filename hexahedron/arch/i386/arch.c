@@ -63,6 +63,9 @@ void arch_say_hello(int is_debug) {
 
         printf("%i system processors - %i KB of RAM\n", smp_getCPUCount(), parameters->mem_size);
 
+        // NOTE: This should only be called once, so why not just modify some parameters?
+        parameters->cpu_count = smp_getCPUCount();
+
         return;
     }
 
@@ -95,6 +98,13 @@ void arch_panic_finalize() {
     // Disable interrupts & halt
     asm volatile ("cli\nhlt");
     for (;;);
+}
+
+/**
+ * @brief Returns the current CPU active in the system
+ */
+int arch_current_cpu() {
+    return smp_getCurrentCPU();
 }
 
 

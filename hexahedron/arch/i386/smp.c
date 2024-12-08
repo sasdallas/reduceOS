@@ -80,7 +80,7 @@ __attribute__((noreturn)) void smp_finalizeAP(smp_ap_parameters_t *params) {
     lapic_initialize(lapic_remapped);
 
     // Allow BSP to continue
-    LOG(DEBUG, "CPU%i: AP online and ready\n", smp_getCurrentCPU());
+    LOG(DEBUG, "CPU%i online and ready\n", smp_getCurrentCPU());
     ap_startup_finished = 1;
 
     for (;;);
@@ -111,7 +111,6 @@ void smp_prepareAP(uint8_t lapic_id) {
  */
 void smp_startAP(uint8_t lapic_id) {
     ap_startup_finished = 0;
-    LOG(DEBUG, "AP start 0x%x\n", lapic_id);
 
     // Copy the bootstrap code. The AP might've messed with it.
     memcpy((void*)bootstrap_page_remap, (void*)&_ap_bootstrap_start, (uintptr_t)&_ap_bootstrap_end - (uintptr_t)&_ap_bootstrap_start);
@@ -160,7 +159,6 @@ int smp_init(smp_info_t *info) {
 
     // Start APs
     // WARNING: Starting CPU0/BSP will triple fault (bad)
-    LOG(DEBUG, "%i CPUs available\n", smp_data->processor_count);
     for (int i = 0; i < smp_data->processor_count; i++) {
         if (i != 0) {
             smp_startAP(smp_data->lapic_ids[i]);
@@ -173,6 +171,8 @@ int smp_init(smp_info_t *info) {
     mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
     pmm_freeBlock(temp_frame);
 
+    LOG(INFO, "SMP initialization completed successfully - %i CPUs available to system\n", smp_getCPUCount());
+
     return 0;
 }
 
@@ -180,7 +180,8 @@ int smp_init(smp_info_t *info) {
  * @brief Get the amount of CPUs present in the system
  */
 int smp_getCPUCount() {
-    return smp_data->processor_count;
+    if (smp_data) return smp_data->processor_count;
+    return 1;
 }
 
 /**

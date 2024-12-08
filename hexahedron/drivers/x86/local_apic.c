@@ -86,9 +86,8 @@ uint8_t lapic_getID() {
 uint8_t lapic_getVersion() {
     uint32_t ver_reg = lapic_read(LAPIC_REGISTER_VERSION);
     uint8_t lapic_ver = ((ver_reg & 0xFF));
-    uint8_t lapic_maximum_lvt = (ver_reg & 0xFF0000) >> 16;
+    //uint8_t lapic_maximum_lvt = (ver_reg & 0xFF0000) >> 16;
 
-    LOG(DEBUG, "Local APIC, version %i maximum LVT entry %i\n", lapic_ver, lapic_maximum_lvt);
     return lapic_ver;
 }
 
@@ -120,7 +119,7 @@ void lapic_sendStartup(uint8_t lapic_id, uint32_t vector) {
     // Wait for send to be completed
     while (lapic_read(LAPIC_REGISTER_ICR) & LAPIC_ICR_SENDING);
 
-    LOG(DEBUG, "LAPIC 0x%x SIPI to starting IP 0x%x\n", lapic_id, vector);
+    // LOG(DEBUG, "LAPIC 0x%x SIPI to starting IP 0x%x\n", lapic_id, vector);
 }
 
 /**
@@ -137,7 +136,7 @@ void lapic_sendInit(uint8_t lapic_id) {
     // Wait for send to be completed
     while (lapic_read(LAPIC_REGISTER_ICR) & LAPIC_ICR_SENDING);
 
-    LOG(DEBUG, "LAPIC 0x%x INIT IPI\n", lapic_id);
+    // LOG(DEBUG, "LAPIC 0x%x INIT IPI\n", lapic_id);
 }
 
 /**
@@ -180,8 +179,6 @@ int lapic_initialize(uintptr_t lapic_address) {
     lapic_write(LAPIC_REGISTER_SPURINT, lapic_read(LAPIC_REGISTER_SPURINT) | LAPIC_SPUR_INTNO);
     lapic_setEnabled(1);
 
-    // Get version
-    lapic_getVersion(); // Discard, just print to console.
 
     // Finished!
     return 0;

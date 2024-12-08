@@ -14,6 +14,7 @@
 
 #include <kernel/debug.h>
 #include <kernel/drivers/clock.h>
+#include <kernel/arch/arch.h>
 #include <kernel/misc/spinlock.h>
 
 #include <time.h>
@@ -95,9 +96,9 @@ int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
         struct tm *timeinfo = localtime(&rawtime);
         
         if (module) {
-            header_length = snprintf(header, 128, "[%s] [%s] [%s] ", asctime(timeinfo), header_prefix, module);
+            header_length = snprintf(header, 128, "[%s] [CPU%i] [%s] [%s] ", asctime(timeinfo), arch_current_cpu(), header_prefix, module);
         } else {
-            header_length = snprintf(header, 128, "[%s] [%s] ", asctime(timeinfo), header_prefix);
+            header_length = snprintf(header, 128, "[%s] [CPU%i] [%s] ", asctime(timeinfo), arch_current_cpu(), header_prefix);
         }
     }
 

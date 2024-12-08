@@ -42,12 +42,12 @@
 
 // Error messages to conform to our debug log system (in the most scuffed way possible due to lack of clock)
 // [ACPICA:INT] is for INTERNAL
-#define ACPI_MSG_ERROR          "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI Error: "
-#define ACPI_MSG_EXCEPTION      "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI Exception: "
-#define ACPI_MSG_WARNING        "[EXTERNAL                ] [WARN] [ACPICA:INT] ACPI Warning: "
-#define ACPI_MSG_INFO           "[EXTERNAL                ] [INFO] [ACPICA:INT] ACPI: "
-#define ACPI_MSG_BIOS_ERROR     "[EXTERNAL                ] [ERR ] [ACPICA:INT] ACPI BIOS Error: "
-#define ACPI_MSG_BIOS_WARNING   "[EXTERNAL                ] [WARN] [ACPICA:INT] ACPI BIOS Warning: "
+#define ACPI_MSG_ERROR          "[EXTERNAL                ] [CPU0] [ERR ] [ACPICA:INT] ACPI Error: "
+#define ACPI_MSG_EXCEPTION      "[EXTERNAL                ] [CPU0] [ERR ] [ACPICA:INT] ACPI Exception: "
+#define ACPI_MSG_WARNING        "[EXTERNAL                ] [CPU0] [WARN] [ACPICA:INT] ACPI Warning: "
+#define ACPI_MSG_INFO           "[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: "
+#define ACPI_MSG_BIOS_ERROR     "[EXTERNAL                ] [CPU0] [ERR ] [ACPICA:INT] ACPI BIOS Error: "
+#define ACPI_MSG_BIOS_WARNING   "[EXTERNAL                ] [CPU0] [WARN] [ACPICA:INT] ACPI BIOS Warning: "
 
 // Certain compilation errors occur of multiple snprintf/vsnprintf definitions
 #define snprintf _snprintf
