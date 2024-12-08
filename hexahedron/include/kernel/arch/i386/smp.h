@@ -66,7 +66,15 @@ typedef struct _smp_ap_parameters {
  */
 int smp_init(smp_info_t *info);
 
+/**
+ * @brief Get the amount of CPUs present in the system
+ */
+int smp_getCPUCount();
 
+/**
+ * @brief Get the current CPU's APIC ID
+ */
+int smp_getCurrentCPU();
 
 
 #endif

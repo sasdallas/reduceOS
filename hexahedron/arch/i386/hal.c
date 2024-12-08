@@ -115,29 +115,6 @@ static void hal_init_stage2() {
 
 _no_debug: ;
 
-    /* VIDEO INITIALIZATION */
-
-    // Next, initialize video subsystem.
-    video_init();
-
-    video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
-    if (driver) {
-        video_switchDriver(driver);
-    }
-
-    // Now, fonts - just do the backup one for now.
-    font_init();
-
-    // Terminal!
-    int term = terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
-    if (term != 0) {
-        dprintf(WARN, "Terminal failed to initialize (return code %i)\n", term);
-    }
-
-    // Say hi again!
-    arch_say_hello(0);
-
-
     /* ACPI INITIALIZATION */
 
     // Next step is to initialize ACPICA. This is a bit hacky and hard to read.
@@ -169,7 +146,27 @@ _no_debug: ;
 
 _no_smp: ;
     
-    
+    /* VIDEO INITIALIZATION */
+
+    // Next, initialize video subsystem.
+    video_init();
+
+    video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
+    if (driver) {
+        video_switchDriver(driver);
+    }
+
+    // Now, fonts - just do the backup one for now.
+    font_init();
+
+    // Terminal!
+    int term = terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+    if (term != 0) {
+        dprintf(WARN, "Terminal failed to initialize (return code %i)\n", term);
+    }
+
+    // Say hi again!
+    arch_say_hello(0);
 
 }
 

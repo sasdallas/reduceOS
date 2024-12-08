@@ -15,6 +15,7 @@
 #include <kernel/arch/i386/smp.h>
 #include <kernel/arch/i386/hal.h>
 #include <kernel/arch/i386/interrupt.h>
+#include <kernel/arch/i386/cpu.h>
 #include <kernel/drivers/x86/local_apic.h>
 #include <kernel/drivers/x86/clock.h>
 
@@ -33,6 +34,10 @@ static smp_info_t *smp_data = NULL;
 
 /* Local APIC mmio address */
 static uintptr_t lapic_remapped = 0;
+
+/* Remapped page for the bootstrap code */
+static uintptr_t bootstrap_page_remap = 0;
+
 
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "SMP", __VA_ARGS__)
@@ -75,7 +80,7 @@ __attribute__((noreturn)) void smp_finalizeAP(smp_ap_parameters_t *params) {
     lapic_initialize(lapic_remapped);
 
     // Allow BSP to continue
-    LOG(DEBUG, "AP online and ready\n");
+    LOG(DEBUG, "CPU%i: AP online and ready\n", smp_getCurrentCPU());
     ap_startup_finished = 1;
 
     for (;;);
@@ -108,16 +113,7 @@ void smp_startAP(uint8_t lapic_id) {
     ap_startup_finished = 0;
     LOG(DEBUG, "AP start 0x%x\n", lapic_id);
 
-    // The AP expects its code to be bootstrapped to a page-aligned address (SIPI expects a starting page number)
-    // The remapped page for SMP is stored in the variable SMP_AP_BOOTSTRAP_PAGE
-    // Assuming that page has some content in it, copy and store it.
-    // !!!: This is a bit hacky as we're playing with fire here. What if PMM_BLOCK_SIZE != PAGE_SIZE?
-    uintptr_t temp_frame = pmm_allocateBlock();
-    uintptr_t temp_frame_remap = mem_remapPhys(temp_frame, PAGE_SIZE);
-    uintptr_t bootstrap_page_remap = mem_remapPhys(SMP_AP_BOOTSTRAP_PAGE, PAGE_SIZE);
-    memcpy((void*)temp_frame_remap, (void*)bootstrap_page_remap, PAGE_SIZE);
-
-    // Okay, now that we've done that, we can remap the bootstrap code
+    // Copy the bootstrap code. The AP might've messed with it.
     memcpy((void*)bootstrap_page_remap, (void*)&_ap_bootstrap_start, (uintptr_t)&_ap_bootstrap_end - (uintptr_t)&_ap_bootstrap_start);
 
     // Setup the AP
@@ -128,18 +124,10 @@ void smp_startAP(uint8_t lapic_id) {
     smp_delay(5000UL);
 
     // Send SIPI
-    asm volatile ("xchgw %bx, %bx");
     lapic_sendStartup(lapic_id, SMP_AP_BOOTSTRAP_PAGE);
-
 
     // Wait for AP to finish
     do { asm volatile ("pause" ::: "memory"); } while (!ap_startup_finished);
-
-    // Finished. Unmap bootstrap code
-    memcpy((void*)bootstrap_page_remap, (void*)temp_frame_remap, PAGE_SIZE);
-    mem_unmapPhys(temp_frame_remap, PAGE_SIZE);
-    mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
-    pmm_freeBlock(temp_frame);
 }
 
 /**
@@ -161,7 +149,15 @@ int smp_init(smp_info_t *info) {
         return -EIO;
     }
 
-    
+    // The AP expects its code to be bootstrapped to a page-aligned address (SIPI expects a starting page number)
+    // The remapped page for SMP is stored in the variable SMP_AP_BOOTSTRAP_PAGE
+    // Assuming that page has some content in it, copy and store it.
+    // !!!: This is a bit hacky as we're playing with fire here. What if PMM_BLOCK_SIZE != PAGE_SIZE?
+    uintptr_t temp_frame = pmm_allocateBlock();
+    uintptr_t temp_frame_remap = mem_remapPhys(temp_frame, PAGE_SIZE);
+    bootstrap_page_remap = mem_remapPhys(SMP_AP_BOOTSTRAP_PAGE, PAGE_SIZE);
+    memcpy((void*)temp_frame_remap, (void*)bootstrap_page_remap, PAGE_SIZE);
+
     // Start APs
     // WARNING: Starting CPU0/BSP will triple fault (bad)
     LOG(DEBUG, "%i CPUs available\n", smp_data->processor_count);
@@ -171,5 +167,27 @@ int smp_init(smp_info_t *info) {
         }
     }
 
+    // Finished! Unmap bootstrap code
+    memcpy((void*)bootstrap_page_remap, (void*)temp_frame_remap, PAGE_SIZE);
+    mem_unmapPhys(temp_frame_remap, PAGE_SIZE);
+    mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
+    pmm_freeBlock(temp_frame);
+
     return 0;
+}
+
+/**
+ * @brief Get the amount of CPUs present in the system
+ */
+int smp_getCPUCount() {
+    return smp_data->processor_count;
+}
+
+/**
+ * @brief Get the current CPU's APIC ID
+ */
+int smp_getCurrentCPU() {
+	uint32_t ebx, unused;
+    __cpuid(0x1, unused, ebx, unused, unused);
+    return (int)(ebx >> 24);
 }

@@ -33,6 +33,7 @@
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
 #include <kernel/arch/i386/arch.h>
+#include <kernel/arch/i386/smp.h>
 
 // Generic drivers
 #include <kernel/drivers/serial.h>
@@ -60,7 +61,8 @@ void arch_say_hello(int is_debug) {
                     __kernel_build_configuration,
                     __kernel_version_codename);
 
-        
+        printf("%i system processors - %i KB of RAM\n", smp_getCPUCount(), parameters->mem_size);
+
         return;
     }
 
