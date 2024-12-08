@@ -259,6 +259,14 @@ void hal_initializePIC() {
     outportb(I86_PIC2_DATA, slave_mask);
 }
 
+/**
+ * @brief Disable the 8259 PIC(s)
+ */
+void hal_disablePIC() {
+    outportb(I86_PIC1_DATA, 0xFF);
+    outportb(I86_PIC2_DATA, 0xFF);
+}
+
 
 /**
  * @brief Initialize HAL interrupts (IDT, GDT, TSS, etc.)

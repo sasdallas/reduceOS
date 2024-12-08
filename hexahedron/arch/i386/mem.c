@@ -43,8 +43,12 @@ uintptr_t    mem_kernelHeap;                    // Location of the kernel heap i
 uintptr_t    mem_identityMapCacheSize;          // Size of our actual identity map (it is basically a cache)
 pool_t       *mem_mapPool = NULL;               // Identity map pool
 
+// MMIO
+uintptr_t    mem_mmioRegion = MEM_MMIO_REGION;  // Memory-mapped I/O region
+
 // Spinlocks (stack-allocated - no spinlock for ID map is required as pool system handles that)
 static spinlock_t heap_lock = { 0 };
+static spinlock_t mmio_lock = { 0 };
 
 
 
@@ -362,6 +366,32 @@ void mem_freePage(page_t *page) {
 }
 
 /**
+ * @brief Create an MMIO region
+ * @param phys The physical address of the MMIO space
+ * @param size Size of the requested space (must be aligned)
+ * @returns Address to new mapped MMIO region
+ * 
+ * @warning MMIO regions cannot be destroyed.
+ */
+uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
+    if (size % PAGE_SIZE != 0) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "mem");
+
+    spinlock_acquire(&mmio_lock);
+
+    uintptr_t address = mem_mmioRegion;
+    for (uintptr_t i = 0; i < size; i += PAGE_SIZE) {
+        page_t *page = mem_getPage(NULL, address + i, MEM_CREATE);
+        MEM_SET_FRAME(page, (phys + i));
+        mem_allocatePage(page, MEM_KERNEL | MEM_WRITETHROUGH | MEM_NOT_CACHEABLE | MEM_NOALLOC);
+    }
+    
+    mem_mmioRegion += size;
+
+    spinlock_release(&mmio_lock);
+    return address;
+}
+
+/**
  * @brief Initialize the memory management subsystem
  * 
  * This function will setup the memory map and prepare tables.
@@ -371,7 +401,7 @@ void mem_freePage(page_t *page) {
  */
 void mem_init(uintptr_t high_address) {
     if (!high_address) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "mem");
-    mem_kernelHeap = (high_address + 0x1000) & ~0xFFF;
+    mem_kernelHeap = MEM_ALIGN_PAGE(high_address);
 
     // Get ourselves a page directory
     // !!!: Is this okay? Do we need to again put things in data structures?
