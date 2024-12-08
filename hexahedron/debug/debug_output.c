@@ -14,6 +14,7 @@
 
 #include <kernel/debug.h>
 #include <kernel/drivers/clock.h>
+#include <kernel/misc/spinlock.h>
 
 #include <time.h>
 #include <stdarg.h>
@@ -22,6 +23,9 @@
 
 /* TODO: This should be replaced with a VFS node */
 static log_putchar_method_t debug_putchar_method = NULL; 
+
+/* Spinlock */
+static spinlock_t debug_lock = { 0 };
 
 
 /**
@@ -51,6 +55,8 @@ static int debug_write(size_t length, char *buffer) {
  * @brief dprintf that accepts va_args instead
  */
 int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
+    spinlock_acquire(&debug_lock);
+
     if (status == NOHEADER) goto _write_format;
 
     // Get the header we want to use
@@ -99,6 +105,8 @@ int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
 
 _write_format: ;
     int returnValue = xvasprintf(debug_print, NULL, format, ap);
+
+    spinlock_release(&debug_lock);
 
     return returnValue;
 }
