@@ -267,6 +267,16 @@ void hal_disablePIC() {
     outportb(I86_PIC2_DATA, 0xFF);
 }
 
+/**
+ * @brief Installs the IDT in the current AP
+ */
+void hal_installIDT() {
+    // Install the IDT
+    i386_idtr_t idtr; 
+    idtr.base = (uint32_t)hal_idt_table;
+    idtr.limit = sizeof(hal_idt_table) - 1;
+    asm volatile("lidt %0" :: "m"(idtr));
+}
 
 /**
  * @brief Initialize HAL interrupts (IDT, GDT, TSS, etc.)
@@ -323,11 +333,8 @@ void hal_initializeInterrupts() {
     hal_registerInterruptVector(46, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ14);
     hal_registerInterruptVector(47, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ15);
 
-    // Install the IDT
-    i386_idtr_t idtr; 
-    idtr.base = (uint32_t)hal_idt_table;
-    idtr.limit = sizeof(hal_idt_table) - 1;
-    __asm__ __volatile__("lidt %0" :: "m"(idtr));
+    // Install IDT in BSP
+    hal_installIDT();
 
     // Setup the PIC
     hal_initializePIC();

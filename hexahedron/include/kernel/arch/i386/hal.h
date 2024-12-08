@@ -55,6 +55,11 @@ void hal_initializePIC();
 void hal_disablePIC();
 
 /**
+ * @brief Installs the IDT in the current AP
+ */
+void hal_installIDT();
+
+/**
  * @brief Register an interrupt handler
  * @param int_no Interrupt number
  * @param handler A handler. This should return 0 on success, anything else panics.

@@ -173,10 +173,8 @@ int lapic_initialize(uintptr_t lapic_address) {
     lapic_base = lapic_address;
 
     // Register the interrupt handler
-    if (hal_registerInterruptHandler(LAPIC_SPUR_INTNO, lapic_irq) != 0) {
-        kernel_panic_extended(ASSERTION_FAILED, "lapic", "*** Failed to acquire interrupt 0x%x\n", LAPIC_SPUR_INTNO);
-        __builtin_unreachable();
-    }
+    hal_registerInterruptHandler(LAPIC_SPUR_INTNO, lapic_irq); // NOTE: This might fail occasionally (BSP will reinitialize APICs for each core)
+    
 
     // Now actually configure the local APIC
     lapic_write(LAPIC_REGISTER_SPURINT, lapic_read(LAPIC_REGISTER_SPURINT) | LAPIC_SPUR_INTNO);

@@ -10,6 +10,10 @@ SECTIONS
     /* Code section */
     .text BLOCK(4K) : ALIGN (4k)
     {
+        __ap_start = .;
+        *(.ap_bootstrap)
+        __ap_end = .;
+
         __multiboot_start = .;
         *(.multiboot)
         __multiboot_end = .;
@@ -17,6 +21,7 @@ SECTIONS
         __text_start = .;
         *(.text)
         __text_end = .;
+
     }
 
     /* Read-only data */

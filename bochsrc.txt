@@ -27,7 +27,7 @@ optramimage3: file=none
 optramimage4: file=none
 pci: enabled=1, chipset=i440fx, slot1=none, slot2=none, slot3=none, slot4=none, slot5=none
 vga: extension=vbe, update_freq=10, realtime=1, ddc=builtin
-cpu: count=1, ips=4000000, model=bx_generic, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
+cpu: count=4, ips=4000000, model=bx_generic, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
 cpuid: level=6, stepping=3, model=3, family=6, vendor_string="AuthenticAMD", brand_string="AMD Athlon(tm) processor"
 cpuid: mmx=true, apic=xapic, simd=sse2, sse4a=false, misaligned_sse=false, sep=true
 cpuid: movbe=false, adx=false, aes=false, sha=false, xsave=false, xsaveopt=false, smep=false
@@ -42,7 +42,7 @@ clock: sync=none, time0=local, rtc_sync=0
 # no cmosimage
 log: -
 logprefix: %t%e%d
-debug: action=ignore
+debug: action=ignore, apic0=report, cpu0=report, cpu1=report, cpu2=report, cpu3=report
 info: action=report
 error: action=report
 panic: action=ask
@@ -52,6 +52,7 @@ speaker: enabled=true, mode=system
 parport1: enabled=true, file=none
 parport2: enabled=false
 com1: enabled=true, mode=file, dev="ser_output.txt"
-com2: enabled=true, mode=socket-server, dev=localhost:8888
+#com2: enabled=true, mode=socket-server, dev=localhost:8888
+com2: enabled=false
 com3: enabled=false
 com4: enabled=false

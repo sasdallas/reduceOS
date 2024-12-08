@@ -15,6 +15,9 @@
 
 .extern hal_exceptionHandler
 .extern hal_interruptHandler
+.global hal_gdtr
+.global hal_gdt_base
+.global hal_gdt_end
 
 /* Save registers macro */
 .macro PUSH_REGISTERS
@@ -231,7 +234,7 @@ halIRQIndex:
 .global hal_installGDT
 hal_installGDT:
     /* Load the GDT */
-    lgdtl gdtr
+    lgdtl hal_gdtr
 
     /* No idea what environment was passed, so flush data segments */
     mov $0x10, %ax
@@ -249,11 +252,11 @@ hal_finishedFlushingGDT:
 
 
 .align 8
-gdtr:
-    .word gdt_end - gdt_base - 1 /* GDTR limit */
-    .long gdt_base
+hal_gdtr:
+    .word hal_gdt_end - hal_gdt_base - 1 /* GDTR limit */
+    .long hal_gdt_base
 
-gdt_base:
+hal_gdt_base:
     /* GDT descriptors are 8 bytes long */
 
     /* Null segment */
@@ -292,4 +295,4 @@ gdt_base:
     .byte 0xCF
     .byte 0x00
 
-gdt_end:
+hal_gdt_end:

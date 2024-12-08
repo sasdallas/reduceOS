@@ -8,7 +8,9 @@
     "semaphore.h": "c",
     "stdlib.h": "c",
     "spinlock.h": "c",
-    "system_error": "c"
+    "system_error": "c",
+    "font.h": "c",
+    "vector": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",

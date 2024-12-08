@@ -134,8 +134,8 @@ smp_info_t *ACPICA_GetSMPInfo() {
                 }
 
                 // Update SMP information
-                smp_info->processor_ids[cpu_count-1] = LocalApic->ProcessorId;
-                smp_info->lapic_ids[cpu_count-1] = LocalApic->Id;
+                smp_info->processor_ids[cpu_count] = LocalApic->ProcessorId;
+                smp_info->lapic_ids[cpu_count] = LocalApic->Id;
                 smp_info->processor_count++;
                 cpu_count++;
                 break;

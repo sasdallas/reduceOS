@@ -95,6 +95,8 @@ static void hal_init_stage1() {
  */
 static void hal_init_stage2() {
 
+    /* DEBUGGER INITIALIZATION */
+
     // We need to reconfigure the serial ports and initialize the debugger.
     serial_setPort(serial_createPortData(__debug_output_com_port, __debug_output_baud_rate), 1);
 
@@ -111,8 +113,32 @@ static void hal_init_stage2() {
         dprintf(WARN, "Debugger failed to initialize or connect.\n");
     }
 
-
 _no_debug: ;
+
+    /* VIDEO INITIALIZATION */
+
+    // Next, initialize video subsystem.
+    video_init();
+
+    video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
+    if (driver) {
+        video_switchDriver(driver);
+    }
+
+    // Now, fonts - just do the backup one for now.
+    font_init();
+
+    // Terminal!
+    int term = terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+    if (term != 0) {
+        dprintf(WARN, "Terminal failed to initialize (return code %i)\n", term);
+    }
+
+    // Say hi again!
+    arch_say_hello(0);
+
+
+    /* ACPI INITIALIZATION */
 
     // Next step is to initialize ACPICA. This is a bit hacky and hard to read.
 #ifdef ACPICA_ENABLED
@@ -136,31 +162,14 @@ _no_debug: ;
     goto _no_smp;
 #endif
 
+    /* SMP INITIALIZATION */
+
     // Now that we have our SMP information one way or another, we can initialize SMP.
     smp_init(smp);
+
+_no_smp: ;
     
-_no_smp:
-
-    // Next, initialize video subsystem.
-    video_init();
-
-    video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
-    if (driver) {
-        video_switchDriver(driver);
-    }
-
-    // Now, fonts - just do the backup one for now.
-    font_init();
-
-    // Terminal!
-    int term = terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
-    if (term != 0) {
-        dprintf(WARN, "Terminal failed to initialize (return code %i)\n", term);
-    }
-
-    // Say hi again!
-    arch_say_hello(0);
-
+    
 
 }
 

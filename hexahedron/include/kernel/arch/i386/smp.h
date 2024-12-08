@@ -25,6 +25,10 @@
 // IMPORTANT: This value controls the maximum amount of supported interrupt overrides
 #define MAX_INT_OVERRIDES   24
 
+// IMPORTANT: This value controls the page that AP bootstrap code is aligned to (if this isn't an aligned value, I will kill you)
+// !!!: DO. NOT. MODIFY. THIS WILL BREAK LITERALLY EVERYTHING!
+#define SMP_AP_BOOTSTRAP_PAGE   0x1000
+
 /**** TYPES ****/
 
 // Structure passed to SMP driver containing information (MADT/MP table/whatever)
@@ -44,6 +48,14 @@ typedef struct _smp_info {
     // Overrides
     uint32_t    irq_overrides[MAX_INT_OVERRIDES];   // IRQ overrides (index of array = source, content = map)
 } smp_info_t;
+
+typedef struct _smp_ap_parameters {
+    uint32_t stack;
+    uint32_t idt;
+    uint32_t pagedir;
+    uint32_t lapic_id;
+} smp_ap_parameters_t;
+
 
 /**** FUNCTIONS ****/
 
