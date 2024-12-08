@@ -152,6 +152,16 @@ void mem_init(uintptr_t high_address);
 void mem_freePage(page_t *page);
 
 /**
+ * @brief Create an MMIO region
+ * @param phys The physical address of the MMIO space
+ * @param size Size of the requested space (must be aligned)
+ * @returns Address to new mapped MMIO region
+ * 
+ * @warning MMIO regions cannot be destroyed.
+ */
+uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size);
+
+/**
  * @brief Expand/shrink the kernel heap
  * 
  * @param b The amount of bytes to allocate/free, needs to a multiple of PAGE_SIZE
