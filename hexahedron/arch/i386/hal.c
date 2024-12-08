@@ -137,7 +137,7 @@ _no_debug: ;
 #endif
 
     // Now that we have our SMP information one way or another, we can initialize SMP.
-    // TODO: this
+    smp_init(smp);
     
 _no_smp:
 

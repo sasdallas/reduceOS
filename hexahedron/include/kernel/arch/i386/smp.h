@@ -45,9 +45,15 @@ typedef struct _smp_info {
     uint32_t    irq_overrides[MAX_INT_OVERRIDES];   // IRQ overrides (index of array = source, content = map)
 } smp_info_t;
 
-
-
 /**** FUNCTIONS ****/
+
+/**
+ * @brief Initialize the SMP system
+ * @param info Collected SMP information
+ * @returns 0 on success, non-zero is failure
+ */
+int smp_init(smp_info_t *info);
+
 
 
 

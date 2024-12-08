@@ -27,7 +27,6 @@
 
 /**** FUNCTIONS ****/
  
-
 /**
  * @brief Initialize the hardware abstraction layer
  * 
@@ -43,6 +42,17 @@ void hal_init(int stage);
  * @brief Initialize HAL interrupts (IDT, GDT, TSS, etc.)
  */
 void hal_initializeInterrupts();
+
+/**
+ * @brief Initialize the 8259 PIC(s)
+ * Uses default offsets 0x20 for master and 0x28 for slave
+ */
+void hal_initializePIC();
+
+/**
+ * @brief Disable the 8259 PIC(s)
+ */
+void hal_disablePIC();
 
 /**
  * @brief Register an interrupt handler
