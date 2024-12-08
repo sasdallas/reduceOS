@@ -14,6 +14,7 @@
 #include <kernel/drivers/x86/local_apic.h>
 #include <kernel/mem/mem.h>
 #include <kernel/debug.h>
+#include <kernel/drivers/x86/clock.h>
 #include <kernel/panic.h>
 #include <errno.h>
 
@@ -109,7 +110,7 @@ void lapic_setEnabled(int enabled) {
  * @param lapic_id The ID of the APIC
  * @param vector The starting page number (for SIPI - normally vector number)
  */
-void lapic_send_startup(uint8_t lapic_id, uint32_t vector) {
+void lapic_sendStartup(uint8_t lapic_id, uint32_t vector) {
     // Write the local APIC id to the high ICR
     lapic_write(LAPIC_REGISTER_ICR + 0x10, lapic_id << LAPIC_ICR_HIGH_ID_SHIFT);
     
@@ -126,7 +127,7 @@ void lapic_send_startup(uint8_t lapic_id, uint32_t vector) {
  * @brief Send INIT signal
  * @param lapic_id The ID of the APIC
  */
-void lapic_send_init(uint8_t lapic_id) {
+void lapic_sendInit(uint8_t lapic_id) {
     // Write the local APIC id to the high ICR
     lapic_write(LAPIC_REGISTER_ICR + 0x10, lapic_id << LAPIC_ICR_HIGH_ID_SHIFT);
     
@@ -136,7 +137,7 @@ void lapic_send_init(uint8_t lapic_id) {
     // Wait for send to be completed
     while (lapic_read(LAPIC_REGISTER_ICR) & LAPIC_ICR_SENDING);
 
-    LOG(DEBUG, "LAPIC 0x%x INIT IPI", lapic_id);
+    LOG(DEBUG, "LAPIC 0x%x INIT IPI\n", lapic_id);
 }
 
 /**

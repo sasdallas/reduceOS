@@ -112,14 +112,14 @@ void lapic_acknowledge();
  * @brief Send INIT signal
  * @param lapic_id The ID of the APIC
  */
-void lapic_send_init(uint8_t lapic_id);
+void lapic_sendInit(uint8_t lapic_id);
 
 /**
  * @brief Send SIPI signal
  * @param lapic_id The ID of the APIC
  * @param vector The starting page number (for SIPI - normally vector number)
  */
-void lapic_send_startup(uint8_t lapic_id, uint32_t vector);
+void lapic_sendStartup(uint8_t lapic_id, uint32_t vector);
 
 /**
  * @brief Enable/disable local APIC via the spurious-interrupt vector register
