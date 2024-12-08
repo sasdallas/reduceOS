@@ -16,6 +16,7 @@
 
 /**** INCLUDES ****/
 #include <stdint.h>
+#include <stddef.h>
 
 /**** DEFINITIONS ****/
 
@@ -43,5 +44,21 @@ enum {
  * @brief Initialize the CMOS-based clock driver.
  */
 void clock_initialize();
+
+/**
+ * @brief Read the current CPU timestamp counter.
+ */
+uint64_t clock_readTSC();
+
+/**
+ * @brief Get the TSC speed
+ */
+size_t clock_getTSCSpeed();
+
+/**
+ * @brief Gets the tick count (CPU timestamp counter / TSC speed)
+ */
+uint64_t clock_readTicks();
+
 
 #endif

@@ -100,6 +100,11 @@ void clock_setDevice(clock_device_t device);
 uint64_t clock_getBoottime();
 
 /**
+ * @brief Get the current clock device
+ */
+clock_device_t clock_getDevice();
+
+/**
  * @brief Returns whether the clock device is ready or not.
  * @todo This seems stupid. It is only used by debug system.
  */

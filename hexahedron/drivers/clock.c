@@ -138,6 +138,13 @@ uint64_t clock_getBoottime() {
 }
 
 /**
+ * @brief Get the current clock device
+ */
+clock_device_t clock_getDevice() {
+    return clock_device;
+}
+
+/**
  * @brief Set the main clock device
  */
 void clock_setDevice(clock_device_t device) {

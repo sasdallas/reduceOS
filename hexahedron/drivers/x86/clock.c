@@ -145,7 +145,7 @@ uint64_t clock_convertCMOSToUnix() {
 /**
  * @brief Read the current CPU timestamp counter.
  */
-static uint64_t clock_readTSC() {
+uint64_t clock_readTSC() {
     uint32_t lo, hi;
     asm volatile ("rdtsc" : "=a"(lo), "=d"(hi)); // rdtsc outputs lo in EAX and hi in EDX
     return ((uint64_t)hi << 32UL) | (uint64_t)lo;
@@ -154,14 +154,14 @@ static uint64_t clock_readTSC() {
 /**
  * @brief Get the TSC speed
  */
-static size_t clock_getTSCSpeed() {
+size_t clock_getTSCSpeed() {
     return tsc_mhz;
 }
 
 /**
  * @brief Gets the tick count (CPU timestamp counter / TSC speed)
  */
-static uint64_t clock_readTicks() {
+uint64_t clock_readTicks() {
     return clock_readTSC() / clock_getTSCSpeed();
 }
 
