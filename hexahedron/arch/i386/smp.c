@@ -38,22 +38,18 @@ static uintptr_t lapic_remapped = 0;
 /* Remapped page for the bootstrap code */
 static uintptr_t bootstrap_page_remap = 0;
 
-
-/* Log method */
-#define LOG(status, ...) dprintf_module(status, "SMP", __VA_ARGS__)
+/* Core stack - this is used after paging is setup */
+uint32_t _ap_stack_base = 0;
 
 /* Trampoline variables */
-extern uint32_t _ap_parameters;
-extern uint32_t _ap_startup;
-extern uint32_t _ap_gdtr;
 extern uint32_t _ap_bootstrap_start, _ap_bootstrap_end;
-extern uint32_t hal_gdt_base, hal_gdt_end; // !!!: Not sure if this is important, but we should probably be keeping track of each GDT entry in C code. 
 
 /* AP startup flag. This will change when the AP finishes starting */
 static int ap_startup_finished = 0;
 
-/* Trampoline rebase macro */
-#define TRAMPOLINE_REBASE(section) (void*)(SMP_AP_BOOTSTRAP_PAGE + (uintptr_t)&section - (uintptr_t)&_ap_bootstrap_start)
+/* Log method */
+#define LOG(status, ...) dprintf_module(status, "SMP", __VA_ARGS__)
+
 
 /**
  * @brief Sleep for a short period of time
@@ -68,15 +64,22 @@ static void smp_delay(unsigned int delay) {
  * @brief Finish an AP's setup. This is done right after the trampoline code gets to 32-bit mode and sets up a stack
  * @param params The AP parameters set up by @c smp_prepareAP
  */
-__attribute__((noreturn)) void smp_finalizeAP(smp_ap_parameters_t *params) {
-    // Start by installing the IDT
+__attribute__((noreturn)) void smp_finalizeAP() {
+    // We want all cores to have a consistent GDT
+    extern void hal_installGDT();
+    hal_installGDT();
+    
+    // Install the IDT
     hal_installIDT();
 
     // Setup paging (WARNING: THIS WILL BE REWORKED FOR MULTIPLE APs!)
     mem_switchDirectory(mem_getCurrentDirectory());
     mem_setPaging(true);
 
-    // I guess reinitialize the APIC?
+    // HACK: We must load the stack here after paging has initialized. Trampoline will load a temporary stack.
+    asm volatile ("movl %0, %%esp" :: "m"(_ap_stack_base));
+
+    // Reinitialize the APIC
     lapic_initialize(lapic_remapped);
 
     // Allow BSP to continue
@@ -86,24 +89,7 @@ __attribute__((noreturn)) void smp_finalizeAP(smp_ap_parameters_t *params) {
     for (;;);
 }
 
-/**
- * @brief Prepare an AP's parameters
- * @param lapic_id The ID of the local APIC
- */
-void smp_prepareAP(uint8_t lapic_id) {
-    // Setup parameters
-    smp_ap_parameters_t parameters;
 
-    // Allocate a stack
-    parameters.stack = (uint32_t)kmalloc(4096) + 4096; // Stack grows downward
-    
-    // Get the page directory & lapic id
-    parameters.pagedir = (uint32_t)mem_getCurrentDirectory();
-    parameters.lapic_id = lapic_id;
-
-    // Copy!
-    memcpy(TRAMPOLINE_REBASE(_ap_parameters), &parameters, sizeof(smp_ap_parameters_t));
-}
 
 /**
  * @brief Start an AP
@@ -115,8 +101,8 @@ void smp_startAP(uint8_t lapic_id) {
     // Copy the bootstrap code. The AP might've messed with it.
     memcpy((void*)bootstrap_page_remap, (void*)&_ap_bootstrap_start, (uintptr_t)&_ap_bootstrap_end - (uintptr_t)&_ap_bootstrap_start);
 
-    // Setup the AP
-    smp_prepareAP(lapic_id);
+    // Allocate a stack for the AP
+    _ap_stack_base = (uint32_t)kvalloc(4096) + 4096; // Stack grows downward
 
     // Send the INIT signal
     lapic_sendInit(lapic_id);

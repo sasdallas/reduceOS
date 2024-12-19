@@ -19,6 +19,7 @@
 .global _ap_bootstrap_start
 .global _ap_bootstrap_end
 .extern smp_finalizeAP
+.extern _ap_stack_base
 .section .ap_bootstrap
 
 .code16
@@ -33,9 +34,25 @@ _ap_startup:    /* 0x1000 */
 .align 16
 _ap_gdt_table:  /* 0x1010 */
     .long 0, 0
-    .long 0x0000FFFF, 0x00CF9A00    // 32-bit code segment
-    .long 0x0000FFFF, 0x008F9200    // 32-bit data segment
-    .long 0x00000068, 0x00CF8900    // tss
+
+    /* Code segment - 32-bit kernel mode (0x08) */
+    .word 0xFFFF
+    .word 0x0000
+    .byte 0x00
+    .byte 0x9A
+    .byte 0xCF
+    .byte 0x00
+ 
+    /* Data segment - 32-bit kernel mode (0x10) */
+    .word 0xFFFF
+    .word 0x0000
+    .byte 0x00
+    .byte 0x92
+    .byte 0xCF
+    .byte 0x00
+
+    .long 0, 0
+
 _ap_gdtr:       /* 0x1030 */
     .word _ap_gdtr - _ap_gdt_table - 1
     .long 0x1010
@@ -43,8 +60,10 @@ _ap_gdtr:       /* 0x1030 */
 
 .align 64
 _ap_startup_real:   /* 0x1040 */
+    xorw %ax, %ax
+    movw %ax, %ds
+
     /* Load GDT */
-    xchgw %bx, %bx
     lgdtl 0x1030
 
     /* Prepare to switch to protected mode */
@@ -67,12 +86,11 @@ _ap_startup_pmode:  /* 0x1060 */
     movw %ax, %fs
     movw %ax, %gs
     movw %ax, %ss
-     
-    /* Load the stack */
-    movl $0x1000 + _ap_stack - _ap_bootstrap_start, %esp
+    
+    /* We need a temporary stack first */
+    movl $0x1000 + _ap_stack_temp - _ap_bootstrap_start, %esp
 
     /* We're good enough to jump to smp_finalizeAP */
-    pushl $0x1000 + _ap_parameters - _ap_bootstrap_start
     ljmp $0x08, $smp_finalizeAP
 
     cli
@@ -80,14 +98,8 @@ _ap_startup_pmode:  /* 0x1060 */
     jmp .
 
 
-/* C code will copy this */
-_ap_parameters:
-_ap_stack:
-    .long 0       
-_ap_pagedir:
-    .long 0
-_ap_lapic_id:
-    .long 0
-
+/* This is a temporary stack for setting up IDT/paging */
+.skip 16
+_ap_stack_temp:
 
 _ap_bootstrap_end:
