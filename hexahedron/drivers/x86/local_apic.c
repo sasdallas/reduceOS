@@ -122,6 +122,23 @@ void lapic_sendStartup(uint8_t lapic_id, uint32_t vector) {
     // LOG(DEBUG, "LAPIC 0x%x SIPI to starting IP 0x%x\n", lapic_id, vector);
 }
 
+
+/**
+ * @brief Send an NMI to an APIC
+ * @param lapic_id The ID of the APIC
+ * @param irq_no The IRQ vector to send
+ */
+void lapic_sendNMI(uint8_t lapic_id, uint8_t irq_no) {
+    // Write the local APIC ID to the high ICR
+    lapic_write(LAPIC_REGISTER_ICR + 0x10, lapic_id << LAPIC_ICR_HIGH_ID_SHIFT);
+
+    // Write the ICR to send the NMI signal
+    lapic_write(LAPIC_REGISTER_ICR, LAPIC_ICR_NMI | LAPIC_ICR_DESTINATION_PHYSICAL | LAPIC_ICR_INITDEASSERT | LAPIC_ICR_EDGE | irq_no);
+
+    // Wait for send to be completed
+    while (lapic_read(LAPIC_REGISTER_ICR) & LAPIC_ICR_SENDING);
+}
+
 /**
  * @brief Send INIT signal
  * @param lapic_id The ID of the APIC
@@ -130,7 +147,7 @@ void lapic_sendInit(uint8_t lapic_id) {
     // Write the local APIC id to the high ICR
     lapic_write(LAPIC_REGISTER_ICR + 0x10, lapic_id << LAPIC_ICR_HIGH_ID_SHIFT);
     
-    // Write the ICR to send the SIPI
+    // Write the ICR to send the INIT signal
     lapic_write(LAPIC_REGISTER_ICR, LAPIC_ICR_INIT | LAPIC_ICR_DESTINATION_PHYSICAL | LAPIC_ICR_INITDEASSERT | LAPIC_ICR_EDGE);
 
     // Wait for send to be completed

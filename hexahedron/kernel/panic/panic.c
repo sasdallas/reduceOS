@@ -78,7 +78,7 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     dprintf(NOHEADER, COLOR_CODE_RED        "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, COLOR_CODE_RED        "Apologies for any inconveniences caused by this error.\n\n");
     
-    dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
+    dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s (module \'%s\')\n", arch_current_cpu(), kernel_bugcode_strings[bugcode], module);
 
     char additional[512];
 
@@ -119,7 +119,7 @@ void kernel_panic(uint32_t bugcode, char *module) {
     dprintf(NOHEADER, COLOR_CODE_RED        "Hexahedron has experienced a critical fault that cannot be resolved\n");
     dprintf(NOHEADER, COLOR_CODE_RED        "Please start an issue on GitHub if you believe this to be a bug.\n");
     dprintf(NOHEADER, COLOR_CODE_RED        "Apologies for any inconveniences caused by this error.\n\n");
-    dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: %s (module \'%s\')\n", kernel_bugcode_strings[bugcode], module);
+    dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s (module \'%s\')\n", arch_current_cpu(), kernel_bugcode_strings[bugcode], module);
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** %s" COLOR_CODE_RED, kernel_panic_messages[bugcode]);
     
     kernel_panic_sendPacket(bugcode, module, NULL);
@@ -144,7 +144,7 @@ void kernel_panic_prepare(uint32_t bugcode) {
     dprintf(NOHEADER, COLOR_CODE_RED            "Apologies for any inconveniences caused by this error.\n\n");
 
     if (bugcode) {
-        dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: %s\n", kernel_bugcode_strings[bugcode]);
+        dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s\n", arch_current_cpu(), kernel_bugcode_strings[bugcode]);
     }
 
     kernel_panic_sendPacket(bugcode, NULL, NULL);

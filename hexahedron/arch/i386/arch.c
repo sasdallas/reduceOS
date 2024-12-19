@@ -87,7 +87,8 @@ void arch_say_hello(int is_debug) {
  * moving things around, whatever you need to do
  */
 void arch_panic_prepare() {
-
+    dprintf(ERR, "Fatal panic state detected - please wait, cleaning up...\n");
+    smp_disableCores();
 }
 
 /**
@@ -200,6 +201,8 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
 
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
+
+    kernel_panic(KERNEL_DEBUG_TRAP, "a");
 
     for (;;);
 }

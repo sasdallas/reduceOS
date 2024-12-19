@@ -76,5 +76,20 @@ int smp_getCPUCount();
  */
 int smp_getCurrentCPU();
 
+/**
+ * @brief Shutdown all cores in a system
+ * 
+ * This causes ISR2 (NMI) to be thrown, disabling the core's interrupts and 
+ * looping it on a halt instruction.
+ */
+void smp_disableCores();
+
+/**
+ * @brief Acknowledge core shutdown (called by ISR)
+ * 
+ * @bug On an NMI, we just assume it's a core shutdown - is this okay?
+ */
+void smp_acknowledgeCoreShutdown();
+
 
 #endif

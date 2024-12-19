@@ -109,6 +109,13 @@ int lapic_initialize(uintptr_t lapic_address);
 void lapic_acknowledge();
 
 /**
+ * @brief Send an NMI to an APIC
+ * @param lapic_id The ID of the APIC
+ * @param irq_no The IRQ vector to send
+ */
+void lapic_sendNMI(uint8_t lapic_id, uint8_t irq_no);
+
+/**
  * @brief Send INIT signal
  * @param lapic_id The ID of the APIC
  */

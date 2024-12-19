@@ -17,6 +17,7 @@
 #include <kernel/arch/i386/hal.h>
 #include <kernel/arch/i386/interrupt.h>
 #include <kernel/arch/i386/registers.h>
+#include <kernel/arch/i386/smp.h>
 #include <kernel/hal.h>
 
 #include <kernel/debug.h>
@@ -99,6 +100,12 @@ void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_
 
         // Now we're finished so return
         return;
+    }
+
+    // NMIs are fired as of now only for a core shutdown. If we receive one, just halt.
+    if (exception_index == 2) {
+        smp_acknowledgeCoreShutdown();
+        for (;;);
     }
 
 

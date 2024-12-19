@@ -33,7 +33,7 @@
 static smp_info_t *smp_data = NULL;
 
 /* Local APIC mmio address */
-static uintptr_t lapic_remapped = 0;
+uintptr_t lapic_remapped = 0;
 
 /* Remapped page for the bootstrap code */
 static uintptr_t bootstrap_page_remap = 0;
@@ -47,6 +47,9 @@ extern uint32_t _ap_bootstrap_start, _ap_bootstrap_end;
 /* AP startup flag. This will change when the AP finishes starting */
 static int ap_startup_finished = 0;
 
+/* AP shutdown flag. This will change when the AP finishes shutting down. */
+static int ap_shutdown_finished = 0;
+
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "SMP", __VA_ARGS__)
 
@@ -59,6 +62,8 @@ static void smp_delay(unsigned int delay) {
     uint64_t clock = clock_readTSC();
     while (clock_readTSC() < clock + delay * clock_getTSCSpeed());
 }
+
+
 
 /**
  * @brief Finish an AP's setup. This is done right after the trampoline code gets to 32-bit mode and sets up a stack
@@ -177,4 +182,33 @@ int smp_getCurrentCPU() {
 	uint32_t ebx, unused;
     __cpuid(0x1, unused, ebx, unused, unused);
     return (int)(ebx >> 24);
+}
+
+/**
+ * @brief Acknowledge core shutdown (called by ISR)
+ * 
+ * @bug On an NMI, we just assume it's a core shutdown - is this okay?
+ */
+void smp_acknowledgeCoreShutdown() {
+    LOG(INFO, "CPU%i finished shutting down\n", smp_getCurrentCPU());
+    ap_shutdown_finished = 1;
+}
+
+/**
+ * @brief Shutdown all cores in a system
+ * 
+ * This causes ISR2 (NMI) to be thrown, disabling the core's interrupts and 
+ * looping it on a halt instruction.
+ */
+void smp_disableCores() {
+
+    LOG(INFO, "Disabling cores - please wait...\n");
+
+    for (int i = 0; i < smp_data->processor_count; i++) {
+        if (i != 0) {
+            lapic_sendNMI(smp_data->lapic_ids[i], 124);
+            do { asm volatile ("pause"); } while (!ap_shutdown_finished);
+            ap_shutdown_finished = 0;
+        }
+    }
 }

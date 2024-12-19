@@ -12,7 +12,9 @@
     "font.h": "c",
     "vector": "c",
     "string.h": "c",
-    "registers.h": "c"
+    "registers.h": "c",
+    "hal.h": "c",
+    "interrupt.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
