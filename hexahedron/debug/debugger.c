@@ -124,6 +124,7 @@ extern pool_t *mem_mapPool;
 
     // Create memory map information (subset of sysinfo)
     // !!! json_array_new(0) appears to have issues or something (breaks allocator), so this is disabled.
+    // TODO: This seems to have been fixed. We should be able to uncomment this code.
     // json_value *mmap_info = json_array_new(0);
 
     // generic_mmap_desc_t *desc = parameters->mmap_start;

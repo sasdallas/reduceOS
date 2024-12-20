@@ -18,15 +18,13 @@
 #include <kernel/panic.h>
 #include <errno.h>
 
+// x86_64 is unsupported currently
 #if defined(__ARCH_I386__)
 #include <kernel/arch/i386/cpu.h>
 #include <kernel/arch/i386/registers.h>
 #include <kernel/arch/i386/hal.h>
-#elif defined(__ARCH_X86_64__)
-#error "x86_64 is unsupported currently"
-#else
-#error "Unsupported architecture"
-#endif
+
+
 
 
 /* APIC base */
@@ -200,3 +198,4 @@ int lapic_initialize(uintptr_t lapic_address) {
     // Finished!
     return 0;
 }
+#endif

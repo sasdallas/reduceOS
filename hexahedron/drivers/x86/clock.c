@@ -12,9 +12,14 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+#if defined(__ARCH_I386__)
+#include <kernel/arch/i386/hal.h>
+#elif defined(__ARCH_X86_64__)
+#include <kernel/arch/i386/hal.h>
+#endif
+
 #include <kernel/drivers/x86/clock.h>
 #include <kernel/drivers/clock.h>
-#include <kernel/arch/i386/hal.h> // !! BAD HAL PROBLEM
 #include <kernel/debug.h>
 
 #include <stdint.h>
@@ -22,11 +27,18 @@
 #include <stdbool.h>
 #include <string.h>
 
+/* Log method */
 #define LOG(status, format, ...) dprintf_module(status, "CLOCK", format, ## __VA_ARGS__)
 
+/* Architecture boottime (UNIX) */
 uint64_t boottime = 0;
+
+/* TSC baseline */
 uint64_t tsc_baseline = 0;
+
+/* TSC MHz */
 uint64_t tsc_mhz = 0;
+
 
 
 static bool is_year_leap(int year) {

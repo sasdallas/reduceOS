@@ -19,7 +19,13 @@
 #include <acpica/acpi.h>
 #include <acpica/actypes.h>
 
+#ifdef __ARCH_I386__
 #include <kernel/arch/i386/hal.h>
+#else
+#error "No support"
+#endif
+
+
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 #include <kernel/mem/mem.h>

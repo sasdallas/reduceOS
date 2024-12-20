@@ -1,4 +1,3 @@
-
 /**
  * @file hexahedron/include/kernel/arch/i386/mem.h
  * @brief i386-specific memory systems

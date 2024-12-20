@@ -22,7 +22,7 @@
 list_t *breakpoints = NULL;
 
 /* Breakpoint instruction */
-#ifdef __ARCH_I386__
+#if defined(__ARCH_I386__) || defined(__ARCH_X86_64__)
 #define BREAKPOINT_INSTRUCTION 0xCC // shorthand for INT3
 #endif
 
