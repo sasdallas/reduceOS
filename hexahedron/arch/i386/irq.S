@@ -102,49 +102,6 @@ halCommonIRQHandler:
     iret
 
 
-read_eip:
-    movl (%esp), %eax
-    retl
-
-
-/* Get registers function */
-/* This is passed an empty structure as an argument */
-.global halGetRegistersInternal
-halGetRegistersInternal:
-    // Load registers structure
-    movl 4(%esp), %ecx
-
-    // Load ESP -> EAX
-    leal 8(%esp), %eax
-
-    // DS/ES/GS
-    movw %ds, 0(%ecx)
-    movw %es, 4(%ecx)
-    movw %gs, 8(%ecx)
-
-    // EDI/ESI/EBP/ESP/EBX/EDX/ECX/EAX
-    movl %edi, 12(%ecx)
-    movl %esi, 16(%ecx)
-    movl %ebp, 20(%ecx)
-    movl %eax, 24(%ecx) // ESP was loaded earlier
-    movl %ebx, 28(%ecx)
-    movl %edx, 32(%ecx)
-    // ECX/EAX are clobberable. Zeroed anyways by halGetRegisters
-    
-    // err_code is NULLed because there is none
-    call read_eip
-    movl %eax, 48(%ecx) // EIP
-    movw %cs, 52(%ecx)  // CS
-    pushfl
-    popl %eax
-    movl %eax, 58(%ecx) // EFLAGS
-    // useresp is NULLED because it is for processes
-    movw %ss, 66(%ecx)  // SS
-
-    // Return
-    ret
-
-
 
 /* Exception macros */
 .macro ISR_NOERRCODE name index

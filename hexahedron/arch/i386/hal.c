@@ -188,25 +188,6 @@ void hal_init(int stage) {
 }
 
 
-/* External functions given to kernel */
-extern void halGetRegistersInternal(registers_t *regs);
-
-/**
- * @brief Get registers from architecture
- * @returns Registers structure
- * @warning Untested
- */
-struct _registers *hal_getRegisters() {
-    registers_t *output = kmalloc(sizeof(registers_t));
-    memset(output, 0, sizeof(registers_t));
-    halGetRegistersInternal(output);
-    return output;
-}
-
-
-
-
-
 /* PORT I/O FUNCTIONS */
 
 void outportb(unsigned short port, unsigned char data) {
