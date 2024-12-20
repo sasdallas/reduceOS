@@ -31,7 +31,7 @@ cpu: count=4, ips=4000000, model=bx_generic, reset_on_triple_fault=1, cpuid_limi
 cpuid: level=6, stepping=3, model=3, family=6, vendor_string="AuthenticAMD", brand_string="AMD Athlon(tm) processor"
 cpuid: mmx=true, apic=xapic, simd=sse2, sse4a=false, misaligned_sse=false, sep=true
 cpuid: movbe=false, adx=false, aes=false, sha=false, xsave=false, xsaveopt=false, smep=false
-cpuid: smap=false, mwait=true, vmx=1
+cpuid: smap=false, mwait=true, vmx=1, x86_64=1
 print_timestamps: enabled=0
 debugger_log: -
 magic_break: enabled=1 0x8
