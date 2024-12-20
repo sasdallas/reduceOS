@@ -1,9 +1,6 @@
 /**
- * @file hexahedron/arch/stub/mem.c
- * @brief Stub file for memory management
- * 
- * You will still need to provide your own page header, and place it in the
- * include directory.
+ * @file hexahedron/arch/x86_64/mem.c
+ * @brief Memory management functions for x86_64
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -13,6 +10,7 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+#include <kernel/arch/x86_64/mem.h>
 #include <kernel/mem/mem.h>
 #include <kernel/panic.h>
 
@@ -20,6 +18,12 @@
 uintptr_t mem_mapPool = 0xAAAAAAAAAAAAAAAA;
 uintptr_t mem_identityMapCacheSize = 0xAAAAAAAAAAAAAAAA;
 uintptr_t mem_kernelHeap = 0xAAAAAAAAAAAAAAAA;
+
+/* Base page layout - loader uses this */
+page_t mem_initialPageRegion[512] __attribute__((aligned(PAGE_SIZE))) = {0};
+
+
+
 
 /**
  * @brief Map a physical address to a virtual address

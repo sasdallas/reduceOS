@@ -1,6 +1,6 @@
 /**
- * @file hexahedron/arch/stub/hal.c
- * @brief Stub file for HAL functions
+ * @file hexahedron/arch/x86_64/hal.c
+ * @brief x86_64 hardware abstraction layer
  * 
  * 
  * @copyright
@@ -12,8 +12,60 @@
  */
 
 #include <kernel/arch/x86_64/hal.h>
+
+// General
+#include <stdint.h>
+
+// Kernel includes
+#include <kernel/arch/x86_64/arch.h>
 #include <kernel/hal.h>
+#include <kernel/debug.h>
 #include <kernel/panic.h>
+
+// Drivers (x86)
+#include <kernel/drivers/x86/serial.h>
+
+/**
+ * @brief Stage 1 startup - initializes logging, interrupts, clock, etc.
+ */
+static void hal_init_stage1() {
+    // Initialize serial driver
+    if (serial_initialize() == 0) {
+        // Setup debug output
+        debug_setOutput(serial_print);
+    }    
+
+    // Say hi!
+    arch_say_hello(1);
+}
+
+
+
+/**
+ * @brief Stage 2 startup - initializes debugger, ACPI, etc.
+ */
+static void hal_init_stage2() {
+
+}
+
+
+/**
+ * @brief Initialize the hardware abstraction layer
+ * 
+ * Initializes serial output, memory systems, and much more for I386.
+ *
+ * @param stage What stage of HAL initialization should be performed.
+ *              Specify HAL_STAGE_1 for initial startup, and specify HAL_STAGE_2 for post-memory initialization startup.
+ * @todo A better driver interface is needed.
+ */
+void hal_init(int stage) {
+    if (stage == HAL_STAGE_1) {
+        hal_init_stage1();
+    } else if (stage == HAL_STAGE_2) {
+        hal_init_stage2();
+    }
+}
+
 
 /**
  * @brief Register an interrupt handler
@@ -27,34 +79,35 @@ int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler) {
     __builtin_unreachable();
 }
 
+
 /* PORT I/O FUNCTIONS */
 
 void outportb(unsigned short port, unsigned char data) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    __asm__ __volatile__("outb %b[Data], %w[Port]" :: [Port] "Nd" (port), [Data] "a" (data));
 }
 
 void outportw(unsigned short port, unsigned short data) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    __asm__ __volatile__("outw %w[Data], %w[Port]" :: [Port] "Nd" (port), [Data] "a" (data));
 }
 
 void outportl(unsigned short port, unsigned long data) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    __asm__ __volatile__("outl %k[Data], %w[Port]" :: [Port] "Nd"(port), [Data] "a" (data));
 }
 
 unsigned char inportb(unsigned short port) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    unsigned char returnValue;
+    __asm__ __volatile__("inb %w[Port]" : "=a"(returnValue) : [Port] "Nd" (port));
+    return returnValue;
 }
 
 unsigned short inportw(unsigned short port) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    unsigned short returnValue;
+    __asm__ __volatile__("inw %w[Port]" : "=a"(returnValue) : [Port] "Nd" (port));
+    return returnValue;
 }
 
 unsigned long inportl(unsigned short port) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    unsigned long returnValue;
+    __asm__ __volatile__("inl %w[Port]" : "=a"(returnValue) : [Port] "Nd" (port));
+    return returnValue;
 }

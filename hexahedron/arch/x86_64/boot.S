@@ -1,0 +1,345 @@
+/**
+ * @file hexahedron/arch/x86_64/boot.S
+ * @brief Entrypoint for the x86_64 bootloader
+ * 
+ * Compatible with both Multiboot2 and Multiboot standards
+ * 
+ * @copyright
+ * This file is part of the Hexahedron kernel, which is part of reduceOS.
+ * It is released under the terms of the BSD 3-clause license.
+ * Please see the LICENSE file in the main repository for more details.
+ * 
+ * Copyright (C) 2024 Samuel Stuart
+ */
+
+.extern __bss_start
+.extern __kernel_start
+.extern __kernel_end
+
+.section .multiboot
+
+/* ===== MULTIBOOT 1 ===== */
+
+// Declare flags
+.set ALIGN, 1 << 0
+.set MEMORY_INFO, 1 << 1
+.set FRAMEBUFFER, 1 << 2
+
+// Declare the actual multiboot flags, magic, and checksum
+.set MULTIBOOT_FLAGS, ALIGN | MEMORY_INFO | FRAMEBUFFER
+.set MULTIBOOT_MAGIC, 0x1BADB002
+.set MULTIBOOT_CHECKSUM, -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
+
+// Declare the header
+.align 4
+multiboot_header:
+.long MULTIBOOT_MAGIC
+.long MULTIBOOT_FLAGS
+.long MULTIBOOT_CHECKSUM
+
+.long multiboot_header
+.long __kernel_start
+.long __bss_start
+.long __kernel_end
+.long _start
+
+// Request framebuffer (1024x768x32)
+.long 0x00000000
+.long 1024
+.long 768
+.long 32
+
+/* ==== MULTIBOOT 2 ==== */
+.set MULTIBOOT2_MAGIC, 0xE85250D6
+.set MULITBOOT2_ARCHITECTURE, 0 // 0 means 32-bit protected mode of i386
+.set MULITBOOT2_HEADER_LENGTH, (multiboot2_header_end - multiboot2_header_start)
+.set MULITBOOT2_CHECKSUM, -(MULTIBOOT2_MAGIC + MULITBOOT2_ARCHITECTURE + MULITBOOT2_HEADER_LENGTH)
+
+.align 8
+multiboot2_header_start:
+
+// Like MB1, put the magic, arch, length, etc.
+.long MULTIBOOT2_MAGIC
+.long MULITBOOT2_ARCHITECTURE
+.long MULITBOOT2_HEADER_LENGTH
+.long MULITBOOT2_CHECKSUM
+
+// Documentation: https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html
+// Start with an address tag
+.align 8
+multiboot2_address_tag:
+.word 2                         // Type (u16 - address)
+.word 0                         // Flags (u16 - unused)
+.long 24                        // Size of the tag
+.long multiboot2_header_start   // Put the start of the header
+.long __kernel_start            // Starting address of the kernel
+.long __bss_start               // BSS starting address
+.long __kernel_end              // Ending address of the kernel
+
+
+/* Next, give a tag describing the entrypoint */
+.align 8
+multiboot2_entry_tag:
+.word 3                         // Type (u16 - entry)
+.word 0                         // Flags (u16 - unused)
+.long 12                        // Size of the tag
+.long _start
+
+
+/* Then, give a tag requesting a framebuffer */
+.align 8
+multiboot2_fb_tag:
+.word 5                         // Type (u16 - fb)
+.word 0                         // Flags (u16 - unused)
+.long 20                        // Size of the tag
+.long 1024                      // 1024 width
+.long 768                       // 768 height
+.long 32                        // 32 bpp (depth)
+
+/* Give a tag requesting EGA text support */
+.align 8
+multiboot2_console_flags_tag:
+.word 4                         // Type (u16 - flags)
+.word 0                         // Flags (u16 - unused)
+.long 12                        // Size of the tag
+.long 2                         // Bit 1 means we have EGA text support
+
+/* Make our lives easier and make module page aligned */
+.align 8
+mulitboot2_align_mods:
+.word 6                         // Type (u16 - align)
+.word 0                         // Flags (u16 - unused)
+.long 8                         // Size of the tag
+
+// NOTE:    A relocatable image tag is not used, I'm not keeping track of EIP
+//          through all of this bootstrapping AND adjusting ELF addresses in C code.
+
+multiboot2_header_end:
+
+
+/* ==== GENERIC ==== */
+
+// Reserve a stack in BSS
+.section .bss
+.align 16
+__stack_bottom:
+.skip 16384 // Provide 16KiB of stack
+.global __stack_top
+__stack_top:
+
+/* ==== BOOTSTRAP ==== */
+.section .bootstrap
+.code32
+
+.extern mem_initialPageRegion
+
+
+.global _start
+.type _start, @function
+_start:
+    xchgw %bx, %bx
+
+    // Setup stack 
+    movl $__stack_top, %esp
+
+    // Check that stack is 16-byte aligned
+    and $-16, %esp
+
+    // Clear EBP for backtrace
+    xor %ebp, %ebp
+
+    // Save all multiboot variables onto the stack
+    // Anything pushed should be popped off the stack later, so in 64-bit
+    // realm we can just pop these back off.
+    // IMPORTANT: Remember that these are 64-bit pointers, so we have to do 2 pushes per register.
+    pushl $0
+    pushl %esp  // Stack
+    pushl $0
+    pushl %eax  // Multiboot magic
+    pushl $0
+    pushl %ebx  // Multiboot header ptr
+
+    // We have to check whether long mode is supported.
+    // First, make sure we can even do that by checking if CPUID is supported.
+
+.cpuid_check:
+    // CPUID can be checked by attempting to flip the ID bit (bit 21)
+
+    // Get EFLAGS
+    pushfl              // Push EFLAGS onto stack
+    popl %eax           // Save it to EAX
+
+    // Save in ECX for comparison
+    movl %eax, %ecx
+
+    // Clear the ID bit
+    xorl $0x200000, %eax
+
+    // Copy back to EFLAGS
+    pushl %eax
+    popfl
+
+    // Then do it again and compare
+    pushfl
+    popl %eax
+
+    // Flip the ID bit back
+    pushl %eax
+    popfl
+
+    // Compare EAX and ECX. If they are equal CPUID isn't supported.
+    xorl %eax, %ecx
+    jz boot_error
+
+
+
+.longmode_check:
+    // Nope! We're good - now we should check if long mode is available.
+    movl $0x80000000, %eax
+    cpuid
+    cmpl $0x80000001, %eax
+    jb boot_error
+
+    // If we're here, the CPU supports long mode!
+
+.paging_init:
+    // We need to now setup our paging structures.
+    // This should've already been zeroed out by the loader as part of the ELF file.
+    movl $mem_initialPageRegion, %edi
+
+    // Set entry #0 of PML4 to point to PDPT[0] with present, writable, and user
+    mov $0x1007, %eax
+    add %edi, %eax
+    mov %eax, (%edi)
+
+    // Set entry #0 of PDPT to point to PD[0] with present, writable, and user.
+    add $0x1000, %edi
+    mov $0x1003, %eax
+    add %edi, %eax
+    mov %eax, (%edi)
+
+    // Setup 32 2MiB pages to map 64MiB of low memory temporarily (source: ToaruOS).
+    // 0x0000000000000000-0x0000000003ffffff -> 0x000000000000-0x000003ffffff
+    add $0x1000, %edi       // Move to next entry
+    mov $0x87, %ebx         // Present, writable, usermode, and PAT
+    mov $32, %ecx           // Loop amount (32 2MiB pages)
+
+.paging_set_entry_loop:
+    // Loop through each entry 
+    mov %ebx, (%edi)        // Write the entry
+    add $0x200000, %ebx     // Add 2MiB to value
+    add $8, %edi            // Next entry
+    loop .paging_set_entry_loop
+
+.paging_enable:
+    // Set CR3 to point to our PML4
+    movl $mem_initialPageRegion, %edi
+    movl %edi, %cr3
+
+    // Enable PAE, it is required for long mode.
+    movl %cr4, %eax
+    orl $32, %eax
+    movl %eax, %cr4
+
+    // Enable EFER, enabling SYSCALL/SYSRET
+    movl $0xC0000080, %ecx
+    rdmsr
+    orl $256, %eax
+    wrmsr
+
+    // Check PG - bootloader may already have enabled paging
+    movl %cr0, %eax
+    test $0x800000000, %eax
+    jnz .longmode_move_to_kernel    // bruh
+
+    // Otherwise, enable paging.
+    or $0x80000000, %eax
+    mov %eax, %cr0
+
+    // Load the GDTR
+    lgdt gdtr
+
+    // Leap of faith!
+    ljmp $0x08, $longmode_entry
+
+.type boot_error, @function
+boot_error:
+    // Because we requested a Multiboot framebuffer,
+    // we can't show errors! Hopefully the bootloader informed the user.
+
+    // Instead, do the next best thing: kill the computer!
+    ljmp $0xFFFF, $0x0 // Reset vector
+
+    // Uhh, that didn't work.
+    cli
+    hlt
+    jmp .
+
+
+/* ==== GDT ==== */
+
+.align 8
+
+// GDT pointer
+gdtr:
+    .word gdt_end - gdt_base
+    .quad gdt_base
+
+
+// GDT data
+gdt_base:
+    /* Null segment */
+    .long 0
+    .long 0
+
+    /* Code segment - 64-bit kernel mode */
+    .word 0x0000
+    .word 0x0000
+    .byte 0x00
+    .byte 0x9A
+    .byte 0x20
+    .byte 0x00
+
+    /* Data segment - 64-bit kernel mode */
+    .word 0x0000
+    .word 0x0000
+    .byte 0x00
+    .byte 0x92
+    .byte 0x00
+    .byte 0x00
+gdt_end:
+
+
+/* ==== BOOTSTRAP - 64-bit ==== */
+
+.code64
+.align 8
+.section .bootstrap
+
+.extern arch_main
+.type arch_main, @function
+
+// Main longmode entrypoint - setup segments
+longmode_entry:
+    cli
+    movw $0x10, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+    movw %ax, %ss
+
+.longmode_move_to_kernel:
+    // If we jump here, then we don't have to setup segments.
+    cli
+
+    // Pop into function pointer arguments
+    pop %rdi
+    pop %rsi
+    pop %rdx
+    callq arch_main
+
+.longmode_halt:
+    cli
+    hlt
+    jmp .

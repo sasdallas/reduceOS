@@ -14,6 +14,10 @@ SECTIONS
         *(.multiboot)
         __multiboot_end = .;
 
+        __bootstrap_start = .;
+        *(.bootstrap)
+        __bootstrap_end = .;
+
         __text_start = .;
         *(.text)
         __text_end = .;
