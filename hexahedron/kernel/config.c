@@ -78,8 +78,10 @@ const char *__kernel_build_configuration = "UNKNOWN";
 #endif
 
 // Architecture information (TODO: Can't get the __ARCH__ variable working)
-#ifdef __ARCH_I386__
+#if defined(__ARCH_I386__)
 const char *__kernel_architecture = "i386";
+#elif defined(__ARCH_X86_64__)
+const char *__kernel_architecture = "x86_64";
 #else
 const char *__kernel_architecture = "unknownarch";
 #endif

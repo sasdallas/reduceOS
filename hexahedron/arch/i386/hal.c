@@ -72,12 +72,11 @@ uint64_t hal_getRSDP() {
  */
 static void hal_init_stage1() {
     // Initialize serial logging.
-    if (serial_initialize()) {
-        // didn't work... do something
+    if (serial_initialize() == 0) {
+        // Success!
+        debug_setOutput(serial_print);
     }
 
-    // TODO: Is it best practice to do this in HAL?
-    debug_setOutput(serial_print);
     arch_say_hello(1);
 
     // Initialize interrupts

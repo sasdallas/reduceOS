@@ -56,6 +56,8 @@ static int debug_write(size_t length, char *buffer) {
  * @brief dprintf that accepts va_args instead
  */
 int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
+    if (!debug_putchar_method) return 0;
+
     spinlock_acquire(&debug_lock);
 
     if (status == NOHEADER) goto _write_format;

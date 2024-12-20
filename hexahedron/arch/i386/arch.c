@@ -108,7 +108,6 @@ int arch_current_cpu() {
     return smp_getCurrentCPU();
 }
 
-
 /**
  * @brief Get the generic parameters
  */
