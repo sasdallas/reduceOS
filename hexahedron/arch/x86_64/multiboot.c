@@ -7,6 +7,7 @@
  *          https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
  *          https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html
  * 
+ * @warning x86_64 has a specific quirk. See bottom of file
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -266,7 +267,7 @@ generic_parameters_t *arch_parse_multiboot1(multiboot_t *bootinfo) {
 _done_modules:
 
     // Done with the modules, handle the memory map now.
-    if (bootinfo->mmap_length == 0) {
+    if (!(bootinfo->flags & 0x040)) {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** The kernel requires a memory map to startup properly. A memory map was not found in the Multiboot structure.\n");
         __builtin_unreachable();
     }
@@ -314,7 +315,7 @@ _done_modules:
         }
 
         // Debugging output
-        // dprintf(DEBUG, "Memory descriptor 0x%x - 0x%016llX len 0x%016llX type 0x%x last descriptor 0x%x\n", descriptor, descriptor->address, descriptor->length, descriptor->type, last_mmap_descriptor);
+        dprintf(DEBUG, "Memory descriptor 0x%x - 0x%016llX len 0x%016llX type 0x%x last descriptor 0x%x\n", descriptor, descriptor->address, descriptor->length, descriptor->type, last_mmap_descriptor);
 
         // If we're not the first update the last memory map descriptor
         if ((uintptr_t)mmap != bootinfo->mmap_addr) {
@@ -339,18 +340,9 @@ _done_modules:
 void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_address) {
     generic_mmap_desc_t *mmap = parameters->mmap_start;
     while (mmap) {
-        // Working with 64-bits in a 32-bit environment is scary...
-        if (mmap->address > UINT32_MAX) {
-            dprintf(WARN, "Bad memory descriptor encountered - %016llX length %016llX (32-bit - 64-bit overflow)\n", mmap->address, mmap->length);
-            mmap = mmap->next;
-            continue;
-        }
-
-        if (mmap->type == GENERIC_MEMORY_AVAILABLE) {
-            dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024);
-            pmm_initializeRegion((uintptr_t)mmap->address, (uintptr_t)mmap->length);
-        } 
-
+        dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024);
+        pmm_initializeRegion((uintptr_t)mmap->address, (uintptr_t)mmap->length);
+        
         mmap = mmap->next;
     }
 
@@ -372,4 +364,73 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
     pmm_deinitializeRegion(kernel_start, highest_address - kernel_start);    
 
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());
+}
+
+
+/**
+ * @brief x86_64-specific parser function for Multiboot1
+ * @param bootinfo The boot information
+ * @param mem_size Output pointer to mem_size
+ * @param kernel_address Output pointer to highest valid kernel address
+ * 
+ * This is here because paging is already enabled in x86_64, meaning
+ * we have to initialize the allocator. It's very hacky, but it does end up working.
+ * (else it will overwrite its own page tables and crash or something, i didn't do much debugging)
+ */
+void arch_parse_multiboot1_early(multiboot_t *bootinfo, uintptr_t *mem_size, uintptr_t *kernel_address) {
+    extern uintptr_t __kernel_end;
+    uintptr_t kernel_addr = (uintptr_t)&__kernel_end;
+    uintptr_t msize = (uintptr_t)&__kernel_end;
+
+    // Check if memory map was provided 
+    if (!(bootinfo->flags & 0x040)) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** The kernel requires a memory map to startup properly. A memory map was not found in the Multiboot structure.\n");
+        __builtin_unreachable();
+    }
+    
+    multiboot1_mmap_entry_t *mmap = (void*)(uintptr_t)bootinfo->mmap_addr;
+
+    // Handle the memory map in relation to highest kernel address
+    if ((uintptr_t)mmap + bootinfo->mmap_length > kernel_addr) {
+        kernel_addr = (uintptr_t)mmap + bootinfo->mmap_length;
+    }
+
+    while ((uintptr_t)mmap < bootinfo->mmap_addr + bootinfo->mmap_length) {
+        if (mmap->type == 1 && mmap->len && mmap->addr + mmap->len - 1 > msize) {
+            msize = mmap->addr + mmap->len - 1;
+        }
+
+        mmap = (multiboot1_mmap_entry_t*)((uintptr_t)mmap + mmap->size + sizeof(uint32_t));
+    }
+
+    if (bootinfo->mods_count) {
+        multiboot1_mod_t *mods = (multiboot1_mod_t*)(uintptr_t)bootinfo->mods_addr;
+        for (uint32_t i = 0; i < bootinfo->mods_count; i++) {
+            if ((uintptr_t)mods[i].mod_end > kernel_addr) {
+                kernel_addr = mods[i].mod_end;
+            }
+        }
+    }
+
+    // Round maximum kernel address up a page
+    kernel_addr = (kernel_addr + 0x1000) & ~0xFFF;
+
+    // Set pointers
+    *kernel_address = kernel_addr;
+    *mem_size = msize; 
+}
+
+/**
+ * @brief x86_64-specific parser function for Multiboot2
+ * @param bootinfo The boot information
+ * @param mem_size Output pointer to mem_size
+ * @param kernel_address Output pointer to highest valid kernel address
+ * 
+ * This is here because paging is already enabled in x86_64, meaning
+ * we have to initialize the allocator. It's very hacky, but it does end up working.
+ * (else it will overwrite its own page tables and crash or something, i didn't do much debugging)
+ */
+void arch_parse_multiboot2_early(multiboot_t *bootinfo, uintptr_t *mem_size, uintptr_t *kernel_address) {
+    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "multiboot");
+    __builtin_unreachable();
 }

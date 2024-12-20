@@ -110,6 +110,7 @@ generic_parameters_t *arch_get_generic_parameters() {
 extern uintptr_t __bss_end;
 static uintptr_t highest_kernel_address = ((uintptr_t)&__bss_end);  // This is ONLY used until memory management is initialized.
                                                                     // mm will take over this
+static uintptr_t memory_size = 0x0;                                 // Same as above
 
 /**
  * @brief Zeroes and allocates bytes for a structure at the end of the kernel
@@ -117,6 +118,7 @@ static uintptr_t highest_kernel_address = ((uintptr_t)&__bss_end);  // This is O
  * @returns The address to which the structure can be placed at 
  */
 uintptr_t arch_allocate_structure(size_t bytes) {
+    dprintf(DEBUG, "Reserving 0x%x - 0x%x\n", highest_kernel_address, highest_kernel_address + bytes);
     uintptr_t ptr = highest_kernel_address;
     highest_kernel_address += bytes;
 
@@ -147,7 +149,23 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     // Initialize the hardware abstraction layer
     hal_init(HAL_STAGE_1);
 
-    dprintf(DEBUG, "multiboot_magic = 0x%x\n", multiboot_magic);
+    // Align kernel address
+    highest_kernel_address += PAGE_SIZE;
+    highest_kernel_address &= ~0xFFF;
+
+    // Parse Multiboot information
+    if (multiboot_magic == MULTIBOOT_MAGIC) {
+        dprintf(INFO, "Found a Multiboot1 structure\n");
+        arch_parse_multiboot1_early(bootinfo, &memory_size, &highest_kernel_address);
+    } else if (multiboot_magic == MULTIBOOT2_MAGIC) {
+        dprintf(INFO, "Found a Multiboot2 structure\n");
+        arch_parse_multiboot2_early(bootinfo, &memory_size, &highest_kernel_address);
+    } else {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** Unknown multiboot structure when checking kernel.\n");
+    }
+
+    
+
 
     for (;;);
 }

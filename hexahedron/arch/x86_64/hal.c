@@ -24,6 +24,8 @@
 
 // Drivers (x86)
 #include <kernel/drivers/x86/serial.h>
+#include <kernel/drivers/x86/clock.h>
+
 
 /**
  * @brief Stage 1 startup - initializes logging, interrupts, clock, etc.
@@ -37,6 +39,9 @@ static void hal_init_stage1() {
 
     // Say hi!
     arch_say_hello(1);
+
+    // Initialize clock driver
+    clock_initialize();
 }
 
 

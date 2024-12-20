@@ -126,6 +126,14 @@ typedef union page {
 #define MEM_GET_FRAME(page) (page->bits.address << MEM_PAGE_SHIFT)                                  // Get the frame of a page. Used because of our weird union thing.
 
 
+/**** FUNCTIONS ****/
+
+/**
+ * @brief Initialize the memory management subsystem
+ * 
+ * This function will identity map the kernel into memory and setup page tables.
+ */
+void mem_init(uintptr_t high_address);
 
 
 

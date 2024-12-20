@@ -140,13 +140,6 @@ page_t *mem_getCurrentDirectory();
 page_t *mem_clone(page_t *pd_in);
 
 /**
- * @brief Initialize the memory management subsystem
- * 
- * This function will identity map the kernel into memory and setup page tables.
- */
-void mem_init(uintptr_t high_address);
-
-/**
  * @brief Free a page
  * 
  * @param page The page to free 
