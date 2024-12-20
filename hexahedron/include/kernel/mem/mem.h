@@ -21,6 +21,8 @@
 
 #if defined(__ARCH_I386__) || defined(__INTELLISENSE__)
 #include <kernel/arch/i386/mem.h> // Arch-specific definitions, like directory, entries, etc)
+#elif defined(__ARCH_X86_64__) || defined(__INTELLISENSE__)
+#include <kernel/arch/x86_64/mem.h>
 #else
 #error "Unsupported architecture for memory management"
 #endif
@@ -135,7 +137,7 @@ page_t *mem_getCurrentDirectory();
  * @param pd_in The source page directory. Keep as NULL to clone the current page directory.
  * @returns The page directory on success
  */
-page_directory_t *mem_clone(page_directory_t *pd_in);
+page_t *mem_clone(page_t *pd_in);
 
 /**
  * @brief Initialize the memory management subsystem
