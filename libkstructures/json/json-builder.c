@@ -137,9 +137,7 @@ json_value * json_array_new (size_t length)
 
     value->type = json_array;
 
-    if (!length) return value; // Addendum to this (for Hexahedron)
-
-    if (! (value->u.array.values = (json_value **) malloc (length * sizeof (json_value *))))
+    if (! (value->u.array.values = (json_value **) malloc (length * sizeof (json_value *))) && length)
     {
        free (value);
        return NULL;
