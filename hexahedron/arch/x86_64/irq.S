@@ -137,7 +137,7 @@ halCommonIRQHandler:
 .macro ISR_ERRCODE name index
     .global \name
     &name:
-        movl $\index, halExceptionIndex
+        movq $\index, halExceptionIndex
         jmp halCommonExceptionHandler
 .endm
 
@@ -146,8 +146,8 @@ halCommonIRQHandler:
     .global \name 
     &name:
         pushq $0 // Push dummy error code 
-        movl $\index, halExceptionIndex
-        movl $\index - 32, halIRQIndex 
+        movq $\index, halExceptionIndex
+        movq $\index - 32, halIRQIndex 
         jmp halCommonIRQHandler
 .endm
 
@@ -202,7 +202,7 @@ IRQ             halIRQ15,   47
 
 /* These indexes are useful because stack manipulation is hard :( */
 halExceptionIndex:
-    .long 0
+    .quad 0
 
 halIRQIndex:
-    .long 0
+    .quad 0

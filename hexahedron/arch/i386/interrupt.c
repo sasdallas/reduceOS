@@ -87,7 +87,7 @@ void hal_endInterrupt(uint32_t interrupt_number) {
 /**
  * @brief Common exception handler
  */
-void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
+void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
     // Call the exception handler
     if (hal_exception_handler_table[exception_index] != NULL) {
         exception_handler_t handler = (hal_exception_handler_table[exception_index]);
@@ -141,7 +141,7 @@ void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_
 /**
  * @brief Common interrupt handler
  */
-void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
+void hal_interruptHandler(uintptr_t exception_index, uintptr_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
     // Call any handler registered
     if (hal_handler_table[int_number] != NULL) {
         interrupt_handler_t handler = (hal_handler_table[int_number]);
@@ -158,12 +158,12 @@ void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registe
 
 /**
  * @brief Register an interrupt handler
- * @param int_no Interrupt number
+ * @param int_no Interrupt number (start at 0)
  * @param handler A handler. This should return 0 on success, anything else panics.
  *                It will take an exception number, irq number, registers, and extended registers as arguments.
  * @returns 0 on success, -EINVAL if handler is taken
  */
-int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler) {
+int hal_registerInterruptHandler(uintptr_t int_no, interrupt_handler_t handler) {
     if (hal_handler_table[int_no] != NULL) {
         return -EINVAL;
     }
@@ -176,7 +176,7 @@ int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler) {
 /**
  * @brief Unregisters an interrupt handler
  */
-void hal_unregisterInterruptHandler(uint32_t int_no) {
+void hal_unregisterInterruptHandler(uintptr_t int_no) {
     hal_handler_table[int_no] = NULL;
 }
 
@@ -187,7 +187,7 @@ void hal_unregisterInterruptHandler(uint32_t int_no) {
  *                It will take an exception number, registers, and extended registers as arguments.
  * @returns 0 on success, -EINVAL if handler is taken
  */
-int hal_registerExceptionHandler(uint32_t int_no, exception_handler_t handler) {
+int hal_registerExceptionHandler(uintptr_t int_no, exception_handler_t handler) {
     if (hal_exception_handler_table[int_no] != NULL) {
         return -EINVAL;
     }
@@ -200,7 +200,7 @@ int hal_registerExceptionHandler(uint32_t int_no, exception_handler_t handler) {
 /**
  * @brief Unregisters an exception handler
  */
-void hal_unregisterExceptionHandler(uint32_t int_no) {
+void hal_unregisterExceptionHandler(uintptr_t int_no) {
     hal_exception_handler_table[int_no] = NULL;
 }
 

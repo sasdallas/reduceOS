@@ -61,17 +61,17 @@ void hal_installIDT();
 
 /**
  * @brief Register an interrupt handler
- * @param int_no Interrupt number
+ * @param int_no Interrupt number (start at 0)
  * @param handler A handler. This should return 0 on success, anything else panics.
  *                It will take registers and extended registers as arguments.
  * @returns 0 on success, -EINVAL if handler is taken
  */
-int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler);
+int hal_registerInterruptHandler(uintptr_t int_no, interrupt_handler_t handler);
 
 /**
  * @brief Unregisters an interrupt handler
  */
-void hal_unregisterInterruptHandler(uint32_t int_no);
+void hal_unregisterInterruptHandler(uintptr_t int_no);
 
 /**
  * @brief Register an exception handler
@@ -80,12 +80,12 @@ void hal_unregisterInterruptHandler(uint32_t int_no);
  *                It will take an exception number, registers, and extended registers as arguments.
  * @returns 0 on success, -EINVAL if handler is taken
  */
-int hal_registerExceptionHandler(uint32_t int_no, exception_handler_t handler);
+int hal_registerExceptionHandler(uintptr_t int_no, exception_handler_t handler);
 
 /**
  * @brief Unregisters an exception handler
  */
-void hal_unregisterExceptionHandler(uint32_t int_no);
+void hal_unregisterExceptionHandler(uintptr_t int_no);
 
 /**
  * @brief Sets an RSDP if one was set

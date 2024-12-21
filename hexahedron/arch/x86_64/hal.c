@@ -75,18 +75,6 @@ void hal_init(int stage) {
 }
 
 
-/**
- * @brief Register an interrupt handler
- * @param int_no Interrupt number
- * @param handler A handler. This should return 0 on success, anything else panics.
- *                It will take registers and extended registers as arguments.
- * @returns 0 on success, -EINVAL if handler is taken
- */
-int hal_registerInterruptHandler(uint32_t int_no, interrupt_handler_t handler) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
-}
-
 
 /* PORT I/O FUNCTIONS */
 

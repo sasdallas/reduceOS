@@ -14,7 +14,10 @@
 #include <kernel/arch/x86_64/interrupt.h>
 #include <kernel/arch/x86_64/hal.h>
 #include <kernel/arch/x86_64/smp.h>
+#include <kernel/debug.h>
+#include <kernel/panic.h>
 
+#include <errno.h>
 #include <string.h>
 
 /* GDT */
@@ -44,6 +47,41 @@ interrupt_handler_t hal_handler_table[X86_64_MAX_INTERRUPTS];
 
 /* Exception handler table - TODO: More than one handler per exception? */
 exception_handler_t hal_exception_handler_table[X86_64_MAX_EXCEPTIONS];
+
+/* String table for exceptions */
+const char *hal_exception_table[X86_64_MAX_EXCEPTIONS] = {
+    "division error",
+    "debug trap",
+    "NMI exception",
+    "breakpoint trap",
+    "overflow trap",
+    "bound range exceeded",
+    "invalid opcode",
+    "device not available",
+    "double fault",
+    "coprocessor segment overrun",
+    "invalid TSS",
+    "segment not present",
+    "stack-segment fault",
+    "general protection fault",
+    "page fault",
+    "reserved",
+    "FPU exception",
+    "alignment check",
+    "machine check",
+    "SIMD floating-point exception",
+    "virtualization exception",
+    "control protection exception",
+    "reserved",
+    "reserved",
+    "reserved",
+    "reserved",
+    "reserved",
+    "reserved",
+    "hypervisor injection exception",
+    "VMM communication exception",
+    "security exception"
+};
 
 
 /**
@@ -121,19 +159,97 @@ int hal_registerInterruptVector(uint8_t index, uint8_t flags, uint16_t segment, 
     return 0;
 }
 
+
+/**
+ * @brief Handle ending an interrupt
+ */
+void hal_endInterrupt(uintptr_t interrupt_number) {
+    if (interrupt_number > 8) outportb(X86_64_PIC2_COMMAND, X86_64_PIC_EOI);
+    outportb(X86_64_PIC1_COMMAND, X86_64_PIC_EOI);
+}
+
 /**
  * @brief Common exception handler
  */
-void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
+void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
+    // Looks like no one caught this exception.
+    kernel_panic_prepare(CPU_EXCEPTION_UNHANDLED);
 
+    if (exception_index == 14) {
+        uintptr_t page_fault_addr = 0x0;
+        asm volatile ("movq %%cr2, %0" : "=a"(page_fault_addr));
+        dprintf(NOHEADER, "*** ISR detected exception: Page fault at address 0x%x\n\n", page_fault_addr);
+    } else if (exception_index < X86_64_MAX_EXCEPTIONS) {
+        dprintf(NOHEADER, "*** ISR detected exception %i - %s\n\n", exception_index, hal_exception_table[exception_index]);
+    } else {
+        dprintf(NOHEADER, "*** ISR detected exception %i - UNKNOWN TYPE\n\n", exception_index);
+    }
+    
+    
+
+    dprintf(NOHEADER, "\033[1;31mFAULT REGISTERS:\n\033[0;31m");
+
+    
+
+    kernel_panic_finalize();
+
+    for (;;);
 }
 
 
 /**
  * @brief Common interrupt handler
  */
-void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
-    
+void hal_interruptHandler(uintptr_t exception_index, uintptr_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
+    hal_endInterrupt(int_number);
+}
+
+/**
+ * @brief Register an interrupt handler
+ * @param int_no Interrupt number
+ * @param handler A handler. This should return 0 on success, anything else panics.
+ *                It will take an exception number, irq number, registers, and extended registers as arguments.
+ * @returns 0 on success, -EINVAL if handler is taken
+ */
+int hal_registerInterruptHandler(uintptr_t int_no, interrupt_handler_t handler) {
+    if (hal_handler_table[int_no] != NULL) {
+        return -EINVAL;
+    }
+
+    hal_handler_table[int_no] = handler;
+
+    return 0;
+}
+
+/**
+ * @brief Unregisters an interrupt handler
+ */
+void hal_unregisterInterruptHandler(uintptr_t int_no) {
+    hal_handler_table[int_no] = NULL;
+}
+
+/**
+ * @brief Register an exception handler
+ * @param int_no Exception number
+ * @param handler A handler. This should return 0 on success, anything else panics.
+ *                It will take an exception number, registers, and extended registers as arguments.
+ * @returns 0 on success, -EINVAL if handler is taken
+ */
+int hal_registerExceptionHandler(uintptr_t int_no, exception_handler_t handler) {
+    if (hal_exception_handler_table[int_no] != NULL) {
+        return -EINVAL;
+    }
+
+    hal_exception_handler_table[int_no] = handler;
+
+    return 0;
+}
+
+/**
+ * @brief Unregisters an exception handler
+ */
+void hal_unregisterExceptionHandler(uintptr_t int_no) {
+    hal_exception_handler_table[int_no] = NULL;
 }
 
 /**
@@ -178,6 +294,24 @@ void hal_initializePIC() {
     outportb(X86_64_PIC2_DATA, slave_mask);
 }
 
+/**
+ * @brief Disable the 8259 PIC(s)
+ */
+void hal_disablePIC() {
+    outportb(X86_64_PIC1_DATA, 0xFF);
+    outportb(X86_64_PIC2_DATA, 0xFF);
+}
+
+/**
+ * @brief Installs the IDT in the current AP
+ */
+void hal_installIDT() {
+    // Install the IDT
+    x86_64_idtr_t idtr; 
+    idtr.base = (uintptr_t)hal_idt_table;
+    idtr.limit = sizeof(hal_idt_table) - 1;
+    asm volatile("lidt %0" :: "m"(idtr));
+}
 
 /**
  * @brief Initializes the PIC, GDT/IDT, TSS, etc.
@@ -186,5 +320,65 @@ void hal_initializeInterrupts() {
     // Start the GDT
     hal_gdtInit();
 
-    
+    // Clear the IDT table
+    //memset((void*)hal_idt_table, 0x00, sizeof(hal_idt_table));
+
+    // Install the handlers
+    hal_registerInterruptVector(0, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halDivisionException);
+    hal_registerInterruptVector(1, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halDebugException);
+    hal_registerInterruptVector(2, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halNMIException);
+    hal_registerInterruptVector(3, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halBreakpointException);
+    hal_registerInterruptVector(4, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halOverflowException);
+    hal_registerInterruptVector(5, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halBoundException);
+    hal_registerInterruptVector(6, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halInvalidOpcodeException);
+    hal_registerInterruptVector(7, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halNoFPUException);
+    hal_registerInterruptVector(8, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halDoubleFaultException);
+    hal_registerInterruptVector(9, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halCoprocessorSegmentException);
+    hal_registerInterruptVector(10, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halInvalidTSSException);
+    hal_registerInterruptVector(11, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halSegmentNotPresentException);
+    hal_registerInterruptVector(12, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halStackSegmentException);
+    hal_registerInterruptVector(13, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halGeneralProtectionException);
+    hal_registerInterruptVector(14, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halPageFaultException);
+    hal_registerInterruptVector(15, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halReservedException);
+    hal_registerInterruptVector(16, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halFloatingPointException);
+    hal_registerInterruptVector(17, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halAlignmentCheck);
+    hal_registerInterruptVector(18, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halMachineCheck);
+    hal_registerInterruptVector(19, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halSIMDFloatingPointException);
+    hal_registerInterruptVector(20, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halVirtualizationException);
+    hal_registerInterruptVector(21, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halControlProtectionException);
+    hal_registerInterruptVector(28, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halHypervisorInjectionException);
+    hal_registerInterruptVector(29, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halVMMCommunicationException);
+    hal_registerInterruptVector(30, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halSecurityException);
+    hal_registerInterruptVector(31, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halReserved2Exception);
+
+    hal_registerInterruptVector(32, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ0);
+    hal_registerInterruptVector(33, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ1);
+    hal_registerInterruptVector(34, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ2);
+    hal_registerInterruptVector(35, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ3);
+    hal_registerInterruptVector(36, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ4);
+    hal_registerInterruptVector(37, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ5);
+    hal_registerInterruptVector(38, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ6);
+    hal_registerInterruptVector(39, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ7);
+    hal_registerInterruptVector(40, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ8);
+    hal_registerInterruptVector(41, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ9);
+    hal_registerInterruptVector(42, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ10);
+    hal_registerInterruptVector(43, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ11);
+    hal_registerInterruptVector(44, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ12);
+    hal_registerInterruptVector(45, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ13);
+    hal_registerInterruptVector(46, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ14);
+    hal_registerInterruptVector(47, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ15);
+
+    // Install IDT in BSP
+    hal_installIDT();
+
+    // Initialize 8259 PICs
+    hal_initializePIC();
+
+    // Enable interrupts
+    asm volatile ("sti");
+
+    int a = 0;
+    int b = 3 / a;
+    dprintf(NOHEADER, "%i", b);
+
 }
