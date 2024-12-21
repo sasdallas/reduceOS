@@ -98,6 +98,7 @@ void hal_setRSDP(uint64_t rsdp);
 uint64_t hal_getRSDP();
 
 /* I/O port functions (no headers) */
+void io_wait();
 void outportb(unsigned short port, unsigned char data);
 void outportw(unsigned short port, unsigned short data);
 void outportl(unsigned short port, unsigned long data);

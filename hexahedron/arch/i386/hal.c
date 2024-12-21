@@ -189,6 +189,11 @@ void hal_init(int stage) {
 
 /* PORT I/O FUNCTIONS */
 
+
+void io_wait() {
+    outportb(0x80, 0x00);
+}
+
 void outportb(unsigned short port, unsigned char data) {
     __asm__ __volatile__("outb %b[Data], %w[Port]" :: [Port] "Nd" (port), [Data] "a" (data));
 }

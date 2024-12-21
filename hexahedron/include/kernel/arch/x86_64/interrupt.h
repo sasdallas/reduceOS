@@ -25,7 +25,7 @@ typedef struct _x86_64_interrupt_descriptor {
     uint16_t base_lo;       // Low bits of the base (0 - 15)
     uint16_t selector;      // Code segment selector in GDT or LDT
     uint8_t ist;            // Interrupt stack table offset
-    uint8_t type;           // Gate type, DPL, and P fields
+    uint8_t flags;          // Gate type, DPL, and P fields
     uint16_t base_mid;      // Middle bits of the base (16 - 31)
     uint32_t base_hi;       // High bits of the base
     uint32_t reserved;      // Reserved (0)

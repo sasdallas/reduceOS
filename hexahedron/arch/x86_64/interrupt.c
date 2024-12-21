@@ -36,6 +36,15 @@ x86_64_gdt_t gdt[MAX_CPUS] __attribute__((used)) = {{
     {0x0000, 0x0000000000000000}                            // GDTR
 }};
 
+/* IDT */
+x86_64_interrupt_descriptor_t hal_idt_table[X86_64_MAX_INTERRUPTS];
+
+/* Interrupt handler table - TODO: More than one handler per interrupt? */
+interrupt_handler_t hal_handler_table[X86_64_MAX_INTERRUPTS];
+
+/* Exception handler table - TODO: More than one handler per exception? */
+exception_handler_t hal_exception_handler_table[X86_64_MAX_EXCEPTIONS];
+
 
 /**
  * @brief Sets up a core's data in the global GDT
@@ -85,9 +94,84 @@ void hal_gdtInit() {
 }
 
 /**
+ * @brief Register a vector in the IDT table.
+ * @warning THIS IS FOR INTERNAL USE ONLY. @see hal_registerInterruptHandler for
+ *          a proper handler register 
+ * 
+ * @note This isn't static because some more advanced functions will need
+ *       to set vectors up as usermode (with differing CPL/DPL)
+ * 
+ * @param index Index in the kernel IDT table (side note: this value cannot be wrong.)
+ * @param flags The flags. Recommended to use X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32 for kernel mode,
+ *              although you can OR by X86_64_IDT_DESC_RING3 for usermode
+ * @param segment The segment selector. Should always be 0x08.
+ * @param base The interrupt handler
+ *
+ * @returns 0. Anything else, and you're in for a REALLY bad day. 
+ */
+int hal_registerInterruptVector(uint8_t index, uint8_t flags, uint16_t segment, uint64_t base) {
+    hal_idt_table[index].base_lo = (base & 0xFFFF);
+    hal_idt_table[index].base_mid = (base >> 16) & 0xFFFF;
+    hal_idt_table[index].base_hi = (base >> 32) & 0xFFFFFFFF;
+    hal_idt_table[index].selector = segment;
+    hal_idt_table[index].flags = flags;
+    hal_idt_table[index].reserved = 0;
+    hal_idt_table[index].ist = 0;
+
+    return 0;
+}
+
+
+
+/**
+ * @brief Initialize the 8259 PIC(s)
+ * Uses default offsets 0x20 for master and 0x28 for slave
+ */
+void hal_initializePIC() {
+    uint8_t master_mask, slave_mask;
+
+    // Read & save the PIC masks
+    master_mask = inportb(X86_64_PIC1_DATA);
+    slave_mask = inportb(X86_64_PIC2_DATA);
+
+    // Begin initialization sequence in cascade mode
+    outportb(X86_64_PIC1_COMMAND, X86_64_PIC_ICW1_INIT | X86_64_PIC_ICW1_ICW4); 
+    io_wait();
+    outportb(X86_64_PIC2_COMMAND, X86_64_PIC_ICW1_INIT | X86_64_PIC_ICW1_ICW4);
+    io_wait();
+
+    // Send offsets
+    outportb(X86_64_PIC1_DATA, 0x20);
+    io_wait();
+    outportb(X86_64_PIC2_DATA, 0x28);
+    io_wait();
+
+    // Identify slave PIC to be at IRQ2
+    outportb(X86_64_PIC1_DATA, 4);
+    io_wait();
+
+    // Notify slave PIC of cascade identity
+    outportb(X86_64_PIC2_DATA, 2);
+    io_wait();
+
+    // Switch to 8086 mode
+    outportb(X86_64_PIC1_DATA, X86_64_PIC_ICW4_8086);
+    io_wait();
+    outportb(X86_64_PIC2_DATA, X86_64_PIC_ICW4_8086);  
+    io_wait();
+    
+    // Restore old masks
+    outportb(X86_64_PIC1_DATA, master_mask);
+    outportb(X86_64_PIC2_DATA, slave_mask);
+}
+
+
+/**
  * @brief Initializes the PIC, GDT/IDT, TSS, etc.
  */
 void hal_initializeInterrupts() {
     // Start the GDT
     hal_gdtInit();
+
+    
 }

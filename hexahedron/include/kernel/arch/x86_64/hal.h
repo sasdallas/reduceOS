@@ -73,11 +73,13 @@ void hal_unregisterExceptionHandler(uint32_t int_no);
 
 
 /* I/O port functions (no headers) */
+void io_wait();
 void outportb(unsigned short port, unsigned char data);
 void outportw(unsigned short port, unsigned short data);
 void outportl(unsigned short port, unsigned long data);
 unsigned char inportb(unsigned short port);
 unsigned short inportw(unsigned short port);
 unsigned long inportl(unsigned short port);
+
 
 #endif
