@@ -24,9 +24,9 @@
     /* This is pushing registers_t */
     pusha
 
-    pushl %gs
-    pushl %es
     pushl %ds
+    pushl %es
+    pushl %gs
 
     /* This is pushing extended regiisters */
     movl %cr0, %eax
@@ -49,12 +49,12 @@
     addl $28, %esp
 
     /* Now we're at the beginning of registers_t */
-    popl %ecx
-    movl %ecx, %ds
-    popl %ecx
-    movl %ecx, %es
-    popl %ecx
-    movl %ecx, %gs
+    popw %cx
+    movw %cx, %ds
+    popw %cx
+    movw %cx, %es
+    popw %cx
+    movw %cx, %gs
     
     /* Restore main registers */
     popa

@@ -189,7 +189,17 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
 
     dprintf(NOHEADER, "\033[1;31mFAULT REGISTERS:\n\033[0;31m");
 
-    
+    dprintf(NOHEADER, "RAX %016x RBX %016x RCX %016x RDX %016x\n", regs->rax, regs->rbx, regs->rcx, regs->rdx);
+    dprintf(NOHEADER, "RDI %016x RSI %016x RBP %016x RSP %016x\n", regs->rdi, regs->rsi, regs->rbp, regs->rsp);
+    dprintf(NOHEADER, "R8  %016x R9  %016x R10 %016x R11 %016x\n", regs->r8, regs->r9, regs->r10, regs->r11);
+    dprintf(NOHEADER, "R12 %016x R13 %016x R14 %016x R15 %016x\n", regs->r12, regs->r13, regs->r14, regs->r15);
+    dprintf(NOHEADER, "ERR %016x RIP %016x RFL %016x\n\n", regs->err_code, regs->rip, regs->rflags);
+
+    dprintf(NOHEADER, "CS %04x DS %04x FS %04x GS %04x SS %04x\n", regs->cs, regs->ds, regs->fs, regs->gs, regs->ss);
+
+
+
+
 
     kernel_panic_finalize();
 

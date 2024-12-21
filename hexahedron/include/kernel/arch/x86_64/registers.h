@@ -27,7 +27,9 @@ typedef struct _descriptor {
 
 // Registers structure 
 typedef struct _registers {
-    uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
+    uint16_t ds, fs, gs;
+
+    uint64_t r8, r9, r10, r11, r12, r13, r14, r15;
     uint64_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
 
     // Pushed by the wrapper
