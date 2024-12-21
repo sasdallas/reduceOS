@@ -321,7 +321,7 @@ void hal_initializeInterrupts() {
     hal_gdtInit();
 
     // Clear the IDT table
-    //memset((void*)hal_idt_table, 0x00, sizeof(hal_idt_table));
+    memset((void*)hal_idt_table, 0x00, sizeof(hal_idt_table));
 
     // Install the handlers
     hal_registerInterruptVector(0, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halDivisionException);
