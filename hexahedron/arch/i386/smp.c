@@ -38,7 +38,7 @@ static smp_info_t *smp_data = NULL;
 processor_t processor_data[MAX_CPUS] = {0};
 
 /* CPU count */
-int processor_count = 0;
+int processor_count = 1;
 
 
 
@@ -187,8 +187,8 @@ int smp_init(smp_info_t *info) {
     mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
     pmm_freeBlock(temp_frame);
 
-    LOG(INFO, "SMP initialization completed successfully - %i CPUs available to system\n", smp_getCPUCount());
-    processor_count = smp_getCPUCount();
+    processor_count = smp_data->processor_count;
+    LOG(INFO, "SMP initialization completed successfully - %i CPUs available to system\n", processor_count);
 
     return 0;
 }
@@ -197,8 +197,7 @@ int smp_init(smp_info_t *info) {
  * @brief Get the amount of CPUs present in the system
  */
 int smp_getCPUCount() {
-    if (smp_data) return smp_data->processor_count;
-    return 1;
+    return processor_count;
 }
 
 /**

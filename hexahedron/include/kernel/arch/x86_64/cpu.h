@@ -1,5 +1,5 @@
 /**
- * @file hexahedron/include/kernel/arch/i386/cpu.h
+ * @file hexahedron/include/kernel/arch/x86_64/cpu.h
  * @brief CPU-specific CPUID bits, MSRs, etc.
  * 
  * 
@@ -11,8 +11,8 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#ifndef KERNEL_ARCH_I386_CPU_H
-#define KERNEL_ARCH_I386_CPU_H
+#ifndef KERNEL_ARCH_X86_64_CPU_H
+#define KERNEL_ARCH_X86_64_CPU_H
 
 /**** INCLUDES ****/
 #include <stdint.h>
@@ -54,9 +54,12 @@
 #define CPUID_VENDOR_QNX           " QNXQVMBSQG "
 
 // MSRs (added as needed)
-#define I386_MSR_APIC_BASE          0x1B
-#define I386_MSR_APIC_BASE_BSP      0x100
-#define I386_MSR_APIC_BASE_ENABLE   0x800
+#define X86_64_MSR_APIC_BASE            0x1B
+#define X86_64_MSR_APIC_BASE_BSP        0x100
+#define X86_64_MSR_APIC_BASE_ENABLE     0x800
+
+#define X86_64_MSR_GSBASE               0xC0000101
+#define X86_64_MSR_KERNELGSBASE         0xC0000102
 
 /**** TYPES ****/
 enum {

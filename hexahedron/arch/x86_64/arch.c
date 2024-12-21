@@ -19,6 +19,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+// Architecture-specific
+#include <kernel/arch/x86_64/arch.h>
+#include <kernel/arch/x86_64/hal.h>
+#include <kernel/arch/x86_64/cpu.h>
+#include <kernel/arch/x86_64/smp.h>
+
 // General
 #include <kernel/config.h>
 #include <kernel/multiboot.h>
@@ -29,10 +35,7 @@
 #include <kernel/mem/pmm.h>
 #include <kernel/generic_mboot.h>
 #include <kernel/misc/spinlock.h>
-
-// Architecture-specific
-#include <kernel/arch/x86_64/arch.h>
-#include <kernel/arch/x86_64/hal.h>
+#include <kernel/processor_data.h>
 
 /* Parameters */
 generic_parameters_t *parameters = NULL;
@@ -138,6 +141,14 @@ uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
     return location;
 }
 
+/**
+ * @brief Set the GSbase using MSRs
+ */
+void arch_set_gsbase(uintptr_t base) {
+    cpu_setMSR(X86_64_MSR_GSBASE, base & 0xFFFFFFFF, (base >> 32) & 0xFFFFFFFF);
+    cpu_setMSR(X86_64_MSR_KERNELGSBASE, base & 0xFFFFFFFF, (base >> 32) & 0xFFFFFFFF);
+    asm volatile ("swapgs");
+}
 
 /**
  * @brief Main architecture function
@@ -145,6 +156,9 @@ uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
 void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     // !!!: Relocations may be required if I ever add back the relocatable tag
     // !!!: (which I should for compatibility)
+
+    // Setup GSBase first
+    arch_set_gsbase((uintptr_t)&processor_data[0]);
 
     // Initialize the hardware abstraction layer
     hal_init(HAL_STAGE_1);

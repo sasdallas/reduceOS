@@ -29,6 +29,7 @@
 #include <kernel/mem/pmm.h>
 #include <kernel/generic_mboot.h>
 #include <kernel/misc/spinlock.h>
+#include <kernel/processor_data.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>

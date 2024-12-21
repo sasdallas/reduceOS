@@ -249,7 +249,7 @@ _start:
 
     // Check PG - bootloader may already have enabled paging
     movl %cr0, %eax
-    test $0x800000000, %eax
+    test $0x80000000, %eax
     jnz .longmode_move_to_kernel    // bruh
 
     // Otherwise, enable paging.

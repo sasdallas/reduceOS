@@ -52,9 +52,13 @@ extern int processor_count;
  */
 
 #if defined(__ARCH_I386__)
+
 #define current_cpu ((processor_t*)&(processor_data[arch_current_cpu()]))
+
 #elif defined(__ARCH_X86_64__)
-processor_t __seg_gs * const current_cpu = 0;
+
+static processor_t __seg_gs * const current_cpu = 0;
+
 #else
 #error "Please define a method of getting processor data"
 #endif
