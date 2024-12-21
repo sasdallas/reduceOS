@@ -34,7 +34,7 @@ typedef struct _x86_64_interrupt_descriptor {
 
 typedef struct _x86_64_idtr {
     uint16_t limit;
-    uint32_t base;
+    uintptr_t base;
 } __attribute__((packed)) x86_64_idtr_t;
 
 
