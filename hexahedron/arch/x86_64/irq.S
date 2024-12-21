@@ -53,19 +53,21 @@
     pushw %ax
 
     /* This is pushing extended extended registers */
-    movq %cr0, %rax
-    pushq %rax
-    movq %cr2, %rax
+    
+    /* Toss the stack to below the idtr (uint16 + uint64 = 10 bytes * 2 = 20 bytes) */
+    sub $20, %rsp
+    sgdt (%rsp)
+    sidt 10(%rsp)
+
+    
+    movq %cr4, %rax
     pushq %rax
     movq %cr3, %rax
     pushq %rax
-    movq %cr4, %rax
+    movq %cr2, %rax
     pushq %rax
-
-    /* Toss the stack to below the idtr (uint16 + uint64 = 10 bytes * 2 = 20 bytes) */
-    sub $20, %rsp
-    sidt (%rsp)
-    sgdt 10(%rsp)
+    movq %cr0, %rax
+    pushq %rax
 .endm
 
 /* Restore registers macro */

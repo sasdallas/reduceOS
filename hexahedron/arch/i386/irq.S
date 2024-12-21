@@ -24,24 +24,27 @@
     /* This is pushing registers_t */
     pusha
 
-    pushl %ds
-    pushl %es
-    pushl %gs
+    pushw %ds
+    pushw %es
+    pushw %gs
 
-    /* This is pushing extended regiisters */
-    movl %cr0, %eax
-    pushl %eax
-    movl %cr2, %eax
-    push %eax
-    movl %cr3, %eax
-    pushl %eax
-    movl %cr4, %eax
-    push %eax
-
+    /* This is pushing extended registers */
+    
     /* Toss the stack to below the idtr (uint16 + uint32 = 6 bytes * 2 = 12 bytes) */
     sub $12, %esp
-    sidt (%esp)
-    sgdt 6(%esp)
+    sgdt (%esp)
+    sidt 6(%esp)
+
+    movl %cr4, %eax
+    pushl %eax
+    movl %cr3, %eax
+    push %eax
+    movl %cr2, %eax
+    pushl %eax
+    movl %cr0, %eax
+    push %eax
+
+    
 .endm
 
 .macro RESTORE_REGISTERS

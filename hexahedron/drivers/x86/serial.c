@@ -22,7 +22,13 @@
 
 #include <kernel/drivers/x86/serial.h>
 #include <kernel/drivers/serial.h>
-#include <kernel/arch/i386/hal.h> // !!!!!! BAD HAL PROBLEM
+
+#if defined(__ARCH_I386__)
+#include <kernel/arch/i386/hal.h>
+#elif defined(__ARCH_X86_64__)
+#include <kernel/arch/x86_64/hal.h>
+#endif
+
 #include <kernel/config.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>

@@ -195,10 +195,10 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
     dprintf(NOHEADER, "R12 %016x R13 %016x R14 %016x R15 %016x\n", regs->r12, regs->r13, regs->r14, regs->r15);
     dprintf(NOHEADER, "ERR %016x RIP %016x RFL %016x\n\n", regs->err_code, regs->rip, regs->rflags);
 
-    dprintf(NOHEADER, "CS %04x DS %04x FS %04x GS %04x SS %04x\n", regs->cs, regs->ds, regs->fs, regs->gs, regs->ss);
-
-
-
+    dprintf(NOHEADER, "CS %04x DS %04x FS %04x GS %04x SS %04x\n\n", regs->cs, regs->ds, regs->fs, regs->gs, regs->ss);
+    dprintf(NOHEADER, "CR0 %08x CR2 %016x CR3 %016x CR4 %08x\n", regs_extended->cr0, regs_extended->cr2, regs_extended->cr3, regs_extended->cr4);
+    dprintf(NOHEADER, "GDTR %016x %04x\n", regs_extended->gdtr.base, regs_extended->gdtr.limit);
+    dprintf(NOHEADER, "IDTR %016x %04x\n", regs_extended->idtr.base, regs_extended->idtr.limit);
 
 
     kernel_panic_finalize();

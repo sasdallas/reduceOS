@@ -6,10 +6,7 @@
  |.'    | .'
  +------+'
 
-Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Dec 21 2024 11:15:13
+Hexahedron 1.0.1-i386-DEBUG (codename "Phoenix")
+	Compiled by GCC 14.1.0 on Dec 21 2024 11:41:13
 
-[no clock ready] [INFO] [CLOCK] TSC calculated speed is 4 MHz
-[no clock ready] [INFO] [CLOCK] Initial boot time is 1734779735 (UNIX timestamp)
-[no clock ready] [INFO] [CLOCK] TSC baseline is 21747920us
-0[Sat Dec 21 11:15:35 2024] [CPU0] [INFO] Found a Multiboot1 structure
+[no clock ready] [INFO] I

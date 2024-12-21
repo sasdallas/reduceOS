@@ -15,7 +15,12 @@
 
 #include <kernel/drivers/x86/pit.h>
 #include <kernel/drivers/clock.h>
-#include <kernel/arch/i386/hal.h> // !! BAD HAL PROBLEM
+
+#if defined(__ARCH_I386__)
+#include <kernel/arch/i386/hal.h>
+#elif defined(__ARCH_X86_64__)
+#include <kernel/arch/x86_64/hal.h>
+#endif
 
 #include <kernel/debug.h>
 
