@@ -158,7 +158,7 @@ void lapic_sendInit(uint8_t lapic_id) {
  * @brief Local APIC spurious IRQ
  * @note This is the same between x86_64 and i386.
  */
-int lapic_irq(uint32_t exception_index, uint32_t irq_number, registers_t *registers, extended_registers_t *extended) {
+int lapic_irq(uintptr_t exception_index, uintptr_t irq_number, registers_t *registers, extended_registers_t *extended) {
     LOG(DEBUG, "Spurious local APIC IRQ\n");
     return 0;
 }

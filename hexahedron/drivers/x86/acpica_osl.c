@@ -241,7 +241,7 @@ void AcpiOsReleaseLock(ACPI_SPINLOCK Handle, ACPI_CPU_FLAGS Flags) {
 ACPI_OSD_HANDLER ACPI_interruptHandlers[MAX_ACPI_INTERRUPT_HANDLERS];
 void *ACPI_interruptContext[MAX_ACPI_INTERRUPT_HANDLERS];
 
-int ACPICA_InterruptHandler(uint32_t exception_number, uint32_t int_number, registers_t *registers, extended_registers_t *extended) {
+int ACPICA_InterruptHandler(uintptr_t exception_number, uintptr_t int_number, registers_t *registers, extended_registers_t *extended) {
     if (ACPI_interruptHandlers[int_number]) {
         ACPI_interruptHandlers[int_number](ACPI_interruptContext[int_number]);
     }
