@@ -3,7 +3,8 @@
         {
             "name": "linux-gcc-x64",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/hexahedron/include/"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

@@ -7,25 +7,9 @@
  +------+'
 
 Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Dec 20 2024 11:38:37
+	Compiled by GCC 14.1.0 on Dec 21 2024 09:52:37
 
-[no clock ready] [INFO] Found a Multiboot1 structure
-[no clock ready] [DBG ] Reserving 0x11e000 - 0x11e038
-[no clock ready] [DBG ] Reserving 0x11e038 - 0x11e039
-[no clock ready] [DBG ] Reserving 0x11e039 - 0x11e054
-[no clock ready] [DBG ] Reserving 0x11e054 - 0x11e06c
-[no clock ready] [DBG ] Reserving 0x11e06c - 0x11e08c
-[no clock ready] [DBG ] Memory descriptor 0x11e06c - 0x0000000000000000 len 0x000000000009F000 type 0x0 last descriptor 0x11e06c
-[no clock ready] [DBG ] Reserving 0x11e08c - 0x11e0ac
-[no clock ready] [DBG ] Memory descriptor 0x11e08c - 0x000000000009F000 len 0x0000000000001000 type 0x1 last descriptor 0x11e06c
-[no clock ready] [DBG ] Reserving 0x11e0ac - 0x11e0cc
-[no clock ready] [DBG ] Memory descriptor 0x11e0ac - 0x00000000000E8000 len 0x0000000000018000 type 0x1 last descriptor 0x11e08c
-[no clock ready] [DBG ] Reserving 0x11e0cc - 0x11e0ec
-[no clock ready] [DBG ] Memory descriptor 0x11e0cc - 0x0000000000100000 len 0x0000000001EF0000 type 0x0 last descriptor 0x11e0ac
-[no clock ready] [DBG ] Reserving 0x11e0ec - 0x11e10c
-[no clock ready] [DBG ] Memory descriptor 0x11e0ec - 0x0000000001FF0000 len 0x0000000000010000 type 0x2 last descriptor 0x11e0cc
-[no clock ready] [DBG ] Reserving 0x11e10c - 0x11e12c
-[no clock ready] [DBG ] Memory descriptor 0x11e10c - 0x00000000FFFC0000 len 0x0000000000040000 type 0x1 last descriptor 0x11e0ec
-[no clock ready] [DBG ] Reserving 0x11e12c - 0x11e14c
-[no clock ready] [INFO] Loaded by 'GRUB 2.06-2ubuntu7.2+zorin' with command line ''
-[no clock ready] [INFO] Available physical memory to machine: 32316 KB
+[no clock ready] [INFO] [CLOCK] TSC calculated speed is 4 MHz
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1734774787 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 23775762us
+[Sat Dec 21 09:53:07 2024] [CPU0] [INFO] Found a Multiboot1 structure

@@ -42,6 +42,9 @@ static void hal_init_stage1() {
 
     // Initialize clock driver
     clock_initialize();
+
+    // Initialize interrupts
+    hal_initializeInterrupts();
 }
 
 

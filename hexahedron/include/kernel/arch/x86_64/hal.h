@@ -17,7 +17,7 @@
 #define KERNEL_ARCH_X86_64_HAL_H
 
 /**** INCLUDES ****/
-#include <kernel/arch/i386/interrupt.h>
+#include <kernel/arch/x86_64/interrupt.h>
 #include <stdint.h>
 
 /**** DEFINITIONS ****/
@@ -37,6 +37,11 @@
  * @todo A better driver interface is needed.
  */
 void hal_init(int stage);
+
+/**
+ * @brief Initializes the PIC, GDT/IDT, TSS, etc.
+ */
+void hal_initializeInterrupts();
 
 /**
  * @brief Register an interrupt handler

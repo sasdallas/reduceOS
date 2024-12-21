@@ -15,7 +15,9 @@
     "registers.h": "c",
     "hal.h": "c",
     "interrupt.h": "c",
-    "time.h": "c"
+    "time.h": "c",
+    "stdint.h": "c",
+    "panic.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
