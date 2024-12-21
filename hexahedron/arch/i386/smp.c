@@ -16,8 +16,10 @@
 #include <kernel/arch/i386/hal.h>
 #include <kernel/arch/i386/interrupt.h>
 #include <kernel/arch/i386/cpu.h>
+#include <kernel/processor_data.h>
 #include <kernel/drivers/x86/local_apic.h>
 #include <kernel/drivers/x86/clock.h>
+
 
 #include <kernel/mem/pmm.h>
 #include <kernel/mem/mem.h>
@@ -31,6 +33,14 @@
 
 /* SMP data */
 static smp_info_t *smp_data = NULL;
+
+/* CPU data */
+processor_t processor_data[MAX_CPUS] = {0};
+
+/* CPU count */
+int processor_count = 0;
+
+
 
 /* Local APIC mmio address */
 uintptr_t lapic_remapped = 0;
@@ -63,6 +73,17 @@ static void smp_delay(unsigned int delay) {
     while (clock_readTSC() < clock + delay * clock_getTSCSpeed());
 }
 
+/**
+ * @brief Collect AP information to store in processor_data
+ * @param ap The core to store information on
+ */
+static void smp_collectAPInfo(int ap) {
+    current_cpu->cpu_id = smp_getCurrentCPU();
+    current_cpu->cpu_manufacturer = cpu_getVendorName();
+    strncpy(current_cpu->cpu_model, cpu_getBrandString(), 48);
+    current_cpu->cpu_model_number = cpu_getModelNumber();
+    current_cpu->cpu_family = cpu_getFamily();
+}
 
 
 /**
@@ -87,12 +108,16 @@ __attribute__((noreturn)) void smp_finalizeAP() {
     // Reinitialize the APIC
     lapic_initialize(lapic_remapped);
 
+    // Now collect information
+    smp_collectAPInfo(smp_getCurrentCPU());
+
     // Allow BSP to continue
     LOG(DEBUG, "CPU%i online and ready\n", smp_getCurrentCPU());
     ap_startup_finished = 1;
 
     for (;;);
 }
+
 
 
 
@@ -163,6 +188,7 @@ int smp_init(smp_info_t *info) {
     pmm_freeBlock(temp_frame);
 
     LOG(INFO, "SMP initialization completed successfully - %i CPUs available to system\n", smp_getCPUCount());
+    processor_count = smp_getCPUCount();
 
     return 0;
 }

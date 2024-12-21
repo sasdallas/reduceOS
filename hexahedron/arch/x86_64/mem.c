@@ -12,6 +12,7 @@
 
 #include <kernel/arch/x86_64/mem.h>
 #include <kernel/mem/mem.h>
+#include <kernel/mem/pmm.h>
 #include <kernel/panic.h>
 
 /* Stub variables */

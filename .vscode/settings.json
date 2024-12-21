@@ -17,7 +17,8 @@
     "interrupt.h": "c",
     "time.h": "c",
     "stdint.h": "c",
-    "panic.h": "c"
+    "panic.h": "c",
+    "debug.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",

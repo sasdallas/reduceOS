@@ -161,6 +161,24 @@ void cpu_getMSR(uint32_t msr, uint32_t *lo, uint32_t *hi);
  */
 void cpu_setMSR(uint32_t msr, uint32_t lo, uint32_t hi);
 
+/**
+ * @brief Get the vendor name of a CPU, cleaned up
+ */
+char *cpu_getVendorName();
 
+/**
+ * @brief Get the model number of a CPU
+ */
+uint8_t cpu_getModelNumber();
+
+/**
+ * @brief Get the family of a CPU
+ */
+uint8_t cpu_getFamily();
+
+/**
+ * @brief Get the CPU brand string
+ */
+char *cpu_getBrandString();
 
 #endif

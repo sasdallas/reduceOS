@@ -77,10 +77,9 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags);
 int mem_switchDirectory(page_t *pagedir);
 
 /**
- * @brief Get the kernel page directory
+ * @brief Get the kernel page directory/root-level PML
  */
 page_t *mem_getKernelDirectory();
-
 
 /**
  * @brief Map a physical address to a virtual address
@@ -124,7 +123,7 @@ void mem_unmapPhys(uintptr_t frame_address, uintptr_t size);
 void mem_outofmemory(int bytes, char *seq);
 
 /**
- * @brief Get the current page directory
+ * @brief Get the current page directory/root-level PML
  */
 page_t *mem_getCurrentDirectory();
 
