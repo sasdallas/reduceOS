@@ -121,7 +121,20 @@ int hal_registerInterruptVector(uint8_t index, uint8_t flags, uint16_t segment, 
     return 0;
 }
 
+/**
+ * @brief Common exception handler
+ */
+void hal_exceptionHandler(uint32_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
 
+}
+
+
+/**
+ * @brief Common interrupt handler
+ */
+void hal_interruptHandler(uint32_t exception_index, uint32_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
+    
+}
 
 /**
  * @brief Initialize the 8259 PIC(s)

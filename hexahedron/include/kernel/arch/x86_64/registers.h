@@ -1,6 +1,6 @@
 /**
- * @file hexahedron/include/kernel/arch/i386/registers.h
- * @brief i386 registers
+ * @file hexahedron/include/kernel/arch/x86_64/registers.h
+ * @brief Registers structure for x86_64
  * 
  * 
  * @copyright
@@ -11,43 +11,40 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#ifndef KERNEL_ARCH_I386_REGISTERS_H
-#define KERNEL_ARCH_I386_REGISTERS_H
+#ifndef KERNEL_ARCH_X86_64_REGISTERS_H
+#define KERNEL_ARCH_X86_64_REGISTERS_H
 
 /**** INCLUDES ****/
 #include <stdint.h>
 
-
-/**** TYPES ****/
+/***** TYPES ****/
 
 // Descriptor (e.g. gdtr, idtr)
 typedef struct _descriptor {
     uint16_t limit;
-    uint32_t base;
+    uint64_t base;
 } __attribute__((packed)) descriptor_t;
 
-// Registers (Used by interrupts & exceptions)
-// Some of these are pushed by the CPU
+// Registers structure 
 typedef struct _registers {
-    uint32_t ds, es, gs; // why are we using uint32
-    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax; // Pushed by pusha
+    uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
+    uint64_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
 
     // Pushed by the wrapper
-    uint32_t err_code;
-
+    uintptr_t err_code;
+    
     // Pushed by the CPU
-    uint32_t eip, cs, eflags, useresp, ss;
+    uintptr_t rip, cs, rflags, rsp, ss;
 } __attribute__((packed)) registers_t;
 
-// Extended registers. Interrupts/exceptions will push this.
+// Extended registers
 typedef struct _extended_registers {
-    uint32_t cr0;
-    uint32_t cr2;
-    uint32_t cr3;
-    uint32_t cr4;
+    uint64_t cr0;
+    uint64_t cr2;
+    uint64_t cr3;
+    uint64_t cr4;
     descriptor_t gdtr;
     descriptor_t idtr;
 } __attribute__((packed)) extended_registers_t;
-
 
 #endif
