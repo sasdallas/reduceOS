@@ -1,4 +1,12 @@
 # reduceOS
+
+## IMPORTANT
+A third rewrite of the kernel is in progress - you can view it at [this link](https://github.com/sasdallas/Hexahedron)\
+In the meantime, make sure to treat every piece of code in the reduceOS kernel with some heavy grains of salt. It won't compile on newer
+GCC versions, is full of junky and unused code, and isn't my best work
+
+
+
 [![CodeFactor](https://www.codefactor.io/repository/github/sasdallas/reduceos/badge/rewrite)](https://www.codefactor.io/repository/github/sasdallas/reduceos/overview/rewrite)
 
 Welcome to the in progress development of reduceOS.\
