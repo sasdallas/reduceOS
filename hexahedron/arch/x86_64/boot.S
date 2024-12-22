@@ -131,7 +131,7 @@ __stack_top:
 .section .bootstrap
 .code32
 
-.extern mem_initialPageRegion
+.extern mem_kernelPML
 
 
 .global _start
@@ -205,7 +205,7 @@ _start:
 .paging_init:
     // We need to now setup our paging structures.
     // This should've already been zeroed out by the loader as part of the ELF file.
-    movl $mem_initialPageRegion, %edi
+    movl $mem_kernelPML, %edi
 
     // Set entry #0 of PML4 to point to PDPT[0] with present, writable, and user
     mov $0x1007, %eax
@@ -219,21 +219,22 @@ _start:
     mov %eax, (%edi)
 
     // Setup 32 2MiB pages to map 64MiB of low memory temporarily (source: ToaruOS).
+    // !!!: We don't check if this is supported, and the memory subsystem was not designed with 2MiB (as of Dec 22nd)
     // 0x0000000000000000-0x0000000003ffffff -> 0x000000000000-0x000003ffffff
     add $0x1000, %edi       // Move to next entry
-    mov $0x87, %ebx         // Present, writable, usermode, and PAT
-    mov $32, %ecx           // Loop amount (32 2MiB pages)
+    mov $0x87, %ebx         // Present, writable, usermode, and page size
+    mov $32, %ecx           // Loop amount (400 4KiB pages)
 
 .paging_set_entry_loop:
     // Loop through each entry 
     mov %ebx, (%edi)        // Write the entry
-    add $0x200000, %ebx     // Add 2MiB to value
+    add $0x200000, %ebx     // Add 2MiB
     add $8, %edi            // Next entry
     loop .paging_set_entry_loop
 
 .paging_enable:
     // Set CR3 to point to our PML4
-    movl $mem_initialPageRegion, %edi
+    movl $mem_kernelPML, %edi
     movl %edi, %cr3
 
     // Enable PAE, it is required for long mode.

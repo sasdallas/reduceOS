@@ -42,9 +42,13 @@ static void hal_init_stage1() {
 
     // Initialize clock driver
     clock_initialize();
+    dprintf(INFO, "Clock initialized\n");
 
     // Initialize interrupts
     hal_initializeInterrupts();
+    dprintf(INFO, "Interrupts enabled.\n");
+
+    dprintf(INFO, "HAL stage 1 initialization completed\n");
 }
 
 

@@ -386,9 +386,4 @@ void hal_initializeInterrupts() {
 
     // Enable interrupts
     asm volatile ("sti");
-
-    int a = 0;
-    int b = 3 / a;
-    dprintf(NOHEADER, "%i", b);
-
 }

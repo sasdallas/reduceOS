@@ -79,6 +79,7 @@ enum {
     CPUID_FEAT_ECX_CX16         = 1 << 13,
     CPUID_FEAT_ECX_XTPR         = 1 << 14,
     CPUID_FEAT_ECX_PDCM         = 1 << 15,
+    CPUID_FEAT_ECX_PML5         = 1 << 16, // added
     CPUID_FEAT_ECX_PCID         = 1 << 17,
     CPUID_FEAT_ECX_DCA          = 1 << 18,
     CPUID_FEAT_ECX_SSE4_1       = 1 << 19,
@@ -139,7 +140,22 @@ enum cpuid_requests {
     CPUID_INTELBRANDSTRING,
     CPUID_INTELBRANDSTRINGMORE,
     CPUID_INTELBRANDSTRINGEND,
+
+    CPUID_INTELADDRSIZE = 0x80000008,
 };
+
+// Union to help with EAX
+typedef union {
+    struct {
+        uint32_t physical_address_bits:8;
+
+        uint32_t linear_address_bits:8;
+        
+        uint32_t reserved:16;
+    } bits;
+
+    uint32_t raw;
+} CPUID_INTELADDRSIZE_EAX;
 
 /**** FUNCTIONS ****/
 
@@ -183,5 +199,17 @@ uint8_t cpu_getFamily();
  * @brief Get the CPU brand string
  */
 char *cpu_getBrandString();
+
+/**
+ * @brief x86_64: Check if 5-level paging is supported
+ */
+int cpu_pml5supported();
+
+/**
+ * @brief x86_64: Get the maximum linear-address width supported by the CPU
+ * 
+ * CPUID check of 0x80000008
+ */
+uint32_t cpu_getMaxLinearAddress();
 
 #endif

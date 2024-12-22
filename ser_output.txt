@@ -6,7 +6,61 @@
  |.'    | .'
  +------+'
 
-Hexahedron 1.0.1-i386-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Dec 21 2024 11:41:13
+Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
+	Compiled by GCC 14.1.0 on Dec 22 2024 11:13:02
 
-[no clock ready] [INFO] I
+[no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
+[no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1734866009 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 43892us
+[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] Clock initialized
+[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] Interrupts enabled.
+[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] HAL stage 1 initialization completed
+[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] Found a Multiboot1 structure
+[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
+[Sun Dec 22 11:13:29 2024] [CPU0] [DBG ] Kernel requires 300 pages
+[Sun Dec 22 11:13:29 2024] [CPU0] [DBG ] Kernel pt mapped
+    .+------+
+  .' |    .'|
+ +---+--+'  |	H E X A H E D R O N   K E R N E L
+ |   |  |   |	Created by @sasdallas
+ |  .+--+---+
+ |.'    | .'
+ +------+'
+
+Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
+	Compiled by GCC 14.1.0 on Dec 22 2024 11:13:02
+
+[no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
+[no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1734867089 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 2159480us
+[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] Clock initialized
+[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] Interrupts enabled.
+[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] HAL stage 1 initialization completed
+[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] Found a Multiboot1 structure
+[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
+[Sun Dec 22 11:31:29 2024] [CPU0] [DBG ] Kernel requires 300 pages
+[Sun Dec 22 11:31:29 2024] [CPU0] [DBG ] Kernel pt mapped
+    .+------+
+  .' |    .'|
+ +---+--+'  |	H E X A H E D R O N   K E R N E L
+ |   |  |   |	Created by @sasdallas
+ |  .+--+---+
+ |.'    | .'
+ +------+'
+
+Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
+	Compiled by GCC 14.1.0 on Dec 22 2024 11:13:02
+
+[no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
+[no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1734868161 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 2143795us
+[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] Clock initialized
+[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] Interrupts enabled.
+[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] HAL stage 1 initialization completed
+[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] Found a Multiboot1 structure
+[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
+[Sun Dec 22 11:49:21 2024] [CPU0] [DBG ] Kernel requires 300 pages
+[Sun Dec 22 11:49:21 2024] [CPU0] [DBG ] Kernel pt mapped

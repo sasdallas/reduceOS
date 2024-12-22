@@ -24,6 +24,7 @@
 #include <kernel/arch/x86_64/hal.h>
 #include <kernel/arch/x86_64/cpu.h>
 #include <kernel/arch/x86_64/smp.h>
+#include <kernel/arch/x86_64/mem.h>
 
 // General
 #include <kernel/config.h>
@@ -178,7 +179,8 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** Unknown multiboot structure when checking kernel.\n");
     }
 
-    
+    // Now, we can initialize memory systems.
+    mem_init(memory_size, highest_kernel_address);
 
 
     for (;;);
