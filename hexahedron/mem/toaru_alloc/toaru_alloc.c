@@ -83,8 +83,14 @@ allocator_info_t *alloc_getInfo() {
  * Defines for often-used integral values
  * related to our binning and paging strategy.
  */
+#if defined(__ARCH_I386__)
 #define NUM_BINS 11U								/* Number of bins, total, under 32-bit. */
 #define SMALLEST_BIN_LOG 2U							/* Logarithm base two of the smallest bin: log_2(sizeof(int32)). */
+#elif defined(__ARCH_X86_64__)
+#define NUM_BINS 10U
+#define SMALLEST_BIN_LOG 3U
+#endif 
+
 #define BIG_BIN (NUM_BINS - 1)						/* Index for the big bin, (NUM_BINS - 1) */
 #define SMALLEST_BIN (1UL << SMALLEST_BIN_LOG)		/* Size of the smallest bin. */
 
@@ -125,6 +131,7 @@ static void klfree(void * ptr);
  
 
 void * __attribute__ ((malloc)) alloc_malloc(uintptr_t size) {
+	dprintf(DEBUG, "alloc_malloc 0x%x\n", size);
 	void * out = klmalloc(size);
 	return out;
 }

@@ -21,35 +21,40 @@
 #include <kernel/processor_data.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <kernel/misc/spinlock.h>
 
 #include <stdint.h>
 #include <string.h>
 
-/* Stub variables */
+// Heap/identity map stuff
 uintptr_t mem_kernelHeap                = 0xAAAAAAAAAAAAAAAA; // Kernel heap
+
+// Spinlocks (stack-allocated - no spinlock for ID map is required as pool system handles that)
+static spinlock_t heap_lock = { 0 };
+
+// Stub variables
 uintptr_t mem_mapPool                   = 0xAAAAAAAAAAAAAAAA;
 uintptr_t mem_identityMapCacheSize      = 0xAAAAAAAAAAAAAAAA;   
 
 
-/* Whether to use 5-level paging */
+// Whether to use 5-level paging
 static int mem_use5LevelPaging = 0;
 
-/* Base page layout - loader uses this */
+// Base page layout - loader uses this
 page_t mem_kernelPML[3][512] __attribute__((aligned(PAGE_SIZE))) = {0};
 
 
-/* Low base PDPT/PD/PT (identity mapping space for kernel/other stuff) */
+// Low base PDPT/PD/PT (identity mapping space for kernel/other stuff)
 page_t mem_lowBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0}; 
 page_t mem_lowBasePD[512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_lowBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
 
-/* High base PDPT/PD/PT (identity mapping space for anything) */
+// High base PDPT/PD/PT (identity mapping space for anything)
 // NOTE: This is not my implementation of high base mapping (see ToaruOS)
 page_t mem_highBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_highBasePDs[64][512] __attribute__((aligned(PAGE_SIZE))) = {0}; // If we're already using 2MiB paging, why bother with PTs? 
 
-
-/* Heap PDPT/PD/PT */
+// Heap PDPT/PD/PT
 page_t mem_heapBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_heapBasePD[512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_heapBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
@@ -66,20 +71,10 @@ page_t mem_heapBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
  * @param virt The virtual address
  */
 void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    page_t *pg = mem_getPage(dir, virt, MEM_CREATE);
+    MEM_SET_FRAME(pg, phys);
 }
 
-/**
- * @brief Expand/shrink the kernel heap
- * 
- * @param b The amount of bytes to allocate/free, needs to a multiple of PAGE_SIZE
- * @returns Address of the start of the bytes when allocating, or the previous address when shrinking
- */
-uintptr_t mem_sbrk(int b) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
-}
 
 /**
  * @brief Returns the page entry requested
@@ -406,8 +401,71 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     extern void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size);
     arch_mark_memory(kernel_addr, mem_size);
 
-    page_t *pg = mem_getPage(NULL, 0xF00000000, MEM_CREATE);
-    mem_allocatePage(pg, MEM_DEFAULT);
+    // Setup kernel heap to point to after frames
+    mem_kernelHeap = MEM_HEAP_REGION + frame_bytes;
+
+    // Now expand a little past the frame space (TODO: do we need to?)
+    mem_sbrk(0x1000);
 
     dprintf(INFO, "Memory management initialized\n");
+}
+
+/**
+ * @brief Expand/shrink the kernel heap
+ * 
+ * @param b The amount of bytes to allocate/free, needs to a multiple of PAGE_SIZE
+ * @returns Address of the start of the bytes when allocating, or the previous address when shrinking
+ */
+uintptr_t mem_sbrk(int b) {// Sanity checks
+    if (!mem_kernelHeap) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "Heap not yet ready\n");
+        __builtin_unreachable();
+    }
+
+    // Passing b as 0 means they just want the current heap address
+    if (!b) return mem_kernelHeap;
+
+    // Make sure the passed integer is a multiple of PAGE_SIZE
+    if (b % PAGE_SIZE != 0) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "Heap size expansion must be a multiple of 0x%x\n", PAGE_SIZE);
+        __builtin_unreachable();
+    }
+
+
+    // Now lock
+    spinlock_acquire(&heap_lock);
+
+    // If you need to shrink the heap, you can pass a negative integer
+    if (b < 0) {
+        for (uintptr_t i = mem_kernelHeap; i >= mem_kernelHeap + b; i -= 0x1000) {
+            mem_freePage(mem_getPage(NULL, i, 0));
+        }
+
+        uintptr_t oldStart = mem_kernelHeap;
+        mem_kernelHeap += b; // Subtracting wouldn't be very good, would it?
+        spinlock_release(&heap_lock);
+        return oldStart;
+    }
+
+    for (uintptr_t i = mem_kernelHeap; i < mem_kernelHeap + b; i += 0x1000) {
+        // Check if the page already exists
+        page_t *pagechk = mem_getPage(NULL, i, 0);
+        if (pagechk->bits.present) {
+            // hmmm
+            dprintf(WARN, "sbrk found odd pages at 0x%x - 0x%x\n", i, i + 0x1000);
+            
+            // whatever its free memory
+            continue;
+        }
+
+        page_t *page = mem_getPage(NULL, i, MEM_CREATE);
+        mem_allocatePage(page, MEM_KERNEL);
+    }
+
+    dprintf(INFO, "Heap expanded to 0x%x\n", mem_kernelHeap + b);
+
+    uintptr_t oldStart = mem_kernelHeap;
+    mem_kernelHeap += b;
+    spinlock_release(&heap_lock);
+    return oldStart;
 }
