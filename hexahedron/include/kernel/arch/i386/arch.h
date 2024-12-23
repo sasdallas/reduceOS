@@ -46,6 +46,6 @@ generic_parameters_t *arch_parse_multiboot2(multiboot_t *bootinfo);
  * @brief Mark/unmark valid spots in memory
  * @todo Work in tandem with mem.h to allow for a maximum amount of blocks to be used
  */
-void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_address);
+void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_address, uintptr_t mem_size);
 
 #endif

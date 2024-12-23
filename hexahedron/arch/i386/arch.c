@@ -182,7 +182,7 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     pmm_init(parameters->mem_size * 1024, pmm_frames);
 
     // Mark memory as valid/invalid. 
-    arch_mark_memory(parameters, highest_kernel_address);
+    arch_mark_memory(parameters, highest_kernel_address, parameters->mem_size * 1024);
 
     extern uint32_t __text_start;
     uintptr_t kernel_end = (uintptr_t)&__bss_end;

@@ -354,7 +354,7 @@ void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size) {
 
     if (is_mb2) {
         dprintf(INFO, "Mb2 unimplemented\n");
-        
+
     } else {
         // Bootinfo needs to be remapped using memory
         multiboot_t *bootinfo = (multiboot_t*)mem_remapPhys((uintptr_t)stored_bootinfo, MEM_ALIGN_PAGE(sizeof(multiboot_t)));
@@ -372,8 +372,6 @@ void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size) {
                 if (mmap->addr + mmap->len < mem_size) {
                     dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as unavailable memory\n", mmap->addr, mmap->addr + mmap->len, mmap->len / 1024);
                     pmm_deinitializeRegion((uintptr_t)mmap->addr, (uintptr_t)mmap->len);
-                } else {
-                    dprintf(DEBUG, "Cannot mark memory descriptor %016llX - %016llX (%i KB)\n", mmap->addr, mmap->addr + mmap->len, mmap->len / 1024);
                 }
             }
 
@@ -387,6 +385,7 @@ void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size) {
     dprintf(DEBUG, "Marked memory descriptor %016X - %016X (%i KB) as kernel memory\n", kernel_start, highest_address, (highest_address - kernel_start) / 1024);
     pmm_deinitializeRegion(kernel_start, highest_address - kernel_start);    
 
+    // Done!
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());
 }
 
