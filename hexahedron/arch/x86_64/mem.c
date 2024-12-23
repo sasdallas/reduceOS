@@ -250,6 +250,17 @@ void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
 
 
 /**
+ * @brief Get the physical address of a virtual address
+ * @param dir Can be NULL to use the current directory.
+ * @param virtaddr The virtual address
+ * 
+ * @returns NULL on a PDE not being present or the address
+ */
+uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
+    return MEM_GET_FRAME(mem_getPage(dir, virtaddr, MEM_DEFAULT));
+}
+
+/**
  * @brief Initialize the memory management subsystem
  * 
  * This function will identity map the kernel into memory and setup page tables.
@@ -461,8 +472,6 @@ uintptr_t mem_sbrk(int b) {// Sanity checks
         page_t *page = mem_getPage(NULL, i, MEM_CREATE);
         mem_allocatePage(page, MEM_KERNEL);
     }
-
-    dprintf(INFO, "Heap expanded to 0x%x\n", mem_kernelHeap + b);
 
     uintptr_t oldStart = mem_kernelHeap;
     mem_kernelHeap += b;

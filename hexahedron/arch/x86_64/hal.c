@@ -18,13 +18,39 @@
 
 // Kernel includes
 #include <kernel/arch/x86_64/arch.h>
+#include <kernel/arch/x86_64/smp.h>
+#include <kernel/config.h>
 #include <kernel/hal.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <kernel/debugger.h>
 
 // Drivers (x86)
 #include <kernel/drivers/x86/serial.h>
 #include <kernel/drivers/x86/clock.h>
+#include <kernel/drivers/x86/acpica.h> // #ifdef ACPICA_ENABLED in this file
+
+
+static uintptr_t hal_rsdp = 0x0;
+
+/**
+ * @brief Sets an RSDP if one was set
+ */
+void hal_setRSDP(uint64_t rsdp) {
+    hal_rsdp = rsdp;
+}
+
+/**
+ * @brief Returns a RSDP if one was found
+ * 
+ * You can call this method also to search for one (in EBDA/range)
+ */
+uint64_t hal_getRSDP() {
+    if (hal_rsdp != 0x0) return hal_rsdp;
+    
+    // TODO: We can check EBDA/BDA but ACPICA (ACPI components) provides a method to check those for us.
+    return 0x0;
+}
 
 
 /**
@@ -57,6 +83,31 @@ static void hal_init_stage1() {
  * @brief Stage 2 startup - initializes debugger, ACPI, etc.
  */
 static void hal_init_stage2() {
+    /* DEBUGGER INITIALIZATION */
+
+    // We need to reconfigure the serial ports and initialize the debugger.
+    serial_setPort(serial_createPortData(__debug_output_com_port, __debug_output_baud_rate), 1);
+
+    if (!__debugger_enabled) goto _no_debug;
+
+    serial_port_t *port = serial_initializePort(__debugger_com_port, __debugger_baud_rate);
+    if (!port) {
+        dprintf(WARN, "Failed to initialize COM%i for debugging\n", __debugger_com_port);
+        goto _no_debug;
+    }
+
+    serial_setPort(port, 0);
+    if (debugger_initialize(port) != 1) {
+        dprintf(WARN, "Debugger failed to initialize or connect.\n");
+    }
+
+    /* ACPI INITIALIZATION */
+
+_no_debug: ;
+
+    /* ACPI INITIALIZATION */
+    // ACPI initialization is not available right now.
+    // Errors out on AcpiLoadTables/AcpiEvInstallRegionHandlers
 
 }
 

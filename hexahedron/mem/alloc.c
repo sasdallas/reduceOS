@@ -5,6 +5,7 @@
  * Multiple allocators are suported for Hexahedron (not simultaneous, at compile-time)
  * This allocator system handles debug, feature support, forwarding, profiling, etc.
  * 
+ * @warning No initialization system is present. This means that anything calling kmalloc before initialization will crash.
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.

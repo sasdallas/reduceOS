@@ -350,14 +350,30 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
             dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024);
             pmm_initializeRegion((uintptr_t)mmap->address, (uintptr_t)mmap->length);
         } else {
-            // Make sure it's not out of invalid PMM memory
-            if (mmap->address + mmap->length <= mem_size) {
+            // Make sure mmap->addr isn't out of memory - most emulators like to have reserved
+            // areas outside of their actual memory space, which the PMM really does not like.
+
+            // As well as that, QEMU bugs out and forgets about certain DMA regions (see below), so
+            // don't uninitialize anything below 0x10000 
+            if (mmap->address > 0x100000 && mmap->address + mmap->length < mem_size) {
+                dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as unavailable memory\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024); 
                 pmm_deinitializeRegion((uintptr_t)mmap->address, (uintptr_t)mmap->length);
             }
         }
 
         mmap = mmap->next;
     }
+
+    // While working on previous versions of reduceOS, I accidentally brute-forced this.
+    // QEMU doesn't properly unmark DMA regions, apparently - according to libvfio-user issue $493
+    // https://github.com/nutanix/libvfio-user/issues/463
+    
+    // These DMA regions occur within the range of 0xC0000 - 0xF0000, but we'll unmap
+    // the rest of the memory too. x86 real mode's memory map dictates that the first 1MB
+    // or so is reserved from like 0x0-0xFFFFF for BIOS structures.
+    // TODO: It may be possible to reinitialize this memory later
+    dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as reserved memory (QEMU bug)\n", (uint64_t)0x0, (uint64_t)0x100000, ((uint64_t)0x100000 - (uint64_t)0x0) / 1024);
+    pmm_deinitializeRegion(0x00000, 0x100000);
 
     // Unmark kernel region
     extern uint32_t __text_start;

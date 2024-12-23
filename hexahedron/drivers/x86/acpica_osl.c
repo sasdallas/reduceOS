@@ -19,8 +19,10 @@
 #include <acpica/acpi.h>
 #include <acpica/actypes.h>
 
-#ifdef __ARCH_I386__
+#if defined(__ARCH_I386__)
 #include <kernel/arch/i386/hal.h>
+#elif defined(__ARCH_X86_64__)
+#include <kernel/arch/x86_64/hal.h>
 #else
 #error "No support"
 #endif
@@ -103,7 +105,7 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
 void AcpiOsUnmapMemory(void *where, ACPI_SIZE Length) {
     // LOG(DEBUG, "AcpiOsUnmapMemory 0x%x 0x%x\n", where, Length);
 
-    // !!!: HORRIBLY WASTEFUL. ACPICA WILL UNMAP MANY BITS OF MEMORY WITHIN OUR CHUNK SIZES!
+    // !!!: HORRIBLY WASTEFUL ON I386. ACPICA WILL UNMAP MANY BITS OF MEMORY WITHIN OUR CHUNK SIZES!
     // uintptr_t phys_aligned = ((uintptr_t)where & ~0xFFF);
     // uintptr_t phys_diff = ((uintptr_t)where & 0xFFF);
     // uintptr_t phys_size = MEM_ALIGN_PAGE(((uintptr_t)Length + phys_diff));

@@ -24,7 +24,7 @@
 #if defined(__ARCH_I386__)
 #include <kernel/arch/i386/smp.h>
 #elif defined(__ARCH_X86_64__)
-#error "No support"
+#include <kernel/arch/x86_64/smp.h>
 #else
 #error "Unsupported architecture - do not compile this file"
 #endif

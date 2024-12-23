@@ -19,7 +19,9 @@
     "stdint.h": "c",
     "panic.h": "c",
     "debug.h": "c",
-    "arch.h": "c"
+    "arch.h": "c",
+    "serial.h": "c",
+    "acpica.h": "c"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",

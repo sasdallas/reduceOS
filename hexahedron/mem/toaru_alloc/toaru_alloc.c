@@ -131,7 +131,6 @@ static void klfree(void * ptr);
  
 
 void * __attribute__ ((malloc)) alloc_malloc(uintptr_t size) {
-	dprintf(DEBUG, "alloc_malloc 0x%x\n", size);
 	void * out = klmalloc(size);
 	return out;
 }

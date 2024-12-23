@@ -122,12 +122,7 @@ static uintptr_t memory_size = 0x0;                                 // Same as a
  * @returns The address to which the structure can be placed at 
  */
 uintptr_t arch_allocate_structure(size_t bytes) {
-    dprintf(DEBUG, "Reserving 0x%x - 0x%x\n", highest_kernel_address, highest_kernel_address + bytes);
-    uintptr_t ptr = highest_kernel_address;
-    highest_kernel_address += bytes;
-
-    memset((void*)ptr, 0x00, bytes);
-    return ptr;
+    return (uintptr_t)kmalloc(bytes);
 }
 
 /**
@@ -182,12 +177,25 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     // Now, we can initialize memory systems.
     mem_init(memory_size, highest_kernel_address);
 
+    // Print out allocator information
     allocator_info_t *info = alloc_getInfo();
     dprintf(INFO, "Allocator information: %s version %i.%i (valloc %s, profiling %s)\n", info->name, info->version_major, info->version_minor,
                                             info->support_valloc ? "supported" : "not supported",
                                             info->support_profile ? "supported" : "not supported");
 
 
+    // Now we can ACTUALLY parse Multiboot information
+    if (multiboot_magic == MULTIBOOT_MAGIC) {
+        parameters = arch_parse_multiboot1(bootinfo);
+    } else if (multiboot_magic == MULTIBOOT2_MAGIC) {
+        parameters = arch_parse_multiboot2(bootinfo);
+    }
+
+    dprintf(INFO, "Loaded by '%s' with command line '%s'\n", parameters->bootloader_name, parameters->kernel_cmdline);
+    dprintf(INFO, "Available physical memory to machine: %i KB\n", parameters->mem_size);
+
+    // We're clear to perform the second part of HAL startup
+    hal_init(HAL_STAGE_2); 
 
     for (;;);
 }

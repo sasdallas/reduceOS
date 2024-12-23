@@ -29,7 +29,8 @@
 #include <kernel/arch/i386/hal.h>
 #include <kernel/arch/i386/smp.h>
 #elif defined(__ARCH_X86_64__)
-#error "No support"
+#include <kernel/arch/x86_64/hal.h>
+#include <kernel/arch/x86_64/smp.h>
 #else
 #error "Unsupported architecture - do not compile this file"
 #endif
@@ -109,7 +110,7 @@ smp_info_t *ACPICA_GetSMPInfo() {
     // We need to compile all of this information within an SMP structure
     smp_info_t *smp_info = kmalloc(sizeof(smp_info_t));
     memset(smp_info, 0, sizeof(smp_info_t));
-    smp_info->lapic_address = (void*)MadtTable->Address;
+    smp_info->lapic_address = (void*)(uintptr_t)MadtTable->Address;
 
     LOG(DEBUG, "MADT Local APIC address = 0x%x\n", MadtTable->Address);
 
