@@ -94,7 +94,7 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
     driver->communicate = grubvid_communicate;
 
     // BEFORE WE DO ANYTHING, WE HAVE TO REMAP THE FRAMEBUFFER TO SPECIFIED ADDRESS
-    for (uint32_t phys = parameters->framebuffer->framebuffer_addr, virt = MEM_FRAMEBUFFER_REGION;
+    for (uintptr_t phys = parameters->framebuffer->framebuffer_addr, virt = MEM_FRAMEBUFFER_REGION;
             phys < parameters->framebuffer->framebuffer_addr + ((driver->screenWidth * driver->screenHeight) * 4);
             phys += PAGE_SIZE, virt += PAGE_SIZE) 
     {
