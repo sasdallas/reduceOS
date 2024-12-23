@@ -13,6 +13,21 @@ else
 PROJECTS :=
 endif
 
+ifeq ($(HOSTARCH), x86_64)
+# Required for x86_64
+PROJECTS := 
+
+# ACPICA
+ifeq ($(USE_ACPICA), 1)
+PROJECTS += acpica
+endif
+
+else
+PROJECTS :=
+endif
+
+
+
 # i love make i love make cmake is bad i love make i love make
 PROJECTS_HEADERS := $(addsuffix /installheaders, $(PROJECTS))
 PROJECTS_INSTALL := $(addsuffix /install, $(PROJECTS))
