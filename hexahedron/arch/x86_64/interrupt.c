@@ -178,7 +178,7 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
     if (exception_index == 14) {
         uintptr_t page_fault_addr = 0x0;
         asm volatile ("movq %%cr2, %0" : "=a"(page_fault_addr));
-        dprintf(NOHEADER, "*** ISR detected exception: Page fault at address 0x%x\n\n", page_fault_addr);
+        dprintf(NOHEADER, "*** ISR detected exception: Page fault at address 0x%016llX\n\n", page_fault_addr);
     } else if (exception_index < X86_64_MAX_EXCEPTIONS) {
         dprintf(NOHEADER, "*** ISR detected exception %i - %s\n\n", exception_index, hal_exception_table[exception_index]);
     } else {
