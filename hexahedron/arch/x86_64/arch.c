@@ -183,5 +183,7 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     mem_init(memory_size, highest_kernel_address);
 
 
+    
+
     for (;;);
 }

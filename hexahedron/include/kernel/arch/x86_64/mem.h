@@ -27,7 +27,7 @@ typedef union page {
         uint64_t rw:1;              // R/W
         uint64_t usermode:1;        // Usermode
         uint64_t writethrough:1;    // Writethrough
-        uint64_t nocache:1;         // Uncacheable
+        uint64_t cache_disable:1;   // Uncacheable
         uint64_t accessed:1;        // Accessed
         uint64_t available1:1;      // Free bits!
         uint64_t size:1;            // Page size - 4MiB or 4KiB
@@ -66,13 +66,17 @@ typedef union page {
 
 #define MEM_PHYSMEM_MAP_SIZE    0x0000001000000000
 
-
-
-
 /**** MACROS ****/
 
 #define MEM_ALIGN_PAGE(addr) ((addr + PAGE_SIZE) & ~0xFFF) // Align an address to the nearest page
 
+#define MEM_PML4_INDEX(x) (x >> (MEM_PAGE_SHIFT + 27) & 0x1FF)
+#define MEM_PDPT_INDEX(x) (x >> (MEM_PAGE_SHIFT + 18) & 0x1FF)
+#define MEM_PAGEDIR_INDEX(x) (x >> (MEM_PAGE_SHIFT + 9) & 0x1FF)
+#define MEM_PAGETBL_INDEX(x) ((x >> MEM_PAGE_SHIFT) & 0x1FF)
+
+#define MEM_SET_FRAME(page, frame) (page->bits.address = ((uintptr_t)frame >> MEM_PAGE_SHIFT))      // Set the frame of a page. Used because of our weird union thing.
+#define MEM_GET_FRAME(page) (page->bits.address << MEM_PAGE_SHIFT)                                  // Get the frame of a page. Used because of our weird union thing.
 
 /**** FUNCTIONS ****/
 

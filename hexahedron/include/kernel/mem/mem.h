@@ -42,6 +42,7 @@
 #define MEM_NOT_PRESENT         0x20    // The page is not present in memory
 #define MEM_NOALLOC             0x40    // Do not allocate the page and instead use what was given
 #define MEM_FREE_PAGE           0x80    // Free the page. Sets it to zero if specified in mem_allocatePage
+#define MEM_NO_EXECUTE         0x100    // (x86_64 only) Set the page as non-executable.
 
 /**** FUNCTIONS ****/
 

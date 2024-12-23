@@ -298,7 +298,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
         // Setup the bits in the directory index
         pde->bits.present = 1;
         pde->bits.rw = 1;
-        pde->bits.usermode = 1; // FIXME: Not upholding security 
+        pde->bits.usermode = 1; // !!!: Not upholding security 
         MEM_SET_FRAME(pde, block);
         
         mem_unmapPhys(block_remap, PMM_BLOCK_SIZE);

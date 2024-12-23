@@ -2,6 +2,10 @@
  * @file hexahedron/arch/x86_64/mem.c
  * @brief Memory management functions for x86_64
  * 
+ * @warning A lot of functions in this file do not conform to the "standard" of unmapping
+ *          physical addresses after you have finished. This is fine for now, but may have issues
+ *          later.
+ * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
  * It is released under the terms of the BSD 3-clause license.
@@ -22,9 +26,9 @@
 #include <string.h>
 
 /* Stub variables */
-uintptr_t mem_kernelHeap = 0xAAAAAAAAAAAAAAAA;              // Kernel heap
-uintptr_t mem_mapPool = 0xAAAAAAAAAAAAAAAA;
-uintptr_t mem_identityMapCacheSize = 0xAAAAAAAAAAAAAAAA;   
+uintptr_t mem_kernelHeap                = 0xAAAAAAAAAAAAAAAA; // Kernel heap
+uintptr_t mem_mapPool                   = 0xAAAAAAAAAAAAAAAA;
+uintptr_t mem_identityMapCacheSize      = 0xAAAAAAAAAAAAAAAA;   
 
 
 /* Whether to use 5-level paging */
@@ -87,8 +91,127 @@ uintptr_t mem_sbrk(int b) {
  *          Please use a function such as mem_allocatePage to do that.
  */
 page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    uintptr_t addr = (address % PAGE_SIZE != 0) ? MEM_ALIGN_PAGE(address) : address;
+    page_t *directory = (dir == NULL) ? current_cpu->current_dir : dir;
+
+    page_t *pml4_entry = &(directory[MEM_PML4_INDEX(addr)]);
+    if (!pml4_entry->bits.present) {
+        if (!flags & MEM_CREATE) goto bad_page;
+
+        // Allocate a new PML4 entry and zero it
+        uintptr_t block = pmm_allocateBlock();
+        uintptr_t block_remap = mem_remapPhys(block, PMM_BLOCK_SIZE);
+        memset((void*)block_remap, 0, PMM_BLOCK_SIZE);
+
+        // Setup the bits in the directory index
+        pml4_entry->bits.present = 1;
+        pml4_entry->bits.rw = 1;
+        pml4_entry->bits.usermode = 1; // !!!: Not upholding security 
+        MEM_SET_FRAME(pml4_entry, block);
+
+        mem_unmapPhys(block_remap, PMM_BLOCK_SIZE); // we don't even have to do this
+    }
+
+    // Get the PDPT and the entry
+    page_t *pdpt = (page_t*)mem_remapPhys(MEM_GET_FRAME(pml4_entry), PMM_BLOCK_SIZE);
+    page_t *pdpt_entry = &(pdpt[MEM_PDPT_INDEX(addr)]);
+    
+    if (!pdpt_entry->bits.present) {
+        if (!flags & MEM_CREATE) goto bad_page;
+
+        // Allocate a new PDPT entry and zero it
+        uintptr_t block = pmm_allocateBlock();
+        uintptr_t block_remap = mem_remapPhys(block, PMM_BLOCK_SIZE);
+        memset((void*)block_remap, 0, PMM_BLOCK_SIZE);
+
+        // Setup the bits in the directory index
+        pdpt_entry->bits.present = 1;
+        pdpt_entry->bits.rw = 1;
+        pdpt_entry->bits.usermode = 1; // !!!: Not upholding security 
+        MEM_SET_FRAME(pdpt_entry, block);
+
+        mem_unmapPhys(block_remap, PMM_BLOCK_SIZE); // we don't even have to do this
+    }
+
+    // Get the PD and the entry
+    page_t *pd = (page_t*)mem_remapPhys(MEM_GET_FRAME(pdpt_entry), PMM_BLOCK_SIZE);
+    page_t *pde = &(pd[MEM_PAGEDIR_INDEX(addr)]);
+
+    if (!pde->bits.present) {
+        if (!flags & MEM_CREATE) goto bad_page;
+
+        // Allocate a new PDE and zero it
+        uintptr_t block = pmm_allocateBlock();
+        uintptr_t block_remap = mem_remapPhys(block, PMM_BLOCK_SIZE);
+        memset((void*)block_remap, 0, PMM_BLOCK_SIZE);
+
+        // Setup the bits in the directory index
+        pde->bits.present = 1;
+        pde->bits.rw = 1;
+        pde->bits.usermode = 1; // !!!: Not upholding security 
+        MEM_SET_FRAME(pde, block);
+
+        mem_unmapPhys(block_remap, PMM_BLOCK_SIZE); // we don't even have to do this
+    }
+
+    // Get the table
+    page_t *table = (page_t*)mem_remapPhys(MEM_GET_FRAME(pde), PMM_BLOCK_SIZE);
+    page_t *pte = &(table[MEM_PAGETBL_INDEX(addr)]);
+
+    // Return
+    return pte;
+
+bad_page:
+    return NULL;
+}
+
+
+/**
+ * @brief Allocate a page using the physical memory manager
+ * 
+ * @param page The page object to use. Can be obtained with mem_getPage
+ * @param flags The flags to follow when setting up the page
+ * 
+ * @note You can also use this function to set bits of a specific page - just specify @c MEM_NOALLOC in @p flags.
+ * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified and there isn't a frame already set.
+ */
+void mem_allocatePage(page_t *page, uintptr_t flags) {
+    if (flags & MEM_FREE_PAGE) {
+        // Just free the page
+        mem_freePage(page);
+        return;
+    }
+
+    if (!page->bits.address && !(flags & MEM_NOALLOC)) {
+        // There isn't a frame configured, and the user wants to allocate one.
+        uintptr_t block = pmm_allocateBlock();
+        MEM_SET_FRAME(page, block);
+    }
+
+    // Configure page bits
+    page->bits.present          = (flags & MEM_NOT_PRESENT) ? 0 : 1;
+    page->bits.rw               = (flags & MEM_READONLY) ? 0 : 1;
+    page->bits.usermode         = (flags & MEM_KERNEL) ? 0 : 1;
+    page->bits.writethrough     = (flags & MEM_WRITETHROUGH) ? 1 : 0;
+    page->bits.cache_disable    = (flags & MEM_NOT_CACHEABLE) ? 1 : 0;
+}
+
+/**
+ * @brief Free a page
+ * 
+ * @param page The page to free
+ */
+void mem_freePage(page_t *page) {
+    if (!page) return;
+
+    // Mark the page as not present
+    page->bits.present = 0;
+    page->bits.rw = 0;
+    page->bits.usermode = 0;
+    
+    // Free the block
+    pmm_freeBlock(MEM_GET_FRAME(page));
+    MEM_SET_FRAME(page, 0x0);
 }
 
 /**
@@ -282,6 +405,9 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     // Call back to architecture to mark/unmark memory
     extern void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size);
     arch_mark_memory(kernel_addr, mem_size);
+
+    page_t *pg = mem_getPage(NULL, 0xF00000000, MEM_CREATE);
+    mem_allocatePage(pg, MEM_DEFAULT);
 
     dprintf(INFO, "Memory management initialized\n");
 }
