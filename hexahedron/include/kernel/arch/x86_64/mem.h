@@ -45,13 +45,28 @@ typedef union page {
 
 /**** DEFINITIONS ****/
 
-#define PAGE_SIZE 4096 // 4 KB ftw
+#define PAGE_SIZE       0x1000      // 4 KiB
+#define PAGE_SIZE_LARGE 0x200000    // 2 MiB
 
 // Page shifting
 #define MEM_PAGE_SHIFT  12
 
-// A memory map for x86_64 has not been created yet.
-#define MEM_FRAMEBUFFER_REGION 0xFD000000
+
+
+// IMPORTANT: THIS IS THE HEXAHEDRON MEMORY MAP CONFIGURED FOR I386
+// 0x0000000000000000 - 0x0000000000200000: Kernel code. This can be expanded a decent amount.
+// 0x0000800000000000 - 0x0000800000400000: Framebuffer memory (todo: this can probably be relocated).  
+// 0xFFFFFF0000000000 - 0xFFFFFF0000010000: Heap memory.        
+// 0xFFFFFF8000000000 - 0xFFFFFF9000000000: High base region for identity mapping. 
+
+// A full memory map for x86_64 has not been created yet.
+#define MEM_FRAMEBUFFER_REGION  0x0000800000000000
+#define MEM_HEAP_REGION         0xFFFFFF0000000000
+#define MEM_PHYSMEM_MAP_REGION  0xFFFFFF8000000000
+
+#define MEM_PHYSMEM_MAP_SIZE    0x0000001000000000
+
+
 
 
 /**** MACROS ****/

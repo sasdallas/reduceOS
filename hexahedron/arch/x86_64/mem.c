@@ -18,10 +18,14 @@
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 
+#include <stdint.h>
+#include <string.h>
+
 /* Stub variables */
+uintptr_t mem_kernelHeap = 0xAAAAAAAAAAAAAAAA;              // Kernel heap
 uintptr_t mem_mapPool = 0xAAAAAAAAAAAAAAAA;
-uintptr_t mem_identityMapCacheSize = 0xAAAAAAAAAAAAAAAA;
-uintptr_t mem_kernelHeap = 0xAAAAAAAAAAAAAAAA;
+uintptr_t mem_identityMapCacheSize = 0xAAAAAAAAAAAAAAAA;   
+
 
 /* Whether to use 5-level paging */
 static int mem_use5LevelPaging = 0;
@@ -34,6 +38,12 @@ page_t mem_kernelPML[3][512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_lowBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0}; 
 page_t mem_lowBasePD[512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_lowBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
+
+/* High base PDPT/PD/PT (identity mapping space for anything) */
+// NOTE: This is not my implementation of high base mapping (see ToaruOS)
+page_t mem_highBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0};
+page_t mem_highBasePDs[64][512] __attribute__((aligned(PAGE_SIZE))) = {0}; // If we're already using 2MiB paging, why bother with PTs? 
+
 
 /* Heap PDPT/PD/PT */
 page_t mem_heapBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0};
@@ -94,11 +104,41 @@ uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
     __builtin_unreachable();
 }
 
+
+/**
+ * @brief Remap a PMM address to the identity mapped region
+ * @param frame_address The address of the frame to remap
+ * @param size The size of the address to remap
+ * 
+ * @note You need to call @c mem_unmapPhys when you are finished with the address.
+ */
+uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
+    if (size > MEM_PHYSMEM_MAP_SIZE) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Remapping physical address %016llX for %016llX, ran out of space.\n", frame_address, size);
+        __builtin_unreachable();
+    }
+
+    return frame_address | MEM_PHYSMEM_MAP_REGION;
+}
+
+/**
+ * @brief Unmap a PMM address in the identity mapped region
+ * @param frame_address The address of the frame to unmap, as returned by @c mem_remapPhys
+ * @param size The size of the frame to unmap
+ */
+void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
+    // No caching system is in place.
+}
+
+
 /**
  * @brief Initialize the memory management subsystem
  * 
  * This function will identity map the kernel into memory and setup page tables.
  * For x86_64, it also sets up the PMM allocator.
+ * 
+ * @warning MEM_HEAP_REGION is hardcoded into this - we can probably use mem_mapAddress??
+ * @warning This is some pretty messy code, I'm sorry :(
  * 
  * @param mem_size The size of memory (aka highest possible address)
  * @param kernel_addr The first free page after the kernel
@@ -107,6 +147,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     // Set the initial page region as the current page for this core.
     current_cpu->current_dir = (page_t*)&mem_kernelPML;
 
+    // 5 level paging? We don't care right now
     mem_use5LevelPaging = cpu_pml5supported();
     if (mem_use5LevelPaging) {
         dprintf(INFO, "5-level paging is supported by this CPU\n");
@@ -114,6 +155,28 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
         dprintf(INFO, "5-level paging is not supported by this CPU\n");
     }
 
+    // First, create an identity map. This is important
+    // !!!: == THIS IS REALLY BAD (but makes things quick)
+    // !!!: We are basically going to use 2MiB pages in the identity map region and not use caching, since it isn't
+    // !!!: required. This is bad because most things expect a 4KB page, but 2MiB pages mean that we can fit a lot more.
+    // !!!: See https://github.com/klange/toaruos/blob/a54a0cbbee1ac18bceb2371e49876eab9abb3a11/kernel/arch/x86_64/mmu.c#L1048
+
+    // Map high base in PML
+    mem_kernelPML[0][511].data = (uintptr_t)&mem_highBasePDPT[0] | 0x07;
+
+    // Identity map from -128GB using 2MiB pages
+    for (size_t i = 0; i < MEM_PHYSMEM_MAP_SIZE / PAGE_SIZE_LARGE / 512; i++) {
+        mem_highBasePDPT[i].bits.address = ((uintptr_t)&mem_highBasePDs[i]) >> MEM_PAGE_SHIFT;
+        mem_highBasePDPT[i].bits.present = 1;
+        mem_highBasePDPT[i].bits.rw = 1;
+
+        // Using 512-page blocks
+        for (size_t j = 0; j < 512; j++) {
+            mem_highBasePDs[i][j].data = ((i << 30) + (j << 21)) | 0x80 | 0x03;
+        }
+    }
+
+    // Now, map the kernel.
     // Calculate the amount of pages for the kernel to fit in
     extern uintptr_t __kernel_end;
     uintptr_t kernel_end_aligned = MEM_ALIGN_PAGE((uintptr_t)&__kernel_end);
@@ -162,10 +225,10 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     }
 
 
-    // Now we can map the PML4
+    // Now we can map the PML4 and switch out the loader's (stupid 2MiB paging) initial page region with one that's suited for the kernel
     mem_kernelPML[0][0].data = (uintptr_t)&mem_lowBasePDPT[0] | 0x07;
 
-    dprintf(INFO, "Finished identity mapping kernel, mapping heap\n");
+    dprintf(INFO, "Finished identity mapping kernel, mapping heap...\n");
 
     // Map the heap into the PML
     mem_kernelPML[0][510].bits.address = ((uintptr_t)&mem_heapBasePDPT >> MEM_PAGE_SHIFT);
@@ -173,18 +236,17 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     mem_kernelPML[0][510].bits.rw = 1;
     
     // Calculate the amount of pages required for our PMM
-    size_t frame_bytes = mem_size / PMM_BLOCK_SIZE;
+    size_t frame_bytes = PMM_INDEX_BIT((mem_size >> 12) * 8);
     frame_bytes = MEM_ALIGN_PAGE(frame_bytes);
     size_t frame_pages = frame_bytes >> MEM_PAGE_SHIFT;
 
-    
-
     if (frame_pages > 512 * 3) {
-        // 512 * 3 = size of the heap base, so that's not great.
+        // 512 * 3 = size of the heap base provided, so that's not great.
         dprintf(WARN, "Too much memory available - %i pages required for allocation bitmap (max 1536)\n", frame_pages);
+        // TODO: We can probably resolve this by just rewriting some parts of mem_mapAddress
     }
 
-    // Setup hierarchy
+    // Setup hierarchy (ugly)
     mem_heapBasePDPT[0].bits.address = ((uintptr_t)&mem_heapBasePD >> MEM_PAGE_SHIFT);
     mem_heapBasePDPT[0].bits.present = 1;
     mem_heapBasePDPT[0].bits.rw = 1;
@@ -208,7 +270,18 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
         mem_heapBasePT[i].bits.rw = 1;
     }
 
-    
+    // Tada. We've finished setting up our heap, so now we need to use mem_remapPhys to remap our PML.
+    current_cpu->current_dir = (page_t*)mem_remapPhys((uintptr_t)current_cpu->current_dir, 0x0); // Size is arbitrary
 
+    // Now that we have a heap mapped, we can allocate frame bytes.
+    uintptr_t *frames = (uintptr_t*)MEM_HEAP_REGION;
 
+    // Initialize PMM
+    pmm_init(mem_size, frames); 
+
+    // Call back to architecture to mark/unmark memory
+    extern void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size);
+    arch_mark_memory(kernel_addr, mem_size);
+
+    dprintf(INFO, "Memory management initialized\n");
 }

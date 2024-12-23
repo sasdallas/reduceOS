@@ -333,29 +333,53 @@ _done_modules:
     return parameters;    
 }
 
+
+/**** x86_64 specific ****/
+
+#include <kernel/mem/mem.h>
+
+static multiboot_t *stored_bootinfo = NULL;
+static int is_mb2 = 0;
+
 /**
  * @brief Mark/unmark valid spots in memory
- * @todo Work in tandem with mem.h to allow for a maximum amount of blocks to be used
+ * @param highest_address The highest kernel address
+ * @param mem_size The memory size.
  */
-void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_address) {
-    generic_mmap_desc_t *mmap = parameters->mmap_start;
-    while (mmap) {
-        dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", mmap->address, mmap->address + mmap->length, mmap->length / 1024);
-        pmm_initializeRegion((uintptr_t)mmap->address, (uintptr_t)mmap->length);
-        
-        mmap = mmap->next;
+void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size) {
+    if (!stored_bootinfo) {
+        kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "multiboot");
+        __builtin_unreachable();    
     }
 
-    // While working on previous versions of reduceOS, I accidentally brute-forced this.
-    // QEMU doesn't properly unmark DMA regions, apparently - according to libvfio-user issue $493
-    // https://github.com/nutanix/libvfio-user/issues/463
+    if (is_mb2) {
+        dprintf(INFO, "Mb2 unimplemented\n");
+        
+    } else {
+        // Bootinfo needs to be remapped using memory
+        multiboot_t *bootinfo = (multiboot_t*)mem_remapPhys((uintptr_t)stored_bootinfo, MEM_ALIGN_PAGE(sizeof(multiboot_t)));
 
-    // These DMA regions occur within the range of 0xC0000 - 0xF0000, but we'll unmap
-    // the rest of the memory too. x86 real mode's memory map dictates that the first 1MB
-    // or so is reserved from like 0x0-0xFFFFF for BIOS structures.
-    // TODO: It may be possible to reinitialize this memory later
-    dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as reserved memory (QEMU bug)\n", (uint64_t)0x0, (uint64_t)0x100000, ((uint64_t)0x100000 - (uint64_t)0x0) / 1024);
-    pmm_deinitializeRegion(0x00000, 0x100000);
+        multiboot1_mmap_entry_t *mmap = (multiboot1_mmap_entry_t*)mem_remapPhys(bootinfo->mmap_addr, MEM_ALIGN_PAGE(bootinfo->mmap_length));
+
+        while ((uintptr_t)mmap < (uintptr_t)mem_remapPhys(bootinfo->mmap_addr + bootinfo->mmap_length, MEM_ALIGN_PAGE(bootinfo->mmap_length))) {
+            if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
+                // Available!
+                dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", mmap->addr, mmap->addr + mmap->len, mmap->len / 1024);
+                pmm_initializeRegion((uintptr_t)mmap->addr, (uintptr_t)mmap->len);
+            } else {
+                // Make sure mmap->addr isn't out of memory - most emulators like to have reserved
+                // areas outside of their actual memory space, which the PMM really does not like.
+                if (mmap->addr + mmap->len < mem_size) {
+                    dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as unavailable memory\n", mmap->addr, mmap->addr + mmap->len, mmap->len / 1024);
+                    pmm_deinitializeRegion((uintptr_t)mmap->addr, (uintptr_t)mmap->len);
+                } else {
+                    dprintf(DEBUG, "Cannot mark memory descriptor %016llX - %016llX (%i KB)\n", mmap->addr, mmap->addr + mmap->len, mmap->len / 1024);
+                }
+            }
+
+            mmap = (multiboot1_mmap_entry_t*)((uintptr_t)mmap + mmap->size + sizeof(uint32_t)); 
+        }
+    }
 
     // Unmark kernel region
     extern uintptr_t __text_start;
@@ -365,6 +389,8 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
 
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());
 }
+
+
 
 
 /**
@@ -378,6 +404,10 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
  * (else it will overwrite its own page tables and crash or something, i didn't do much debugging)
  */
 void arch_parse_multiboot1_early(multiboot_t *bootinfo, uintptr_t *mem_size, uintptr_t *kernel_address) {
+    // Store structure for later use
+    stored_bootinfo = bootinfo;
+    is_mb2 = 0;
+
     extern uintptr_t __kernel_end;
     uintptr_t kernel_addr = (uintptr_t)&__kernel_end;
     uintptr_t msize = (uintptr_t)&__kernel_end;

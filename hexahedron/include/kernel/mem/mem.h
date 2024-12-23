@@ -105,6 +105,8 @@ void mem_allocatePage(page_t *page, uintptr_t flags);
  * @brief Remap a PMM address to the identity mapped region
  * @param frame_address The address of the frame to remap
  * @param size The size of the address to remap
+ * 
+ * @note You need to call @c mem_unmapPhys when you are finished with the address.
  */
 uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) ;
 
