@@ -9,13 +9,9 @@ ifeq ($(USE_ACPICA), 1)
 PROJECTS += acpica
 endif
 
-else
-PROJECTS :=
-endif
-
-ifeq ($(HOSTARCH), x86_64)
+else ifeq ($(HOSTARCH), x86_64)
 # Required for x86_64
-PROJECTS := 
+PROJECTS :=
 
 # ACPICA
 ifeq ($(USE_ACPICA), 1)
@@ -25,6 +21,8 @@ endif
 else
 PROJECTS :=
 endif
+
+
 
 
 

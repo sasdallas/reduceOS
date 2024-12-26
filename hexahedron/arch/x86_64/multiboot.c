@@ -394,10 +394,8 @@ void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size) {
     pmm_deinitializeRegion(0x00000, 0x100000);
 
     // Unmark kernel region
-    extern uintptr_t __text_start;
-    uintptr_t kernel_start = (uintptr_t)&__text_start;
-    dprintf(DEBUG, "Marked memory descriptor %016X - %016X (%i KB) as kernel memory\n", kernel_start, highest_address, (highest_address - kernel_start) / 1024);
-    pmm_deinitializeRegion(kernel_start, highest_address - kernel_start);    
+    dprintf(DEBUG, "Marked memory descriptor %016X - %016X (%i KB) as kernel memory\n", 0x100000, 0x200000, (0x100000) / 1024);
+    pmm_deinitializeRegion(0x100000, 0x100000); // !!!: 0x100000 is a hack
 
     // Done!
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());

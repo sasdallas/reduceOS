@@ -174,6 +174,9 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** Unknown multiboot structure when checking kernel.\n");
     }
 
+    dprintf(DEBUG, "current_cpu = 0x%llX\n", *current_cpu);
+    dprintf(DEBUG, "should be 0x%llX\n", &processor_data[0]);
+
     // Now, we can initialize memory systems.
     mem_init(memory_size, highest_kernel_address);
 
@@ -182,6 +185,12 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     dprintf(INFO, "Allocator information: %s version %i.%i (valloc %s, profiling %s)\n", info->name, info->version_major, info->version_minor,
                                             info->support_valloc ? "supported" : "not supported",
                                             info->support_profile ? "supported" : "not supported");
+
+    int i = 0;
+    while (1) {
+        dprintf(DEBUG, "0x%llX %i\n", kmalloc(i), i);
+        i++;
+    }
 
 
     // Now we can ACTUALLY parse Multiboot information
@@ -196,6 +205,7 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
 
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
+
 
     for (;;);
 }

@@ -36,7 +36,6 @@ static spinlock_t heap_lock = { 0 };
 uintptr_t mem_mapPool                   = 0xAAAAAAAAAAAAAAAA;
 uintptr_t mem_identityMapCacheSize      = 0xAAAAAAAAAAAAAAAA;   
 
-
 // Whether to use 5-level paging
 static int mem_use5LevelPaging = 0;
 
@@ -72,6 +71,7 @@ page_t mem_heapBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
  */
 void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
     page_t *pg = mem_getPage(dir, virt, MEM_CREATE);
+    mem_allocatePage(pg, MEM_NOALLOC);
     MEM_SET_FRAME(pg, phys);
 }
 
@@ -93,6 +93,8 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     if (!pml4_entry->bits.present) {
         if (!flags & MEM_CREATE) goto bad_page;
 
+        dprintf(DEBUG, "PDPT for address 0x%llX unavailable, allocating...\n", address);
+
         // Allocate a new PML4 entry and zero it
         uintptr_t block = pmm_allocateBlock();
         uintptr_t block_remap = mem_remapPhys(block, PMM_BLOCK_SIZE);
@@ -113,6 +115,8 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     
     if (!pdpt_entry->bits.present) {
         if (!flags & MEM_CREATE) goto bad_page;
+
+        dprintf(DEBUG, "PD for address 0x%llX unavailable, allocating...\n", address);
 
         // Allocate a new PDPT entry and zero it
         uintptr_t block = pmm_allocateBlock();
@@ -138,6 +142,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
         // Allocate a new PDE and zero it
         uintptr_t block = pmm_allocateBlock();
         uintptr_t block_remap = mem_remapPhys(block, PMM_BLOCK_SIZE);
+
         memset((void*)block_remap, 0, PMM_BLOCK_SIZE);
 
         // Setup the bits in the directory index
@@ -257,7 +262,10 @@ void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
  * @returns NULL on a PDE not being present or the address
  */
 uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
-    return MEM_GET_FRAME(mem_getPage(dir, virtaddr, MEM_DEFAULT));
+    page_t *pg = mem_getPage(dir, virtaddr, MEM_DEFAULT);
+
+    if (pg) return MEM_GET_FRAME(pg);
+    return 0x0;
 }
 
 /**
@@ -461,7 +469,7 @@ uintptr_t mem_sbrk(int b) {// Sanity checks
     for (uintptr_t i = mem_kernelHeap; i < mem_kernelHeap + b; i += 0x1000) {
         // Check if the page already exists
         page_t *pagechk = mem_getPage(NULL, i, 0);
-        if (pagechk->bits.present) {
+        if (pagechk && pagechk->bits.present) {
             // hmmm
             dprintf(WARN, "sbrk found odd pages at 0x%x - 0x%x\n", i, i + 0x1000);
             

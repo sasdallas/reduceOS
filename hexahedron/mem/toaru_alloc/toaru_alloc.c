@@ -107,6 +107,12 @@ allocator_info_t *alloc_getInfo() {
 #define assert(statement) (void)0
 #endif
 
+#if 0
+#define LOG(status, ...) dprintf_module(status, "toaru_alloc", __VA_ARGS__)
+#else
+#define LOG(status, ...) (void)0
+#endif
+
 static void __assert_fail(const char * f, int l, const char * stmt) {
     kernel_panic_prepare(MEMORY_MANAGEMENT_ERROR);
     dprintf(NOHEADER, "*** Assertion failed in allocator (%s:%i): %s\n\n", f, l, stmt);
@@ -238,6 +244,8 @@ static klmalloc_big_bin_header * klmalloc_newest_big = NULL;		/* Newest big bin 
  * its neighbors to eachother.
  */
 static inline void __attribute__ ((always_inline)) klmalloc_list_decouple(klmalloc_bin_header_head *head, klmalloc_bin_header *node) {
+	LOG(DEBUG, "klmalloc_list_decouple head 0x%llX node 0x%llX\n", head, node);
+	LOG(WARN, "node->next = 0x%llX head->first = 0x%llX\n", node->next, head->first);
 	klmalloc_bin_header *next	= node->next;
 	head->first = next;
 	node->next = NULL;
@@ -251,6 +259,8 @@ static inline void __attribute__ ((always_inline)) klmalloc_list_decouple(klmall
  * to it (our list is doubly linked).
  */
 static inline void __attribute__ ((always_inline)) klmalloc_list_insert(klmalloc_bin_header_head *head, klmalloc_bin_header *node) {
+	
+	LOG(DEBUG, "klmalloc_list_insert head 0x%llX node 0x%llX head->first = 0x%llX\n", head, node, head->first);
 	node->next = head->first;
 	head->first = node;
 }
@@ -491,6 +501,10 @@ static void klmalloc_skip_list_delete(klmalloc_big_bin_header * value) {
  * top of the stack.
  */
 static void * klmalloc_stack_pop(klmalloc_bin_header *header) {
+
+	LOG(DEBUG, "klmalloc_stack_pop header 0x%llX\n", header);
+	LOG(DEBUG, "header->head = 0x%llX next = 0x%llX\n", header->head, *((uintptr_t**)header->head));
+
 	assert(header);
 	assert(header->head != NULL);
 	
@@ -565,11 +579,14 @@ static void * __attribute__ ((malloc)) klmalloc(uintptr_t size) {
 	 */
 	unsigned int bucket_id = klmalloc_bin_size(size);
 
+	LOG(DEBUG, "bucket_id = %i\n", bucket_id);
+
 	if (bucket_id < BIG_BIN) {
 		/*
 		 * Small bins.
 		 */
 		klmalloc_bin_header * bin_header = klmalloc_list_head(&klmalloc_bin_head[bucket_id]);
+		LOG(DEBUG, "Using bin header at 0x%llX\n", bin_header);
 		if (!bin_header) {
 			/*
 			 * Grow the heap for the new bin.
@@ -577,6 +594,8 @@ static void * __attribute__ ((malloc)) klmalloc(uintptr_t size) {
 			bin_header = (klmalloc_bin_header*)mem_sbrk(PAGE_SIZE);
 			bin_header->bin_magic = BIN_MAGIC;
 			assert((uintptr_t)bin_header % PAGE_SIZE == 0);
+
+			LOG(DEBUG, "New bin_header created at 0x%llX\n", bin_header);
 
 			/*
 			 * Set the head of the stack.
@@ -616,12 +635,14 @@ static void * __attribute__ ((malloc)) klmalloc(uintptr_t size) {
 		if (klmalloc_stack_empty(bin_header)) {
 			klmalloc_list_decouple(&(klmalloc_bin_head[bucket_id]),bin_header);
 		}
+
 		return item;
 	} else {
 		/*
 		 * Big bins.
 		 */
 		klmalloc_big_bin_header * bin_header = klmalloc_skip_list_findbest(size);
+		LOG(DEBUG, "Using big bin header 0x%llX\n", bin_header);
 		if (bin_header) {
 			assert(bin_header->size >= size);
 			/*
@@ -641,6 +662,9 @@ static void * __attribute__ ((malloc)) klmalloc(uintptr_t size) {
 			uintptr_t pages = (size + sizeof(klmalloc_big_bin_header)) / PAGE_SIZE + 1;
 			bin_header = (klmalloc_big_bin_header*)mem_sbrk(PAGE_SIZE * pages);
 			bin_header->bin_magic = BIN_MAGIC;
+			
+			LOG(DEBUG, "(big_bins) New bin_header allocated to 0x%llX\n", bin_header);
+
 			assert((uintptr_t)bin_header % PAGE_SIZE == 0);
 			/*
 			 * Give the header the remaining space.

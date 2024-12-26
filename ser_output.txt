@@ -7,60 +7,26 @@
  +------+'
 
 Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Dec 22 2024 11:13:02
+	Compiled by GCC 14.1.0 on Dec 26 2024 11:01:41
 
 [no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
 [no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
-[no clock ready] [INFO] [CLOCK] Initial boot time is 1734866009 (UNIX timestamp)
-[no clock ready] [INFO] [CLOCK] TSC baseline is 43892us
-[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] Clock initialized
-[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] Interrupts enabled.
-[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] HAL stage 1 initialization completed
-[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] Found a Multiboot1 structure
-[Sun Dec 22 11:13:29 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
-[Sun Dec 22 11:13:29 2024] [CPU0] [DBG ] Kernel requires 300 pages
-[Sun Dec 22 11:13:29 2024] [CPU0] [DBG ] Kernel pt mapped
-    .+------+
-  .' |    .'|
- +---+--+'  |	H E X A H E D R O N   K E R N E L
- |   |  |   |	Created by @sasdallas
- |  .+--+---+
- |.'    | .'
- +------+'
-
-Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Dec 22 2024 11:13:02
-
-[no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
-[no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
-[no clock ready] [INFO] [CLOCK] Initial boot time is 1734867089 (UNIX timestamp)
-[no clock ready] [INFO] [CLOCK] TSC baseline is 2159480us
-[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] Clock initialized
-[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] Interrupts enabled.
-[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] HAL stage 1 initialization completed
-[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] Found a Multiboot1 structure
-[Sun Dec 22 11:31:29 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
-[Sun Dec 22 11:31:29 2024] [CPU0] [DBG ] Kernel requires 300 pages
-[Sun Dec 22 11:31:29 2024] [CPU0] [DBG ] Kernel pt mapped
-    .+------+
-  .' |    .'|
- +---+--+'  |	H E X A H E D R O N   K E R N E L
- |   |  |   |	Created by @sasdallas
- |  .+--+---+
- |.'    | .'
- +------+'
-
-Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Dec 22 2024 11:13:02
-
-[no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
-[no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
-[no clock ready] [INFO] [CLOCK] Initial boot time is 1734868161 (UNIX timestamp)
-[no clock ready] [INFO] [CLOCK] TSC baseline is 2143795us
-[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] Clock initialized
-[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] Interrupts enabled.
-[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] HAL stage 1 initialization completed
-[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] Found a Multiboot1 structure
-[Sun Dec 22 11:49:21 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
-[Sun Dec 22 11:49:21 2024] [CPU0] [DBG ] Kernel requires 300 pages
-[Sun Dec 22 11:49:21 2024] [CPU0] [DBG ] Kernel pt mapped
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1735211079 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 43839us
+[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] Clock initialized
+[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] Interrupts enabled.
+[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] HAL stage 1 initialization completed
+[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] Found a Multiboot1 structure
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] current_cpu = 0x10154D
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] should be 0x16D020
+[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Kernel requires 370 pages
+[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] Finished identity mapping kernel, mapping heap...
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 000000000009F000 (636 KB) as available memory
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000001FF0000 (31680 KB) as available memory
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 0000000000100000 (1024 KB) as reserved memory (QEMU bug)
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked memory descriptor 000000000010019C - 0000000000172000 (455 KB) as kernel memory
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked valid memory - PMM has 7710 free blocks / 8175 max blocks
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] PT for address 0x900000 unavailable, allocating...
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] block 0x171000
+[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] physical address = 0x0

@@ -564,10 +564,10 @@ uintptr_t mem_sbrk(int b) {
     for (uintptr_t i = mem_kernelHeap; i < mem_kernelHeap + b; i += 0x1000) {
         // Check if the page already exists
         page_t *pagechk = mem_getPage(NULL, i, 0);
-        if (pagechk->bits.present) {
+        if (pagechk && pagechk->bits.present) {
             // hmmm
             dprintf(WARN, "sbrk found odd pages at 0x%x - 0x%x\n", i, i + 0x1000);
-            
+
             // whatever its free memory
             continue;
         }
