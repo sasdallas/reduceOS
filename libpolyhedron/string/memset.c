@@ -14,6 +14,8 @@
 #include <string.h>
 
 
+#ifndef MEMSET_DEFINED
+
 void* memset(void* destination_ptr, int value, size_t size) {
     size_t i = 0;
     for (; i < size; i++) {
@@ -22,3 +24,5 @@ void* memset(void* destination_ptr, int value, size_t size) {
     
     return destination_ptr;
 }
+
+#endif

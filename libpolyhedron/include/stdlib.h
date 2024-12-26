@@ -27,6 +27,9 @@ _Begin_C_Header
 
 __attribute__((__noreturn__)) void abort(void);
 
+int abs(int x);
+int min(int a, int b);
+int max(int a, int b);
 
 int atoi(const char*);
 unsigned long long int strtoull(const char*, char**, int);
