@@ -13,10 +13,11 @@
 
 #include <stddef.h>
 
-void *memset(void *dest, int c, size_t n) {
+void *memset(void* destination_ptr, int value, size_t size) {
+    // It's faster to embed assembly like this.
     asm volatile("cld; rep stosb"
 	             : "=c"((int){0})
-	             : "rdi"(dest), "a"(c), "c"(n)
+	             : "rdi"(destination_ptr), "a"(value), "c"(size)
 	             : "flags", "memory", "rdi");
-	return dest;
+	return destination_ptr;
 }

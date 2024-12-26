@@ -11,8 +11,8 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#ifndef KERNEL_MISC_TERMINAL_H
-#define KERNEL_MISC_TERMINAL_H
+#ifndef KERNEL_GFX_TERMINAL_H
+#define KERNEL_GFX_TERMINAL_H
 
 /**** INCLUDES ****/
 #include <kernel/drivers/video.h>

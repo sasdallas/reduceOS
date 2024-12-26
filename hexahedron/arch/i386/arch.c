@@ -30,6 +30,7 @@
 #include <kernel/generic_mboot.h>
 #include <kernel/misc/spinlock.h>
 #include <kernel/processor_data.h>
+#include <kernel/gfx/gfx.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
@@ -54,6 +55,8 @@ generic_parameters_t *parameters;
 void arch_say_hello(int is_debug) {
 
     if (!is_debug) {
+        gfx_drawLogo();
+
         printf("Hexahedron %d.%d.%d-%s-%s (codename \"%s\")\n", 
                     __kernel_version_major, 
                     __kernel_version_minor, 
@@ -66,6 +69,7 @@ void arch_say_hello(int is_debug) {
 
         // NOTE: This should only be called once, so why not just modify some parameters?
         parameters->cpu_count = smp_getCPUCount();
+
 
         return;
     }

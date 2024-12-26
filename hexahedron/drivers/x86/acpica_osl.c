@@ -91,7 +91,7 @@ ACPI_STATUS AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER *ExistingTable, ACPI_P
 
 void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     // just like pmm it
-    // LOG(DEBUG, "AcpiOsMapMemory 0x%x 0x%x\n", (uintptr_t)PhysicalAddress, Length);
+    // LOG(DEBUG, "AcpiOsMapMemory %p 0x%x\n", (uintptr_t)PhysicalAddress, Length);
 
 #if defined(__ARCH_I386__)
     uintptr_t phys_aligned = ((uintptr_t)PhysicalAddress & ~0xFFF);
@@ -260,6 +260,8 @@ int ACPICA_InterruptHandler(uintptr_t exception_number, uintptr_t int_number, re
 
 
 ACPI_STATUS AcpiOsInstallInterruptHandler(UINT32 InterruptLevel, ACPI_OSD_HANDLER Handler, void *Context) {
+    // LOG(INFO, "AcpiOsInstallInterruptHandler 0x%x 0x%x 0x%x\n", InterruptLevel, Handler, Context);
+
     // Install the data
     if (InterruptLevel > MAX_ACPI_INTERRUPT_HANDLERS || Handler == NULL) {
         return AE_BAD_PARAMETER;
@@ -318,6 +320,7 @@ void AcpiOsVprintf(const char *Format, va_list Args) {
 /* MORE MEMORY */
 
 ACPI_STATUS AcpiOsReadMemory(ACPI_PHYSICAL_ADDRESS Address, UINT64 *Value, UINT32 Width) {
+    LOG(DEBUG, "AcpiOsReadMemory 0x%llX 0x%x\n", Address, Width);
 
     void *ptr = (void*)mem_remapPhys((uintptr_t)Address, 0x1000); // !!!: HORRIBLY INEFFICIENT!!!!!!!!!
 

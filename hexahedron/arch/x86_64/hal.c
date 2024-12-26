@@ -24,6 +24,13 @@
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 #include <kernel/debugger.h>
+#include <kernel/gfx/term.h>
+
+// Drivers (generic)
+#include <kernel/drivers/serial.h>
+#include <kernel/drivers/grubvid.h>
+#include <kernel/drivers/video.h>
+#include <kernel/drivers/font.h>
 
 // Drivers (x86)
 #include <kernel/drivers/x86/serial.h>
@@ -104,14 +111,17 @@ static void hal_init_stage2() {
 _no_debug: ;
 
     /* ACPI INITIALIZATION */
-    
+
 #ifdef ACPICA_ENABLED
     // Initialize ACPICA
-    int init_status = ACPICA_Initialize();
-    if (init_status != 0) {
-        dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
-        goto _no_smp;
-    }
+    // There are still a few bugs in ACPICA implementation that I have yet to track down.
+    
+    // int init_status = ACPICA_Initialize();
+    // if (init_status != 0) {
+    //     dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
+    //     goto _no_smp;
+    // }
+    goto _no_smp;
 #else
     // TODO: We can create a minified ACPI system that just handles SMP
     dprintf(WARN, "No ACPI subsystem is available to kernel - SMP disabled\n");
@@ -119,6 +129,28 @@ _no_debug: ;
 #endif
 
     _no_smp: ;
+
+    /* VIDEO INITIALIZATION */
+
+    // Next, initialize video subsystem.
+    video_init();
+
+    video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
+    if (driver) {
+        video_switchDriver(driver);
+    }
+
+    // Now, fonts - just do the backup one for now.
+    font_init();
+
+    // Terminal!
+    int term = terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+    if (term != 0) {
+        dprintf(WARN, "Terminal failed to initialize (return code %i)\n", term);
+    }
+
+    // Say hi again!
+    arch_say_hello(0);
 
 }
 

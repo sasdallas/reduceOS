@@ -37,6 +37,7 @@
 #include <kernel/generic_mboot.h>
 #include <kernel/misc/spinlock.h>
 #include <kernel/processor_data.h>
+#include <kernel/gfx/gfx.h>
 
 /* Parameters */
 generic_parameters_t *parameters = NULL;
@@ -60,6 +61,8 @@ void arch_say_hello(int is_debug) {
         // NOTE: This should only be called once, so why not just modify some parameters?
         // parameters->cpu_count = smp_getCPUCount();
         printf("this is a mental note to remind me to uncomment the above line\n");
+
+        gfx_drawLogo(RGB(255, 255, 255));
 
         return;
     }

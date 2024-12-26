@@ -29,7 +29,7 @@
  * @brief Put pixel function
  */
 void grubvid_putPixel(video_driver_t *driver, int x, int y, color_t color) {
-    uint32_t location = x * 4 + y * driver->screenPitch;
+    uintptr_t location = x * 4 + y * driver->screenPitch;
 
     driver->videoBuffer[location] = RGB_B(color);
     driver->videoBuffer[location + 1] = RGB_G(color);
@@ -80,6 +80,7 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
     if (!parameters->framebuffer->framebuffer_addr) return NULL;
 
     video_driver_t *driver = kmalloc(sizeof(video_driver_t));
+    
     strcpy((char*)driver->name, "GRUB Video Driver");
 
     driver->screenWidth = parameters->framebuffer->framebuffer_width;

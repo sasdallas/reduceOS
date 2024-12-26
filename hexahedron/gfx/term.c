@@ -11,7 +11,7 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#include <kernel/misc/term.h>
+#include <kernel/gfx/term.h>
 #include <stddef.h>
 
 /* Variables */

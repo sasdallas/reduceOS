@@ -30,7 +30,7 @@
 #include <kernel/config.h>
 #include <kernel/debugger.h>
 #include <kernel/mem/alloc.h>
-#include <kernel/misc/term.h>
+#include <kernel/gfx/term.h>
 
 /* Generic drivers */
 #include <kernel/drivers/serial.h>

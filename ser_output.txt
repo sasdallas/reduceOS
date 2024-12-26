@@ -7,26 +7,31 @@
  +------+'
 
 Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Dec 26 2024 11:01:41
+	Compiled by GCC 14.1.0 on Dec 26 2024 12:56:55
 
 [no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
 [no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
-[no clock ready] [INFO] [CLOCK] Initial boot time is 1735211079 (UNIX timestamp)
-[no clock ready] [INFO] [CLOCK] TSC baseline is 43839us
-[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] Clock initialized
-[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] Interrupts enabled.
-[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] HAL stage 1 initialization completed
-[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] Found a Multiboot1 structure
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] current_cpu = 0x10154D
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] should be 0x16D020
-[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Kernel requires 370 pages
-[Thu Dec 26 11:04:39 2024] [CPU0] [INFO] Finished identity mapping kernel, mapping heap...
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 000000000009F000 (636 KB) as available memory
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000001FF0000 (31680 KB) as available memory
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 0000000000100000 (1024 KB) as reserved memory (QEMU bug)
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked memory descriptor 000000000010019C - 0000000000172000 (455 KB) as kernel memory
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] Marked valid memory - PMM has 7710 free blocks / 8175 max blocks
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] PT for address 0x900000 unavailable, allocating...
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] block 0x171000
-[Thu Dec 26 11:04:39 2024] [CPU0] [DBG ] physical address = 0x0
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1735217838 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 45594us
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] Clock initialized
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] Interrupts enabled.
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] HAL stage 1 initialization completed
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] Found a Multiboot1 structure
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
+[Thu Dec 26 12:57:18 2024] [CPU0] [DBG ] Kernel requires 434 pages
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] Finished identity mapping kernel, mapping heap...
+[Thu Dec 26 12:57:18 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 000000000009F000 (636 KB) as available memory
+[Thu Dec 26 12:57:18 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000001FF0000 (31680 KB) as available memory
+[Thu Dec 26 12:57:18 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 0000000000100000 (1024 KB) as reserved memory (QEMU bug)
+[Thu Dec 26 12:57:18 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000000200000 (1024 KB) as kernel memory
+[Thu Dec 26 12:57:18 2024] [CPU0] [DBG ] Marked valid memory - PMM has 7567 free blocks / 8175 max blocks
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] Memory management initialized
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] Allocator information: toaru_alloc version 1.0 (valloc supported, profiling supported)
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] Loaded by 'GRUB 2.06-2ubuntu7.2+zorin' with command line '(@'
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] Available physical memory to machine: 32316 KB
+[Thu Dec 26 12:57:18 2024] [CPU0] [WARN] COM2 is faulty or nonexistent
+[Thu Dec 26 12:57:18 2024] [CPU0] [WARN] Failed to initialize COM2 for debugging
+[Thu Dec 26 12:57:18 2024] [CPU0] [INFO] [ACPICA:KRN] ACPICA was compiled into kernel. Initializing ACPICA
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: RSDP 0x       0   FA430 000014 (v00 BOCHS )
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: RSDT 0x       0 1FF0000 000034 (v01 BOCHS  BXPCRSDT 00000001 BXPC 00000001)
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: FACP 0x       0 1FF0034 000074 (v01 BOCHS  BXPCFACP 00000001 BXPC 00000001)

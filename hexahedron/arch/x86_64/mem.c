@@ -93,7 +93,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     if (!pml4_entry->bits.present) {
         if (!flags & MEM_CREATE) goto bad_page;
 
-        dprintf(DEBUG, "PDPT for address 0x%llX unavailable, allocating...\n", address);
+        // dprintf(DEBUG, "PDPT for address 0x%llX unavailable, allocating...\n", address);
 
         // Allocate a new PML4 entry and zero it
         uintptr_t block = pmm_allocateBlock();
@@ -116,7 +116,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     if (!pdpt_entry->bits.present) {
         if (!flags & MEM_CREATE) goto bad_page;
 
-        dprintf(DEBUG, "PD for address 0x%llX unavailable, allocating...\n", address);
+        // dprintf(DEBUG, "PD for address 0x%llX unavailable, allocating...\n", address);
 
         // Allocate a new PDPT entry and zero it
         uintptr_t block = pmm_allocateBlock();
@@ -130,6 +130,11 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
         MEM_SET_FRAME(pdpt_entry, block);
 
         mem_unmapPhys(block_remap, PMM_BLOCK_SIZE); // we don't even have to do this
+    }
+
+    if (pdpt_entry->bits.size) {
+        dprintf(WARN, "Tried to get page from a PDPT that is 1GiB\n");
+        return NULL;
     }
 
     // Get the PD and the entry
@@ -152,6 +157,11 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
         MEM_SET_FRAME(pde, block);
 
         mem_unmapPhys(block_remap, PMM_BLOCK_SIZE); // we don't even have to do this
+    }
+
+    if (pde->bits.size) {
+        dprintf(WARN, "Tried to get page from a PD that is 2MiB\n");
+        return NULL;
     }
 
     // Get the table
