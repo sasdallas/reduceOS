@@ -174,9 +174,6 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** Unknown multiboot structure when checking kernel.\n");
     }
 
-    dprintf(DEBUG, "current_cpu = 0x%llX\n", *current_cpu);
-    dprintf(DEBUG, "should be 0x%llX\n", &processor_data[0]);
-
     // Now, we can initialize memory systems.
     mem_init(memory_size, highest_kernel_address);
 

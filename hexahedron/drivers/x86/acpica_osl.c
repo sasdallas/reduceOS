@@ -93,12 +93,18 @@ void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
     // just like pmm it
     // LOG(DEBUG, "AcpiOsMapMemory 0x%x 0x%x\n", (uintptr_t)PhysicalAddress, Length);
 
+#if defined(__ARCH_I386__)
     uintptr_t phys_aligned = ((uintptr_t)PhysicalAddress & ~0xFFF);
     uintptr_t phys_diff = ((uintptr_t)PhysicalAddress & 0xFFF);
     uintptr_t phys_size = MEM_ALIGN_PAGE(((uintptr_t)Length + phys_diff));
 
     uintptr_t phys_start = mem_remapPhys(phys_aligned, phys_size);
     return (void*)(phys_start + phys_diff);
+#elif defined(__ARCH_X86_64__)
+    return (void*)mem_remapPhys(PhysicalAddress, Length); // no need to unmap
+#else
+    #error "fix this on your arch"
+#endif
 }
 
 /* Unmap memory */

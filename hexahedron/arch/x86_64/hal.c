@@ -101,13 +101,24 @@ static void hal_init_stage2() {
         dprintf(WARN, "Debugger failed to initialize or connect.\n");
     }
 
-    /* ACPI INITIALIZATION */
-
 _no_debug: ;
 
     /* ACPI INITIALIZATION */
-    // ACPI initialization is not available right now.
-    // Errors out on AcpiLoadTables/AcpiEvInstallRegionHandlers
+    
+#ifdef ACPICA_ENABLED
+    // Initialize ACPICA
+    int init_status = ACPICA_Initialize();
+    if (init_status != 0) {
+        dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
+        goto _no_smp;
+    }
+#else
+    // TODO: We can create a minified ACPI system that just handles SMP
+    dprintf(WARN, "No ACPI subsystem is available to kernel - SMP disabled\n");
+    goto _no_smp;
+#endif
+
+    _no_smp: ;
 
 }
 
