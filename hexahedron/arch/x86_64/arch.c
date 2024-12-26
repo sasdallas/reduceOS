@@ -186,13 +186,6 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
                                             info->support_valloc ? "supported" : "not supported",
                                             info->support_profile ? "supported" : "not supported");
 
-    int i = 0;
-    while (1) {
-        dprintf(DEBUG, "0x%llX %i\n", kmalloc(i), i);
-        i++;
-    }
-
-
     // Now we can ACTUALLY parse Multiboot information
     if (multiboot_magic == MULTIBOOT_MAGIC) {
         parameters = arch_parse_multiboot1(bootinfo);

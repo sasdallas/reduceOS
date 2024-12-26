@@ -418,7 +418,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
 
     // Call back to architecture to mark/unmark memory
     extern void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size);
-    arch_mark_memory(kernel_addr, mem_size);
+    arch_mark_memory(kernel_pts * 512 * PAGE_SIZE, mem_size);
 
     // Setup kernel heap to point to after frames
     mem_kernelHeap = MEM_HEAP_REGION + frame_bytes;

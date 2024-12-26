@@ -393,9 +393,9 @@ void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size) {
     dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as reserved memory (QEMU bug)\n", (uint64_t)0x0, (uint64_t)0x100000, ((uint64_t)0x100000 - (uint64_t)0x0) / 1024);
     pmm_deinitializeRegion(0x00000, 0x100000);
 
-    // Unmark kernel region
+    // Unmark kernel regions
     dprintf(DEBUG, "Marked memory descriptor %016X - %016X (%i KB) as kernel memory\n", 0x100000, 0x200000, (0x100000) / 1024);
-    pmm_deinitializeRegion(0x100000, 0x100000); // !!!: 0x100000 is a hack
+    pmm_deinitializeRegion(0x100000, highest_address - 0x100000);
 
     // Done!
     dprintf(DEBUG, "Marked valid memory - PMM has %i free blocks / %i max blocks\n", pmm_getFreeBlocks(), pmm_getMaximumBlocks());
