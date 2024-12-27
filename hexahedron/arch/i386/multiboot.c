@@ -178,7 +178,7 @@ _done_modules:
         parameters->kernel_cmdline = (char*)arch_relocate_structure((uintptr_t)cmdline->string, strlen((char*)cmdline->string));
         parameters->kernel_cmdline[strlen(parameters->kernel_cmdline) - 1] = 0;
     } else {
-        parameters->kernel_cmdline = (char*)arch_allocate_structure(1); // !!!: wtf am i doing
+        parameters->kernel_cmdline = (char*)NULL;
     }
     
 
@@ -186,7 +186,7 @@ _done_modules:
         parameters->bootloader_name = (char*)arch_relocate_structure((uintptr_t)bootldr->string, strlen((char*)bootldr->string));
         parameters->bootloader_name[strlen(parameters->bootloader_name) - 1] = 0;
     } else {
-        parameters->bootloader_name = (char*)arch_allocate_structure(1);
+        parameters->bootloader_name = (char*)NULL;
     }
 
 
@@ -214,14 +214,14 @@ generic_parameters_t *arch_parse_multiboot1(multiboot_t *bootinfo) {
         parameters->kernel_cmdline = (char*)arch_relocate_structure(bootinfo->cmdline, strlen((char*)bootinfo->cmdline));
         parameters->kernel_cmdline[strlen(parameters->kernel_cmdline) - 1] = 0;
     } else {
-        parameters->kernel_cmdline = (char*)arch_allocate_structure(1); // !!!: wtf am i doing
+        parameters->kernel_cmdline = (char*)NULL;
     }
 
     if (strlen((char*)bootinfo->boot_loader_name) > 0) {
         parameters->bootloader_name = (char*)arch_relocate_structure(bootinfo->boot_loader_name, strlen((char*)bootinfo->boot_loader_name));
         parameters->bootloader_name[strlen(parameters->bootloader_name) - 1] = 0;
     } else {
-        parameters->bootloader_name = (char*)arch_allocate_structure(1);
+        parameters->bootloader_name = (char*)NULL;
     }
 
     // Make a framebuffer tag
