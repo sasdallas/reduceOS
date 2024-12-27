@@ -12,15 +12,27 @@
  */
 
 #include <kernel/gfx/term.h>
+#include <kernel/debug.h>
 #include <stddef.h>
 
-/* Variables */
+/* GCC */
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+
+/* Width / Height */
 int terminal_width = 0;
 int terminal_height = 0;
+
+/* X and Y */
 int terminal_x = 0;
 int terminal_y = 0;
+
+/* Colors */
 color_t terminal_fg = TERMINAL_DEFAULT_FG;
 color_t terminal_bg = TERMINAL_DEFAULT_BG;
+
+/* Hacked in ANSI escape codes */
+static int ansi_escape_code = 0; // 0 = no code, 1 = received a \033, 2 = received a [. Resets to 0 on m, meaning that yes, you can break this by not specifying m.
+static int ansi_color_code = 0; 
 
 /**
  * @brief Initialize the terminal system - sets terminal_print as default printf method.
@@ -79,6 +91,62 @@ static void terminal_backspace() {
 }
 
 /**
+ * @brief Handle parsing ANSI color code
+ */
+static void terminal_parseANSI() {
+    if (!ansi_color_code) {
+        // Reset to default
+        terminal_fg = TERMINAL_DEFAULT_FG;
+        terminal_bg = TERMINAL_DEFAULT_BG;
+        goto _reset;
+    }
+
+    int bg = (ansi_color_code >= 40) ? 1 : 0; // Whether this is setting bg or fg
+    
+    // Subtract necessary
+    ansi_color_code -= (bg) ? 40 : 30;
+    if (ansi_color_code > 7 || ansi_color_code < 0) goto _reset;
+
+    // Switch statement (ugly but whatever)
+    color_t color;
+    switch (ansi_color_code) {
+        case 0:
+            color = COLOR_BLACK;
+            break;
+        case 1:
+            color = COLOR_RED;
+            break;
+        case 2:
+            color = COLOR_GREEN;
+            break;
+        case 3:
+            color = COLOR_YELLOW;
+            break;
+        case 4:
+            color = COLOR_BLUE;
+            break;
+        case 5:
+            color = COLOR_PURPLE;
+            break;
+        case 6:
+            color = COLOR_CYAN;
+            break;
+        default:
+            color = COLOR_WHITE;
+            break;
+    }
+
+    // Set color
+    if (bg) terminal_bg = color;
+    else terminal_fg = color;
+
+_reset:
+    // Reset all values
+    ansi_color_code = 0;
+    ansi_escape_code = 0;
+}
+
+/**
  * @brief Put character method
  */
 int terminal_putchar(int c) {
@@ -110,8 +178,42 @@ int terminal_putchar(int c) {
             // Return carriage
             terminal_x = 0;
             break;
+
+        case '\033':
+            // ANSI escape sequence. This means that the next character should be a [
+            ansi_escape_code = 1;
+            break;
+
+        case 'm':
+            // Final part of the ANSI escape sequence.
+            if (ansi_escape_code == 2) {
+                // This means that our color codes are setup in ansi_color_code.
+                // Parse and handle (which will reset avlues as well).
+                terminal_parseANSI();
+                break;
+            }
+
+            // Fall through to default case.
+
+        case '[':
+            // Are we handling an ANSI escape sequence?
+            if (ansi_escape_code) {
+                ansi_escape_code = 2;
+                break;
+            }
+            
+            // Fall through to default case.
         
         default:
+            if (ansi_escape_code == 1) {
+                // No '[' was received, reset.
+                ansi_escape_code = 0; 
+            } else if (ansi_escape_code == 2) {
+                // Tack on to ANSI color code.
+                ansi_color_code = (ansi_color_code * 10) + (c - '0');
+                break;
+            }
+
             // Normal character
             font_putCharacter(c, terminal_x, terminal_y, terminal_fg, terminal_bg);
             terminal_x++;

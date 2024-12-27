@@ -95,5 +95,4 @@ void gfx_drawLogo(color_t color) {
     gfx_drawLine(vertices[1][0], vertices[1][1], vertices[5][0], vertices[5][1], color); // Front-bottom-right to back-bottom-right
     gfx_drawLine(vertices[2][0], vertices[2][1], vertices[6][0], vertices[6][1], color); // Front-top-right to back-top-right
     gfx_drawLine(vertices[3][0], vertices[3][1], vertices[7][0], vertices[7][1], color); // Front-top-left to back-top-left
-
 }

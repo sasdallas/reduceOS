@@ -62,8 +62,8 @@ void arch_say_hello(int is_debug) {
         // parameters->cpu_count = smp_getCPUCount();
         printf("this is a mental note to remind me to uncomment the above line\n");
 
+        // Draw logo
         gfx_drawLogo(RGB(255, 255, 255));
-
         return;
     }
 
