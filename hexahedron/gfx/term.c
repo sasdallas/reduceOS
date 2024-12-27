@@ -204,6 +204,16 @@ int terminal_putchar(int c) {
             
             // Fall through to default case.
         
+        case ';':
+            // Are we handling an ANSI escape sequence? (it can be \033[1;XXm too)
+            if (ansi_escape_code == 2) {
+                // Reset color code & break;
+                ansi_color_code = 0;
+                break;
+            }
+
+            // Fall through to default case.
+
         default:
             if (ansi_escape_code == 1) {
                 // No '[' was received, reset.

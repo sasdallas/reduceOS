@@ -45,6 +45,10 @@
     dprintf(NOHEADER, COLOR_CODE_RED        "Please start an issue on GitHub if you believe this to be a bug.\n"); \
     dprintf(NOHEADER, COLOR_CODE_RED        "Apologies for any inconveniences caused by this error.\n\n"); \
 
+/* Normal messages printed to console */
+#define CONSOLE_MESSAGES \
+    printf(COLOR_CODE_RED   "FATAL: Kernel panic detected.\n"); \
+    printf(COLOR_CODE_RED   "Please start an issue on GitHub if you believe this to be a bug.\n\n");
 
 
 /**
@@ -52,6 +56,7 @@
  */
 static int kernel_panic_putchar(void *user, char ch) {
     dprintf(NOHEADER, "%c", ch);
+    printf("%c", ch);
     return 0;
 }
 
@@ -89,6 +94,10 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     DEBUG_MESSAGES
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s (module \'%s\')\n", arch_current_cpu(), kernel_bugcode_strings[bugcode], module);
 
+    // Normal messages
+    CONSOLE_MESSAGES;
+    printf(COLOR_CODE_RED   "*** STOP: cpu%i: %s (module \"%s\")\n", arch_current_cpu(), kernel_bugcode_strings[bugcode], module);
+    
     // Print out anything additional
     char additional[512];
     va_list ap;
@@ -96,12 +105,16 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     xvasprintf(kernel_panic_putchar, NULL, format, ap);
     vsnprintf(additional, 512, format, ap);
     va_end(ap);
-    
+
+   
     // Notify debugger
     kernel_panic_sendPacket(bugcode, module, additional);
 
     // Print out a generic message
     dprintf(NOHEADER, COLOR_CODE_RED        "\nAdditional information: %s", kernel_panic_messages[bugcode]);
+    printf(COLOR_CODE_RED                   "\nAdditional information: %s", kernel_panic_messages[bugcode]);
+
+
 
     // Finish the panic
     dprintf(NOHEADER, "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
@@ -125,9 +138,13 @@ void kernel_panic(uint32_t bugcode, char *module) {
 
     // Start by printing out debug messages
     DEBUG_MESSAGES;
-
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s (module \'%s\')\n", arch_current_cpu(), kernel_bugcode_strings[bugcode], module);
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** %s" COLOR_CODE_RED, kernel_panic_messages[bugcode]);
+
+    // Normal messages
+    CONSOLE_MESSAGES;
+    printf(COLOR_CODE_RED   "*** STOP: cpu%i: %s (module \"%s\")\n", arch_current_cpu(), kernel_bugcode_strings[bugcode], module);
+    printf(COLOR_CODE_RED   "*** %s\n", kernel_panic_messages[bugcode]);
 
     // Send debugger packet to say we panicked
     kernel_panic_sendPacket(bugcode, module, NULL);
@@ -149,9 +166,17 @@ void kernel_panic_prepare(uint32_t bugcode) {
 
     // Start out by printing debug messages
     DEBUG_MESSAGES;
+    
+    // Normal messages
+    CONSOLE_MESSAGES;
+
+    // Bugcode
     if (bugcode) {
         dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s\n", arch_current_cpu(), kernel_bugcode_strings[bugcode]);
+        printf(COLOR_CODE_RED   "*** STOP: cpu%i: %s\n", arch_current_cpu(), kernel_bugcode_strings[bugcode]);
     }
+
+    
 
     kernel_panic_sendPacket(bugcode, NULL, NULL);
 }

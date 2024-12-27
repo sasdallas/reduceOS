@@ -199,5 +199,8 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
 
+
+    kernel_panic(KERNEL_DEBUG_TRAP, "f");
+
     for (;;);
 }
