@@ -137,8 +137,6 @@ __stack_top:
 .global _start
 .type _start, @function
 _start:
-    xchgw %bx, %bx
-
     // Setup stack 
     movl $__stack_top, %esp
 

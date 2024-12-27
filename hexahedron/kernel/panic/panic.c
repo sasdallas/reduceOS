@@ -37,6 +37,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+
+/* Basic debug messages */
+#define DEBUG_MESSAGES \
+    dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "\n\nFATAL: Kernel panic detected!\n"); \
+    dprintf(NOHEADER, COLOR_CODE_RED        "Hexahedron has experienced a critical fault that cannot be resolved\n"); \
+    dprintf(NOHEADER, COLOR_CODE_RED        "Please start an issue on GitHub if you believe this to be a bug.\n"); \
+    dprintf(NOHEADER, COLOR_CODE_RED        "Apologies for any inconveniences caused by this error.\n\n"); \
+
+
+
 /**
  * @brief xvas_callback
  */
@@ -76,15 +86,11 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
     arch_panic_prepare();
 
     // Start by printing out debug messages
-    dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "\n\nFATAL: Kernel panic detected!\n");
-    dprintf(NOHEADER, COLOR_CODE_RED        "Hexahedron has experienced a critical fault that cannot be resolved\n");
-    dprintf(NOHEADER, COLOR_CODE_RED        "Please start an issue on GitHub if you believe this to be a bug.\n");
-    dprintf(NOHEADER, COLOR_CODE_RED        "Apologies for any inconveniences caused by this error.\n\n");
-    
+    DEBUG_MESSAGES
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s (module \'%s\')\n", arch_current_cpu(), kernel_bugcode_strings[bugcode], module);
 
+    // Print out anything additional
     char additional[512];
-
     va_list ap;
     va_start(ap, format);
     xvasprintf(kernel_panic_putchar, NULL, format, ap);
@@ -118,13 +124,12 @@ void kernel_panic(uint32_t bugcode, char *module) {
     arch_panic_prepare();
 
     // Start by printing out debug messages
-    dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "\n\nFATAL: Kernel panic detected!\n");
-    dprintf(NOHEADER, COLOR_CODE_RED        "Hexahedron has experienced a critical fault that cannot be resolved\n");
-    dprintf(NOHEADER, COLOR_CODE_RED        "Please start an issue on GitHub if you believe this to be a bug.\n");
-    dprintf(NOHEADER, COLOR_CODE_RED        "Apologies for any inconveniences caused by this error.\n\n");
+    DEBUG_MESSAGES;
+
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s (module \'%s\')\n", arch_current_cpu(), kernel_bugcode_strings[bugcode], module);
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** %s" COLOR_CODE_RED, kernel_panic_messages[bugcode]);
-    
+
+    // Send debugger packet to say we panicked
     kernel_panic_sendPacket(bugcode, module, NULL);
 
     // Finish the panic
@@ -139,13 +144,11 @@ void kernel_panic(uint32_t bugcode, char *module) {
  * @param bugcode Optional bugcode to display. Leave as NULL to not use (note: generic string will not be printed)
  */
 void kernel_panic_prepare(uint32_t bugcode) {
+    // Do arch-specific panic preparation
     arch_panic_prepare();
 
-    dprintf(NOHEADER, COLOR_CODE_RED_BOLD       "\n\nFATAL: Kernel panic detected!\n");
-    dprintf(NOHEADER, COLOR_CODE_RED            "Hexahedron has experienced a critical fault that cannot be resolved\n");
-    dprintf(NOHEADER, COLOR_CODE_RED            "Please start an issue on GitHub if you believe this to be a bug.\n");
-    dprintf(NOHEADER, COLOR_CODE_RED            "Apologies for any inconveniences caused by this error.\n\n");
-
+    // Start out by printing debug messages
+    DEBUG_MESSAGES;
     if (bugcode) {
         dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s\n", arch_current_cpu(), kernel_bugcode_strings[bugcode]);
     }
