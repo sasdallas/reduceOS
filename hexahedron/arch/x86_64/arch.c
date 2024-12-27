@@ -197,6 +197,9 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     dprintf(INFO, "Loaded by '%s' with command line '%s'\n", parameters->bootloader_name, parameters->kernel_cmdline);
     dprintf(INFO, "Available physical memory to machine: %i KB\n", parameters->mem_size);
 
+    // Initialize arguments system
+    kargs_init(parameters->kernel_cmdline);
+
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
 

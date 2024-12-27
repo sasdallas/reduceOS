@@ -69,6 +69,13 @@ void *hashmap_get(hashmap_t *hashmap, void *key);
 void *hashmap_remove(hashmap_t *hashmap, void *key);
 
 /**
+ * @brief Returns whether a hashmap has a key
+ * @param hashmap The hashmap to check
+ * @param key The key to check for
+ */
+int hashmap_has(hashmap_t *hashmap, void *key);
+
+/**
  * @brief Returns a list of hashmap keys
  * @param hashmap The hashmap to return a list of keys for
  */

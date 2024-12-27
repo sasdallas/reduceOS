@@ -25,7 +25,7 @@
 #include <kernel/mem/mem.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
-#include <kernel/misc/term.h>
+#include <kernel/gfx/term.h>
 
 #include <string.h>
 #include <stddef.h>

@@ -31,6 +31,7 @@
 #include <kernel/misc/spinlock.h>
 #include <kernel/processor_data.h>
 #include <kernel/gfx/gfx.h>
+#include <kernel/misc/args.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
@@ -55,7 +56,7 @@ generic_parameters_t *parameters;
 void arch_say_hello(int is_debug) {
 
     if (!is_debug) {
-        gfx_drawLogo();
+        gfx_drawLogo(COLOR_WHITE);
 
         printf("Hexahedron %d.%d.%d-%s-%s (codename \"%s\")\n", 
                     __kernel_version_major, 
@@ -203,6 +204,8 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
                                             info->support_valloc ? "supported" : "not supported",
                                             info->support_profile ? "supported" : "not supported");
 
+    // Initialize arguments system
+    kargs_init(parameters->kernel_cmdline);
 
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
