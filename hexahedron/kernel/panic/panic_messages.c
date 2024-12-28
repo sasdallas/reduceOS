@@ -26,7 +26,8 @@ char *kernel_bugcode_strings[KERNEL_STOP_CODES] = {
     "CPU_EXCEPTION_UNHANDLED",
     "UNSUPPORTED_FUNCTION_ERROR",
     "ACPI_SYSTEM_ERROR",
-    "ASSERTION_FAILED"
+    "ASSERTION_FAILED",
+    "INSUFFICIENT_HARDWARE_REQUIREMENTS", // This one is different, looks better.
 };
 
 char *kernel_panic_messages[KERNEL_STOP_CODES] = {
@@ -38,5 +39,6 @@ char *kernel_panic_messages[KERNEL_STOP_CODES] = {
     "A CPU exception in the kernel was not handled correctly.",
     "An unsupported kernel function was called. This as a bug in the kernel - please contact the developers.\n",
     "Your computer is not compliant with ACPI specifications, or is not compatible with the ACPICA library.\n",
-    "An assertion within the kernel failed.\n"
+    "An assertion within the kernel failed.\n",
+    "Your computer does not meet the requirements necessary to run Hexahedron."
 };
