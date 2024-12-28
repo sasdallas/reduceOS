@@ -39,6 +39,7 @@
 #include <kernel/processor_data.h>
 #include <kernel/gfx/gfx.h>
 #include <kernel/misc/args.h>
+#include <kernel/fs/vfs.h>
 
 /* Parameters */
 generic_parameters_t *parameters = NULL;
@@ -203,6 +204,8 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
 
+    // Initialize the virtual filesystem
+    vfs_init();
 
 
     for (;;);

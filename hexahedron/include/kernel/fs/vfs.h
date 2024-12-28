@@ -100,15 +100,87 @@ typedef struct fs_node {
 // will try all possible filesystems on the drive.
 // Note that vfs_mountFilesystem, vfs_mountFilesystemType, and vfs_mount are not the same
 
-typedef fs_node* (*mount_callback)(char *argument, char *mountpoint); // Argument can be whatever, it's fs-specific.
+typedef struct fs_node* (*mount_callback)(char *argument, char *mountpoint); // Argument can be whatever, it's fs-specific.
 
 typedef struct vfs_filesystem {
     char *name;             // Name of the filesystem
     mount_callback mount;   // Mount callback
 } vfs_filesystem_t;
 
+// We also use custom tree nodes for each VFS entry.
+// This is a remnant of legacy reduceOS that I liked - it allows us to know what filesystem type is assigned to what node.
+// It also allows for a root node to not immediately be mounted.
+typedef struct vfs_tree_node {
+    char *name;         // Yes, node->name exists but this is faster and allows us to have "mapped" nodes
+                        // that do nothing but can point to other nodes (e.g. /device/)
+    char *fs_type;
+    fs_node_t *node;
+} vfs_tree_node_t;
+
+
 /**** FUNCTIONS ****/
 
+/**
+ * @brief Standard POSIX open call
+ * @param node The node to open
+ * @param oflags The open flags
+ */
+void fs_open(fs_node_t *node, unsigned int oflags);
+
+/**
+ * @brief Standard POSIX close call
+ * @param node The node to close
+ */
+void fs_close(fs_node_t *node);
+
+/**
+ * @brief Standard POSIX read call
+ * @param node The node to read from
+ * @param offset The offset to read at
+ * @param size The amount of bytes to read
+ * @param buffer The buffer to store the bytes in
+ * @returns The amount of bytes read
+ */
+ssize_t fs_read(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer);
+
+/**
+ * @brief Standard POSIX write call
+ * @param node The node to write to
+ * @param offset The offset to write at
+ * @param size The amount of bytes to write
+ * @param buffer The buffer of the bytes to write
+ * @returns The amount of bytes written
+ */
+ssize_t fs_write(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer);
+
+/**
+ * @brief Read directory
+ * @param node The node to read the directory of
+ * @param index The index to read from
+ * @returns A directory entry structure or NULL
+ */
+struct dirent *fs_readdir(fs_node_t *node, unsigned long index);
+
+/**
+ * @brief Find directory
+ * @param node The node to find the path in
+ * @param name The name of the file to look for
+ * @returns The node of the file found or NULL
+ */
+fs_node_t *fs_finddir(fs_node_t *node, char *path);
+
+/**
+ * @brief Make directory
+ * @param path The path of the directory
+ * @param mode The mode of the directory created
+ * @returns Error code
+ */
+int fs_mkdir(char *path, mode_t mode);
+
+/**
+ * @brief Initialize the virtual filesystem with no root node.
+ */
+void vfs_init();
 
 
 
