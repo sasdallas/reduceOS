@@ -12,7 +12,7 @@
  */
 
 #include <kernel/arch/i386/cpu.h>
-#include <kernel/mem/alloc.h>
+#include <kernel/panic.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
@@ -116,4 +116,84 @@ char *cpu_getBrandString() {
 
     // !!!: this is ugly
     return strdup(brand);
+}
+
+/**
+ * @brief Check whether an FPU is present via CPUID
+ */
+int cpu_hasFPU() {
+    uint32_t edx, unused;
+    __cpuid(CPUID_GETFEATURES, unused, unused, unused, edx);
+    return edx & CPUID_FEAT_EDX_FPU;
+}
+
+/**
+ * @brief Check whether the CPU supports SSE
+ */
+int cpu_hasSSE() {
+    uint32_t edx, unused;
+    __cpuid(CPUID_GETFEATURES, unused, unused, unused, edx);
+    return edx & CPUID_FEAT_EDX_SSE;
+}
+
+/**
+ * @brief Check whether the CPU supports SSE2
+ */
+int cpu_hasSSE2() {
+    uint32_t edx, unused;
+    __cpuid(CPUID_GETFEATURES, unused, unused, unused, edx);
+    return edx & CPUID_FEAT_EDX_SSE2;
+}
+
+/**
+ * @brief Initialize the FPU for the CPU, as well as SSE
+ */
+void cpu_fpuInitialize() {
+    // An FPU is REQUIRED for Hexahedron, as is SSE.
+    if (!cpu_hasSSE() && !cpu_hasFPU()) goto _no_fpu;
+
+    // First, enable SSE
+    asm volatile(
+        "mov %%cr0, %%eax\n"
+        "and $0xFFFB, %%ax\n"   // Clear CR0.EM 
+        "or $0x2, %%ax\n"       // Set CR0.MP
+        "mov %%eax, %%cr0\n"
+        "mov %%cr4, %%eax\n"
+        "or $0x600, %%ax\n"     // Set CR4.OSFXSR and CR4.OSXMMEXCPT
+        "mov %%eax, %%cr4\n"   
+    ::: "eax");
+
+    // Valid, we'll load MXCSR now.
+    uint32_t mxcsr = 0x1f80;
+    asm volatile ("ldmxcsr %0" :: "m"(mxcsr));
+
+    // Now turn on the FPu.
+    // Clear the TS and EM bits in CR0
+    uint32_t cr0;
+    asm volatile ("mov %%cr0, %0" : "=r"(cr0));
+    cr0 &= ~(1 << 2);
+    cr0 &= ~(1 << 3);
+
+    unsigned short test_word = 0xFFFF;
+    asm volatile (
+        "mov %1, %%cr0\n"
+        "fninit\n"
+        "fnstsw %0" : "=r"(test_word) : "r"(cr0)
+    );
+
+    if (test_word == 0x0) {
+        // Valid, load FPU word
+        uint32_t fpuword = 0x37A;
+        asm volatile ("fldcw %0" :: "m"(fpuword));
+    } else {
+        // Invalid
+        goto _no_fpu;
+    }
+
+
+    return;
+
+_no_fpu:
+    kernel_panic_extended(INSUFFICIENT_HARDWARE_ERROR, "cpu", "*** Hexahedron requires a floating-point unit and SSE support to operate.\n");
+    __builtin_unreachable();
 }

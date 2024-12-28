@@ -25,6 +25,7 @@
 #include <kernel/arch/i386/arch.h>
 #include <kernel/arch/i386/hal.h>
 #include <kernel/arch/i386/smp.h>
+#include <kernel/arch/i386/cpu.h>
 #include <kernel/hal.h>
 #include <kernel/debug.h>
 #include <kernel/config.h>
@@ -78,6 +79,9 @@ static void hal_init_stage1() {
     }
 
     arch_say_hello(1);
+
+    // Initialize the FPU
+    cpu_fpuInitialize();
 
     // Initialize interrupts
     hal_initializeInterrupts();

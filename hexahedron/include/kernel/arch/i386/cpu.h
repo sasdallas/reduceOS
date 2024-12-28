@@ -181,4 +181,9 @@ uint8_t cpu_getFamily();
  */
 char *cpu_getBrandString();
 
+/**
+ * @brief Initialize the FPU for the CPU, as well as SSE
+ */
+void cpu_fpuInitialize();
+
 #endif

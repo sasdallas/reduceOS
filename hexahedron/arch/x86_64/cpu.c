@@ -177,6 +177,8 @@ void cpu_fpuInitialize() {
 		"ldmxcsr (%%rsp)\n"
 		"addq $8, %%rsp\n"
 	: : : "rax");
+    
+    // TODO: Do we need to load an FPU control word like as is done on I386?
 
     return;
 }
