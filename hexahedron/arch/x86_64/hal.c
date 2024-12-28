@@ -19,6 +19,7 @@
 // Kernel includes
 #include <kernel/arch/x86_64/arch.h>
 #include <kernel/arch/x86_64/smp.h>
+#include <kernel/arch/x86_64/cpu.h>
 #include <kernel/config.h>
 #include <kernel/hal.h>
 #include <kernel/debug.h>
@@ -72,6 +73,9 @@ static void hal_init_stage1() {
 
     // Say hi!
     arch_say_hello(1);
+
+    // Initialize FPU
+    cpu_fpuInitialize();
 
     // Initialize clock driver
     clock_initialize();

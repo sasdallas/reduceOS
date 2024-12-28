@@ -1,18 +1,40 @@
 {
-  "configurations": [
-    {
-      "name": "linux-gcc-x64",
-      "includePath": [
-        "${workspaceFolder}/**"
-      ],
-      "compilerPath": "/usr/bin/gcc",
-      "cStandard": "${default}",
-      "cppStandard": "${default}",
-      "intelliSenseMode": "linux-gcc-x64",
-      "compilerArgs": [
-        ""
-      ]
-    }
-  ],
-  "version": 4
+    "configurations": [
+        {
+            "name": "linux-gcc-x64",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "${default}",
+            "cppStandard": "${default}",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                ""
+            ]
+        },
+        {
+            "name": "osdev-x86_64",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/build-output/sysroot/usr/include/**"
+            ],
+            "defines": [
+                "HEXAHEDRON",
+                "__KERNEL__",
+                "__LIBK"
+            ],
+            "compilerPath": "/usr/bin/x86_64-elf-gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64",
+            "compilerArgs": [
+                "-nostdinc",
+                "-ffreestanding",
+                "--sysroot",
+                "${workspaceFolder}/build-output/sysroot/"
+            ]
+        }
+    ],
+    "version": 4
 }

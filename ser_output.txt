@@ -7,27 +7,51 @@
  +------+'
 
 Hexahedron 1.0.1-x86_64-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Dec 27 2024 08:52:33
+	Compiled by GCC 14.1.0 on Dec 28 2024 10:53:33
 
-[no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
-[no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
-[no clock ready] [INFO] [CLOCK] Initial boot time is 1735289577 (UNIX timestamp)
-[no clock ready] [INFO] [CLOCK] TSC baseline is 49598us
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] Clock initialized
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] Interrupts enabled.
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] HAL stage 1 initialization completed
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] Found a Multiboot1 structure
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
-[Fri Dec 27 08:52:57 2024] [CPU0] [DBG ] Kernel requires 434 pages
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] Finished identity mapping kernel, mapping heap...
-[Fri Dec 27 08:52:57 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 000000000009F000 (636 KB) as available memory
-[Fri Dec 27 08:52:57 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000001FF0000 (31680 KB) as available memory
-[Fri Dec 27 08:52:57 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 0000000000100000 (1024 KB) as reserved memory (QEMU bug)
-[Fri Dec 27 08:52:57 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000000200000 (1024 KB) as kernel memory
-[Fri Dec 27 08:52:57 2024] [CPU0] [DBG ] Marked valid memory - PMM has 7567 free blocks / 8175 max blocks
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] Memory management initialized
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] Allocator information: toaru_alloc version 1.0 (valloc supported, profiling supported)
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] Loaded by 'GRUB 2.06-2ubuntu7.2+zorin' with command line '(@'
-[Fri Dec 27 08:52:57 2024] [CPU0] [INFO] Available physical memory to machine: 32316 KB
-[Fri Dec 27 08:52:57 2024] [CPU0] [WARN] COM2 is faulty or nonexistent
-[Fri Dec 27 08:52:57 2024] [CPU0] [WARN] Failed to initialize COM2 for debugging
+[no clock ready] [INFO] [CLOCK] TSC calculated speed is 4 MHz
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1735383242 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 23540363us
+[Sat Dec 28 10:54:02 2024] [CPU0] [INFO] Clock initialized
+[Sat Dec 28 10:54:02 2024] [CPU0] [INFO] Interrupts enabled.
+[Sat Dec 28 10:54:02 2024] [CPU0] [INFO] HAL stage 1 initialization completed
+[Sat Dec 28 10:54:02 2024] [CPU0] [INFO] Found a Multiboot1 structure
+[Sat Dec 28 10:54:02 2024] [CPU0] [INFO] 5-level paging is not supported by this CPU
+[Sat Dec 28 10:54:02 2024] [CPU0] [DBG ] Kernel requires 435 pages
+[Sat Dec 28 10:54:02 2024] [CPU0] [INFO] Finished identity mapping kernel, mapping heap...
+[Sat Dec 28 10:54:02 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 000000000009F000 (636 KB) as available memory
+[Sat Dec 28 10:54:03 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000001FF0000 (31680 KB) as available memory
+[Sat Dec 28 10:54:03 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 0000000000100000 (1024 KB) as reserved memory (QEMU bug)
+[Sat Dec 28 10:54:03 2024] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000000200000 (1024 KB) as kernel memory
+[Sat Dec 28 10:54:03 2024] [CPU0] [DBG ] Marked valid memory - PMM has 7567 free blocks / 8175 max blocks
+[Sat Dec 28 10:54:03 2024] [CPU0] [INFO] Memory management initialized
+[Sat Dec 28 10:54:03 2024] [CPU0] [INFO] Allocator information: toaru_alloc version 1.0 (valloc supported, profiling supported)
+[Sat Dec 28 10:54:03 2024] [CPU0] [INFO] Loaded by 'GRUB 2.06-2ubuntu7.2+zorin1' with command line '(null)'
+[Sat Dec 28 10:54:04 2024] [CPU0] [INFO] Available physical memory to machine: 32316 KB
+[Sat Dec 28 10:54:04 2024] [CPU0] [WARN] COM2 is faulty or nonexistent
+[Sat Dec 28 10:54:04 2024] [CPU0] [WARN] Failed to initialize COM2 for debugging
+[Sat Dec 28 10:54:26 2024] [CPU0] [ERR ] Fatal panic state detected - please wait, cleaning up...
+[1;31m
+
+FATAL: Kernel panic detected!
+[0;31mHexahedron has experienced a critical fault that cannot be resolved
+[0;31mPlease start an issue on GitHub if you believe this to be a bug.
+[0;31mApologies for any inconveniences caused by this error.
+
+[1;31m*** STOP: cpu0: CPU_EXCEPTION_UNHANDLED
+*** ISR detected exception 6 - invalid opcode
+
+[1;31mFAULT REGISTERS:
+[0;31mRAX 000000000000002c RBX 0000000004000087 RCX 0000000000145564 RDX 0000000000145564
+RDI 00000000001b1c47 RSI 0000000000145564 RBP 00000000001b1bb0 RSP 00000000001b1b70
+R8  0000000000100940 R9  0000000000000001 R10 0000000000000001 R11 0000000000000000
+R12 0000000000000000 R13 0000000000000000 R14 0000000000000000 R15 0000000000000000
+ERR 0000000000000000 RIP 0000000000141679 RFL 0000000000010202
+
+CS 0008 DS 0010 FS 0010 GS 0010 SS 0010
+
+CR0 e0000011 CR2 0000000000000000 CR3 000000000015f000 CR4 00000020
+GDTR 000000000015a240 0037
+IDTR 000000000015d680 0fef
+[0;31m
+The kernel will now permanently halt. Connect a debugger for more information.

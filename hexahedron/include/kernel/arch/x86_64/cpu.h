@@ -212,4 +212,11 @@ int cpu_pml5supported();
  */
 uint32_t cpu_getMaxLinearAddress();
 
+/**
+ * @brief Initialize the CPU floating point unit
+ * 
+ * This feels weirdly out of place being in cpu.c, but who cares.
+ */
+void cpu_fpuInitialize();
+
 #endif
