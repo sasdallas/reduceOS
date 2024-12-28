@@ -3,7 +3,6 @@
  * @brief Virtual filesystem handler
  * 
  * @todo refcounts implemented
- * @todo locks
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -20,8 +19,10 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#include <kernel/panic.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
+#include <kernel/misc/spinlock.h>
 
 #include <structs/tree.h>
 #include <structs/hashmap.h>
@@ -34,11 +35,11 @@ tree_t *vfs_tree = NULL;
 /* Hashmap of filesystems (quick access) */
 hashmap_t *vfs_filesystems = NULL;
 
-/* Root node of the VFS */
-fs_node_t *vfs_root = NULL;
-
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "VFS", __VA_ARGS__)
+
+/* Locks */
+spinlock_t *vfs_lock;
 
 /* Old reduceOS implemented a CWD system, but that was just for the kernel CLI */
 
@@ -144,6 +145,7 @@ int fs_unlink(char *name) { return -ENOTSUP; }
 
 char *vfs_canonicalizePath(char *cwd, char *addition);
 
+
 /**
  * @brief Initialize the virtual filesystem with no root node.
  */
@@ -160,6 +162,9 @@ void vfs_init() {
     
     // Create the filesystem hashmap
     vfs_filesystems = hashmap_create("VFS filesystems", 10);
+
+    // Load spinlocks
+    vfs_lock = spinlock_create("vfs lock");
 
     LOG(INFO, "VFS initialized\n");
 }
@@ -201,8 +206,6 @@ _canonicalize:
     // Something like: /home/blah/../other_directory/gk
     // We'll pull a trick from old coding and parse it into a list, iterate each element and go.
     list_t *list = list_create("canonicalize list");
-
-    dprintf(DEBUG, "canonicalize_path = %s\n", canonicalize_path);
 
     // Now add all the elements to the list, parsing each one.  
     size_t path_size = 0;  
@@ -250,4 +253,78 @@ _canonicalize:
 
     list_destroy(list, true); // Destroy the list & free contents
     return output;
+}
+
+/**
+ * @brief Mount a specific node to a directory
+ * @param node The node to mount
+ * @param path The path to mount to
+ * @returns Error code
+ */
+int vfs_mount(fs_node_t *node, char *path) {
+    // Sanity checks
+    if (!node) return -EINVAL;
+    if (!vfs_tree) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "vfs", "*** vfs_mount before init\n");
+        __builtin_unreachable();
+    }
+
+    if (!path || path[0] != '/') {
+        // lol
+        LOG(WARN, "vfs_mount bad path argument - cannot be relative\n");
+        return -EINVAL;
+    }
+
+    spinlock_acquire(vfs_lock);
+
+    // If the path strlen is 0, then we're trying to set the root node
+    if (strlen(path) == 1) {
+        // We don't need to allocate a new node. There's a perfectly good one already!
+        vfs_tree_node_t *root = vfs_tree->root->value;
+        root->node = node;
+        goto _cleanup;
+    }
+
+    // Ok we still have to do work :(
+    // We can use strtok_r and iterate through each part of the path, creating new nodes when needed.
+
+    tree_node_t *parent_node = vfs_tree->root; // We start at the root node
+    
+    char *pch;
+    char *saveptr;
+     
+    pch = strtok_r(path, "/", &saveptr);
+    while (pch) {
+        int found = 0; // Did we find the node?
+
+        foreach(child, parent_node->children) {
+            vfs_tree_node_t *childnode = ((tree_node_t*)child->value)->value; // i hate trees
+            if (!strcmp(childnode->name, pch)) {
+                // Found it
+                found = 1;
+                parent_node = child->value;
+                break;
+            }
+        }
+    
+        if (!found) {
+            // LOG(INFO, "Creating node at %s\n", pch);
+
+            vfs_tree_node_t *newnode = kmalloc(sizeof(vfs_tree_node_t)); 
+            newnode->name = strdup(pch);
+            newnode->fs_type = NULL;
+            newnode->node = NULL;
+            parent_node = tree_insert_child(vfs_tree, parent_node, newnode);
+        }
+
+        pch = strtok_r(NULL, "/", &saveptr);
+    } 
+
+    // Now parent_node should point to the newly created directory
+    vfs_tree_node_t *entry = parent_node->value;
+    entry->node = node;
+
+_cleanup:
+    spinlock_release(vfs_lock);
+    return 0;
 }

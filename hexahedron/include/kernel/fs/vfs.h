@@ -182,6 +182,12 @@ int fs_mkdir(char *path, mode_t mode);
  */
 void vfs_init();
 
-
+/**
+ * @brief Mount a specific node to a directory
+ * @param node The node to mount
+ * @param path The path to mount to
+ * @returns Error code
+ */
+int vfs_mount(fs_node_t *node, char *path);
 
 #endif
