@@ -17,6 +17,9 @@
             "name": "osdev-x86_64",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/libkstructures/include/**",
+                "${workspaceFolder}/libpolyhedron/include/**",
+                "${workspaceFolder}/hexahedron/include/**",
                 "${workspaceFolder}/build-output/sysroot/usr/include/**"
             ],
             "defines": [
@@ -33,7 +36,17 @@
                 "-ffreestanding",
                 "--sysroot",
                 "${workspaceFolder}/build-output/sysroot/"
-            ]
+            ],
+            "compilerPathInCppPropertiesJson": "/usr/bin/x86_64-elf-gcc",
+            "mergeConfigurations": false,
+            "browse": {
+                "path": [
+                    "/home/samuel/Desktop/Hexahedron/**",
+                    "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**",
+                    "${workspaceFolder}"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
         }
     ],
     "version": 4

@@ -49,7 +49,8 @@
 #define ACPI_MSG_BIOS_ERROR     "[EXTERNAL                ] [CPU0] [ERR ] [ACPICA:INT] ACPI BIOS Error: "
 #define ACPI_MSG_BIOS_WARNING   "[EXTERNAL                ] [CPU0] [WARN] [ACPICA:INT] ACPI BIOS Warning: "
 
-// Certain compilation errors occur of multiple snprintf/vsnprintf definitions
+// Certain compilation errors occur of multiple sprintf/snprintf/vsnprintf definitions
+#define sprintf _sprintf
 #define snprintf _snprintf
 #define vsnprintf _vsnprintf
 
