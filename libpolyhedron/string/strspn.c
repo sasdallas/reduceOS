@@ -24,7 +24,7 @@ size_t strspn(const char *str, const char *c) {
     // Now check if there is a second character in c.
     if (!c[1]) {
         // No, we're only looking for one character.
-        for (; *str && *str != *c; str++);
+        for (; *str == *c; str++);
         return str-a;
     }
 
@@ -38,7 +38,7 @@ size_t strspn(const char *str, const char *c) {
     return str-a;
 } 
 
-size_t strcspn(const char *str, char *c) {
+size_t strcspn(const char *str, const char *c) {
     const char *a = str;
 
     if (c[0] && c[1]) {

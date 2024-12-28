@@ -13,7 +13,7 @@
 
 #include <string.h>
 
-char *strpbrk(const char *str1, char *str2) {
+char *strpbrk(const char *str1, const char *str2) {
     char *ptr = (char*)str1;
     ptr += strcspn(str1, str2);
     return (*ptr) ? ptr : 0; // Return NULL, not pointer to NULL byte.
