@@ -134,6 +134,7 @@ _no_debug: ;
 
 #else
     // TODO: We can create a minified ACPI system that just handles SMP
+    smp_info_t *smp = NULL; // To prevent GCC from freaking out
     dprintf(WARN, "No ACPI subsystem is available to kernel - SMP disabled\n");
     goto _no_smp;
 #endif

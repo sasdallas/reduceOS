@@ -211,15 +211,15 @@ generic_parameters_t *arch_parse_multiboot1(multiboot_t *bootinfo) {
     generic_parameters_t *parameters = (generic_parameters_t*)arch_allocate_structure(sizeof(generic_parameters_t));
     
     // Get the easy stuff out of the way - copy some strings.
-    if (strlen((char*)bootinfo->cmdline) > 0) {
-        parameters->kernel_cmdline = (char*)arch_relocate_structure(bootinfo->cmdline, strlen((char*)bootinfo->cmdline) + 1);
+    if (strlen((char*)(uintptr_t)bootinfo->cmdline) > 0) {
+        parameters->kernel_cmdline = (char*)arch_relocate_structure(bootinfo->cmdline, strlen((char*)(uintptr_t)bootinfo->cmdline) + 1);
         parameters->kernel_cmdline[strlen(parameters->kernel_cmdline)] = 0;
     } else {
         parameters->kernel_cmdline = (char*)NULL;
     }
 
-    if (strlen((char*)bootinfo->boot_loader_name) > 0) {
-        parameters->bootloader_name = (char*)arch_relocate_structure(bootinfo->boot_loader_name, strlen((char*)bootinfo->boot_loader_name) + 1);
+    if (strlen((char*)(uintptr_t)bootinfo->boot_loader_name) > 0) {
+        parameters->bootloader_name = (char*)arch_relocate_structure(bootinfo->boot_loader_name, strlen((char*)(uintptr_t)bootinfo->boot_loader_name) + 1);
         parameters->bootloader_name[strlen(parameters->bootloader_name)] = 0;
     } else {
         parameters->bootloader_name = (char*)NULL;
