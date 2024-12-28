@@ -1,6 +1,6 @@
 /**
- * @file libpolyhedron/include/sys/types.h
- * @brief Types
+ * @file libpolyhedron/include/bits/dirent.h
+ * @brief Directory entry
  * 
  * 
  * @copyright
@@ -15,28 +15,18 @@
 
 _Begin_C_Header
 
-#ifndef _SYS_TYPES_H
-#define _SYS_TYPES_H
+#ifndef _BITS_DIRENT_H
+#define _BITS_DIRENT_H
 
 /**** INCLUDES ****/
 #include <stdint.h>
 
 /**** TYPES ****/
 
-typedef int gid_t;
-typedef int uid_t;
-typedef int dev_t;
-typedef int ino_t;
-typedef int mode_t;
-typedef int caddr_t;
-
-typedef long off_t;
-typedef long time_t;
-typedef long clock_t;
-
-typedef unsigned long useconds_t;
-typedef long suseconds_t;
-
+typedef struct dirent {
+    uint32_t d_ino;
+    char d_name[256];
+} dirent;
 
 #endif
 
