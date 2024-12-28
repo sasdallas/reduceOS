@@ -1,6 +1,6 @@
 /**
  * @file libpolyhedron/string/strchr.c
- * @brief strchr
+ * @brief strchr/strrchr/strchrnul
  * 
  * 
  * @copyright
@@ -23,3 +23,23 @@ char *strchr(const char *str, int character) {
 
     return NULL;
 }
+
+char *strrchr(const char *str, int character) {
+    char *occurence = NULL;
+
+    char *ptr = (char*)str;
+    while (*ptr) {
+        if (*ptr == character) occurence = ptr;
+        ptr++;
+    }    
+
+    return occurence;
+}
+
+char *strchrnul(const char *str, int character) {
+    char *ptr = (char*)str;
+    while (*ptr && *ptr != character) ptr++;
+    return ptr;
+}
+
+

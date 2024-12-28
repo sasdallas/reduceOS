@@ -35,6 +35,8 @@ char* strcat(char *dest, const char *src);
 char* strncat(char *dest, const char *src, size_t n);
 
 char* strchr(const char*, int);
+char* strrchr(const char *, int);
+char* strchrnul(const char*, int);
 
 char* strdup( const char* );
 
