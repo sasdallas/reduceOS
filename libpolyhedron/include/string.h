@@ -38,7 +38,14 @@ char* strchr(const char*, int);
 char* strrchr(const char *, int);
 char* strchrnul(const char*, int);
 
-char* strdup( const char* );
+size_t strcspn(const char *str, char *c);
+size_t strspn(const char *str, const char *c);
+char *strpbrk(const char *str1, char *str2);
+
+char *strtok_r(char *str, const char *seps, char **lasts);
+char *strtok(char *str, const char *seps);
+
+char* strdup(const char*);
 
 #endif
 
