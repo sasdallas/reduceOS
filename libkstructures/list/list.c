@@ -230,3 +230,13 @@ void list_delete_index(list_t *list, size_t index) {
     }
 }
 
+/**
+ * @brief Pop the last node off the list and return it
+ * @param list The list to pop off
+ */
+node_t *list_pop(list_t *list) {
+    if (!list->tail) return NULL;
+    node_t *out = list->tail;
+    list_delete(list, out);
+    return out;
+}

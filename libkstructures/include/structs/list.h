@@ -118,5 +118,11 @@ void list_delete(list_t *list, node_t *node);
  */
 void list_delete_index(list_t *list, size_t index);
 
+/**
+ * @brief Pop the last node off the list and return it
+ * @param list The list to pop off
+ */
+node_t *list_pop(list_t *list);
+
 #endif
 
