@@ -16,11 +16,11 @@
         {
             "name": "osdev-x86_64",
             "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/libkstructures/include/**",
-                "${workspaceFolder}/libpolyhedron/include/**",
-                "${workspaceFolder}/hexahedron/include/**",
-                "${workspaceFolder}/build-output/sysroot/usr/include/**"
+                "/home/samuel/Desktop/Hexahedron/**",
+                "/home/samuel/Desktop/Hexahedron/libkstructures/include/**",
+                "/home/samuel/Desktop/Hexahedron/libpolyhedron/include/**",
+                "/home/samuel/Desktop/Hexahedron/hexahedron/include/**",
+                "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**"
             ],
             "defines": [
                 "HEXAHEDRON",
@@ -32,7 +32,6 @@
             "cppStandard": "c++14",
             "intelliSenseMode": "linux-clang-x64",
             "compilerArgs": [
-                "-nostdinc",
                 "-ffreestanding",
                 "--sysroot",
                 "${workspaceFolder}/build-output/sysroot/"
@@ -43,7 +42,7 @@
                 "path": [
                     "/home/samuel/Desktop/Hexahedron/**",
                     "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**",
-                    "${workspaceFolder}"
+                    "/home/samuel/Desktop/Hexahedron"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }

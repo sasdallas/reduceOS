@@ -1,7 +1,7 @@
 # config.sh - Configure the kernel. You shouldn't touch any of this unless you know what you're doing.
 
-HEADER_PROJECTS="libpolyhedron libkstructures external hexahedron"      # Projects to install headers for. This is always done first
-PROJECTS="libpolyhedron libkstructures external hexahedron"             # Projects to enter and run make install.
+HEADER_PROJECTS="base libpolyhedron libkstructures external hexahedron"         # Projects to install headers for. This is always done first
+PROJECTS="libpolyhedron libkstructures external hexahedron"                     # Projects to enter and run make install.
 
 # !! EDIT THIS TO CHANGE BUILD CONFIGURATION !!
 export KERNEL_BUILD_CONF="DEBUG";
@@ -50,13 +50,16 @@ export FILE_OUTPUT_DIRECTORY="$BUILD_OUTPUT_DIRECTORY/output"
 # Configure system root
 export SYSROOT="$BUILD_OUTPUT_DIRECTORY/sysroot"
 
+# Configure initial ramdisk
+export INITRD="$BUILD_OUTPUT_DIRECTORY/initrd"
+
 # Create the directories just in case they don't exist
 mkdir -p "$BUILD_OUTPUT_DIRECTORY/"
 mkdir -p "$OBJ_OUTPUT_DIRECTORY/"
 mkdir -p "$ISO_OUTPUT_DIRECTORY/"
 mkdir -p "$FILE_OUTPUT_DIRECTORY/"
 mkdir -p "$SYSROOT/"
-
+mkdir -p "$INITRD/"
 
 
 # Configure CFLAGS (TODO: Don't expose KERNEL_BUILD_CONFIGURATION)

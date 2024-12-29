@@ -6,15 +6,17 @@ include ./make.config
 
 targets:
 	@echo "Available targets for this makefile:"
-	@echo " all			build the kernel and package it in an ISO"
+	@echo " all			build the OS and package it in an ISO"
 	@echo " build			build the project (DOES NOT PACKAGE INTO ISO)"
+	@echo " initrd          build the initrd"
 	@echo " clean			clean the project"
 	@echo " iso 			build an ISO "
+	
 
 help: targets
 
 
-all: build iso
+all: build initrd iso
 
 
 iso:
@@ -29,6 +31,13 @@ build:
 	@echo
 	@echo
 	@echo "[ Finished building. You may need to pack it into an ISO file. ]"
+
+initrd:
+	$(MAKE) headerlog header="Creating initial ramdisk, please wait..."
+	bash -c "$(BUILDSCRIPTS_ROOT)/mkinitrd.sh"
+	@echo
+	@echo
+	@echo "[ Finished creating initial ramdisk ]"
 
 clean:
 	$(MAKE) headerlog header="Cleaning build, please wait..."

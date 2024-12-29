@@ -32,6 +32,7 @@
 #include <kernel/processor_data.h>
 #include <kernel/gfx/gfx.h>
 #include <kernel/misc/args.h>
+#include <kernel/fs/vfs.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
@@ -209,6 +210,9 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
 
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
+
+    // VFS initialization
+    vfs_init();
 
     for (;;);
 }
