@@ -5,8 +5,10 @@ Hexahedron is a modern replacement for the reduceOS kernel.
 A replacement for the reduceOS kernel, developed to follow standards better and have higher code quality.
 
 ## Project structure
+- `base`: Contains the base filesystem. Files in `base/initrd` go in the initial ramdisk and files in `base/sysroot` go in sysroot.
 - `buildscripts`: Contains buildscripts for the build system
 - `conf`: Contains misc. configuration files, such as architecture files, GRUB configs, extra boot files, etc.
+- `drivers`: Drivers for Hexahedron, copied based on their configuration.
 - `external`: Contains external projects, such as ACPICA. See External Components.
 - `hexahedron`: The main kernel project
 - `libpolyhedron`: The libc/libk for the project.
