@@ -123,9 +123,9 @@ typedef struct vfs_tree_node {
 /**
  * @brief Standard POSIX open call
  * @param node The node to open
- * @param oflags The open flags
+ * @param flags The open flags
  */
-void fs_open(fs_node_t *node, unsigned int oflags);
+void fs_open(fs_node_t *node, unsigned int flags);
 
 /**
  * @brief Standard POSIX close call
@@ -186,8 +186,32 @@ void vfs_init();
  * @brief Mount a specific node to a directory
  * @param node The node to mount
  * @param path The path to mount to
- * @returns Error code
+ * @returns A pointer to the tree node or NULL
  */
-int vfs_mount(fs_node_t *node, char *path);
+tree_node_t *vfs_mount(fs_node_t *node, char *path);
+
+/**
+ * @brief Register a filesystem in the hashmap
+ * @param name The name of the filesystem
+ * @param fs_callback The callback to use
+ */
+int vfs_registerFilesystem(char *name, mount_callback mount);
+
+/**
+ * @brief Try to mount a specific filesystem type
+ * @param name The name of the filesystem
+ * @param argp The argument you wish to provide to the mount method (fs-specific)
+ * @param mountpoint Where to mount the filesystem
+ * @returns 0 on success, -EINVAL on invalid params, -ENODEV on bad filesystem type, and -EBADF on mount failed
+ */
+int vfs_mountFilesystemType(char *name, char *argp, char *mountpoint);
+
+/**
+ * @brief Kernel open method 
+ * @param path The path of the file to open (always absolute in kmode)
+ * @param flags The opening flags - see @c fcntl.h
+ * @returns A pointer to the file node or NULL if it couldn't be found
+ */
+fs_node_t *kopen(const char *path, unsigned int flags);
 
 #endif

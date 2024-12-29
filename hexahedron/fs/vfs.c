@@ -4,6 +4,8 @@
  * 
  * @todo refcounts implemented
  * 
+ * @warning Some code in here can be pretty messy.
+ * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
  * It is released under the terms of the BSD 3-clause license.
@@ -46,11 +48,11 @@ spinlock_t *vfs_lock;
 /**
  * @brief Standard POSIX open call
  * @param node The node to open
- * @param oflags The open flags
+ * @param flags The open flags
  */
-void fs_open(fs_node_t *node, unsigned int oflags) {
+void fs_open(fs_node_t *node, unsigned int flags) {
     if (node->open) {
-        return node->open(node, oflags);
+        return node->open(node, flags);
     }
 }
 
@@ -142,9 +144,6 @@ int fs_unlink(char *name) { return -ENOTSUP; }
 
 
 /**** VFS TREE FUNCTIONS ****/
-
-char *vfs_canonicalizePath(char *cwd, char *addition);
-
 
 /**
  * @brief Initialize the virtual filesystem with no root node.
@@ -259,11 +258,11 @@ _canonicalize:
  * @brief Mount a specific node to a directory
  * @param node The node to mount
  * @param path The path to mount to
- * @returns Error code
+ * @returns A pointer to the tree node or NULL
  */
-int vfs_mount(fs_node_t *node, char *path) {
+tree_node_t *vfs_mount(fs_node_t *node, char *path) {
     // Sanity checks
-    if (!node) return -EINVAL;
+    if (!node) return NULL;
     if (!vfs_tree) {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "vfs", "*** vfs_mount before init\n");
         __builtin_unreachable();
@@ -272,7 +271,7 @@ int vfs_mount(fs_node_t *node, char *path) {
     if (!path || path[0] != '/') {
         // lol
         LOG(WARN, "vfs_mount bad path argument - cannot be relative\n");
-        return -EINVAL;
+        return NULL;
     }
 
     spinlock_acquire(vfs_lock);
@@ -292,8 +291,10 @@ int vfs_mount(fs_node_t *node, char *path) {
     
     char *pch;
     char *saveptr;
-     
-    pch = strtok_r(path, "/", &saveptr);
+    char *strtok_path = strdup(path); // strtok_r messes with the string
+
+
+    pch = strtok_r(strtok_path, "/", &saveptr);
     while (pch) {
         int found = 0; // Did we find the node?
 
@@ -324,7 +325,215 @@ int vfs_mount(fs_node_t *node, char *path) {
     vfs_tree_node_t *entry = parent_node->value;
     entry->node = node;
 
+    kfree(strtok_path);
+
 _cleanup:
     spinlock_release(vfs_lock);
+    return parent_node;
+}
+
+/**
+ * @brief Register a filesystem in the hashmap
+ * @param name The name of the filesystem
+ * @param fs_callback The callback to use
+ */
+int vfs_registerFilesystem(char *name, mount_callback mount) {
+    if (!vfs_filesystems) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "vfs", "*** vfs_registerFilesystem before init\n");
+        __builtin_unreachable();
+    }
+    
+    vfs_filesystem_t *fs = kmalloc(sizeof(vfs_filesystem_t));
+    fs->name = strdup(name); // no, filesystems cannot unregister themselves.
+    fs->mount = mount;
+
+    hashmap_set(vfs_filesystems, fs->name, fs);
+
     return 0;
+}
+
+/**
+ * @brief Try to mount a specific filesystem type
+ * @param name The name of the filesystem
+ * @param argp The argument you wish to provide to the mount method (fs-specific)
+ * @param mountpoint Where to mount the filesystem
+ * @returns 0 on success, -EINVAL on invalid params, -ENODEV on bad filesystem type, and -EBADF on mount failed
+ */
+int vfs_mountFilesystemType(char *name, char *argp, char *mountpoint) {
+    if (!mountpoint || !name) return -EINVAL; // i mean, the filesystem could just figure it out on its own? dont check argp lol
+
+    vfs_filesystem_t *fs = hashmap_get(vfs_filesystems, name);
+    if (!fs) {
+        LOG(WARN, "VFS tried to mount unknown filesystem type: %s\n", name);
+        return -ENODEV;
+    }
+
+    if (!fs->mount) {
+        LOG(WARN, "VFS found invalid filesystem '%s' when trying to mount\n", fs->name);
+        return -EINVAL;
+    }
+
+    fs_node_t *node = fs->mount(argp, mountpoint);
+    if (!node) {
+        return -EBADF;
+    }
+
+    tree_node_t *tnode = vfs_mount(node, mountpoint);
+    if (!tnode) {
+        LOG(WARN, "VFS failed to mount filesystem '%s' - freeing node\n");
+        kfree(node);
+        return -EINVAL;    
+    }
+    
+    vfs_tree_node_t *vfsnode = (vfs_tree_node_t*)tnode->value;
+
+    // Copy fs_type
+    vfsnode->fs_type = strdup(name);
+
+    // All done
+    return 0;
+}
+
+/**
+ * @brief Get the mountpoint of a specific node
+ * 
+ * The VFS tree does not contain files part of an actual filesystem.
+ * Rather it's just a collection of mountpoints.
+ * 
+ * Files/directories that are present on the root partition do not exist within
+ * our tree - instead, finddir() is used to get them (by talking to the fs driver)
+ * 
+ * Therefore, the first thing that needs to be done is to get the mountpoint of a specific node.
+ * 
+ * @param path The path to get the mountpoint of
+ * @param remainder An output of the remaining path left to search
+ * @returns A pointer to the mountpoint or NULL if it could not be found.
+ */
+static fs_node_t *vfs_getMountpoint(const char *path, char **remainder) {
+    // Last node in the tree
+    tree_node_t *last_node = vfs_tree->root;
+    
+    // We're going to tokenize the path, and find each token.
+    char *pch;
+    char *save;
+    char *path_clone = strdup(path); // strtok_r trashes path
+
+    int _remainder_depth = 0;
+
+    pch = strtok_r(path_clone, "/", &save);
+    while (pch) {
+        // We have to search until we don't find a match in the tree.
+        int node_found = 0; // If still 0 after foreach then we found the mountpoint.
+
+        foreach(childnode, last_node->children) {
+            tree_node_t *child = (tree_node_t*)childnode->value;
+            vfs_tree_node_t *vnode = (vfs_tree_node_t*)child->value;
+
+            if (!strcmp(vnode->name, pch)) {
+                // Match found, update variables
+                last_node = child;
+                node_found = 1;
+                break;
+            }
+        }
+
+        if (!node_found) {
+            break; // We found our last node.
+        }
+    
+        _remainder_depth += strlen(pch) + 1; // + 1 for the /
+
+        pch = strtok_r(NULL, "/", &save);
+    }
+
+    *remainder = (char*)path + _remainder_depth;
+    vfs_tree_node_t *vnode = (vfs_tree_node_t*)last_node->value;
+    kfree(path_clone);
+
+    return vnode->node;
+}
+
+
+
+/**
+ * @brief Kernel open method but relative
+ * 
+ * This is just an internal method used by @c kopen - it will take in the next part of the path,
+ * and find the next node.
+ * 
+ * @todo    This needs some symlink support but that sounds like hell to implement.
+ *          The only purpose of this function is to handle symlinks (and be partially recursive in doing so)
+ * 
+ * @param current_node The parent node to search
+ * @param next_token Next token/part of the path
+ * @param flags The opening flags of the file
+ * @returns A pointer to the next node, ready to be fed back into this function. NULL is returned on a failure.
+ */
+static fs_node_t *kopen_relative(fs_node_t *current_node, char *path, unsigned int flags) {
+    if (!path || !current_node) {
+        LOG(WARN, "Bad arguments to kopen_recur\n");
+        return NULL;
+    }
+
+    // TODO: Symlinks, main bulk part of this
+    return fs_finddir(current_node, path);
+}
+
+
+/**
+ * @brief Kernel open method 
+ * @param path The path of the file to open (always absolute in kmode)
+ * @param flags The opening flags - see @c fcntl.h
+ * 
+ * @returns A pointer to the file node or NULL if it couldn't be found
+ */
+fs_node_t *kopen(const char *path, unsigned int flags) {
+    if (!path) return NULL;
+    
+    // First get the mountpoint of path.
+    char *path_offset = (char*)path;
+    fs_node_t *node = vfs_getMountpoint(path, &path_offset);
+
+    if (!(*path_offset)) {
+        // Usually this means the user got what they want, the mountpoint, so I guess just open that and call it a da.
+        goto _finish_node;
+    }
+
+    // Now we can enter a kopen_relative loop
+    char *pch;
+    char *save;
+    pch = strtok_r(path_offset, "/", &save);
+
+    while (pch) {
+        node = kopen_relative(node, pch, flags);
+        
+        if (node && node->flags == VFS_FILE) {
+            // TODO: What if the user has a REALLY weird filesystem?
+            break;
+        }
+        
+        pch = strtok_r(NULL, "/", &save); 
+    }
+
+    if (node == NULL) {
+        // Not found
+        return NULL;
+    }
+
+_finish_node:
+    // Always clone the node to prevent mucking around with datastructures.
+    fs_node_t *retnode = kmalloc(sizeof(fs_node_t));
+    memcpy(retnode, node, sizeof(fs_node_t));
+    fs_open(retnode, flags);
+    return retnode;
+}
+
+/**
+ * @brief Kernel open method for usermode (uses current process' working directory)
+ * @param path The path of the file to open
+ * @param flags The opening flags - see @c fcntl.h
+ * @returns A pointer to the file node or NULL if it couldn't be found
+ */
+fs_node_t *kopen_user(const char *path, unsigned int flags) {
+    return NULL; // unimplemented
 }
