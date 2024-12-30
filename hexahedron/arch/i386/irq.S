@@ -179,9 +179,9 @@ IRQ             halIRQ12,   44
 IRQ             halIRQ13,   45
 IRQ             halIRQ14,   46
 IRQ             halIRQ15,   47
+     
 
-
-
+     
 
 /* These indexes are useful because stack manipulation is hard :( */
 halExceptionIndex:

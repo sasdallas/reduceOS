@@ -19,7 +19,7 @@
 #include <errno.h>
 
 // x86_64 is unsupported currently
-#if defined(__ARCH_I386__)
+#if defined(__ARCH_I386__) || defined(__INTELLISENSE__)
 #include <kernel/arch/i386/cpu.h>
 #include <kernel/arch/i386/registers.h>
 #include <kernel/arch/i386/hal.h>
@@ -28,7 +28,7 @@
 
 
 /* APIC base */
-static uintptr_t lapic_base = 0x0;
+uintptr_t lapic_base = 0x0;
 
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "LAPIC", __VA_ARGS__)
@@ -103,6 +103,10 @@ void lapic_setEnabled(int enabled) {
 }
 
 /**
+ * @brief Get the error in the local APIC
+ */
+
+/**
  * @brief Send SIPI signal
  * @param lapic_id The ID of the APIC
  * @param vector The starting page number (for SIPI - normally vector number)
@@ -170,6 +174,20 @@ void lapic_acknowledge() {
     lapic_write(LAPIC_REGISTER_EOI, LAPIC_EOI);
 }
 
+/**
+ * @brief Gets the current error state of the local apic
+ * @returns Error code
+ */
+uint8_t lapic_readError() {
+    // Update ESR
+    lapic_write(LAPIC_REGISTER_ERROR, 0);
+
+    // Read ESR
+    uint8_t error = lapic_read(LAPIC_REGISTER_ERROR);
+
+    return error;
+}
+
 
 /**
  * @brief Initialize the local APIC
@@ -189,11 +207,9 @@ int lapic_initialize(uintptr_t lapic_address) {
     // Register the interrupt handler
     hal_registerInterruptHandler(LAPIC_SPUR_INTNO, lapic_irq); // NOTE: This might fail occasionally (BSP will reinitialize APICs for each core)
     
-
-    // Now actually configure the local APIC
+    // Enable spurious vector register
     lapic_write(LAPIC_REGISTER_SPURINT, lapic_read(LAPIC_REGISTER_SPURINT) | LAPIC_SPUR_INTNO);
     lapic_setEnabled(1);
-
 
     // Finished!
     return 0;

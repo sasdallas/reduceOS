@@ -25,12 +25,13 @@
             "defines": [
                 "HEXAHEDRON",
                 "__KERNEL__",
-                "__LIBK"
+                "__LIBK",
+                "__ARCH_I386__"
             ],
             "compilerPath": "/usr/bin/x86_64-elf-gcc",
             "cStandard": "c17",
             "cppStandard": "c++14",
-            "intelliSenseMode": "linux-clang-x64",
+            "intelliSenseMode": "linux-gcc-x86",
             "compilerArgs": [
                 "-ffreestanding",
                 "--sysroot",
@@ -46,6 +47,26 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }
+        },
+        {
+            "name": "osdev-i386",
+            "includePath": [
+                "/home/samuel/Desktop/Hexahedron/**",
+                "/home/samuel/Desktop/Hexahedron/libkstructures/include/**",
+                "/home/samuel/Desktop/Hexahedron/libpolyhedron/include/**",
+                "/home/samuel/Desktop/Hexahedron/hexahedron/include/**",
+                "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/i686-elf-gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64",
+            "compilerArgs": [
+                "-ffreestanding",
+                "--sysroot",
+                "${workspaceFolder}/build-output/sysroot/"
+            ]
         }
     ],
     "version": 4

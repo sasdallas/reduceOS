@@ -60,7 +60,7 @@
 #define LAPIC_LVT_SETMASK           0x10000 // (16) Set to mask
 
 // Spurious input vector register
-#define LAPIC_SPUR_INTNO            0xFF    // We want to set the interrupt number to 0xFF (serves as mask and number)
+#define LAPIC_SPUR_INTNO            0xFF    // We want to set the interrupt number to 0x7B for ISR 123 (serves as mask and number)
 #define LAPIC_SPUR_ENABLE           0x100   // Bit 8 is enable
 
 // Interrupt command register (mask)
@@ -91,6 +91,16 @@
 // Interrupt command register (destination)
 #define LAPIC_ICR_DESTINATION_PHYSICAL  0
 #define LAPIC_ICR_DESTINATION_LOGICAL   1
+
+// Error codes for local APIC (see section 12.5.3 of Intel manuals)
+#define LAPIC_SEND_CKSUM_ERROR          0x01
+#define LAPIC_RECV_CKSUM_ERROR          0x02
+#define LAPIC_SEND_ACCEPT_ERROR         0x04
+#define LAPIC_RECV_ACCEPT_ERROR         0x08
+#define LAPIC_REDIRECTABLE_IPI          0x10
+#define LAPIC_SEND_ILLEGAL_VECTOR       0x20
+#define LAPIC_RECV_ILLEGAL_VECTOR       0x40
+#define LAPIC_ILLEGAL_REGISTER_ADDRESS  0x80
 
 /**** FUNCTIONS ****/
 
@@ -145,5 +155,10 @@ uint8_t lapic_getVersion();
  */
 uint8_t lapic_getID();
 
+/**
+ * @brief Gets the current error state of the local apic
+ * @returns Error code
+ */
+uint8_t lapic_readError();
 
 #endif
