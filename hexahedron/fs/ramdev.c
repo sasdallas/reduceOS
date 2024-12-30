@@ -74,7 +74,8 @@ fs_node_t *ramdev_mount(uintptr_t addr, uintptr_t size) {
     node->read = ramdev_read;
     node->write = ramdev_write;
     node->length = size;
-    node->permissions = 0700; // Owner only (allow groups?)
+    node->mask = 0700; // Owner only (allow groups?)
+    node->dev = (void*)addr;
 
     char path[64];
     snprintf(path, 63, "/device/%s", node->name);

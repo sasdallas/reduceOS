@@ -38,7 +38,7 @@ tree_t *vfs_tree = NULL;
 hashmap_t *vfs_filesystems = NULL;
 
 /* Log method */
-#define LOG(status, ...) dprintf_module(status, "VFS", __VA_ARGS__)
+#define LOG(status, ...) dprintf_module(status, "FS:VFS", __VA_ARGS__)
 
 /* Locks */
 spinlock_t *vfs_lock;

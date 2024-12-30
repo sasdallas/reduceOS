@@ -22,6 +22,8 @@
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 
+#include <kernel/mem/alloc.h>
+
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/tarfs.h>
 #include <kernel/fs/ramdev.h>
@@ -67,6 +69,16 @@ void kernel_mountRamdisk(generic_parameters_t *parameters) {
     }
 
     LOG(INFO, "Mounted initial ramdisk to /device/initrd\n");
+
+    fs_node_t *node = kopen("/device/initrd/testdir/dir2/test3.txt", 0);
+    if (node) {
+        LOG(INFO, "%s\n", node->name);
+    
+        uint8_t *buffer = kmalloc(node->length);
+        if (fs_read(node, 0, node->length, buffer)) {
+            LOG(INFO, "%s", buffer);
+        }
+    }
 }
 
 /**
@@ -88,6 +100,7 @@ void kmain() {
     vfs_init();
 
     // Startup the builtin filesystem drivers    
+    tarfs_init();
 
     // Now we need to mount the initial ramdisk
     kernel_mountRamdisk(parameters);

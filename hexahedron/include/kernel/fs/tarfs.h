@@ -42,7 +42,7 @@ typedef struct _ustar_header {
 
 /**** DEFINITIONS ****/
 
-#define USTAR_FILE          '\0'
+#define USTAR_FILE          '0'
 #define USTAR_HARD_LINK     '1'
 #define USTAR_SYMLINK       '2'
 #define USTAR_CHARDEV       '3'
