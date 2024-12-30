@@ -34,7 +34,7 @@ build:
 
 initrd:
 	$(MAKE) headerlog header="Creating initial ramdisk, please wait..."
-	python3 $(BUILDSCRIPTS_ROOT)/mkinitrd.py $(BUILDSCRIPTS_ROOT)/../build-output/sysroot/boot/initrd.tar.img $(BUILDSCRIPTS_ROOT)/../base/initrd/
+	python3 $(BUILDSCRIPTS_ROOT)/mkinitrd.py $(BUILDSCRIPTS_ROOT)/../build-output/sysroot/boot/initrd.tar.img $(BUILDSCRIPTS_ROOT)/../build-output/initrd/
 	@echo
 	@echo
 	@echo "[ Finished creating initial ramdisk ]"
@@ -56,4 +56,4 @@ headerlog:
 
 qemu:
 	$(MAKE) headerlog header="Launching QEMU..."
-	qemu-system-i386 -cdrom build-output/hexahedron.iso
+	qemu-system-x86_64 -cdrom build-output/hexahedron.iso
