@@ -138,7 +138,7 @@ uintptr_t arch_allocate_structure(size_t bytes) {
     uintptr_t ptr = highest_kernel_address;
     highest_kernel_address += bytes;
 
-    memset((void*)ptr, 0x00, bytes);
+    memset((void*)ptr, 0, bytes);
     return ptr;
 }
 
@@ -149,8 +149,23 @@ uintptr_t arch_allocate_structure(size_t bytes) {
  * @returns The address to which it was relocated.
  */
 uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
+    if (structure_ptr > (uintptr_t)&__bss_end && structure_ptr < highest_kernel_address) {
+        dprintf(WARN, "arch_relocate_structure found that structure at %p likely overwritten already.\n", structure_ptr);
+    }
+
+    void *ptr_real = (void*)structure_ptr;
+
+    if (structure_ptr > (uintptr_t)&__bss_end && highest_kernel_address + size > structure_ptr) {
+        // To prevent any issues we need to copy the structure away from kmem first.
+        // We'll do the allocation ourselves here
+        // !!!: This is buggy and bad.
+        memcpy((void*)structure_ptr + size * 2, (void*)structure_ptr, size);
+        ptr_real = (void*)structure_ptr + size * 2;
+        dprintf(DEBUG, "relocate module to %p\n", structure_ptr + size * 2);
+    }
+
     uintptr_t location = arch_allocate_structure(size);
-    memcpy((void*)location, (void*)structure_ptr, size);
+    memcpy((void*)location, ptr_real, size);
     return location;
 }
 
