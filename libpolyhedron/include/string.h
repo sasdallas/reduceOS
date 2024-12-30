@@ -24,6 +24,7 @@ int memcmp(const void*, const void*, size_t);
 void* memmove(void*, const void*, size_t);
 void* memcpy(void* __restrict, const void* __restrict, size_t);
 void* memset(void*, int, size_t);
+void * memchr(const void *, int, size_t);
 
 size_t strlen(const char*);
 int strcmp(const char*, const char*);
@@ -31,21 +32,25 @@ int strncmp(const char*, const char*, size_t);
 char* strncpy(char*, const char*, size_t);
 char* strcpy(char*, const char*);
 
-char* strcat(char *dest, const char *src);
-char* strncat(char *dest, const char *src, size_t n);
+char* strcat(char *, const char *);
+char* strncat(char *, const char *, size_t);
 
 char* strchr(const char*, int);
 char* strrchr(const char *, int);
 char* strchrnul(const char*, int);
 
-size_t strcspn(const char *str, const char *c);
-size_t strspn(const char *str, const char *c);
-char *strpbrk(const char *str1, const char *str2);
+size_t strcspn(const char *, const char *);
+size_t strspn(const char *, const char *);
+char *strpbrk(const char *, const char *);
 
-char *strtok_r(char *str, const char *seps, char **lasts);
-char *strtok(char *str, const char *seps);
+char *strtok_r(char *, const char *, char **);
+char *strtok(char *, const char *);
+
+char *strstr(const char *, const char *);
 
 char* strdup(const char*);
+
+
 
 #endif
 
