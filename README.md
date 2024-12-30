@@ -25,7 +25,11 @@ To change the build configuration, edit `buildscripts/config.sh` and `conf/build
 Certain external components are available in `external`. Here is a list of them and their versions:
 - ACPICA UNIX* (Intel License): Version 20240927 [available here](https://www.intel.com/content/www/us/en/developer/topic-technology/open/acpica/download.html)
 
-
 ## Keeping track of potential issues
 - Relocatable code is not implemented in x86_64
 - GRUB might error out on Multiboot2 if the relocatable max address is too low
+
+## Licensing
+
+Hexahedron and reduceOS are released under the terms of the BSD 3-clause license (available in LICENSE).\
+All files unless specified fall under this license.
