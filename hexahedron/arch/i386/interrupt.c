@@ -145,8 +145,6 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
     for (;;);
 
     // kernel_panic_finalize();
-
-    for (;;);
 }
 
 /**
