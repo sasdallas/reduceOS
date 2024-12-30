@@ -70,13 +70,14 @@ void kernel_mountRamdisk(generic_parameters_t *parameters) {
 
     LOG(INFO, "Mounted initial ramdisk to /device/initrd\n");
 
-    fs_node_t *node = kopen("/device/initrd/testdir/dir2/test3.txt", 0);
-    if (node) {
-        LOG(INFO, "%s\n", node->name);
-    
-        uint8_t *buffer = kmalloc(node->length);
-        if (fs_read(node, 0, node->length, buffer)) {
-            LOG(INFO, "%s", buffer);
+    fs_node_t *dir = kopen("/device/initrd/testdir", 0);
+    if (dir) {
+        int i = 0;
+        struct dirent *ent = fs_readdir(dir, i);
+        while (ent) {
+            LOG(DEBUG, "%s\n", ent->d_name);
+            i++;
+            ent = fs_readdir(dir, i);
         }
     }
 }

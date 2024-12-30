@@ -2,8 +2,6 @@
  * @file hexahedron/fs/tarfs.c
  * @brief USTAR archive filesystem, used for the initial ramdisk
  * 
- * @todo Need writing capabilities? We open argp in O_RDONLY
- * 
  * @copyright
  * This file is part of reduceOS, which is created by Samuel.
  * It is released under the terms of the BSD 3-clause license.
@@ -146,6 +144,7 @@ ssize_t tarfs_read(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) 
     if (!header) return 0; // Invalid header
 
     uint64_t read_offset = node->inode + 512 + offset;
+    kfree(header);
     return fs_read((fs_node_t*)node->dev, read_offset, size, buffer);
 }
 
@@ -153,13 +152,115 @@ ssize_t tarfs_read(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) 
  * @brief tarfs write method
  */
 ssize_t tarfs_write(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
-    return -EROFS;
+    if (node->flags != VFS_FILE) return 0;
+    if ((size_t)offset > node->length) return 0;
+    if (offset + size > node->length) {
+        size = node->length - offset;
+    }
+
+    // Read the ustar header for this node
+    ustar_header_t *header = tarfs_getUstar(node, node->inode); // TODO: We just need to verify offset bytes are correct, reading the whole header is a bit overkill
+    if (!header) return 0; // Invalid header
+
+    uint64_t write_offset = node->inode + 512 + offset;
+    kfree(header);
+    return fs_write((fs_node_t*)node->dev, write_offset, size, buffer);
 }
 
 /**
  * @brief tarfs readdir method
  */
 struct dirent *tarfs_readdir(fs_node_t *node, unsigned long index) {
+    // First, if index == 0 or 1, return ./.. respectively
+    if (index < 2) {
+        struct dirent *out = kmalloc(sizeof(struct dirent));
+        strcpy(out->d_name, (index == 0) ? "." : "..");
+        out->d_ino = 0;
+        return out;
+    }
+
+    index -= 1; // Start from a 1-index, that way we don't return node. 
+
+    if (!node) return NULL;
+
+    // Get the header and verify it
+    uint64_t ino = node->inode;
+    ustar_header_t *header = tarfs_getUstar(node, ino);
+    if (!header) {
+        // Invalid ustar
+        return NULL;
+    }
+    
+    // Create the basic search name - files that contain this will be used as indexes
+    char search_filename[256] = { 0 };
+
+    if (strcmp(header->name, "/")) {
+        // We are NOT the root, so concatenate node->name and a slash
+        strncat(search_filename, header->nameprefix, 155);
+        strncat(search_filename, header->name, 100);
+    }  
+
+    // Count the slashes in the path
+    int slashes;
+    char *s = (char*)search_filename;
+    for (slashes=0; s[slashes]; s[slashes]=='/' ? slashes++ : *s++);
+
+    int fileidx = 0; // Index of the current file
+    
+    // Start iterating
+    while (header) {
+        if (fileidx == 0) {
+            // fileidx = 0, go to next entry
+            fileidx++;
+            goto _next;
+        }
+
+        // Construct the full filename
+        char path_filename[256] = { 0 };
+        strncat(path_filename, header->nameprefix, 155);
+        strncat(path_filename, header->name, 150);
+
+        // If 0 slashes, then strchr() to check
+        if (slashes == 0 && strchr(path_filename, '/')) goto _next;
+
+        // Use strstr to find the occurence of search_filename in path_filename (or if !slashes we checked that earlier)
+        if (strstr(path_filename, search_filename) == path_filename || !slashes) {
+            // Match found - is it the one we want?
+            if (fileidx == (int)index) {
+                // Found the right one!
+                struct dirent *out = kmalloc(sizeof(struct dirent));
+                memset(out, 0, sizeof(struct dirent));
+                out->d_ino = ino;
+                
+                // Update name to remove last slash
+                if (path_filename[strlen(path_filename) - 1] == '/') {
+                    path_filename[strlen(path_filename) - 1] = '\0';
+                }
+
+                // Copy name
+                strncat(out->d_name, (!slashes) ? path_filename : strrchr(path_filename, '/')+1, 256);
+    
+                kfree(header);
+                return out;
+            }
+
+            fileidx++;
+        }
+
+_next:
+        // Go to the next one, get the filesize and increment.
+        // Remember that GNU devs sometimes get high, so this is encoded in octal.
+        uint64_t filesize = strtoull(header->size, NULL, 8);
+    
+        // Increment ino (512 = sizeof ustar header)
+        ino += 512;
+        ino += USTAR_SIZE(filesize);
+
+        // Get next header
+        kfree(header);
+        header = tarfs_getUstar(node, ino);
+    }
+
     return NULL;
 }
 
@@ -237,7 +338,7 @@ fs_node_t *tarfs_finddir(fs_node_t *node, char *path) {
  * @param argp Expects a ramdev device to mount the filesystem based
  */
 fs_node_t *tarfs_mount(char *argp, char *mountpoint) {
-    fs_node_t *tar_file = kopen(argp, O_RDONLY);
+    fs_node_t *tar_file = kopen(argp, O_RDWR);
     if (tar_file == NULL) {
         return NULL; // Failed to open
     }
