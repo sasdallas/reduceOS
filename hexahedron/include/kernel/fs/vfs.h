@@ -201,10 +201,10 @@ int vfs_registerFilesystem(char *name, mount_callback mount);
  * @brief Try to mount a specific filesystem type
  * @param name The name of the filesystem
  * @param argp The argument you wish to provide to the mount method (fs-specific)
- * @param mountpoint Where to mount the filesystem
- * @returns 0 on success, -EINVAL on invalid params, -ENODEV on bad filesystem type, and -EBADF on mount failed
+ * @param mountpoint Where to mount the filesystem (leave as NULL if the driver takes care of this)
+ * @returns The node created or NULL if it failed
  */
-int vfs_mountFilesystemType(char *name, char *argp, char *mountpoint);
+fs_node_t *vfs_mountFilesystemType(char *name, char *argp, char *mountpoint);
 
 /**
  * @brief Kernel open method 
