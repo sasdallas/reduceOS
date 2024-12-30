@@ -27,6 +27,7 @@
 #include <kernel/arch/x86_64/mem.h>
 
 // General
+#include <kernel/kernel.h>
 #include <kernel/config.h>
 #include <kernel/multiboot.h>
 #include <kernel/debug.h>
@@ -40,6 +41,8 @@
 #include <kernel/gfx/gfx.h>
 #include <kernel/misc/args.h>
 #include <kernel/fs/vfs.h>
+#include <kernel/fs/tarfs.h>
+#include <kernel/fs/ramdev.h>
 
 /* Parameters */
 generic_parameters_t *parameters = NULL;
@@ -204,9 +207,8 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
 
-    // Initialize the virtual filesystem
-    vfs_init();
-
+    // All done. Jump to kernel main.
+    kmain();
 
     for (;;);
 }

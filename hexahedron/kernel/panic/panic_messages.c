@@ -28,6 +28,7 @@ char *kernel_bugcode_strings[KERNEL_STOP_CODES] = {
     "ACPI_SYSTEM_ERROR",
     "ASSERTION_FAILED",
     "INSUFFICIENT_HARDWARE_REQUIREMENTS", // This one is different, looks better.
+    "INITIAL_RAMDISK_CORRUPTED"
 };
 
 char *kernel_panic_messages[KERNEL_STOP_CODES] = {
@@ -40,5 +41,6 @@ char *kernel_panic_messages[KERNEL_STOP_CODES] = {
     "An unsupported kernel function was called. This as a bug in the kernel - please contact the developers.\n",
     "Your computer is not compliant with ACPI specifications, or is not compatible with the ACPICA library.\n",
     "An assertion within the kernel failed.\n",
-    "Your computer does not meet the requirements necessary to run Hexahedron."
+    "Your computer does not meet the requirements necessary to run Hexahedron.",
+    "The initial startup disk (initrd.tar.img) was not found or was corrupted.\n"
 };

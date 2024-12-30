@@ -23,8 +23,8 @@
 
 // Generic module descriptor
 typedef struct generic_module_descriptor {
-    uint32_t mod_start;                         // Starting address of the module
-    uint32_t mod_end;                           // Ending address of the module
+    uintptr_t mod_start;                        // Starting address of the module
+    uintptr_t mod_end;                          // Ending address of the module
     char *cmdline;                              // Command-line options passed to the module
     struct generic_module_descriptor *next;     // Next module
 } generic_module_desc_t;

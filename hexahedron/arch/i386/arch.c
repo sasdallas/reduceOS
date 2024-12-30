@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 // General
+#include <kernel/kernel.h>
 #include <kernel/config.h>
 #include <kernel/multiboot.h>
 #include <kernel/debug.h>
@@ -211,8 +212,9 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     // We're clear to perform the second part of HAL startup
     hal_init(HAL_STAGE_2); 
 
-    // VFS initialization
-    vfs_init();
+    // All done. Jump to kernel main.
+    kmain();
 
+    // We shouldn't have returned - something isn't quite right.
     for (;;);
 }
