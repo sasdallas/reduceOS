@@ -15,8 +15,8 @@
 #include <stdlib.h>
 
 char *strdup(const char *str) {
-    char *new_str = malloc(strlen(str));
+    char *new_str = malloc(strlen(str) + 1);
     if (!new_str) return NULL;
-    strcpy(new_str, str);
+    memcpy(new_str, str, strlen(str) + 1);
     return new_str;
 }
