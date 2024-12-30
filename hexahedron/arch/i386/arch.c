@@ -34,6 +34,7 @@
 #include <kernel/gfx/gfx.h>
 #include <kernel/misc/args.h>
 #include <kernel/fs/vfs.h>
+#include <kernel/misc/ksym.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
@@ -91,6 +92,39 @@ void arch_say_hello(int is_debug) {
 }
 
 /**
+ * @brief Perform a stack trace using ksym
+ * @param depth How far back to stacktrace
+ * @param registers Optional registers
+ */
+void arch_panic_traceback(int depth, registers_t *regs) {
+    dprintf(NOHEADER, COLOR_CODE_RED_BOLD "\nStack trace:\n");
+
+    stack_frame_t *stk = (stack_frame_t*)(regs ? (void*)regs->ebp : __builtin_frame_address(0));
+    uintptr_t ip = (regs ? regs->eip : (uintptr_t)&arch_panic_traceback);
+
+    for (int frame = 0; stk && frame < depth; frame++) {
+        if (ip > (uintptr_t)&__bss_end) {
+            // Corrupt frame?
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%016llX (corrupt frame - outside of kernelspace)\n", ip);
+            goto _next_frame;
+        }
+
+        char *name;
+        uintptr_t addr = ksym_find_best_symbol(ip, (char**)&name);
+        if (addr) {
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%x (%s+0x%x)\n", ip, name, ip - addr);
+        } else {
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%x (symbols unavailable)\n", ip);
+        }
+
+    _next_frame:
+        ip = stk->ip;
+        stk = stk->nextframe;
+    }
+}
+
+
+/**
  * @brief Prepare the architecture to enter a fatal state. This means cleaning up registers,
  * moving things around, whatever you need to do
  */
@@ -104,6 +138,12 @@ void arch_panic_prepare() {
  * @note Does not return
  */
 void arch_panic_finalize() {
+    // Perform a traceback
+    arch_panic_traceback(10, NULL);
+
+    // Display message
+    dprintf(NOHEADER, COLOR_CODE_RED "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+
     // Disable interrupts & halt
     asm volatile ("cli\nhlt");
     for (;;);

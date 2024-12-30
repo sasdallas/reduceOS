@@ -14,6 +14,7 @@
 #include <kernel/arch/x86_64/interrupt.h>
 #include <kernel/arch/x86_64/hal.h>
 #include <kernel/arch/x86_64/smp.h>
+#include <kernel/arch/x86_64/arch.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 
@@ -200,8 +201,18 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
     dprintf(NOHEADER, "GDTR %016x %04x\n", regs_extended->gdtr.base, regs_extended->gdtr.limit);
     dprintf(NOHEADER, "IDTR %016x %04x\n", regs_extended->idtr.base, regs_extended->idtr.limit);
 
+    // !!!: not conforming (should call kernel_panic_finalize) but whatever
+    // We want to do our own traceback.
+    arch_panic_traceback(10, regs);
 
-    kernel_panic_finalize();
+    // Display message
+    dprintf(NOHEADER, COLOR_CODE_RED "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+
+    // Disable interrupts & halt
+    asm volatile ("cli\nhlt");
+    for (;;);
+
+    // kernel_panic_finalize();
 
     for (;;);
 }

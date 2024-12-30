@@ -226,7 +226,7 @@ void smp_acknowledgeCoreShutdown() {
  * looping it on a halt instruction.
  */
 void smp_disableCores() {
-
+    if (smp_data == NULL) return;
     LOG(INFO, "Disabling cores - please wait...\n");
 
     for (int i = 0; i < smp_data->processor_count; i++) {

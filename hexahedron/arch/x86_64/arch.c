@@ -40,6 +40,7 @@
 #include <kernel/processor_data.h>
 #include <kernel/gfx/gfx.h>
 #include <kernel/misc/args.h>
+#include <kernel/misc/ksym.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/tarfs.h>
 #include <kernel/fs/ramdev.h>
@@ -86,6 +87,42 @@ void arch_say_hello(int is_debug) {
 }
 
 
+
+/**
+ * @brief Perform a stack trace using ksym
+ * @param depth How far back to stacktrace
+ * @param registers Optional registers
+ */
+void arch_panic_traceback(int depth, registers_t *regs) {
+    dprintf(NOHEADER, COLOR_CODE_RED_BOLD "\nStack trace:\n");
+
+extern uintptr_t __bss_end;
+
+    stack_frame_t *stk = (stack_frame_t*)(regs ? (void*)regs->rbp : __builtin_frame_address(0));
+    uintptr_t ip = (regs ? regs->rip : (uintptr_t)&arch_panic_traceback);
+
+    for (int frame = 0; stk && frame < depth; frame++) {
+    
+        if (ip > (uintptr_t)&__bss_end) {
+            // Corrupt frame?
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%016llX (corrupt frame - outside of kernelspace)\n", ip);
+            goto _next_frame;
+        }
+
+        char *name;
+        uintptr_t addr = ksym_find_best_symbol(ip, (char**)&name);
+        if (addr) {
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%016llX (%s+0x%llX)\n", ip, name, ip - addr);
+        } else {
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%016llX (symbols unavailable)\n", ip);
+        }
+
+    _next_frame:
+        ip = stk->ip;
+        stk = stk->nextframe;
+    }
+}
+
 /**
  * @brief Prepare the architecture to enter a fatal state. This means cleaning up registers,
  * moving things around, whatever you need to do
@@ -99,6 +136,12 @@ void arch_panic_prepare() {
  * @note Does not return
  */
 void arch_panic_finalize() {
+    // Perform a traceback
+    arch_panic_traceback(10, NULL);
+
+    // Display message
+    dprintf(NOHEADER, COLOR_CODE_RED "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+
     // Disable interrupts & halt
     asm volatile ("cli\nhlt");
     for (;;);
@@ -117,6 +160,9 @@ int arch_current_cpu() {
 generic_parameters_t *arch_get_generic_parameters() {
     return parameters;
 }
+
+
+/**** INTERNAL ARCHITECTURE FUNCTIONS ****/
 
 
 extern uintptr_t __bss_end;

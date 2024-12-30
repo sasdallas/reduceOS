@@ -18,6 +18,14 @@
 #include <kernel/processor_data.h>
 #include <kernel/multiboot.h>
 #include <kernel/arch/arch.h>
+#include <kernel/arch/i386/registers.h>
+
+/**** TYPES ****/
+
+typedef struct _stack_frame {
+    struct _stack_frame *nextframe;
+    uintptr_t ip;
+} stack_frame_t;
 
 /**** FUNCTIONS ****/
 
@@ -47,5 +55,12 @@ generic_parameters_t *arch_parse_multiboot2(multiboot_t *bootinfo);
  * @todo Work in tandem with mem.h to allow for a maximum amount of blocks to be used
  */
 void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_address, uintptr_t mem_size);
+
+/**
+ * @brief Perform a stack trace using ksym
+ * @param depth How far back to stacktrace
+ * @param registers Optional registers
+ */
+void arch_panic_traceback(int depth, registers_t *regs);
 
 #endif

@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 // Kernel includes
 #include <kernel/kernel.h>
@@ -22,11 +23,17 @@
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 
+// Memory
 #include <kernel/mem/alloc.h>
 
+// VFS
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/tarfs.h>
 #include <kernel/fs/ramdev.h>
+
+// Misc.
+#include <kernel/misc/ksym.h>
+
 
 /* Log method of generic */
 #define LOG(status, ...) dprintf_module(status, "GENERIC", __VA_ARGS__)
@@ -69,17 +76,7 @@ void kernel_mountRamdisk(generic_parameters_t *parameters) {
     }
 
     LOG(INFO, "Mounted initial ramdisk to /device/initrd\n");
-
-    fs_node_t *dir = kopen("/device/initrd/testdir", 0);
-    if (dir) {
-        int i = 0;
-        struct dirent *ent = fs_readdir(dir, i);
-        while (ent) {
-            LOG(DEBUG, "%s\n", ent->d_name);
-            i++;
-            ent = fs_readdir(dir, i);
-        }
-    }
+    printf("Mounted initial ramdisk successfully\n");
 }
 
 /**
@@ -105,4 +102,20 @@ void kmain() {
 
     // Now we need to mount the initial ramdisk
     kernel_mountRamdisk(parameters);
+
+    // Load symbols
+    fs_node_t *symfile = kopen("/device/initrd/hexahedron-kernel-symmap.map", O_RDONLY);
+    if (!symfile) {
+        kernel_panic_extended(INITIAL_RAMDISK_CORRUPTED, "kernel", "*** Missing hexahedron-kernel-symmap.map\n");
+        __builtin_unreachable();
+    }
+
+    int symbols = ksym_load(symfile);
+    kfree(symfile);
+
+    LOG(INFO, "Loaded %i symbols from symbol map\n", symbols);
+
+    int a = 0;
+    int b = 4/a;
+    LOG(INFO, "b = %i\n", b);
 }
