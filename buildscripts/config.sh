@@ -19,6 +19,7 @@ export AS=${HOST}-as
 export CC=${HOST}-gcc
 export OBJCOPY=${HOST}-objcopy
 export LD=${HOST}-ld
+export NM=${HOST}-nm
 
 # Python
 export PYTHON=echo

@@ -53,6 +53,10 @@ $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf: $(C_OBJECTS)
 	$(OBJCOPY) --only-keep-debug $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel-symbols.sym
 	$(OBJCOPY) --strip-debug $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
 
+	@printf "\n-- Creating symbol map...\n"
+	$(NM) $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf > $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel-symmap.map
+	cp $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel-symmap.map $(INITRD)/
+
 	@printf "\n-- Checking multiboot compatibility (make sure you have the GRUB package)...\n"
 	grub-file --is-x86-multiboot $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
 	grub-file --is-x86-multiboot2 $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
