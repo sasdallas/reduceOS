@@ -16,6 +16,7 @@ cd $PROJECT_ROOT
 # Create ISO directories
 mkdir -pv $ISO_OUTPUT_DIRECTORY/iso/boot/grub/
 cp $SYSROOT/$BOOT_DIRECTORY/hexahedron-kernel.elf $ISO_OUTPUT_DIRECTORY/iso/boot/
+cp $SYSROOT/$BOOT_DIRECTORY/initrd.tar.img $ISO_OUTPUT_DIRECTORY/iso/boot/
 cp conf/grub.cfg $ISO_OUTPUT_DIRECTORY/iso/boot/grub/
 cp -r conf/extra-boot-files/* $ISO_OUTPUT_DIRECTORY/iso/boot/ || true
 

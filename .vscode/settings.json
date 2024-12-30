@@ -59,6 +59,7 @@
   "files.associations": {
     "*.asm": "asm-collection",
     "*.S": "gas",
-    "string.h": "c"
+    "string.h": "c",
+    "mem.h": "c"
   }
 }
