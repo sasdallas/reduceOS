@@ -60,6 +60,7 @@
     "*.asm": "asm-collection",
     "*.S": "gas",
     "string.h": "c",
-    "mem.h": "c"
+    "mem.h": "c",
+    "tarfs.h": "c"
   }
 }
