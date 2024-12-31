@@ -114,8 +114,4 @@ void kmain() {
     kfree(symfile);
 
     LOG(INFO, "Loaded %i symbols from symbol map\n", symbols);
-
-    int a = 0;
-    int b = 4/a;
-    LOG(INFO, "b = %i\n", b);
 }

@@ -35,7 +35,6 @@ void ksym_bind_symbol(char *symname, uintptr_t address) {
     if (!hashmap_has(ksym_hashmap, symname)) {
         hashmap_set(ksym_hashmap, symname, (void*)address);
     }
-    dprintf(INFO, "Bind symbol %s = %p\n", symname, address);
     // hashmap_set(ksym_hashmap, (void*)symname, (void*)address);
 }
 

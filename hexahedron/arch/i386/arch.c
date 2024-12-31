@@ -204,7 +204,6 @@ uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
         // !!!: This is buggy and bad.
         memcpy((void*)structure_ptr + size * 2, (void*)structure_ptr, size);
         ptr_real = (void*)structure_ptr + size * 2;
-        dprintf(DEBUG, "relocate module to %p\n", structure_ptr + size * 2);
     }
 
     uintptr_t location = arch_allocate_structure(size);
