@@ -4,6 +4,7 @@
  * 
  * @todo A locking subsystem NEEDS to be implemented
  * @todo Reference bitmap for pages and cloning functions, but usermode is far away.
+ * @todo Map pool can use a trick from x86_64 and use 4MiB pages
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -28,15 +29,15 @@
 // General kernel includes
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <kernel/processor_data.h>
 #include <kernel/arch/arch.h>
 #include <kernel/misc/pool.h>
 #include <kernel/misc/spinlock.h>
 
 
 // Current & kernel directories
-static page_t       *mem_currentDirectory;      // Current page directory. Contains a list of page table entries (PTEs).
 static page_t       *mem_kernelDirectory;       // Kernel page directory
-                                                // ! We're using this correctly, right?
+                                                // TODO: We can stack allocate and align this.
 
 // Heap/identity map stuff
 uintptr_t    mem_kernelHeap;                    // Location of the kernel heap in memory
@@ -44,11 +45,13 @@ uintptr_t    mem_identityMapCacheSize;          // Size of our actual identity m
 pool_t       *mem_mapPool = NULL;               // Identity map pool
 
 // MMIO
-uintptr_t    mem_mmioRegion = MEM_MMIO_REGION;  // Memory-mapped I/O region
+uintptr_t       mem_mmioRegion = MEM_MMIO_REGION;       // Memory-mapped I/O region
+uintptr_t       mem_driverRegion = MEM_DRIVER_REGION;   // Driver region
 
 // Spinlocks (stack-allocated - no spinlock for ID map is required as pool system handles that)
 static spinlock_t heap_lock = { 0 };
 static spinlock_t mmio_lock = { 0 };
+static spinlock_t driver_lock = { 0 };
 
 
 
@@ -125,7 +128,7 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
     if (mem_mapPool == NULL) {
         // Initialize the map pool! We'll allocate a pool to the address.
         // !!!: There is a potential for a disaster if mem_getPage tries to remap phys. and the pool hasn't been initialized.  
-        // !!!: Luckily this system is abstracted enugh that we can fix this, hopefully.
+        // !!!: Luckily this system is abstracted enough that we can fix this, hopefully.
         // !!!: However if the allocator hasn't been initialized, we are so screwed.
         mem_mapPool = pool_create("map_pool", PAGE_SIZE, MEM_PHYSMEM_MAP_SIZE, MEM_PHYSMEM_MAP_REGION);
         dprintf(INFO, "Physical memory identity map pool created (0x%x - 0x%x)\n", MEM_PHYSMEM_MAP_REGION, MEM_PHYSMEM_MAP_REGION + MEM_PHYSMEM_MAP_SIZE);
@@ -196,7 +199,7 @@ int mem_switchDirectory(page_t *pagedir) {
     if (!pagedir) return -EINVAL;
 
     // Load into current directory
-    mem_currentDirectory = pagedir;
+    current_cpu->current_dir = pagedir;
 
     // Load PDBR
     mem_load_pdbr((uintptr_t)pagedir & ~MEM_PHYSMEM_CACHE_REGION);
@@ -209,7 +212,7 @@ int mem_switchDirectory(page_t *pagedir) {
  * @brief Get the current page directory
  */
 page_t *mem_getCurrentDirectory() {
-    return mem_currentDirectory;
+    return current_cpu->current_dir;
 }
 
 /**
@@ -228,7 +231,7 @@ page_t *mem_getKernelDirectory() {
  * @returns NULL on a PDE not being present or the address
  */
 uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
-    page_t *directory = (dir == NULL) ? mem_currentDirectory : dir;
+    page_t *directory = (dir == NULL) ? current_cpu->current_dir : dir;
     
     // Get the directory entry and its corresponding table
     uintptr_t addr = (virtaddr % PAGE_SIZE == 0) ? virtaddr : MEM_ALIGN_PAGE(virtaddr);
@@ -255,7 +258,7 @@ uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
  * @param virt The virtual address
  */
 void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
-    page_t *directory = (dir == NULL) ? mem_currentDirectory : dir;
+    page_t *directory = (dir == NULL) ? current_cpu->current_dir : dir;
 
     // Get the page
     page_t *page = mem_getPage(directory, virt, MEM_CREATE);
@@ -278,7 +281,7 @@ void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
 page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     uintptr_t addr = (address % PAGE_SIZE != 0) ? MEM_ALIGN_PAGE(address) : address;
 
-    page_t *directory = (dir) ? dir : mem_currentDirectory;
+    page_t *directory = (dir) ? dir : current_cpu->current_dir;
 
     // Page addresses are divided into 3 parts:
     // - The index of the PDE (bits 22-31)
@@ -392,6 +395,46 @@ uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
 }
 
 /**
+ * @brief Map a driver into memory
+ * @param size The size of the driver in memory
+ * @returns A pointer to the mapped space
+ */
+uintptr_t mem_mapDriver(size_t size) {
+    if (mem_driverRegion + size > MEM_DRIVER_REGION + MEM_DRIVER_REGION_SIZE) {
+        // We have a problem
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space trying to allocate driver of size 0x%x\n", size);
+        __builtin_unreachable();
+    }
+
+    spinlock_acquire(&driver_lock);
+
+    // Align size
+    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
+
+    // Map into memory
+    for (uintptr_t i = mem_driverRegion; i < mem_driverRegion + size; i += PAGE_SIZE) {
+        page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
+        mem_allocatePage(pg, MEM_KERNEL);
+    }
+
+    // Update size
+    mem_driverRegion += size;
+
+    spinlock_release(&driver_lock);
+
+    return mem_driverRegion - size;
+}
+
+/**
+ * @brief Unmap a driver from memory
+ * @param base The base address of the driver in memory
+ * @param size The size of the driver in memory
+ */
+void mem_unmapDriver(uintptr_t base, size_t size) {
+    dprintf(WARN, "Driver unmapping is not implemented (tried to unmap driver %p - %p)\n", base, base+size);
+}
+
+/**
  * @brief Initialize the memory management subsystem
  * 
  * This function will setup the memory map and prepare tables.
@@ -474,8 +517,6 @@ void mem_init(uintptr_t high_address) {
 
     frame = 0x0;
     table_frame = 0x0;
-
-
 
     for (int i = 0; i < loop_cycles; i++) {
         page_t *page_table = (page_t*)pmm_allocateBlock();

@@ -26,22 +26,24 @@
 #include <stdint.h>
 #include <string.h>
 
-// Heap/identity map stuff
-uintptr_t mem_kernelHeap                = 0xAAAAAAAAAAAAAAAA; // Kernel heap
+// Heap/MMIO/driver space
+uintptr_t mem_kernelHeap                = 0xAAAAAAAAAAAAAAAA;   // Kernel heap
+uintptr_t mem_driverRegion              = MEM_DRIVER_REGION;    // Driver space
 
-// Spinlocks (stack-allocated - no spinlock for ID map is required as pool system handles that)
+
+// Spinlocks
 static spinlock_t heap_lock = { 0 };
+static spinlock_t driver_lock = { 0 };
 
-// Stub variables
+// Stub variables (for debugger)
 uintptr_t mem_mapPool                   = 0xAAAAAAAAAAAAAAAA;
 uintptr_t mem_identityMapCacheSize      = 0xAAAAAAAAAAAAAAAA;   
 
-// Whether to use 5-level paging
+// Whether to use 5-level paging (TODO)
 static int mem_use5LevelPaging = 0;
 
 // Base page layout - loader uses this
 page_t mem_kernelPML[3][512] __attribute__((aligned(PAGE_SIZE))) = {0};
-
 
 // Low base PDPT/PD/PT (identity mapping space for kernel/other stuff)
 page_t mem_lowBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0}; 
@@ -235,6 +237,46 @@ void mem_freePage(page_t *page) {
 uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
     kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
     __builtin_unreachable();
+}
+
+/**
+ * @brief Map a driver into memory
+ * @param size The size of the driver in memory
+ * @returns A pointer to the mapped space
+ */
+uintptr_t mem_mapDriver(size_t size) {
+    if (mem_driverRegion + size > MEM_DRIVER_REGION + MEM_DRIVER_REGION_SIZE) {
+        // We have a problem
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space trying to allocate driver of size 0x%x\n", size);
+        __builtin_unreachable();
+    }
+
+    spinlock_acquire(&driver_lock);
+
+    // Align size
+    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
+
+    // Map into memory
+    for (uintptr_t i = mem_driverRegion; i < mem_driverRegion + size; i += PAGE_SIZE) {
+        page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
+        mem_allocatePage(pg, MEM_KERNEL);
+    }
+
+    // Update size
+    mem_driverRegion += size;
+
+    spinlock_release(&driver_lock);
+
+    return mem_driverRegion - size;
+}
+
+/**
+ * @brief Unmap a driver from memory
+ * @param base The base address of the driver in memory
+ * @param size The size of the driver in memory
+ */
+void mem_unmapDriver(uintptr_t base, size_t size) {
+    dprintf(WARN, "Driver unmapping is not implemented (tried to unmap driver %p - %p)\n", base, base+size);
 }
 
 

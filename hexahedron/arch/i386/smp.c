@@ -98,8 +98,8 @@ __attribute__((noreturn)) void smp_finalizeAP() {
     // Install the IDT
     hal_installIDT();
 
-    // Setup paging (WARNING: THIS WILL BE REWORKED FOR MULTIPLE APs!)
-    mem_switchDirectory(mem_getCurrentDirectory());
+    // Setup paging for this AP
+    mem_switchDirectory(mem_getKernelDirectory());
     mem_setPaging(true);
 
     // HACK: We must load the stack here after paging has initialized. Trampoline will load a temporary stack.

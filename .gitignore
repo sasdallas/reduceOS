@@ -1,2 +1,3 @@
 build-output/
 external/acpica/acpica-src/
+ser_output*.txt

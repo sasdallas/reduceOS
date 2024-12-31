@@ -18,6 +18,7 @@
 /**** INCLUDES ****/
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #if defined(__ARCH_I386__) || defined(__INTELLISENSE__)
 #include <kernel/arch/i386/mem.h> // Arch-specific definitions, like directory, entries, etc)
@@ -157,6 +158,20 @@ void mem_freePage(page_t *page);
  * @warning MMIO regions cannot be destroyed.
  */
 uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size);
+
+/**
+ * @brief Map a driver into memory
+ * @param size The size of the driver in memory
+ * @returns A pointer to the mapped space
+ */
+uintptr_t mem_mapDriver(size_t size);
+
+/**
+ * @brief Unmap a driver from memory
+ * @param base The base address of the driver in memory
+ * @param size The size of the driver in memory
+ */
+void mem_unmapDriver(uintptr_t base, size_t size);
 
 /**
  * @brief Expand/shrink the kernel heap

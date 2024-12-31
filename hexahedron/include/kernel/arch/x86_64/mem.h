@@ -53,17 +53,21 @@ typedef union page {
 
 
 // IMPORTANT: THIS IS THE HEXAHEDRON MEMORY MAP CONFIGURED FOR I386
-// 0x0000000000000000 - 0x0000000000200000: Kernel code. This can be expanded a decent amount.
+// 0x0000000000000000 - 0x0000000000200000: Kernel code - this can be expanded a decent amount.
 // 0x0000800000000000 - 0x0000800000400000: Framebuffer memory (todo: this can probably be relocated).  
-// 0xFFFFFF0000000000 - 0xFFFFFF0000010000: Heap memory.        
-// 0xFFFFFF8000000000 - 0xFFFFFF9000000000: High base region for identity mapping. 
+// 0xFFFFFF0000000000 - 0xFFFFFF0000010000: Heap memory 
+// 0xFFFFFF8000000000 - 0xFFFFFF9000000000: High base region for identity mapping
+// 0xFFFFFFFF00000000 - 0xFFFFFFFF80000000: Driver memory space
 
-// A full memory map for x86_64 has not been created yet.
+
+// This memory map is not finalized
 #define MEM_FRAMEBUFFER_REGION  0x0000080000000000
 #define MEM_HEAP_REGION         0xFFFFFF0000000000
 #define MEM_PHYSMEM_MAP_REGION  0xFFFFFF8000000000
+#define MEM_DRIVER_REGION       0xFFFFFFFF00000000
 
 #define MEM_PHYSMEM_MAP_SIZE    0x0000001000000000
+#define MEM_DRIVER_REGION_SIZE  0x0000000080000000
 
 /**** MACROS ****/
 

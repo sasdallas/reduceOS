@@ -108,6 +108,8 @@ typedef union page {
 
 #define MEM_MMIO_REGION                 0x90000000
 #define MEM_MMIO_SIZE                   0x10000000
+#define MEM_DRIVER_REGION               0xA0000000 // !!!: This region is bad - we should have much more space for drivers (but i386 is so damn limited)
+#define MEM_DRIVER_REGION_SIZE          0x10000000
 #define MEM_PHYSMEM_CACHE_REGION        0xB0000000
 #define MEM_PHYSMEM_CACHE_SIZE          0x10000000
 #define MEM_PHYSMEM_MAP_REGION          0xC0000000

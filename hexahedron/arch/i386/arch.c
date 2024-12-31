@@ -53,6 +53,9 @@
 // Parameters
 generic_parameters_t *parameters;
 
+// External kernel variables
+extern uintptr_t __bss_end;
+
 /**
  * @brief Say hi! Prints the versioning message and ASCII art to NOHEADER dprintf
  */
@@ -165,7 +168,7 @@ generic_parameters_t *arch_get_generic_parameters() {
 }
 
 
-extern uintptr_t __bss_end;
+
 static uintptr_t highest_kernel_address = ((uintptr_t)&__bss_end);  // This is ONLY used until memory management is initialized.
                                                                     // mm will take over this
 
