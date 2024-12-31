@@ -114,4 +114,6 @@ void kmain() {
     kfree(symfile);
 
     LOG(INFO, "Loaded %i symbols from symbol map\n", symbols);
+
+    
 }
