@@ -115,5 +115,19 @@ void kmain() {
 
     LOG(INFO, "Loaded %i symbols from symbol map\n", symbols);
 
+    // Test driver
+#include <kernel/loader/elf_loader.h>
+    fs_node_t *driver = kopen("/device/initrd/driver_test", O_RDWR);;
+    uintptr_t ehdr = elf_load(driver, ELF_KERNEL);
+    
+    LOG(INFO, "Starting test driver...\n");
+    uintptr_t main = elf_findSymbol(ehdr, "main");
+    if (main) {
+        LOG(DEBUG, "Found symbol at %p\n", main);
+        void (*main_func)() = (void*)main;
+        (*main_func)();
+    }
+
+    kfree(driver);
     
 }

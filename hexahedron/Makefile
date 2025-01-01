@@ -6,8 +6,8 @@ OUT_OBJ = $(OBJ_OUTPUT_DIRECTORY)/hexahedron/
 OUT_BUILD = $(BUILD_OUTPUT_DIRECTORY)/hexahedron
 
 # Edit this to add more source directories. MAKE SURE TO HAVE SUBDIRECTORIES SEPARATE!
-SOURCE_DIRECTORIES = kernel drivers debug kernel/panic mem misc gfx fs
-
+SOURCE_DIRECTORIES = kernel drivers debug kernel/panic mem misc gfx fs loader
+ 
 # Edit this to change the allocator in use. ONLY ONE.
 SOURCE_DIRECTORIES += mem/toaru_alloc/
 
