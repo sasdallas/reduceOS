@@ -77,7 +77,7 @@ int elf_checkSupported(Elf32_Ehdr *ehdr) {
  * @param ehdr The EHDR of the file
  * @param idx The index of the section
  */
-static char *elf_lookupSectionName(Elf64_Ehdr *ehdr, int idx) {
+static char *elf_lookupSectionName(Elf32_Ehdr *ehdr, int idx) {
     // Get the string table
     if (ehdr->e_shstrndx == SHN_UNDEF) return NULL;
     char *strtab = (char*)ehdr + ELF_SECTION(ehdr, ehdr->e_shstrndx)->sh_offset;
@@ -288,7 +288,7 @@ int elf_loadRelocatable(Elf32_Ehdr *ehdr, int flags) {
             }
 
             // Assign the address and offset
-            section->sh_addr = (Elf64_Addr)addr;
+            section->sh_addr = (Elf32_Addr)addr;
             section->sh_offset = (uintptr_t)addr - (uintptr_t)ehdr;
             LOG(DEBUG, "Allocated memory for section %i: %s (%ld)\n", i, elf_lookupSectionName(ehdr, section->sh_name), section->sh_size);
         } else {
