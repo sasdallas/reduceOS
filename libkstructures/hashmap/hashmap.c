@@ -175,7 +175,23 @@ void *hashmap_remove(hashmap_t *hashmap, void *key) {
  * @param key The key to check for
  */
 int hashmap_has(hashmap_t *hashmap, void *key) {
-    return (hashmap_get(hashmap, key) == NULL) ? 0 : 1;
+    // NOTE: We can't just call hashmap_get because the value could be NULL.
+
+    // Find the start of the chain.
+    unsigned long hash = hashmap_hash((char*)key) % hashmap->size;
+    hashmap_node_t *entry = hashmap->entries[hash];
+
+    while (entry != NULL) {
+        // Find the entry we need
+        if (!strcmp(entry->key, key)) {
+            // Found it!
+            return 1;
+        }
+
+        entry = entry->next;
+    }
+
+    return 0;
 }
 
 /**
