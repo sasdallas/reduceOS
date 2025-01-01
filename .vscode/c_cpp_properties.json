@@ -53,11 +53,13 @@
             "includePath": [
                 "/home/samuel/Desktop/Hexahedron/**",
                 "/home/samuel/Desktop/Hexahedron/libkstructures/include/**",
-                "/home/samuel/Desktop/Hexahedron/libpolyhedron/include/**",
+                "/home/samuel/Desktop/Hexahedron/libpolyhedron/include/",
                 "/home/samuel/Desktop/Hexahedron/hexahedron/include/**",
                 "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**"
             ],
-            "defines": [],
+            "defines": [
+                "__ARCH_I386__"
+            ],
             "compilerPath": "/usr/bin/i686-elf-gcc",
             "cStandard": "c17",
             "cppStandard": "c++14",
