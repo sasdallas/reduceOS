@@ -26,6 +26,7 @@
 #include <kernel/panic.h>
 #include <kernel/debugger.h>
 #include <kernel/gfx/term.h>
+#include <kernel/misc/args.h>
 
 // Drivers (generic)
 #include <kernel/drivers/serial.h>
@@ -89,6 +90,57 @@ static void hal_init_stage1() {
 }
 
 
+/**
+ * @brief Initialize the ACPI subsystem
+ */
+smp_info_t *hal_initACPI() {
+    #ifdef ACPICA_ENABLED
+    // Initialize ACPICA
+    // There are still a few bugs in ACPICA implementation that I have yet to track down.
+    
+    // Make sure they actually want to initialize ACPICA
+    if (kargs_has("--no-acpica")) {
+        dprintf(INFO, "Skipping ACPICA as --no-acpica was present\n");
+        goto _minacpi; // Use minified ACPI
+    }
+
+    if (kargs_has("--no-acpi")) {
+        dprintf(INFO, "Skipping ACPI initialization as --no-acpi was present\n");
+        return NULL;
+    }
+
+    // Initialize ACPICA
+    int init_status = ACPICA_Initialize();
+    if (init_status != 0) {
+        dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
+        return NULL;
+    }
+
+    // Get SMP information
+    smp_info_t *smp = ACPICA_GetSMPInfo();
+    if (!smp) {
+        dprintf(WARN, "SMP is not supported on this computer");
+        return NULL;
+    }
+
+    return smp;
+
+#else
+    // No ACPICA, fall through 
+    if (kargs_has("--no-acpi")) {
+        dprintf(INFO, "Skipping ACPI initialization as --no-acpi was present\n");
+        return NULL;
+    }
+#endif
+
+_minacpi:
+
+    // TODO: We can create a minified ACPI system that just handles SMP
+    dprintf(WARN, "No ACPI subsystem is available to kernel - SMP disabled\n");  
+
+    return NULL;
+}
+
 
 /**
  * @brief Stage 2 startup - initializes debugger, ACPI, etc.
@@ -116,23 +168,14 @@ _no_debug: ;
 
     /* ACPI INITIALIZATION */
 
-#ifdef ACPICA_ENABLED
-    // Initialize ACPICA
-    // There are still a few bugs in ACPICA implementation that I have yet to track down.
+    smp_info_t *smp = hal_initACPI();
+    if (!smp) goto _no_smp;
     
-    // int init_status = ACPICA_Initialize();
-    // if (init_status != 0) {
-    //     dprintf(ERR, "ACPICA failed to initialize correctly - please see log messages.\n");
-    //     goto _no_smp;
-    // }
-    goto _no_smp;
-#else
-    // TODO: We can create a minified ACPI system that just handles SMP
-    dprintf(WARN, "No ACPI subsystem is available to kernel - SMP disabled\n");
-    goto _no_smp;
-#endif
+    /* SMP INITIALIZATION */
 
-    _no_smp: ;
+    // TODO
+
+_no_smp: ;
 
     /* VIDEO INITIALIZATION */
 

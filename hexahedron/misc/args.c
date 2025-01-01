@@ -126,6 +126,7 @@ _done:
  * @returns NULL on not found or the value
  */
 char *kargs_get(char *arg) {
+    if (!kargs) return NULL;
     return hashmap_get(kargs, arg);
 }
 
@@ -134,6 +135,7 @@ char *kargs_get(char *arg) {
  * @param arg The argument to check for
  */
 int kargs_has(char *arg) {
+    if (!kargs) return 0;
     return hashmap_has(kargs, arg);
 }
 
