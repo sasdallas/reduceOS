@@ -72,6 +72,17 @@ int elf_checkSupported(Elf32_Ehdr *ehdr) {
     return 1;
 }
 
+/**
+ * @brief Lookup the name of a section (DEBUG)
+ * @param ehdr The EHDR of the file
+ * @param idx The index of the section
+ */
+static char *elf_lookupSectionName(Elf64_Ehdr *ehdr, int idx) {
+    // Get the string table
+    if (ehdr->e_shstrndx == SHN_UNDEF) return NULL;
+    char *strtab = (char*)ehdr + ELF_SECTION(ehdr, ehdr->e_shstrndx)->sh_offset;
+    return strtab + idx;
+}
 
 /**
  * @brief Get the absolute address of a symbol
@@ -265,16 +276,21 @@ int elf_loadRelocatable(Elf32_Ehdr *ehdr, int flags) {
     for (unsigned int i = 0; i < ehdr->e_shnum; i++) {
         Elf32_Shdr *section = &shdr[i];
 
-        if (section->sh_type == SHT_NOBITS) {
-            // Allocate it memory (WARNING: This could be 0. The code should still work but it's ugly.)
+        if ((section->sh_flags & SHF_ALLOC) && section->sh_size) {
+            // Allocate the section memory
             void* addr = kmalloc(section->sh_size);
             
-            // Clear it
-            memset(addr, 0, section->sh_size);
+            // If NOBITS we need to clear the memory, if PROGBITS we need to copy it
+            if (section->sh_type == SHT_NOBITS) {
+                memset(addr, 0, section->sh_size);
+            } else if (section->sh_type == SHT_PROGBITS) {
+                memcpy(addr, (void*)((uintptr_t)ehdr + section->sh_offset), section->sh_size);
+            }
 
-            // Assign the offset
-            section->sh_addr = (Elf32_Addr)addr;
-            LOG(DEBUG, "Allocated memory for a section (%ld)\n", section->sh_size);
+            // Assign the address and offset
+            section->sh_addr = (Elf64_Addr)addr;
+            section->sh_offset = (uintptr_t)addr - (uintptr_t)ehdr;
+            LOG(DEBUG, "Allocated memory for section %i: %s (%ld)\n", i, elf_lookupSectionName(ehdr, section->sh_name), section->sh_size);
         } else {
             // Rebase sh_addr using offset
             section->sh_addr = (uintptr_t)ehdr + section->sh_offset;

@@ -143,6 +143,18 @@ static uintptr_t elf_getSymbolAddress(Elf64_Ehdr *ehdr, int table, uintptr_t idx
 }
 
 /**
+ * @brief Lookup the name of a section (DEBUG)
+ * @param ehdr The EHDR of the file
+ * @param idx The index of the section
+ */
+static char *elf_lookupSectionName(Elf64_Ehdr *ehdr, int idx) {
+    // Get the string table
+    if (ehdr->e_shstrndx == SHN_UNDEF) return NULL;
+    char *strtab = (char*)ehdr + ELF_SECTION(ehdr, ehdr->e_shstrndx)->sh_offset;
+    return strtab + idx;
+}
+
+/**
  * @brief Relocate a specific symbol
  * @param ehdr The EHDR of the file
  * @param rel The symbol to relocate
@@ -226,9 +238,6 @@ static uintptr_t elf_relocateSymbolAddend(Elf64_Ehdr *ehdr, Elf64_Rela *rel, Elf
         if (symval == ELF_RELOC_FAIL) return -1; // Didn't work..
     }
 
-    LOG(DEBUG, "S = %p A = %d P = %p\n", symval, rel->r_addend, reference);
-
-
     // Relocate based on the type
     switch (ELF64_R_TYPE(rel->r_info)) {    
     #ifdef __ARCH_X86_64__
@@ -247,7 +256,7 @@ static uintptr_t elf_relocateSymbolAddend(Elf64_Ehdr *ehdr, Elf64_Rela *rel, Elf
             break;
 
         case R_X86_64_PLT32:
-            LOG(ERR, "Cannot parse PLT32!!!!!\n"); // I HATE PLT32
+            LOG(ERR, "Cannot parse PLT32! Link with -nostdlib and compile with -fno-pie!\n"); // Spent about an entire day debugging this. I hate PLT32.
             return ELF_RELOC_FAIL;
 
         case R_X86_64_PC32:
@@ -283,16 +292,21 @@ int elf_loadRelocatable(Elf64_Ehdr *ehdr, int flags) {
     for (unsigned int i = 0; i < ehdr->e_shnum; i++) {
         Elf64_Shdr *section = &shdr[i];
 
-        if (section->sh_type == SHT_NOBITS) {
-            // Does it need to appear in memory?
+        if ((section->sh_flags & SHF_ALLOC) && section->sh_size) {
+            // Allocate the section memory
             void* addr = kmalloc(section->sh_size);
             
-            // Clear it
-            memset(addr, 0, section->sh_size);
+            // If NOBITS we need to clear the memory, if PROGBITS we need to copy it
+            if (section->sh_type == SHT_NOBITS) {
+                memset(addr, 0, section->sh_size);
+            } else if (section->sh_type == SHT_PROGBITS) {
+                memcpy(addr, (void*)((uintptr_t)ehdr + section->sh_offset), section->sh_size);
+            }
 
-            // Assign the offset
+            // Assign the address and offset
             section->sh_addr = (Elf64_Addr)addr;
-            LOG(DEBUG, "Allocated memory for a section (%ld)\n", section->sh_size);
+            section->sh_offset = (uintptr_t)addr - (uintptr_t)ehdr;
+            LOG(DEBUG, "Allocated memory for section %i: %s (%ld)\n", i, elf_lookupSectionName(ehdr, section->sh_name), section->sh_size);
         } else {
             // Rebase sh_addr using offset
             section->sh_addr = (uintptr_t)ehdr + section->sh_offset;
@@ -317,8 +331,6 @@ int elf_loadRelocatable(Elf64_Ehdr *ehdr, int flags) {
             // We need to do relocation, process entries
             for (unsigned int idx = 0; idx < section->sh_size / section->sh_entsize; idx++) {
                 Elf64_Rela *rela = &((Elf64_Rela*)((uintptr_t)ehdr + section->sh_offset))[idx];
-
-                LOG(DEBUG, "rela: r_info = %llX r_offset = %p r_addend = %x\n", rela->r_info, rela->r_offset, rela->r_addend);
 
                 // Relocate the symbol
                 uintptr_t result = elf_relocateSymbolAddend(ehdr, rela, section, flags);
