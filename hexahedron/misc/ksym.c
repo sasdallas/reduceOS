@@ -103,6 +103,7 @@ int ksym_load(fs_node_t *file) {
     }
 
 
+    kfree(symbuf);
     return symbols;
 }
 
