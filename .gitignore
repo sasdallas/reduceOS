@@ -1,3 +1,5 @@
 build-output/
 external/acpica/acpica-src/
-ser_output*.txt
+ser_output.txt
+ser_output2.txt
+.gdb_history
