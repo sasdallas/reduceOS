@@ -57,6 +57,8 @@ $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf: $(C_OBJECTS)
 	$(NM) $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf > $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel-symmap.map
 	cp $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel-symmap.map $(INITRD)/
 
+	$(PYTHON) $(BUILDSCRIPTS_ROOT)/create_bochs_symfile.py $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel-symmap.map $(DESTDIR)$(BOOT_OUTPUT)/bochs.map 
+
 	@printf "\n-- Checking multiboot compatibility (make sure you have the GRUB package)...\n"
 	grub-file --is-x86-multiboot $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
 	grub-file --is-x86-multiboot2 $(DESTDIR)$(BOOT_OUTPUT)/hexahedron-kernel.elf
