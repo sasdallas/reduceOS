@@ -187,6 +187,7 @@ uintptr_t arch_allocate_structure(size_t bytes) {
  */
 uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
     uintptr_t location = arch_allocate_structure(size);
+    dprintf(INFO, "%p - %p %i\n", (void*)structure_ptr, (void*)location, size);
     memcpy((void*)location, (void*)structure_ptr, size);
     return location;
 }

@@ -123,7 +123,7 @@ multiboot2_header_end:
 .section .bss
 .align 16
 __stack_bottom:
-.skip 65536 // Provide 64KiB of stack
+.skip 65536 // Provide 16KiB of stack
 .global __stack_top
 __stack_top:
 
@@ -157,48 +157,7 @@ _start:
     pushl $0
     pushl %ebx  // Multiboot header ptr
 
-    // We have to check whether long mode is supported.
-    // First, make sure we can even do that by checking if CPUID is supported.
-
-.cpuid_check:
-    // CPUID can be checked by attempting to flip the ID bit (bit 21)
-
-    // Get EFLAGS
-    pushfl              // Push EFLAGS onto stack
-    popl %eax           // Save it to EAX
-
-    // Save in ECX for comparison
-    movl %eax, %ecx
-
-    // Clear the ID bit
-    xorl $0x200000, %eax
-
-    // Copy back to EFLAGS
-    pushl %eax
-    popfl
-
-    // Then do it again and compare
-    pushfl
-    popl %eax
-
-    // Flip the ID bit back
-    pushl %eax
-    popfl
-
-    // Compare EAX and ECX. If they are equal CPUID isn't supported.
-    xorl %eax, %ecx
-    jz boot_error
-
-
-
-.longmode_check:
-    // Nope! We're good - now we should check if long mode is available.
-    movl $0x80000000, %eax
-    cpuid
-    cmpl $0x80000001, %eax
-    jb boot_error
-
-    // If we're here, the CPU supports long mode!
+    // Skip check on long mode, rather just crash.
 
 .paging_init:
     // We need to now setup our paging structures.
@@ -236,14 +195,14 @@ _start:
     movl %edi, %cr3
 
     // Enable PAE, it is required for long mode.
-    movl %cr4, %eax
-    orl $32, %eax
-    movl %eax, %cr4
+    mov %cr4, %eax
+    or $32, %eax
+    mov %eax, %cr4
 
     // Enable EFER, enabling SYSCALL/SYSRET
     movl $0xC0000080, %ecx
     rdmsr
-    orl $256, %eax
+    or $256, %eax
     wrmsr
 
     // Check PG - bootloader may already have enabled paging
@@ -300,7 +259,7 @@ gdt_base:
     .byte 0x00
 
     /* Data segment - 64-bit kernel mode */
-    .word 0x0000
+    .word 0xFFFF
     .word 0x0000
     .byte 0x00
     .byte 0x92
@@ -321,12 +280,12 @@ gdt_end:
 // Main longmode entrypoint - setup segments
 longmode_entry:
     cli
-    movw $0x10, %ax
-    movw %ax, %ds
-    movw %ax, %es
-    movw %ax, %fs
-    movw %ax, %gs
-    movw %ax, %ss
+    mov $0x10, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %ax, %ss
 
 .longmode_move_to_kernel:
     // If we jump here, then we don't have to setup segments.
