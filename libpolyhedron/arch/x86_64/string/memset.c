@@ -14,7 +14,8 @@
 #include <stddef.h>
 
 void *memset(void* destination_ptr, int value, size_t size) {
-    // It's faster to embed assembly like this.
+    // It's faster to embed assembly like this and use "rep stosb".
+	// This code needs to be improved and cleaned up a bit though. Intellisense does not like the ';'
     asm volatile("cld; rep stosb"
 	             : "=c"((int){0})
 	             : "rdi"(destination_ptr), "a"(value), "c"(size)
