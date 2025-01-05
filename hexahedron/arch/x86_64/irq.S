@@ -15,10 +15,10 @@
 .extern hal_exceptionHandler
 .extern hal_interruptHandler
 
-/* Swap GS base */
+/* Swap GS base (make sure points to err_code) */
 .macro _swapgs
     // We only need to swapgs on a usermode -> kernel mode interrupt
-    cmpq $8, 24(%rsp) // 24(%rsp) = CS pushed by CPU
+    cmpq $8, 16(%rsp) // 16(%rsp) = CS pushed by CPU
     je 1f
     swapgs
 1:
@@ -26,6 +26,8 @@
 
 /* Save registers macro */
 .macro PUSH_REGISTERS
+    _swapgs // If usermode, then swapgs to switch to kernel GS base
+
     // AMD killed PUSHA for some weird reason, so we'll have to
     // do this manually - and this time we go alphabetical.
     pushq %rax
@@ -77,11 +79,11 @@
 
     /* Start popping registers */
     popw %ax
-    movw %ax, %ds
+    // movw %ax, %ds
     popw %ax
-    movw %ax, %fs
+    // movw %ax, %fs
     popw %ax
-    movw %ax, %gs
+    // movw %ax, %gs
 
     popq %r8
     popq %r9
@@ -100,13 +102,15 @@
     popq %rbx 
     popq %rax
 
+    // Swap GS back
+    _swapgs
+
     // Skip over error code
     add $8, %rsp
 .endm
 
 /* Common exception handler */
 halCommonExceptionHandler:
-    _swapgs // If usermode exception, then swapgs to get out of it
     PUSH_REGISTERS // Push registers
 
     leaq 52(%rsp), %rax     // Load address of registers_t
@@ -117,14 +121,12 @@ halCommonExceptionHandler:
     call hal_exceptionHandler 
     
     RESTORE_REGISTERS // Restore registers
-    _swapgs // If usermode exception, then swapgs to get back in
     
     iretq   // NOTE: The q is required!
 
 
 /* Common interrupt handler */
 halCommonIRQHandler:
-    _swapgs // If usermode exception, then swapgs to get out of it
     PUSH_REGISTERS // Push registers
 
     leaq 52(%rsp), %rax     // Load address of registers_t
@@ -136,7 +138,6 @@ halCommonIRQHandler:
     call hal_interruptHandler 
     
     RESTORE_REGISTERS // Restore registers
-    _swapgs // If usermode exception, then swapgs to get back in
     
     iretq   // NOTE: The q is required!
 
