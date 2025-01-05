@@ -123,7 +123,7 @@ multiboot2_header_end:
 .section .bss
 .align 16
 __stack_bottom:
-.skip 65536 // Provide 16KiB of stack
+.skip 65536 // Provide 64KiB of stack
 .global __stack_top
 __stack_top:
 
