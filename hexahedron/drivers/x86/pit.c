@@ -59,5 +59,5 @@ void pit_initialize() {
     // Register handler
     hal_registerInterruptHandler(PIT_IRQ, pit_irqHandler);
 
-    dprintf_module(INFO, "PIT", "Programmable interval timer initialized\n");
+    dprintf_module(INFO, "X86:PIT", "Programmable interval timer initialized\n");
 }

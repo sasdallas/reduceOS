@@ -220,8 +220,8 @@ ACPI_STATUS AcpiOsSignalSemaphore(ACPI_SEMAPHORE Handle, UINT32 Units) {
 
 ACPI_STATUS AcpiOsCreateLock(ACPI_SPINLOCK *OutHandle) {
     // this we can actually do
-    spinlock_t *lock = kmalloc(sizeof(spinlock_t));
-    
+    spinlock_t *lock = spinlock_create("acpi_lock");
+
     // TODO: NOT DISABLING INTERRUPTS 
     *OutHandle = lock;
     return AE_OK;

@@ -31,7 +31,7 @@
 uintptr_t lapic_base = 0x0;
 
 /* Log method */
-#define LOG(status, ...) dprintf_module(status, "LAPIC", __VA_ARGS__)
+#define LOG(status, ...) dprintf_module(status, "X86:LAPIC", __VA_ARGS__)
 
 
 /**
