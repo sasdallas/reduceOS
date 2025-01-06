@@ -79,8 +79,13 @@ $(OUT_EFI)/BOOTX64.EFI: $(EFI_C_OBJS) $(EFI_ASM_OBJS)
 $(OUT_BIOS)/boot.sys:
 	nasm -f bin -I biosldr/ biosldr/stage1.asm -o $(OUT_BIOS)/boot.sys
 
-$(OUT_BIOS)/poly.sys: $(BIOS_C_OBJS)
-	$(LD) $(BIOS_C_OBJS) $(BIOS_LD_FLAGS) -o $(OUT_BIOS)/poly.sys
+#$(OUT_BIOS)/poly.sys: $(BIOS_C_OBJS)
+#	$(LD) $(BIOS_C_OBJS) $(BIOS_LD_FLAGS) -o $(OUT_BIOS)/poly.sys
+
+$(OUT_BIOS)/poly.sys:
+	@echo "!!!!!!!!!!!! BIOS TARGET DISABLED !!!!!!!!!!!!!!!"
+	@echo "-- Polyaniline 2.0 is in active development. Please use that when it is ready."
+	@echo "-- Polyaniline 1.0 Redline should most likely be burned to death in a fire"
 
 # Other functions
 MAKE_OUTPUT_DIRS:
@@ -92,10 +97,10 @@ MAKE_OUTPUT_DIRS:
 # Installation functions
 
 install: clean MAKE_OUTPUT_DIRS $(OUT_EFI)/BOOTX64.EFI $(OUT_BIOS)/boot.sys $(OUT_BIOS)/poly.sys $(OUT_BIOS)/mbr.bin
-	@echo "-- Building FAT image (EFI)..."
-	bash -c "$(BUILDSCRIPTS_ROOT)/mkfatimage.sh"
-	@echo "-- Building FAT image (BIOS)..."
-	bash -c "$(BUILDSCRIPTS_ROOT)/mkfatimage_bios.sh"
+	#@echo "-- Building FAT image (EFI)..."
+	#bash -c "$(BUILDSCRIPTS_ROOT)/mkfatimage.sh"
+	#@echo "-- Building FAT image (BIOS)..."
+	#bash -c "$(BUILDSCRIPTS_ROOT)/mkfatimage_bios.sh"
 	@echo "-- Done building all loaders"
 	
 # Above is done because it wont detect changes
@@ -103,3 +108,4 @@ install: clean MAKE_OUTPUT_DIRS $(OUT_EFI)/BOOTX64.EFI $(OUT_BIOS)/boot.sys $(OU
 # Cleaning functions
 clean:
 	-rm -rf $(OUT_OBJ)
+

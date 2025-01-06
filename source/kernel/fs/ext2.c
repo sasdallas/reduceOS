@@ -10,6 +10,7 @@
 #include <kernel/mem.h>
 
 #pragma GCC diagnostic ignored "-Wempty-body" // Don't want to mess with the func that uses this
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member" // Nor do I want to mess with this func
 
 // External variables
 extern ideDevice_t ideDevices[4];

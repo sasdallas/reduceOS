@@ -10,8 +10,8 @@
 #define VERSION "1.4"
 
 // DO NOT MODIFY THE BELOW LINES!!!
-#define BUILD_NUMBER "11927"
-#define BUILD_DATE "10/28/24, 18:10:29"
+#define BUILD_NUMBER "11932"
+#define BUILD_DATE "01/06/25, 13:08:26"
 #define BUILD_CONFIGURATION "DEBUG"
 #else
 extern char *__kernel_version;
