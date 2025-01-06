@@ -52,13 +52,15 @@
             "name": "osdev-i386",
             "includePath": [
                 "/home/samuel/Desktop/Hexahedron/**",
-                "/home/samuel/Desktop/Hexahedron/libkstructures/include/**",
+                "/home/samuel/Desktop/Hexahedron/libkstructures/include/",
                 "/home/samuel/Desktop/Hexahedron/libpolyhedron/include/",
-                "/home/samuel/Desktop/Hexahedron/hexahedron/include/**",
-                "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**"
+                "/home/samuel/Desktop/Hexahedron/hexahedron/include/",
+                "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**",
+                "${workspaceFolder}/hexahedron/include"
             ],
             "defines": [
-                "__ARCH_I386__"
+                "__ARCH_I386__",
+                "ACPICA_ENABLED"
             ],
             "compilerPath": "/usr/bin/i686-elf-gcc",
             "cStandard": "c17",

@@ -20,3 +20,5 @@
  * 
  * Copyright (C) 2024 Samuel Stuart
  */
+
+#include <kernel/loader/driver.h>

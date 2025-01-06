@@ -85,7 +85,7 @@ DELETE_OBJECTS:
 
 # Main kernel build targets
 install-headers:
-	@echo "Installing Hexahedron headers..."
+	@echo "-- Installing Hexahedron headers..."
 	@-mkdir -pv $(DESTDIR)$(INCLUDE_DIRECTORY)
 	cp -rp include/kernel/ $(DESTDIR)$(INCLUDE_DIRECTORY)
 

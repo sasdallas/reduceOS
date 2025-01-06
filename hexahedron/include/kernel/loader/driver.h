@@ -50,13 +50,23 @@ typedef struct driver_metadata {
 
 /**** DEFINITIONS ****/
 
-// The default location of the driver file
+// The default location of the drivers directory and config file
+#define DRIVER_DEFAULT_PATH                 "/device/initrd/drivers/"
 #define DRIVER_DEFAULT_CONFIG_LOCATION      "/device/initrd/drivers/driver_conf.json"
 
 // Make sure to update buildscripts/create_driver_data.py if you change this
 #define DRIVER_CRITICAL     0   // Panic if load fails
 #define DRIVER_WARN         1   // Warn the user if load fails
 #define DRIVER_IGNORE       2   // Ignore if load fails
+
+// Driver environments. Some drivers can be loaded as "quickload" drivers by Polyaniline (loaded as Multiboot modules),
+// however certain drivers may require a normal environment instead.
+#define DRIVER_ENVIRONMENT_NORMAL       0       // A normal driver environment is required.
+#define DRIVER_ENVIRONMENT_PRELOAD      1       // A preload driver environment is required.
+#define DRIVER_ENVIRONMENT_ANY          2       // Any environment, either normal/preload
+
+// IMPORTANT: Current version of the Hexahedron driver loader
+#define DRIVER_CURRENT_VERSION          1
 
 /**** FUNCTIONS ****/
 
