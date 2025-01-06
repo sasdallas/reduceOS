@@ -283,7 +283,7 @@ static uintptr_t elf_relocateSymbolAddend(Elf64_Ehdr *ehdr, Elf64_Rela *rel, Elf
  * @returns 0 on success, anything else is failure
  */
 int elf_loadRelocatable(Elf64_Ehdr *ehdr, int flags) {
-    if (!ehdr || flags > 1) return -1; // stupid users
+    if (!ehdr || flags > ELF_DRIVER) return -1; // stupid users
 
 
     Elf64_Shdr *shdr = ELF_SHDR(ehdr);
@@ -300,7 +300,7 @@ int elf_loadRelocatable(Elf64_Ehdr *ehdr, int flags) {
                 addr = (void*)mem_mapDriver(section->sh_size);
             } else {
                 // Use normal allocation
-                void* addr = kmalloc(section->sh_size);
+                addr = kmalloc(section->sh_size);
             }
 
             // Clear the memory

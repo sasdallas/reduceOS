@@ -266,7 +266,7 @@ static uintptr_t elf_relocateSymbolAddend(Elf32_Ehdr *ehdr, Elf32_Rela *rel, Elf
  * @returns 0 on success, anything else is failure
  */
 int elf_loadRelocatable(Elf32_Ehdr *ehdr, int flags) {
-    if (!ehdr || flags > 1) return -1; // stupid users
+    if (!ehdr || flags > ELF_DRIVER) return -1; // stupid users
 
     // Handle loading initial sections into memory
 
