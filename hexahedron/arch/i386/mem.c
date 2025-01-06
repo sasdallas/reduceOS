@@ -134,15 +134,23 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
         dprintf(INFO, "Physical memory identity map pool created (0x%x - 0x%x)\n", MEM_PHYSMEM_MAP_REGION, MEM_PHYSMEM_MAP_REGION + MEM_PHYSMEM_MAP_SIZE);
     }
 
+    uintptr_t offset = 0; // This is the offset which will be added to the allocated chunks (in order to result in a frame address equal to the one passed in)
+
     if (size % PAGE_SIZE != 0) {
-        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad size to remapPhys: 0x%x\n", size);
+        size = MEM_ALIGN_PAGE(size);
+        // kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad size to remapPhys: 0x%x\n", size);
     }
 
     if (frame_address % PAGE_SIZE != 0) {
-        // TODO: Add support for this?
-        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad frame to remapPhys: 0x%x\n", frame_address);
-    }
+        // We know that frame_address + size will overflow into more pages (e.g. frame address 0x7FE1900 + 0x1000 actually requires 2 pages for 0x7FE1900 - 0x7FE2000)
+        // !!!: this is wasteful and stupid, just like this whole system.
+        offset = frame_address & 0xFFF;
+        frame_address = frame_address & ~0xFFF;
+        size += PAGE_SIZE;
 
+        // kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad frame to remapPhys: 0x%x\n", frame_address);
+    }
+    
     // Now try to get a pool address
     uintptr_t start_addr = pool_allocateChunks(mem_mapPool, size / PAGE_SIZE);
     if (start_addr == (uintptr_t)NULL) {
@@ -156,7 +164,7 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
         mem_mapAddress(NULL, i, start_addr + (i - frame_address));
     }
 
-    return start_addr;
+    return start_addr + offset;
 }
 
 /**
@@ -173,12 +181,16 @@ void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
         return; // No work to be done. It's in the cache.
     }
 
-    if (frame_address % PAGE_SIZE != 0) {
-        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad frame to unmapPhys: 0x%x\n", frame_address);
+    if (size % PAGE_SIZE != 0) {
+        size = MEM_ALIGN_PAGE(size);
+        // kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad size to unmapPhys: 0x%x\n", size);
     }
 
-    if (size % PAGE_SIZE != 0) {
-        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad size to unmapPhys: 0x%x\n", size);
+    if (frame_address % PAGE_SIZE != 0) {
+        frame_address = frame_address & ~0xFFF;
+        size += PAGE_SIZE;
+
+        // kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "mem", "*** Bad frame to unmapPhys: 0x%x\n", frame_address);
     }
 
     // See if we can just free those chunks. Because mem_remapPhys doesn't actually use pmm_allocateBlock,
@@ -440,7 +452,7 @@ void mem_unmapDriver(uintptr_t base, size_t size) {
  * This function will setup the memory map and prepare tables.
  * It expects you to provide the highest kernel adress that is valid.
  * 
- * @param high_address The ending address of the kernel including all data structures copied. 
+ * @param high_address The ending address of the kernel including all data structures copied.
  */
 void mem_init(uintptr_t high_address) {
     if (!high_address) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "mem");
@@ -458,8 +470,9 @@ void mem_init(uintptr_t high_address) {
     // Hexahedron uses a memory map that has mapped PMM memory accessible through a range,
     // which is limited to something like 786 MB (see arch/i386/mem.h)
 
-    // TODO: We can do something much better than this. Create a PMM remapper that can create
-    // caches of commonly used blocks of memory and remap on the fly.
+    // !!!: This sucks. The cache implementation is very finnicky and addresses aren't properly mapped. This entire system needs a full overhaul.
+    // !!!: Calculating frame_bytes by multiplying max blocks by PMM_BLOCK_SIZE doesn't give the highest address in memory.
+    
 
     size_t frame_bytes = pmm_getMaximumBlocks() * PMM_BLOCK_SIZE;
 
