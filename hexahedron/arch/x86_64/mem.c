@@ -276,6 +276,29 @@ uintptr_t mem_mapDriver(size_t size) {
  * @param size The size of the driver in memory
  */
 void mem_unmapDriver(uintptr_t base, size_t size) {
+    // Align size
+    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
+
+    // If this was the last driver mapped, we can unmap it
+    if (base == mem_driverRegion - size) {
+        // Get the lock
+        spinlock_acquire(&driver_lock);
+
+        // Free the pages
+        // TODO: Do we not need to actually free pages? Can't we just hack in support in mem_mapDriver?
+        mem_driverRegion -= size;
+        for (uintptr_t i = mem_driverRegion; i < mem_driverRegion + size; i += PAGE_SIZE) {
+            page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
+            mem_freePage(pg);
+        }
+
+        // Release the lock
+        spinlock_release(&driver_lock);
+
+        return;
+    }
+
+    // Else we're out of luck
     dprintf(WARN, "Driver unmapping is not implemented (tried to unmap driver %p - %p)\n", base, base+size);
 }
 
