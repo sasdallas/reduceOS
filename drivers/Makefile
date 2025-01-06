@@ -4,7 +4,7 @@
 include ./make.config
 
 # Sourec directories
-MODDIRS := $(shell find -mindepth 1 -maxdepth 1 -type d)
+MODDIRS := $(shell find -mindepth 1 -maxdepth 1 -type d -not -path "./arch")
 MODDIRS := $(patsubst ./%, %, $(MODDIRS))
 
 all: TARGET_DISABLED
@@ -18,7 +18,7 @@ install-%: %
 	$(MAKE) -C $< install
 
 clean-%: %
-	$(MAKE) -c $< clean
+	$(MAKE) -C $< clean
 
 # Create build directories
 MAKE_DIRS:

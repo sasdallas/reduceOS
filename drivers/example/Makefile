@@ -30,3 +30,9 @@ install: PRINT_HEADER MAKE_OUTPUT ./$(OUTPUT_FILE)
 	cp -r $(OUTPUT_FILE) $(DESTDIR)$(BOOT_OUTPUT)/drivers
 	cp -r $(OUTPUT_FILE) $(INITRD)/drivers/
 	rm ./$(OUTPUT_FILE)
+
+clean:
+	-rm ./$(OUTPUT_FILE)
+	-rm -rf $(OUTPUT_DIR)
+	-rm $(INITRD)/drivers/$(OUTPUT_FILE)
+	-rm $(DESTDIR)$(BOOT_OUTPUT)/drivers/$(OUTPUT_FILE)

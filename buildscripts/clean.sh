@@ -17,7 +17,7 @@ PROJECTS=${*-$PROJECTS}
 for PROJECT in $PROJECTS; do
         echo
     echo "-- Cleaning ${PROJECT}"
-    (cd $BUILDSCRIPTS_ROOT/../$PROJECT && $MAKE clean)
+    (cd $BUILDSCRIPTS_ROOT/../$PROJECT && $MAKE DESTDIR="$SYSROOT" INITRD="$INITRD" clean)
 done
 
 rm -rf "$SYSROOT"
