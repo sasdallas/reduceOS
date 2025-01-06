@@ -21,7 +21,7 @@
 
 /**** STOP CODES ****/
 
-#define     KERNEL_STOP_CODES               11
+#define     KERNEL_STOP_CODES               13
 
 #define     KERNEL_DEBUG_TRAP               0x00000000 // Debugging trap
 #define     MEMORY_MANAGEMENT_ERROR         0x00000001 // Memory management failure
@@ -34,6 +34,8 @@
 #define     ASSERTION_FAILED                0x00000008 // An assertion by assert() failed
 #define     INSUFFICIENT_HARDWARE_ERROR     0x00000009 // The system does not meet the requirements for Hexahedron.
 #define     INITIAL_RAMDISK_CORRUPTED       0x0000000A // The initial ramdisk was corrupted or missing
+#define     DRIVER_LOADER_ERROR             0x0000000B // The driver loader encountered an error
+#define     DRIVER_LOAD_FAILED              0x0000000C // A critical driver failed to load
 
 
 /**** MESSAGES ****/

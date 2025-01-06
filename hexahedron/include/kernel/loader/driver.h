@@ -48,6 +48,16 @@ typedef struct driver_metadata {
     driver_deinit_t deinit;     // Deinit function of the driver
 } driver_metadata_t;
 
+// Loaded driver data
+typedef struct loaded_driver {
+    driver_metadata_t *metadata;    // Cloned metadata of the driver
+    char *filename;                 // Filename of the driver
+    int priority;                   // Driver priority
+    int environment;                // Driver environment
+    uintptr_t load_address;         // Driver load address
+    ssize_t size;                   // Size of the driver in memory    
+} loaded_driver_t;
+
 /**** DEFINITIONS ****/
 
 // The default location of the drivers directory and config file
@@ -78,18 +88,26 @@ void driver_initialize();
 /**
  * @brief Load and parse a JSON file containing driver information
  * @param file The file to parse
- * @returns 0 on success, anything else indicates a failure.
+ * @returns Amount of drivers loaded
  * 
  * @note This will panic if any drivers have the label of "CRITICAL"
  */
 int driver_loadConfiguration(fs_node_t *file);
 
+
+/* TODO: Maybe calm down on the arguments for this function */
+
 /**
  * @brief Load a driver into memory and start it
  * @param driver_file The driver file
- * @returns 0 on success, anything else is a failure
+ * @param priority The priority of the driver file
+ * @param environment The environment of the driver file
+ * @param file The driver filename
+ * @param argc Argument count
+ * @param argv Argument data
+ * @returns 0 on success, anything else is a failure/panic
  */
-int driver_load(fs_node_t *driver_file);
+int driver_load(fs_node_t *driver_file, int priority, int environment, char *file, int argc, char **argv);
 
 
 #endif

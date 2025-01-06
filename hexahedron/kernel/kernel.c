@@ -23,6 +23,9 @@
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 
+// Loaders
+#include <kernel/loader/driver.h>
+
 // Memory
 #include <kernel/mem/alloc.h>
 
@@ -111,25 +114,19 @@ void kmain() {
     }
 
     int symbols = ksym_load(symfile);
-    kfree(symfile);
+    fs_close(symfile);
 
     LOG(INFO, "Loaded %i symbols from symbol map\n", symbols);
 
+    // Let's start loading drivers
+    driver_initialize(); // Initialize the driver system
 
-
-    // Test driver
-#include <kernel/loader/elf_loader.h>
-    fs_node_t *driver = kopen("/device/initrd/driver_test", O_RDWR);;
-    uintptr_t ehdr = elf_load(driver, ELF_KERNEL);
-    if (ehdr) {
-        LOG(INFO, "Starting test driver...\n");
-        uintptr_t main = elf_findSymbol(ehdr, "main");
-        if (main) {
-            LOG(DEBUG, "Found symbol at %p\n", main);
-            void (*main_func)() = (void*)main;
-            (*main_func)();
-        }
+    fs_node_t *conf_file = kopen(DRIVER_DEFAULT_CONFIG_LOCATION, O_RDONLY);
+    if (!conf_file) {
+        kernel_panic_extended(INITIAL_RAMDISK_CORRUPTED, "kernel", "*** Missing driver configuration file (%s)\n", DRIVER_DEFAULT_CONFIG_LOCATION);
+        __builtin_unreachable();
     }
-
-    kfree(driver);   
+    
+    driver_loadConfiguration(conf_file); // Load the configuration
+    fs_close(conf_file);
 }
