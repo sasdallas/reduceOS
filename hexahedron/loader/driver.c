@@ -94,7 +94,7 @@ int driver_load(fs_node_t *driver_file, int priority, int environment, char *fil
     }
 
     // Load from buffer
-    uintptr_t elf = elf_loadBuffer((uint8_t*)driver_load_address, ELF_KERNEL);
+    uintptr_t elf = elf_loadBuffer((uint8_t*)driver_load_address, ELF_DRIVER);
     if (elf == 0x0) {
         // Load failed
         driver_handleLoadError(priority, "ELF load error (check to make sure architecture matches)", file);

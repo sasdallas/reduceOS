@@ -15,6 +15,7 @@
 
 #include <kernel/loader/elf_loader.h>
 #include <kernel/loader/elf.h>
+#include <kernel/mem/mem.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/misc/ksym.h>
 #include <kernel/debug.h>
@@ -98,7 +99,7 @@ static char *elf_lookupSectionName(Elf32_Ehdr *ehdr, int idx) {
  */
 uintptr_t elf_getSymbolAddress(Elf32_Ehdr *ehdr, int table, uintptr_t idx, int flags) {
     // First make sure parameters are correct
-    if (table == SHN_UNDEF || idx == SHN_UNDEF || flags > 1) return ELF_RELOC_FAIL;
+    if (table == SHN_UNDEF || idx == SHN_UNDEF || flags > ELF_DRIVER) return ELF_RELOC_FAIL;
 
     // Get the symbol table and calculate its entries
     Elf32_Shdr *symtab = ELF_SECTION(ehdr, table);
@@ -120,7 +121,7 @@ uintptr_t elf_getSymbolAddress(Elf32_Ehdr *ehdr, int table, uintptr_t idx, int f
             Elf32_Shdr *strtab = ELF_SECTION(ehdr, symtab->sh_link);
             char *name = (char*)ehdr + strtab->sh_offset + symbol->st_name;
 
-            if (flags != ELF_KERNEL) {
+            if (flags != ELF_KERNEL && flags != ELF_DRIVER) {
                 LOG(ERR, "elf_getSymbolAddress(): Unimplemented usermode lookup for symbol '%s'\n", name);
                 return ELF_RELOC_FAIL;
             }
@@ -274,16 +275,12 @@ int elf_loadRelocatable(Elf32_Ehdr *ehdr, int flags) {
     for (unsigned int i = 0; i < ehdr->e_shnum; i++) {
         Elf32_Shdr *section = &shdr[i];
 
-        if ((section->sh_flags & SHF_ALLOC) && section->sh_size) {
-            // Allocate the section memory
+        if ((section->sh_flags & SHF_ALLOC) && section->sh_size && section->sh_type == SHT_NOBITS) {
+            // Allocate the section memory.
             void* addr = kmalloc(section->sh_size);
             
-            // If NOBITS we need to clear the memory, if PROGBITS we need to copy it
-            if (section->sh_type == SHT_NOBITS) {
-                memset(addr, 0, section->sh_size);
-            } else if (section->sh_type == SHT_PROGBITS) {
-                memcpy(addr, (void*)((uintptr_t)ehdr + section->sh_offset), section->sh_size);
-            }
+            // Clear the memory
+            memset(addr, 0, section->sh_size);
 
             // Assign the address and offset
             section->sh_addr = (Elf32_Addr)addr;

@@ -22,6 +22,7 @@
 
 #define ELF_KERNEL  0   // Load an ELF file with full kernel access (drivers)
 #define ELF_USER    1   // Load an ELF file with usermode access (programs)
+#define ELF_DRIVER  2   // Equivalent to ELF_KERNEL but load the program with allocations in driver memory space
 
 #define ELF_RELOC_FAIL  (uintptr_t)-1       // Ugliest value ever...
 

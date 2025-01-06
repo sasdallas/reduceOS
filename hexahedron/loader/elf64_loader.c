@@ -18,7 +18,7 @@
 #include <kernel/loader/elf.h>
 #include <kernel/misc/ksym.h>
 #include <kernel/mem/alloc.h>
-
+#include <kernel/mem/mem.h>
 #include <kernel/debug.h>
 
 #include <string.h>
@@ -88,7 +88,7 @@ static int elf_checkSupported(Elf64_Ehdr *ehdr) {
  */
 static uintptr_t elf_getSymbolAddress(Elf64_Ehdr *ehdr, int table, uintptr_t idx, int flags) {
     // First make sure parameters are correct
-    if (table == SHN_UNDEF || idx == SHN_UNDEF || flags > 1) return ELF_RELOC_FAIL;
+    if (table == SHN_UNDEF || idx == SHN_UNDEF || flags > ELF_DRIVER) return ELF_RELOC_FAIL;
 
     // Get the symbol table and calculate its entries
     Elf64_Shdr *symtab = ELF_SECTION(ehdr, table);
@@ -110,7 +110,7 @@ static uintptr_t elf_getSymbolAddress(Elf64_Ehdr *ehdr, int table, uintptr_t idx
             Elf64_Shdr *strtab = ELF_SECTION(ehdr, symtab->sh_link);
             char *name = (char*)ehdr + strtab->sh_offset + symbol->st_name;
 
-            if (flags != ELF_KERNEL) {
+            if (flags != ELF_KERNEL && flags != ELF_DRIVER) {
                 LOG(ERR, "elf_getSymbolAddress(): Unimplemented usermode lookup for symbol '%s'\n", name);
                 return ELF_RELOC_FAIL;
             }
@@ -290,17 +290,22 @@ int elf_loadRelocatable(Elf64_Ehdr *ehdr, int flags) {
     for (unsigned int i = 0; i < ehdr->e_shnum; i++) {
         Elf64_Shdr *section = &shdr[i];
 
-        if ((section->sh_flags & SHF_ALLOC) && section->sh_size) {
+        if ((section->sh_flags & SHF_ALLOC) && section->sh_size && section->sh_type == SHT_NOBITS) {
             // Allocate the section memory
-            void* addr = kmalloc(section->sh_size);
-            
-            // If NOBITS we need to clear the memory, if PROGBITS we need to copy it
-            if (section->sh_type == SHT_NOBITS) {
-                memset(addr, 0, section->sh_size);
-            } else if (section->sh_type == SHT_PROGBITS) {
-                memcpy(addr, (void*)((uintptr_t)ehdr + section->sh_offset), section->sh_size);
+
+            void *addr;
+            if (flags == ELF_DRIVER) {
+                // Use driver allocation
+                // !!!: wasteful as addresses are page-aligned
+                addr = (void*)mem_mapDriver(section->sh_size);
+            } else {
+                // Use normal allocation
+                void* addr = kmalloc(section->sh_size);
             }
 
+            // Clear the memory
+            memset(addr, 0, section->sh_size);
+            
             // Assign the address and offset
             section->sh_addr = (Elf64_Addr)addr;
             section->sh_offset = (uintptr_t)addr - (uintptr_t)ehdr;
