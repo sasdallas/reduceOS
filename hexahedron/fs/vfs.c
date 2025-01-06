@@ -51,19 +51,26 @@ spinlock_t *vfs_lock;
  * @param flags The open flags
  */
 void fs_open(fs_node_t *node, unsigned int flags) {
+    if (!node) return;
+
     if (node->open) {
         return node->open(node, flags);
     }
 }
 
 /**
- * @brief Standard POSIX close call
+ * @brief Standard POSIX close call that also frees the node
  * @param node The node to close
  */
 void fs_close(fs_node_t *node) {
+    if (!node) return;
+
     if (node->close) {
-        return node->close(node);
+        node->close(node);
     }
+
+    // Free the node
+    kfree(node);
 }
 
 /**
@@ -75,6 +82,8 @@ void fs_close(fs_node_t *node) {
  * @returns The amount of bytes read
  */
 ssize_t fs_read(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
+    if (!node) return 0;
+
     if (node->read) {
         return node->read(node, offset, size, buffer);
     }
@@ -91,6 +100,8 @@ ssize_t fs_read(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
  * @returns The amount of bytes written
  */
 ssize_t fs_write(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
+    if (!node) return 0;
+
     if (node->write) {
         return node->write(node, offset, size, buffer);
     }
@@ -105,6 +116,8 @@ ssize_t fs_write(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
  * @returns A directory entry structure or NULL
  */
 struct dirent *fs_readdir(fs_node_t *node, unsigned long index) {
+    if (!node) return NULL;
+
     if (node->flags & VFS_DIRECTORY && node->readdir) {
         return node->readdir(node, index);
     }
@@ -119,6 +132,8 @@ struct dirent *fs_readdir(fs_node_t *node, unsigned long index) {
  * @returns The node of the file found or NULL
  */
 fs_node_t *fs_finddir(fs_node_t *node, char *path) {
+    if (!node) return NULL;
+
     if (node->flags & VFS_DIRECTORY && node->finddir) {
         return node->finddir(node, path);
     }
