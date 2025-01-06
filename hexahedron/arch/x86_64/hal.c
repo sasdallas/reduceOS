@@ -38,7 +38,7 @@
 #include <kernel/drivers/x86/serial.h>
 #include <kernel/drivers/x86/clock.h>
 #include <kernel/drivers/x86/acpica.h> // #ifdef ACPICA_ENABLED in this file
-
+#include <kernel/drivers/x86/minacpi.h>
 
 static uintptr_t hal_rsdp = 0x0;
 
@@ -125,6 +125,8 @@ smp_info_t *hal_initACPI() {
 
     return smp;
 
+_minacpi: ; // Jumped here if "--no-acpica" was present
+
 #else
     // No ACPICA, fall through 
     if (kargs_has("--no-acpi")) {
@@ -133,12 +135,21 @@ smp_info_t *hal_initACPI() {
     }
 #endif
 
-_minacpi:
+    // Initialize the minified ACPI driver
+    int minacpi = minacpi_initialize();
+    if (minacpi != 0) {
+        dprintf(ERR, "MINACPI failed to initialize correctly - please see log messages.\n");
+        return NULL;
+    }
 
-    // TODO: We can create a minified ACPI system that just handles SMP
-    dprintf(WARN, "No ACPI subsystem is available to kernel - SMP disabled\n");  
+    // Get SMP information
+    smp_info_t *info = minacpi_parseMADT();
+    if (info == NULL) {
+        dprintf(WARN, "SMP is not supported on this computer\n");
+        return NULL;
+    }
 
-    return NULL;
+    return info;
 }
 
 

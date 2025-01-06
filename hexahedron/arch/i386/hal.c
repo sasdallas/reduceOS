@@ -45,6 +45,7 @@
 #include <kernel/drivers/x86/clock.h>
 #include <kernel/drivers/x86/pit.h>
 #include <kernel/drivers/x86/acpica.h> // #ifdef ACPICA_ENABLED in this file
+#include <kernel/drivers/x86/minacpi.h>
 
 /* Root system descriptor pointer */
 static uint64_t hal_rsdp = 0x0; 
@@ -73,7 +74,7 @@ uint64_t hal_getRSDP() {
  * @brief Initialize the ACPI subsystem
  */
 smp_info_t *hal_initACPI() {
-    #ifdef ACPICA_ENABLED
+#ifdef ACPICA_ENABLED
     // Initialize ACPICA
     // There are still a few bugs in ACPICA implementation that I have yet to track down.
     
@@ -98,11 +99,13 @@ smp_info_t *hal_initACPI() {
     // Get SMP information
     smp_info_t *smp = ACPICA_GetSMPInfo();
     if (!smp) {
-        dprintf(WARN, "SMP is not supported on this computer");
+        dprintf(WARN, "SMP is not supported on this computer\n");
         return NULL;
     }
 
     return smp;
+
+_minacpi: ; // Jumped here if "--no-acpica" was present
 
 #else
     // No ACPICA, fall through 
@@ -112,12 +115,21 @@ smp_info_t *hal_initACPI() {
     }
 #endif
 
-_minacpi:
+    // Initialize the minified ACPI driver
+    int minacpi = minacpi_initialize();
+    if (minacpi != 0) {
+        dprintf(ERR, "MINACPI failed to initialize correctly - please see log messages.\n");
+        return NULL;
+    }
 
-    // TODO: We can create a minified ACPI system that just handles SMP
-    dprintf(WARN, "No ACPI subsystem is available to kernel - SMP disabled\n");  
+    // Get SMP information
+    smp_info_t *info = minacpi_parseMADT();
+    if (info == NULL) {
+        dprintf(WARN, "SMP is not supported on this computer\n");
+        return NULL;
+    }
 
-    return NULL;
+    return info;
 }
 
 /**
@@ -153,8 +165,10 @@ static void hal_init_stage2() {
     /* DEBUGGER INITIALIZATION */
 
     // We need to reconfigure the serial ports and initialize the debugger.
+    // Configure debug output port
     serial_setPort(serial_createPortData(__debug_output_com_port, __debug_output_baud_rate), 1);
 
+    // Now start preparing for debugger
     if (!__debugger_enabled) goto _no_debug;
 
     serial_port_t *port = serial_initializePort(__debugger_com_port, __debugger_baud_rate);
