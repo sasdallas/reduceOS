@@ -39,33 +39,33 @@ int elf_checkSupported(Elf32_Ehdr *ehdr) {
         ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
         ehdr->e_ident[EI_MAG2] != ELFMAG2 || 
         ehdr->e_ident[EI_MAG3] != ELFMAG3) {
-            LOG(ERR, "Invalid ELF header");
+            LOG(ERR, "elf_checkSupported(): Invalid ELF header");
             return 0;
     }
 
     // Check the EI_CLASS fields
     if (ehdr->e_ident[EI_CLASS] != ELFCLASS32) {
-        LOG(ERR, "Unsupported ELF file class\n");
+        LOG(ERR, "elf_checkSupported(): Unsupported ELF file class\n");
         return 0;
     }
 
     if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB) {
-        LOG(ERR, "Unimplemented data order (ELFDATA2LSB expected)\n");
+        LOG(ERR, "elf_checkSupported(): Unimplemented data order (ELFDATA2LSB expected)\n");
         return 0;
     }
 
     if (ehdr->e_machine != EM_386) {
-        LOG(ERR, "Unimplemented machine type: %i\n", ehdr->e_machine);
+        LOG(ERR, "elf_checkSupported(): Unimplemented machine type: %i\n", ehdr->e_machine);
         return 0;
     }
 
     if (ehdr->e_ident[EI_VERSION] != EV_CURRENT) {
-        LOG(ERR, "Bad ELF file version: %i\n", ehdr->e_ident[EI_VERSION]);
+        LOG(ERR, "elf_checkSupported(): Bad ELF file version: %i\n", ehdr->e_ident[EI_VERSION]);
         return 0;
     }
 
     if (ehdr->e_type != ET_REL && ehdr->e_type != ET_EXEC) {
-        LOG(ERR, "Unsupported ELF file type: %i\n", ehdr->e_type);
+        LOG(ERR, "elf_checkSupported(): Unsupported ELF file type: %i\n", ehdr->e_type);
         return 0;
     }
 
@@ -121,20 +121,18 @@ uintptr_t elf_getSymbolAddress(Elf32_Ehdr *ehdr, int table, uintptr_t idx, int f
             char *name = (char*)ehdr + strtab->sh_offset + symbol->st_name;
 
             if (flags != ELF_KERNEL) {
-                LOG(ERR, "Unimplemented usermode lookup for symbol '%s'\n", name);
+                LOG(ERR, "elf_getSymbolAddress(): Unimplemented usermode lookup for symbol '%s'\n", name);
                 return ELF_RELOC_FAIL;
             }
-
-            LOG(DEBUG, "Lookup symbol '%s'\n", name);
 
             uintptr_t addr = ksym_resolve(name);
             if (addr == (uintptr_t)NULL) {
                 // Not found. Is it a weak symbo?
                 if (ELF32_ST_BIND(symbol->st_info) & STB_WEAK) {
-                    LOG(DEBUG, "Weak symbol '%s' not found - initialized as 0\n", name);
+                    LOG(DEBUG, "elf_getSymbolAddress(): Weak symbol '%s' not found - initialized as 0\n", name);
                     return 0;
                 } else {
-                    LOG(ERR, "External symbol '%s' not found in kernel.\n", name);
+                    LOG(ERR, "elf_getSymbolAddress(): External symbol '%s' not found in kernel.\n", name);
                     return ELF_RELOC_FAIL;
                 }
             } else {
@@ -228,7 +226,7 @@ static uintptr_t elf_relocateSymbolAddend(Elf32_Ehdr *ehdr, Elf32_Rela *rel, Elf
 
     // Now we can start relocation based off type
     switch (ELF32_R_TYPE(rel->r_info)) {
-        #ifdef __ARCH_I386__
+#ifdef __ARCH_I386__
         
         case R_386_NONE:
             // No relocation
@@ -244,9 +242,9 @@ static uintptr_t elf_relocateSymbolAddend(Elf32_Ehdr *ehdr, Elf32_Rela *rel, Elf
             *reference = RELOCATE_386_PC32(symval, rel->r_addend, (uintptr_t)reference);
             break;
             
-        #else
+#else
         #error "Please add your architecture"
-        #endif
+#endif
 
         default:
             LOG(ERR, "Relocation unsupported: %d\n", ELF32_R_TYPE(rel->r_info));
@@ -290,7 +288,7 @@ int elf_loadRelocatable(Elf32_Ehdr *ehdr, int flags) {
             // Assign the address and offset
             section->sh_addr = (Elf32_Addr)addr;
             section->sh_offset = (uintptr_t)addr - (uintptr_t)ehdr;
-            LOG(DEBUG, "Allocated memory for section %i: %s (%ld)\n", i, elf_lookupSectionName(ehdr, section->sh_name), section->sh_size);
+            // LOG(DEBUG, "Allocated memory for section %i: %s (%ld)\n", i, elf_lookupSectionName(ehdr, section->sh_name), section->sh_size);
         } else {
             // Rebase sh_addr using offset
             section->sh_addr = (uintptr_t)ehdr + section->sh_offset;
@@ -365,7 +363,6 @@ uintptr_t elf_findSymbol(uintptr_t ehdr_address, char *name) {
         }
     }
 
-    LOG(DEBUG, "Symbol '%s' not found\n", name);
     return (uintptr_t)NULL;
 }
 
@@ -385,8 +382,6 @@ uintptr_t elf_loadBuffer(uint8_t *fbuf, int flags) {
     switch (ehdr->e_type) {
         case ET_REL:
             // Relocatable file
-            LOG(DEBUG, "Loading relocatable file\n");
-            
             if (elf_loadRelocatable(ehdr, flags)) {
                 LOG(ERR, "Failed to load relocatable ELF file.\n");
                 goto _error;
@@ -395,8 +390,7 @@ uintptr_t elf_loadBuffer(uint8_t *fbuf, int flags) {
             break;
         
         case ET_EXEC:
-            // Executable file
-            LOG(DEBUG, "Loading executable file\n");
+            // Executable file (unimplemented)
             goto _error;
         
         default:
@@ -441,6 +435,38 @@ uintptr_t elf_load(fs_node_t *node, int flags) {
     }
 
     return elf_loadBuffer(fbuf, flags);
+}
+
+/**
+ * @brief Cleanup an ELF file after it has finished executing
+ * @param elf_address The address given by @c elf_load or another loading function
+ * @returns 0 on success, anything else is a failure
+ * 
+ * @note REMEMBER TO FREE ELF BUFFER WHEN FINISHED!
+ */
+int elf_cleanup(uintptr_t elf_address) {
+    if (elf_address == 0x0) return -1;
+
+    // Get EHDR
+    Elf32_Ehdr *ehdr = (Elf32_Ehdr*)elf_address; 
+    if (!elf_checkSupported(ehdr)) return -1;
+
+    // Check EHDR type
+    if (ehdr->e_type == ET_REL) {
+        // Cleanup by finding any sections allocated with SHF_ALLOC and destroy them
+        Elf32_Shdr *shdr = ELF_SHDR(ehdr);
+        for (unsigned int i = 0; i < ehdr->e_shnum; i++) {
+            Elf32_Shdr *section = &shdr[i];
+
+            if ((section->sh_flags & SHF_ALLOC) && section->sh_size) {
+                kfree((void*)section->sh_addr);
+            }
+        }
+    } else if (ehdr->e_type == ET_EXEC) {
+        LOG(ERR, "ET_EXEC cleanup unimplemented - leaking memory\n");
+    }
+
+    return 0;
 }
 
 #endif

@@ -53,6 +53,13 @@ uintptr_t elf_loadBuffer(uint8_t *fbuf, int flags);
  */
 uintptr_t elf_load(fs_node_t *node, int flags);
 
-
+/**
+ * @brief Cleanup an ELF file after it has finished executing
+ * @param elf_address The address given by @c elf_load or another loading function
+ * @returns 0 on success, anything else is a failure
+ * 
+ * @note REMEMBER TO FREE ELF BUFFER WHEN FINISHED!
+ */
+int elf_cleanup(uintptr_t elf_address);
 
 #endif
