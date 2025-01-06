@@ -109,5 +109,18 @@ int driver_loadConfiguration(fs_node_t *file);
  */
 int driver_load(fs_node_t *driver_file, int priority, int environment, char *file, int argc, char **argv);
 
+/**
+ * @brief Find a driver by name and return data on it
+ * @param name The name of the driver
+ * @returns A pointer to the loaded driver data, or NULL
+ */
+loaded_driver_t *driver_findByName(char *name);
+
+/**
+ * @brief Find a driver by its address and return data o n it
+ * @param addr The address of the driver
+ * @returns A pointer to the loaded driver data, or NULL
+ */
+loaded_driver_t *driver_findByAddress(uintptr_t addr);
 
 #endif

@@ -32,18 +32,29 @@
 #include <kernel/multiboot.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <kernel/generic_mboot.h>
+#include <kernel/processor_data.h>
+
+// Memory
 #include <kernel/mem/mem.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/mem/pmm.h>
-#include <kernel/generic_mboot.h>
+
+// Misc
 #include <kernel/misc/spinlock.h>
-#include <kernel/processor_data.h>
-#include <kernel/gfx/gfx.h>
 #include <kernel/misc/args.h>
 #include <kernel/misc/ksym.h>
+
+// Graphics
+#include <kernel/gfx/gfx.h>
+
+// Filesystem
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/tarfs.h>
 #include <kernel/fs/ramdev.h>
+
+// Loader
+#include <kernel/loader/driver.h>
 
 /* Parameters */
 generic_parameters_t *parameters = NULL;
@@ -97,18 +108,33 @@ void arch_panic_traceback(int depth, registers_t *regs) {
     dprintf(NOHEADER, COLOR_CODE_RED_BOLD "\nStack trace:\n");
 
 extern uintptr_t __bss_end;
-
     stack_frame_t *stk = (stack_frame_t*)(regs ? (void*)regs->rbp : __builtin_frame_address(0));
     uintptr_t ip = (regs ? regs->rip : (uintptr_t)&arch_panic_traceback);
 
     for (int frame = 0; stk && frame < depth; frame++) {
-    
+        // Check to see if fault was in a driver
+        if (ip > MEM_DRIVER_REGION && ip < MEM_DRIVER_REGION + MEM_DRIVER_REGION_SIZE) {
+            // Fault in a driver - try to get it
+            loaded_driver_t *data = driver_findByAddress(ip);
+            if (data) {
+                // We could get it
+                dprintf(NOHEADER, COLOR_CODE_RED    "0x%016llX (in driver '%s', loaded at %016llX)\n", ip, data->metadata->name, data->load_address);
+            } else {
+                // We could not
+                dprintf(NOHEADER, COLOR_CODE_RED    "0x%016llX (in unknown driver)\n", ip);
+            }
+
+            goto _next_frame;
+        }
+
+        // Okay, make sure it was in the kernel
         if (ip > (uintptr_t)&__bss_end) {
             // Corrupt frame?
             dprintf(NOHEADER, COLOR_CODE_RED    "0x%016llX (corrupt frame - outside of kernelspace)\n", ip);
             goto _next_frame;
         }
-
+        
+        // In the kernel, check the name
         char *name;
         uintptr_t addr = ksym_find_best_symbol(ip, (char**)&name);
         if (addr) {
@@ -187,7 +213,6 @@ uintptr_t arch_allocate_structure(size_t bytes) {
  */
 uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
     uintptr_t location = arch_allocate_structure(size);
-    dprintf(INFO, "%p - %p %i\n", (void*)structure_ptr, (void*)location, size);
     memcpy((void*)location, (void*)structure_ptr, size);
     return location;
 }

@@ -116,22 +116,25 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
     if (exception_index == 14) {
         uintptr_t page_fault_addr = 0x0;
         asm volatile ("movl %%cr2, %0" : "=a"(page_fault_addr));
-        dprintf(NOHEADER, "*** ISR detected exception: Page fault at address 0x%x\n\n", page_fault_addr);
+        dprintf(NOHEADER, "*** ISR detected exception: Page fault at address 0x%08X\n\n", page_fault_addr);
+        printf("*** Page fault at address 0x%08X\n", page_fault_addr);
     } else if (exception_index < I86_MAX_EXCEPTIONS) {
         dprintf(NOHEADER, "*** ISR detected exception %i - %s\n\n", exception_index, hal_exception_table[exception_index]);
+        printf("*** ISR detected exception %i - %s\n", exception_index, hal_exception_table[exception_index]);
     } else {
         dprintf(NOHEADER, "*** ISR detected exception %i - UNKNOWN TYPE\n\n", exception_index);
+        printf("*** ISR detected unknown exception: %i\n", exception_index);
     }
     
     
 
     dprintf(NOHEADER, "\033[1;31mFAULT REGISTERS:\n\033[0;31m");
 
-    dprintf(NOHEADER, "EAX %08x EBX %08x ECX %08x EDX %08x\n", regs->eax, regs->ebx, regs->ecx, regs->edx);
-    dprintf(NOHEADER, "EDI %08x ESI %08x EBP %08x ESP %08x\n", regs->edi, regs->esi, regs->ebp, regs->esp);
-    dprintf(NOHEADER, "ERR %08x EIP %08x\n\n", regs->err_code, regs->eip);
-    dprintf(NOHEADER, "CS %04x DS %04x ES %04x GS %04x\n", regs->cs, regs->ds, regs->es, regs->gs);
-    dprintf(NOHEADER, "GDTR %08x %04x\nIDTR %08x %04x\n", regs_extended->gdtr.base, regs_extended->gdtr.limit, regs_extended->idtr.base, regs_extended->idtr.limit);
+    dprintf(NOHEADER, "EAX %08X EBX %08X ECX %08X EDX %08X\n", regs->eax, regs->ebx, regs->ecx, regs->edx);
+    dprintf(NOHEADER, "EDI %08X ESI %08X EBP %08X ESP %08X\n", regs->edi, regs->esi, regs->ebp, regs->esp);
+    dprintf(NOHEADER, "ERR %08X EIP %08X\n\n", regs->err_code, regs->eip);
+    dprintf(NOHEADER, "CS %04X DS %04X ES %04X GS %04X\n", regs->cs, regs->ds, regs->es, regs->gs);
+    dprintf(NOHEADER, "GDTR %08X %04X\nIDTR %08X %04X\n", regs_extended->gdtr.base, regs_extended->gdtr.limit, regs_extended->idtr.base, regs_extended->idtr.limit);
 
     // !!!: not conforming (should call kernel_panic_finalize) but whatever
     // We want to do our own traceback.

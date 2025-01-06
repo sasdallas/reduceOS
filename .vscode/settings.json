@@ -62,6 +62,7 @@
     "string.h": "c",
     "mem.h": "c",
     "tarfs.h": "c",
-    "elf_loader.h": "c"
+    "elf_loader.h": "c",
+    "generic_mboot.h": "c"
   }
 }

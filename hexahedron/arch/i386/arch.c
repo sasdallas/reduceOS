@@ -35,6 +35,7 @@
 #include <kernel/misc/args.h>
 #include <kernel/fs/vfs.h>
 #include <kernel/misc/ksym.h>
+#include <kernel/loader/driver.h>
 
 // Architecture-specific
 #include <kernel/arch/i386/hal.h>
@@ -106,18 +107,35 @@ void arch_panic_traceback(int depth, registers_t *regs) {
     uintptr_t ip = (regs ? regs->eip : (uintptr_t)&arch_panic_traceback);
 
     for (int frame = 0; stk && frame < depth; frame++) {
-        if (ip > (uintptr_t)&__bss_end) {
-            // Corrupt frame?
-            dprintf(NOHEADER, COLOR_CODE_RED    "0x%016llX (corrupt frame - outside of kernelspace)\n", ip);
+        // Check to see if fault was in a driver
+        if (ip > MEM_DRIVER_REGION && ip < MEM_DRIVER_REGION + MEM_DRIVER_REGION_SIZE) {
+            // Fault in a driver - try to get it
+            loaded_driver_t *data = driver_findByAddress(ip);
+            if (data) {
+                // We could get it
+                dprintf(NOHEADER, COLOR_CODE_RED    "0x%08X (in driver '%s', loaded at %08X)\n", ip, data->metadata->name, data->load_address);
+            } else {
+                // We could not
+                dprintf(NOHEADER, COLOR_CODE_RED    "0x%08X (in unknown driver)\n", ip);
+            }
+
             goto _next_frame;
         }
 
+        // Okay, make sure it was in the kernel
+        if (ip > (uintptr_t)&__bss_end) {
+            // Corrupt frame?
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%08X(corrupt frame - outside of kernelspace)\n", ip);
+            goto _next_frame;
+        }
+
+        // In the kernel, check the name
         char *name;
         uintptr_t addr = ksym_find_best_symbol(ip, (char**)&name);
         if (addr) {
-            dprintf(NOHEADER, COLOR_CODE_RED    "0x%x (%s+0x%x)\n", ip, name, ip - addr);
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%08X (%s+0x%x)\n", ip, name, ip - addr);
         } else {
-            dprintf(NOHEADER, COLOR_CODE_RED    "0x%x (symbols unavailable)\n", ip);
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%08X (symbols unavailable)\n", ip);
         }
 
     _next_frame:

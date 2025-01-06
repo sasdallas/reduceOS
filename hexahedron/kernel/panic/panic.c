@@ -47,9 +47,12 @@
 
 /* Normal messages printed to console */
 #define CONSOLE_MESSAGES \
-    printf(COLOR_CODE_RED   "FATAL: Kernel panic detected.\n"); \
-    printf(COLOR_CODE_RED   "Please start an issue on GitHub if you believe this to be a bug.\n\n");
+    printf(COLOR_CODE_RED   "FATAL: Kernel panic detected. Hexahedron needs to shutdown.\n"); \
+    printf(COLOR_CODE_RED   "Please start an issue on GitHub if you believe this to be a bug.\n"); \
+    printf(COLOR_CODE_RED   "Apologies for any inconveniences caused by this error.\n\n")
 
+/* Are we currently in a panic state? */
+int kernel_in_panic_state = 0;
 
 /**
  * @brief xvas_callback
@@ -86,6 +89,15 @@ void kernel_panic_extended(uint32_t bugcode, char *module, char *format, ...) {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, module, "*** kernel_panic_extended() received an invalid bugcode (0x%x)\n", bugcode);
         // Doesn't return
     }
+
+    // Make sure we aren't already in a panic state
+    if (kernel_in_panic_state) {
+        dprintf(NOHEADER, COLOR_CODE_RED_BOLD "*** FULL STOP: Kernel attempted to panic while already in panic state (%s).\n", kernel_bugcode_strings[bugcode]);
+        printf("*** Kernel encountered another fatal error while in panic state (this is likely a bug).\n");
+        for (;;); // arch_panic_finalize could have some extra unknown stuff that is crashing
+    }
+
+    kernel_in_panic_state = 1;
 
     // Prepare for the panic
     arch_panic_prepare();
@@ -131,6 +143,15 @@ void kernel_panic(uint32_t bugcode, char *module) {
         kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, module, "*** kernel_panic() received an invalid bugcode (0x%x)\n", bugcode);
         // Doesn't return
     }
+
+    // Make sure we aren't already in a panic state
+    if (kernel_in_panic_state) {
+        dprintf(NOHEADER, COLOR_CODE_RED_BOLD "*** FULL STOP: Kernel attempted to panic while already in panic state (%s).\n", kernel_bugcode_strings[bugcode]);
+        printf("*** Kernel encountered another fatal error while in panic state (this is likely a bug).\n");
+        for (;;); // arch_panic_finalize could have some extra unknown stuff that is crashing
+    }
+
+    kernel_in_panic_state = 1;
     
     // Prepare for the panic
     arch_panic_prepare();
@@ -159,6 +180,15 @@ void kernel_panic(uint32_t bugcode, char *module) {
  * @param bugcode Optional bugcode to display. Leave as NULL to not use (note: generic string will not be printed)
  */
 void kernel_panic_prepare(uint32_t bugcode) {
+    // Make sure we aren't already in a panic state
+    if (kernel_in_panic_state) {
+        dprintf(NOHEADER, COLOR_CODE_RED_BOLD "*** FULL STOP: Kernel attempted to panic while already in panic state.\n");
+        printf("*** Kernel encountered another fatal error while in panic state (this is likely a bug).\n");
+        for (;;); // arch_panic_finalize could have some extra unknown stuff that is crashing
+    }
+
+    kernel_in_panic_state = 1;
+
     // Do arch-specific panic preparation
     arch_panic_prepare();
 
@@ -173,8 +203,6 @@ void kernel_panic_prepare(uint32_t bugcode) {
         dprintf(NOHEADER, COLOR_CODE_RED_BOLD   "*** STOP: cpu%i: %s\n", arch_current_cpu(), kernel_bugcode_strings[bugcode]);
         printf(COLOR_CODE_RED   "*** STOP: cpu%i: %s\n", arch_current_cpu(), kernel_bugcode_strings[bugcode]);
     }
-
-    
 
     kernel_panic_sendPacket(bugcode, NULL, NULL);
 }

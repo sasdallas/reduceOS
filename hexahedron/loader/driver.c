@@ -43,6 +43,43 @@ int driver_current_environment = DRIVER_ENVIRONMENT_PRELOAD;
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "DRIVER", __VA_ARGS__)
 
+
+/**
+ * @brief Find a driver by name and return data on it
+ * @param name The name of the driver
+ * @returns A pointer to the loaded driver data, or NULL
+ */
+loaded_driver_t *driver_findByName(char *name) {
+    if (!name || !driver_list) return NULL;
+
+    foreach(node, driver_list) {
+        loaded_driver_t *data = (loaded_driver_t*)node->value;
+        if (data && data->metadata && !strcmp(data->metadata->name, name)) { // !!!: unsafe strcmp
+            return data;
+        } 
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Find a driver by its address and return data o n it
+ * @param addr The address of the driver
+ * @returns A pointer to the loaded driver data, or NULL
+ */
+loaded_driver_t *driver_findByAddress(uintptr_t addr) {
+    if (!driver_list) return NULL;
+
+    foreach(node, driver_list) {
+        loaded_driver_t *data = (loaded_driver_t*)node->value;
+        if (data && addr >= data->load_address && addr < (data->load_address + data->size)) { // !!!: unsafe strcmp
+            return data;
+        } 
+    }
+
+    return NULL;
+}
+
 /**
  * @brief Handle a loading error in the driver system
  * @param priority The priority of the driver
@@ -120,12 +157,17 @@ int driver_load(fs_node_t *driver_file, int priority, int environment, char *fil
     loaded_driver->metadata = kmalloc(sizeof(driver_metadata_t));
     memcpy(loaded_driver->metadata, metadata, sizeof(driver_metadata_t));
 
+extern uintptr_t mem_driverRegion;  // !!!: BAD!!!!
+                                    // !!!: Because ELF loading also has to map some other things (like SHT_NOBITS sections) in driver space, we do this.
+
+    ssize_t driver_loaded_size = (ssize_t)(mem_driverRegion - driver_load_address);
+
     // Copy other variables
     loaded_driver->filename = strdup(file);
     loaded_driver->priority = priority;
     loaded_driver->environment = environment;
     loaded_driver->load_address = driver_load_address;
-    loaded_driver->size = driver_file->length;
+    loaded_driver->size = driver_loaded_size;
 
     // Set in list
     list_append(driver_list, (void*)loaded_driver);
