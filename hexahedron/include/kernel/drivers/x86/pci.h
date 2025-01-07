@@ -212,6 +212,17 @@ uint16_t pci_readType(uint8_t bus, uint8_t slot, uint8_t func);
 uint16_t pci_readDeviceID(uint8_t bus, uint8_t slot, uint8_t func);
 
 /**
+ * @brief Read the vendor ID of a PCI device
+ * 
+ * @param bus The bus of the PCI device
+ * @param slot The slot of the PCI device
+ * @param func The function of the PCI device
+ * 
+ * @returns PCI_NONE or the vendor ID
+ */
+uint16_t pci_readVendorID(uint8_t bus, uint8_t slot, uint8_t func);
+
+/**
  * @brief Read the type of the PCI device (class code + subclass)
  * 
  * @param bus The bus of the PCI device
