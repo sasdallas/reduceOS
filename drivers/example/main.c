@@ -17,10 +17,7 @@
 
 
 int driver_init(int argc, char **argv) {
-    printf("This is 'example_driver' speaking. Hello Hexahedron!\n");
-    dprintf(DEBUG, "Debugging!\n");
-
-    *(uintptr_t*)(0x10000000) = 0;
+    dprintf(DEBUG, "Example driver loaded!\n");
 
     return 0;
 }

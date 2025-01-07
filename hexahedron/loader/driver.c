@@ -72,7 +72,7 @@ loaded_driver_t *driver_findByAddress(uintptr_t addr) {
 
     foreach(node, driver_list) {
         loaded_driver_t *data = (loaded_driver_t*)node->value;
-        if (data && addr >= data->load_address && addr < (data->load_address + data->size)) { // !!!: unsafe strcmp
+        if (data && addr >= data->load_address && addr < (data->load_address + data->size)) {
             return data;
         } 
     }
@@ -186,6 +186,9 @@ extern uintptr_t mem_driverRegion;  // !!!: BAD!!!!
         mem_unmapDriver(driver_load_address, driver_file->length);
         return -1;
     }
+
+
+    printf("Loaded driver '%s' successfully.\n", metadata->name);
 
     // Load success!
     return 0;
