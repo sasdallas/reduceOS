@@ -3,9 +3,11 @@
 
 include ./make.config
 
-# Sourec directories
-MODDIRS := $(shell find -mindepth 1 -maxdepth 1 -type d -not -path "./arch")
-MODDIRS := $(patsubst ./%, %, $(MODDIRS))
+# Source directories
+# MODDIRS := $(shell find -mindepth 1 -maxdepth 1 -type d -not -path "./arch")
+# MODDIRS := $(patsubst ./%, %, $(MODDIRS))
+
+MODDIRS := $(shell $(PYTHON) $(BUILDSCRIPTS_ROOT)/get_driver_directories.py $(BUILD_ARCH))
 
 all: TARGET_DISABLED
 
