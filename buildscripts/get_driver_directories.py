@@ -26,7 +26,7 @@ for dir in dirs:
         continue
 
     # Now find the line with ARCH in it
-    arch_line = [line for line in lines if line.upper.startswith("ARCH = ")][0].replace("ARCH = ", "")
+    arch_line = [line for line in lines if line.startswith("ARCH = ")][0].replace("ARCH = ", "")
     
     # ARCH = ANY?
     if arch_line == "ANY":
@@ -34,7 +34,6 @@ for dir in dirs:
         continue
 
     # No, but they can specify multiple architectures
-    # NOTE: its kinda ugly how we go upper in arch_line but lower in arch
     potential_architectures = [a.lower() for a in arch_line.split(" OR ")]
     if arch in potential_architectures:
         compatible_directories = compatible_directories + " " + dir
