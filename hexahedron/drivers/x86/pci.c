@@ -106,7 +106,7 @@ pci_bar_t *pci_readBAR(uint8_t bus, uint8_t slot, uint8_t func, uint8_t bar) {
     
     // Make sure it's valid
     if (header_type != PCI_HEADER_TYPE_GENERAL && header_type != PCI_HEADER_TYPE_PCI_TO_PCI_BRIDGE) {
-        LOG(DEBUG, "Invalid or unsupported header type while reading BAR: 0x%x\n", header_type);
+        LOG(DEBUG, "Invalid or unsupported header type while reading BAR: 0x%x\n", pci_readConfigOffset(bus, slot, func, PCI_HEADER_TYPE_OFFSET, 1));
         return NULL; // Invalid device
     }
 

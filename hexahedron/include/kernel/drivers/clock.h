@@ -110,4 +110,10 @@ clock_device_t clock_getDevice();
  */
 int clock_isReady();
 
+/**
+ * @brief Sleep for a period of time
+ * @param delay Delay to sleep in ms
+ */
+void clock_sleep(size_t delay);
+
 #endif

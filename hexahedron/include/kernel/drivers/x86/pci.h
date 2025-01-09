@@ -139,8 +139,8 @@ typedef int (*pci_callback_t)(uint8_t bus, uint8_t slot, uint8_t function, uint1
 #define PCI_ADDR(bus, slot, func, offset) (uint32_t)(((uint32_t)bus << 16) | ((uint32_t)slot << 11) | ((uint32_t)func << 8) | (offset & 0xFC) | ((uint32_t)0x80000000))
 
 // Macros for extracting values from PCI_ADDR()
-#define PCI_FUNCTION(address) (uint8_t)(address & 0xFF)
-#define PCI_SLOT(address) (uint8_t)((address >> 8) & 0xFF)
+#define PCI_FUNCTION(address) (uint8_t)((address >> 8) & 0xFF)
+#define PCI_SLOT(address) (uint8_t)((address >> 11) & 0xFF)
 #define PCI_BUS(address) (uint8_t)((address >> 16) & 0xFF)
 
 /**** FUNCTIONS ****/

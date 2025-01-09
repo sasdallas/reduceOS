@@ -53,6 +53,16 @@ uint64_t clock_getTickCount() {
 }
 
 /**
+ * @brief Sleep for a period of time
+ * @param delay Delay to sleep in ms
+ */
+void clock_sleep(size_t delay) {
+    // !!!: hacked in
+    uint64_t ticks = clock_device.get_timer();
+    while (clock_device.get_timer() < ticks + delay);
+}
+
+/**
  * @brief Get the current time of day
  */
 int clock_gettimeofday(struct timeval *t, void *z) {
