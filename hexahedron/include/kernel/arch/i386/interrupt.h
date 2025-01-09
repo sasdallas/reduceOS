@@ -53,8 +53,8 @@ typedef struct _i386_gdtr {
 } i386_gdtr_t;
 
 // Interrupt/exception handlers
-typedef int (*interrupt_handler_t)(uintptr_t, uintptr_t, registers_t*, extended_registers_t*);
-typedef int (*exception_handler_t)(uintptr_t, registers_t*, extended_registers_t*);
+typedef int (*interrupt_handler_t)(uintptr_t exception_index, uintptr_t interrupt_no, registers_t* regs, extended_registers_t* extended);
+typedef int (*exception_handler_t)(uintptr_t exception_index, registers_t* regs, extended_registers_t* extended);
 
 /**** DEFINITIONS ****/
 

@@ -87,10 +87,10 @@ typedef struct _x86_64_gdt {
 } __attribute__((packed)) __attribute__((aligned(0x10))) x86_64_gdt_t;
 
 
-
 // Interrupt/exception handlers
-typedef int (*interrupt_handler_t)(uintptr_t, uintptr_t, registers_t*, extended_registers_t*);
-typedef int (*exception_handler_t)(uintptr_t, registers_t*, extended_registers_t*);
+typedef int (*interrupt_handler_t)(uintptr_t exception_index, uintptr_t interrupt_no, registers_t* regs, extended_registers_t* extended);
+typedef int (*exception_handler_t)(uintptr_t exception_index, registers_t* regs, extended_registers_t* extended);
+
 
 /**** DEFINITIONS ****/
 
