@@ -365,15 +365,106 @@ int ata_access(ide_device_t *device, int operation, uint64_t lba, size_t sectors
 
 /**
  * @brief VFS read method for IDE device
+ * @warning !!! THIS MATH IS HORRIBLE DO NOT READ !!!
  */
 ssize_t ide_readFS(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
-    return 0;
+    // Make sure offset and buffer are good
+    if ((uint64_t)offset >= node->length || !buffer) {
+        return 0;
+    }
+    
+    // Make sure offset + size is good
+    if (offset + size > node->length) {
+        size = node->length - offset;
+    }
+
+    // Create an LBA, rounded size, and offset
+    // For an offset of 0x5794, the offset would become 0x5600, and the buffer_offset would become 0x194
+    // For a size of 0x34F (which is added to buffer_offset before rounding), it would become 0x400/0x600 (depending on buffer_offset) 
+    uint64_t lba = (offset - (offset % 512)) / 512;
+    uint64_t buffer_offset = offset - (lba * 512);
+    size_t size_rounded = (((size+buffer_offset) + 512) - (((size+buffer_offset) + 512) % 512));
+
+    // Get device
+    ide_device_t *device = (ide_device_t*)node->dev;
+    if (!device) return 0;
+
+    // Create a temporary buffer that rounds up size to the nearest 512 multiple
+    // !!!: DMA accesses would make this much better
+    uint8_t *tmpbuffer = kmalloc(size_rounded);
+    memset(tmpbuffer, 0, size_rounded);
+
+    if (device->atapi) {
+        // UNIMPL
+        LOG(ERR, "atapi unimpl");
+    } else {
+        // Read in the buffer
+        ata_access(device, ATA_READ, lba, size_rounded / 512, tmpbuffer);
+    }
+
+    // Now copy the buffer with offset
+    memcpy(buffer, tmpbuffer + buffer_offset, size);
+    kfree(tmpbuffer);
+    return size;
 }
 
 /**
  * @brief VFS write method for IDE device
+ * @warning !!! THIS MATH IS HORRIBLE DO NOT READ !!!
  */
 ssize_t ide_writeFS(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
+    // Make sure offset and buffer are good
+    if ((uint64_t)offset >= node->length || !buffer) {
+        return 0;
+    }
+    
+    // Make sure offset + size is good
+    if (offset + size > node->length) {
+        size = node->length - offset;
+    }
+
+    // Create an LBA and rounded size
+    uint64_t lba = (offset - (offset % 512)) / 512;
+    size_t size_rounded = ((size + 512) - ((size + 512) % 512));
+
+    // Get device
+    ide_device_t *device = (ide_device_t*)node->dev;
+    if (!device) return 0;
+
+    // !!!: We have to read in a sector at the end of offset + size rounded to prevent the driver from overwriting existing bytes
+    // !!!: There seems to be a better way to do this, instead of allocating more memory
+    uint8_t *actual_write_buffer = kmalloc(size_rounded);
+
+    // Read one chunk at the beginning of the disk and one at the end.
+    // !!!: this sucks, and likely corrupts/will corrupt something
+    if (device->atapi) {
+        LOG(ERR, "atapi unimplemented\n");
+    } else {
+        if (ata_access(device, ATA_READ, lba, 1, actual_write_buffer) != IDE_SUCCESS) {
+            kfree(actual_write_buffer);
+            return 0;
+        }
+
+        if (ata_access(device, ATA_READ, ((lba + size_rounded) / 512)-1, 1, actual_write_buffer + (size_rounded-512)) != IDE_SUCCESS) {
+            kfree(actual_write_buffer);
+            return 0;
+        }
+    }
+
+    // Now we can copy the new bytes in
+    memcpy(actual_write_buffer + (offset-(lba*512)), buffer, size);
+
+    // And we can write
+    if (device->atapi) {
+        LOG(ERR, "atapi unimplemented");
+    } else {
+        if (ata_access(device, ATA_WRITE, lba, size_rounded / 512, actual_write_buffer) != IDE_SUCCESS) {
+            kfree(actual_write_buffer);
+            return 0;
+        }
+    }
+
+    kfree(actual_write_buffer);
     return 0;
 }
 
