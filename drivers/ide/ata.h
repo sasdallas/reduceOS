@@ -74,6 +74,9 @@ typedef struct ide_device {
     ata_ident_t ident;          // Identification space
     uint64_t size;              // Size of the device in bytes
 
+    // ATAPI
+    uint64_t atapi_block_size;  // Block size for ATAPI
+
     // Identification space stuff (but null-terminated and good)
     char model[41];             // Model number of the drive
     char serial[21];            // Serial number of the drive

@@ -167,11 +167,11 @@ int ide_wait(ide_device_t *device, int advanced, int timeout) {
     // Now wait for it to be cleared
     if (timeout > 0) {
         while (ide_read(device, ATA_REG_STATUS) & ATA_SR_BSY && timeout > 0) timeout--;
+        if (timeout <= 0) return IDE_TIMEOUT;
     } else {
         while (ide_read(device, ATA_REG_STATUS) & ATA_SR_BSY);
     }
 
-    if (timeout <= 0) return IDE_TIMEOUT;
 
     // If advanced check, see if there are any errors
     if (advanced) {
@@ -228,6 +228,15 @@ void ide_softReset(ide_device_t *device) {
     ide_write(device, ATA_REG_CONTROL, 0x04 | channels[device->channel].nIEN);
     ATA_IO_WAIT(device);
     ide_write(device, ATA_REG_CONTROL, 0x00 | channels[device->channel].nIEN);
+}
+
+/**
+ * @brief "rep insw" transfer
+ */
+static inline void pio_insw(uint16_t __port, void *__buf, unsigned long __n) {
+	asm volatile("cld\n"
+                "rep insw\n"
+                 : "+D"(__buf), "+c"(__n) : "d"(__port));
 }
 
 /**
@@ -291,7 +300,7 @@ int ata_access(ide_device_t *device, int operation, uint64_t lba, size_t sectors
     ide_wait(device, 0, -1); // todo: timeout?
 
     // Select the drive using HDDEVSEL, setting the bit for LBA
-    ide_write(device, ATA_REG_HDDEVSEL, 0xE0 | (device->slave << 4) | sel);
+    ide_write(device, ATA_REG_HDDEVSEL, 0xE0 | (device->slave << 4) | sel); // ide_select doesn't set the LBA bit
     ATA_IO_WAIT(device);
 
     // Write LBA parameters
@@ -337,14 +346,14 @@ int ata_access(ide_device_t *device, int operation, uint64_t lba, size_t sectors
         }
 
         // For each word...
-        for (int word = 0; word < 256; word++) {
-            if (operation == ATA_READ) {
-                // If we are reading, copy to the buffer.
-                // TODO: rep insw works for this, it's just a little bit ugly
-                *bufptr = inportw(channels[device->channel].io_base);
-                bufptr++;
-            } else {
-                // If we are writing, copy from the buffer.
+        if (operation == ATA_READ) {
+            // If we are reading, copy to the buffer.
+            pio_insw(channels[device->channel].io_base + ATA_REG_DATA, bufptr, 256);
+            bufptr += 256;
+        } else {
+            // If we are writing, copy from the buffer.
+            // Note that "rep outsw" doesn't work here
+            for (int word = 0; word < 256; word++) {
                 outportw(channels[device->channel].io_base, *bufptr);
                 bufptr++;
             }
@@ -359,7 +368,90 @@ int ata_access(ide_device_t *device, int operation, uint64_t lba, size_t sectors
 
     spinlock_release(ata_lock);
     return IDE_SUCCESS;
+}
 
+/**
+ * @brief Perform an ATAPI access
+ * 
+ * @param device The device to perform the access on
+ * @param operation @c ATA_WRITE or @c ATA_READ
+ * @param lba The LBA of the sector to start at
+ * @param sectors The count of sectors
+ * @param buffer The output buffer
+ * 
+ * @returns @c IDE_SUCCESS on success
+ */
+int atapi_access(ide_device_t *device, int operation, uint64_t lba, size_t sectors, uint8_t *buffer) {
+    if (!buffer || !device || operation > ATA_WRITE) return IDE_ERROR;
+
+    // First, select the drive
+    ide_select(device); 
+
+    // Now prepare the controller to receive a command
+    ide_write(device, ATA_REG_FEATURES, 0x00); // TODO: DMA (?)
+    ide_write(device, ATA_REG_LBA1, device->atapi_block_size & 0xFF);
+    ide_write(device, ATA_REG_LBA2, device->atapi_block_size >> 8);
+    ide_write(device, ATA_REG_COMMAND, ATA_CMD_PACKET);
+
+    // Poll
+    int err = ide_wait(device, 1, 100);
+    if (err != IDE_SUCCESS) {
+        ide_printError(device, err, "atapi controller ready");
+        return err;
+    }
+
+    // Construct the packet command
+    atapi_packet_t packet;
+    if (operation == ATA_READ) {
+        // ATA_READ
+        packet.bytes[0] = ATAPI_READ;
+        packet.bytes[1] = 0;
+        packet.bytes[2] = (lba >> 0x18) & 0xFF;
+        packet.bytes[3] = (lba >> 0x10) & 0xFF;
+        packet.bytes[4] = (lba >> 0x08) & 0xFF;
+        packet.bytes[5] = (lba >> 0x00) & 0xFF;
+        packet.bytes[6] = (sectors >> 0x18) & 0xFF;
+        packet.bytes[7] = (sectors >> 0x10) & 0xFF;
+        packet.bytes[8] = (sectors >> 0x08) & 0xFF;
+        packet.bytes[9] = (sectors >> 0x00) & 0xFF;
+        packet.bytes[10] = 0;
+        packet.bytes[11] = 0;
+    } else {
+        // ATA_WRITE
+        // TODO: cd write support lol
+        LOG_DEVICE(ERR, device, "You probably don't want this to support writing (UNIMPL)\n");
+        return IDE_ERROR;
+    }
+
+    // Acquire a lock
+    spinlock_acquire(ata_lock);
+
+    // Send the command
+    for (int i = 0; i < 6; i++) {
+        outportw(channels[device->channel].io_base, packet.words[i]);
+    }
+
+    // Now transfer it using PIO
+    for (size_t i = 0; i < sectors; i++) {
+        LOG(DEBUG, "Sector read %i, wait for controller...\n", i);
+        // Poll now
+        int err = ide_wait(device, 1, -1); // TODO: Timeout?
+        if (err != IDE_SUCCESS) {
+            ide_printError(device, err, "atapi read sector");
+            spinlock_release(ata_lock);
+            return err;
+        }
+
+        // Calculate the size of this transfer
+        uint16_t size = (inportb(channels[device->channel].io_base+ATA_REG_LBA2) << 8) | (inportb(channels[device->channel].io_base+ATA_REG_LBA1));
+
+        // Use "rep insw" to transfer faster
+        pio_insw(channels[device->channel].io_base + ATA_REG_DATA, (uint16_t*)((uint8_t*)buffer + i * device->atapi_block_size), size/2);
+    }
+
+    // Release the lock
+    spinlock_release(ata_lock);
+    return IDE_SUCCESS;
 }
 
 
@@ -378,16 +470,30 @@ ssize_t ide_readFS(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) 
         size = node->length - offset;
     }
 
-    // Create an LBA, rounded size, and offset
-    // For an offset of 0x5794, the offset would become 0x5600, and the buffer_offset would become 0x194
-    // For a size of 0x34F (which is added to buffer_offset before rounding), it would become 0x400/0x600 (depending on buffer_offset) 
-    uint64_t lba = (offset - (offset % 512)) / 512;
-    uint64_t buffer_offset = offset - (lba * 512);
-    size_t size_rounded = (((size+buffer_offset) + 512) - (((size+buffer_offset) + 512) % 512));
-
     // Get device
     ide_device_t *device = (ide_device_t*)node->dev;
     if (!device) return 0;
+
+    // Create an LBA, rounded size, and offset
+    // For an offset of 0x5794, the offset would become 0x5600, and the buffer_offset would become 0x194
+    // For a size of 0x34F (which is added to buffer_offset before rounding), it would become 0x400/0x600 (depending on buffer_offset) 
+    
+    uint64_t lba, buffer_offset;
+    size_t size_rounded;
+    
+    if (device->atapi) {
+        // ATAPI devices have different block sizes
+        uint64_t blocksize = device->atapi_block_size;
+
+        lba = (offset - (offset % blocksize)) / blocksize;
+        buffer_offset = offset - (lba % blocksize);
+        size_rounded = (((size + buffer_offset) + blocksize) - (((size+buffer_offset)+blocksize) % blocksize));
+    } else {
+        // ATA devices are fixed with a 512-byte sector size
+        lba = (offset - (offset % 512)) / 512;
+        buffer_offset = offset - (lba * 512);
+        size_rounded = (((size+buffer_offset) + 512) - (((size+buffer_offset) + 512) % 512));
+    }
 
     // Create a temporary buffer that rounds up size to the nearest 512 multiple
     // !!!: DMA accesses would make this much better
@@ -395,8 +501,9 @@ ssize_t ide_readFS(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) 
     memset(tmpbuffer, 0, size_rounded);
 
     if (device->atapi) {
-        // UNIMPL
-        LOG(ERR, "atapi unimpl");
+        // Read in the buffer
+        LOG(DEBUG, "ATAPI access\n");
+        atapi_access(device, ATA_READ, lba, size_rounded / device->atapi_block_size, tmpbuffer);
     } else {
         // Read in the buffer
         ata_access(device, ATA_READ, lba, size_rounded / 512, tmpbuffer);
@@ -430,6 +537,12 @@ ssize_t ide_writeFS(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer)
     // Get device
     ide_device_t *device = (ide_device_t*)node->dev;
     if (!device) return 0;
+
+    // TODO: ATAPI writes
+    if (device->atapi) {
+        LOG(ERR, "ATAPI writes not supported\n");
+        return 0;
+    }
 
     // !!!: We have to read in a sector at the end of offset + size rounded to prevent the driver from overwriting existing bytes
     // !!!: There seems to be a better way to do this, instead of allocating more memory
@@ -632,6 +745,7 @@ void atapi_device_init(ide_device_t *device) {
 
     // Calculate capacity and store it
     device->size = (lba + 1) * block_size;
+    device->atapi_block_size = block_size;
 
     LOG_DEVICE(INFO, device, "Capacity: %d MB\n", device->size / 1024 / 1024);
 }
