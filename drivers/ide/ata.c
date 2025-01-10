@@ -18,7 +18,7 @@
  */
 
 #include "ata.h"
-#include <kernel/drivers/x86/pci.h>
+#include <kernel/drivers/pci.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/misc/spinlock.h>
 #include <string.h>

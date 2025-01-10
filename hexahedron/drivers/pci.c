@@ -11,7 +11,7 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#include <kernel/drivers/x86/pci.h>
+#include <kernel/drivers/pci.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
 
