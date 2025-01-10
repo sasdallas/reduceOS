@@ -2,7 +2,6 @@ reduceOS module/driver system
 ==========================================================
 
 reduceOS can load its drivers from .mod files, which are created with kernel and libc includes.
-THEY ARE NOT LINKED. THEY ARE SIMPLY ASSEMBLED INTO AN OBJ FILE CALLED (mod name).mod
 
 The modules themselves can have entirely different contents, but the important part is that all modules MUST have a metadata.
 In kernel/mod.h, the metadata structure can be found. It requires a name, description, init() method, and deinit() method.
