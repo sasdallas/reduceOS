@@ -15,6 +15,7 @@
  */
 
 #include <kernel/drivers/clock.h>
+#include <kernel/debug.h>
 
 #include <stdint.h>
 #include <stddef.h>
@@ -22,11 +23,19 @@
 #include <sys/time.h>
 #include <errno.h>
 
-clock_device_t clock_device; 
+clock_device_t clock_device;
+
+/* Tick count */
 uint64_t tick_count = 0;
 
+/* Whether a clock interface has been set */
 static int is_ready = 0;
-static clock_callback_t clock_callback_table[MAX_CLOCK_CALLBACKS];
+
+/* Callback table */
+static clock_callback_t clock_callback_table[MAX_CLOCK_CALLBACKS] = { 0 };
+
+/* Log method */
+#define LOG(status, ...) dprintf_module(status, "CLOCK", __VA_ARGS__)
 
 /**
  * @brief Update method. This should be called to by the architecture-based clock driver.
@@ -58,6 +67,11 @@ uint64_t clock_getTickCount() {
  */
 void clock_sleep(size_t delay) {
     // !!!: hacked in
+    if (!clock_device.get_timer) {
+        LOG(ERR, "clock_sleep called before clock initialized\n");
+        return;
+    }
+
     uint64_t ticks = clock_device.get_timer();
     while (clock_device.get_timer() < ticks + delay);
 }
@@ -68,7 +82,12 @@ void clock_sleep(size_t delay) {
 int clock_gettimeofday(struct timeval *t, void *z) {
     uint64_t ticks = clock_device.get_timer();
     uint64_t timer_ticks, timer_subticks;
-    clock_device.get_tick_counts(ticks, &timer_ticks, &timer_subticks);
+    if (clock_device.get_tick_counts) {
+        clock_device.get_tick_counts(ticks, &timer_ticks, &timer_subticks);
+    } else {
+        LOG(ERR, "clock_gettimeofday called before clock initialized\n");
+        return -EINVAL;
+    }
 
     t->tv_sec = clock_device.boot_time + timer_ticks;
     t->tv_usec = timer_subticks;
@@ -97,8 +116,14 @@ int clock_settimeofday(struct timeval *t, void *z) {
 void clock_relative(unsigned long seconds, unsigned long subseconds, unsigned long *out_seconds, unsigned long *out_subseconds) {
     uint64_t ticks = clock_device.get_timer();
     uint64_t timer_ticks, timer_subticks;
-    clock_device.get_tick_counts(ticks, &timer_ticks, &timer_subticks);
+    if (clock_device.get_tick_counts) {
+        clock_device.get_tick_counts(ticks, &timer_ticks, &timer_subticks);
+    } else {
+        LOG(ERR, "clock_relative called before clock initialized\n");
+        return;
+    }
 
+    // Now calculate
     if (subseconds + timer_ticks >= SUBSECONDS_PER_SECOND) {
         *out_seconds = timer_ticks + seconds + (subseconds + timer_subticks) / SUBSECONDS_PER_SECOND;
         *out_subseconds = (subseconds + timer_subticks) % SUBSECONDS_PER_SECOND;
@@ -116,12 +141,13 @@ int clock_registerUpdateCallback(clock_callback_t callback) {
     // Find the first free one
     int first_free = -1; 
     for (int i = 0; i < MAX_CLOCK_CALLBACKS; i++) {
-        if (clock_callback_table[i] != NULL) {
+        if (!(clock_callback_table[i])) {
             first_free = i;
             break;
         }
     }  
 
+    // Did we find it?
     if (first_free == -1) {
         return -EINVAL;
     }
@@ -136,7 +162,6 @@ int clock_registerUpdateCallback(clock_callback_t callback) {
  */
 void clock_unregisterUpdateCallback(int index) {
     if (index < 0) return;
-
     clock_callback_table[index] = 0;
 }
 

@@ -58,6 +58,9 @@ static int debug_write(size_t length, char *buffer) {
 int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
     if (!debug_putchar_method) return 0;
 
+    // TEMP: Release the spinlock for now (and possibly remove it) - certain functions like exception handler might not be called
+    spinlock_release(&debug_lock);
+
     spinlock_acquire(&debug_lock);
 
     if (status == NOHEADER) goto _write_format;

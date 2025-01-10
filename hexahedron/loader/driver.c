@@ -95,13 +95,13 @@ static void driver_handleLoadError(int priority, char *error, char *file) {
         
         case DRIVER_WARN:       // TODO: Implement some sort of keyboard support into this or waits
             LOG(WARN, "Failed to load driver '%s' (warn): %s\n", file, error);
-            printf(COLOR_CODE_YELLOW "Failed to load driver '%s': %s\n" COLOR_CODE_RESET);
+            printf(COLOR_CODE_YELLOW "Failed to load driver '%s': %s\n" COLOR_CODE_RESET, file, error);
             break;
 
         case DRIVER_IGNORE:
         default: 
             LOG(WARN, "Failed to load driver '%s' (ignore): %s\n", file, error);
-            printf(COLOR_CODE_YELLOW "Failed to load driver '%s': %s\n" COLOR_CODE_RESET);
+            printf(COLOR_CODE_YELLOW "Failed to load driver '%s': %s\n" COLOR_CODE_RESET, file, error);
             break;
     }
 }

@@ -40,7 +40,11 @@ typedef struct _clock_device_t {
     uint64_t boot_time; // Boot time of architecture
 } clock_device_t;
 
-typedef void (*clock_callback_t)(uint64_t);
+/**
+ * @brief Clock callback, called every update
+ * @param ticks The current tick count
+ */
+typedef void (*clock_callback_t)(uint64_t ticks);
 
 /**** DEFINITIONS ****/
 
