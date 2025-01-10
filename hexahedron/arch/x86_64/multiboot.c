@@ -451,6 +451,7 @@ void arch_parse_multiboot1_early(multiboot_t *bootinfo, uintptr_t *mem_size, uin
         multiboot1_mod_t *mods = (multiboot1_mod_t*)(uintptr_t)bootinfo->mods_addr;
         for (uint32_t i = 0; i < bootinfo->mods_count; i++) {
             if ((uintptr_t)mods[i].mod_end > kernel_addr) {
+                dprintf(DEBUG, "Module found that is greater than kernel address (%p)\n", mods[i].mod_end);
                 kernel_addr = mods[i].mod_end;
             }
         }

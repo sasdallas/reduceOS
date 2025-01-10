@@ -390,14 +390,14 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
 
     // Now, map the kernel.
     // Calculate the amount of pages for the kernel to fit in
-    extern uintptr_t __kernel_end;
-    uintptr_t kernel_end_aligned = MEM_ALIGN_PAGE((uintptr_t)&__kernel_end);
+    uintptr_t kernel_end_aligned = MEM_ALIGN_PAGE(kernel_addr);
     size_t kernel_pages = (kernel_end_aligned >> MEM_PAGE_SHIFT);
 
     dprintf(DEBUG, "Kernel requires %i pages\n", kernel_pages);
 
     // How many of those pages can fit into PTs?
-    size_t kernel_pts = (kernel_pages / 512) ? (kernel_pages / 512) : 1;
+    // !!!: Weird math
+    size_t kernel_pts = (kernel_pages >= 512) ? (kernel_pages / 512) + ((kernel_pages%512) ? 1 : 0) : 1;
 
     // Sanity check to make sure Hexahedron isn't bloated
     if ((kernel_pts / 512) / 512 > 1) {
@@ -416,6 +416,9 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
         kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Hexahedron is too big - >3 low base PTs have not been implemented (requires %i PTs)\n", kernel_pts);
         __builtin_unreachable();
     }
+
+    dprintf(DEBUG, "Kernel will use %i pages (0x%x)\n", kernel_pages, kernel_pages*PAGE_SIZE);
+    dprintf(DEBUG, "PT limit: %i\n", kernel_pts);
 
     // Setup hierarchy (note: we don't setup the PML4 map just yet, that would be really bad.)
     mem_lowBasePDPT[0].bits.address = ((uintptr_t)&mem_lowBasePD >> MEM_PAGE_SHIFT);
@@ -492,6 +495,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     pmm_init(mem_size, frames); 
 
     // Call back to architecture to mark/unmark memory
+    // !!!: Unmarking too much memory. Would kernel_addr work?
     extern void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size);
     arch_mark_memory(kernel_pts * 512 * PAGE_SIZE, mem_size);
 
@@ -500,6 +504,22 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
 
     // Now expand a little past the frame space (TODO: do we need to?)
     mem_sbrk(0x1000);
+
+
+    // Now that we have finished creating our basic memory system, we can map the kernel code to be R/O.
+    // Force map kernel code (text section)
+    extern uintptr_t __text_start, __text_end;
+    uintptr_t kernel_code_start = (uintptr_t)&__text_start;
+    uintptr_t kernel_code_end = (uintptr_t)&__text_end;
+
+    // Align kernel code end (as text section is positioned at the beginning)
+    kernel_code_end = kernel_code_end & ~0xFFF;
+
+    for (uintptr_t i = kernel_code_start; i < kernel_code_end; i += PAGE_SIZE) {
+        page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
+        if (pg) pg->bits.rw = 0;
+    }
+
 
     dprintf(INFO, "Memory management initialized\n");
 }
@@ -539,6 +559,10 @@ uintptr_t mem_sbrk(int b) {// Sanity checks
         mem_kernelHeap += b; // Subtracting wouldn't be very good, would it?
         spinlock_release(&heap_lock);
         return oldStart;
+    }
+
+    if (mem_kernelHeap + b > MEM_PHYSMEM_MAP_REGION) {
+        dprintf(WARN, "EXPANDING INTO MAP REGION\n");
     }
 
     for (uintptr_t i = mem_kernelHeap; i < mem_kernelHeap + b; i += 0x1000) {

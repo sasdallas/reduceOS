@@ -213,7 +213,7 @@ uintptr_t arch_allocate_structure(size_t bytes) {
  */
 uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size) {
     uintptr_t location = arch_allocate_structure(size);
-    memcpy((void*)location, (void*)structure_ptr, size);
+    memcpy((void*)location, (void*)mem_remapPhys(structure_ptr, size), size);
     return location;
 }
 
