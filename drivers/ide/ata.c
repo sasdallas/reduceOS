@@ -433,7 +433,6 @@ int atapi_access(ide_device_t *device, int operation, uint64_t lba, size_t secto
 
     // Now transfer it using PIO
     for (size_t i = 0; i < sectors; i++) {
-        LOG(DEBUG, "Sector read %i, wait for controller...\n", i);
         // Poll now
         int err = ide_wait(device, 1, -1); // TODO: Timeout?
         if (err != IDE_SUCCESS) {
@@ -502,7 +501,6 @@ ssize_t ide_readFS(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) 
 
     if (device->atapi) {
         // Read in the buffer
-        LOG(DEBUG, "ATAPI access\n");
         atapi_access(device, ATA_READ, lba, size_rounded / device->atapi_block_size, tmpbuffer);
     } else {
         // Read in the buffer
