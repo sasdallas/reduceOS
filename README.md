@@ -3,7 +3,11 @@
 ## IMPORTANT
 A third rewrite of the kernel is in progress - you can view it at [this link](https://github.com/sasdallas/Hexahedron)\
 In the meantime, make sure to treat every piece of code in the reduceOS kernel with some heavy grains of salt. It won't compile on newer
-GCC versions, is full of junky and unused code, and isn't my best work
+GCC versions, is full of junky and unused code, and is some of my worst work ever
+
+**This codebase is to be deprecated and abandoned** - please do not use any of the code for your own codebase as it will save you so much time.
+
+
 
 
 
@@ -20,7 +24,6 @@ If you would like to learn more about the development of the kernel, scroll down
 - Filesystem support for EXT2, FAT, and many other UNIX-style device.s
 - Support for kernel drivers
 - Strong memory manager with liballoc and sbrk support for kernel
-- Preemptive multitasking
 - ELF file support
 - Port of Newlib
 
