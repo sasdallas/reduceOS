@@ -33,6 +33,7 @@
 #include <kernel/drivers/grubvid.h>
 #include <kernel/drivers/video.h>
 #include <kernel/drivers/font.h>
+#include <kernel/drivers/usb/usb.h>
 
 // Drivers (x86)
 #include <kernel/drivers/x86/serial.h>
@@ -190,26 +191,32 @@ _no_smp: ;
 
     /* VIDEO INITIALIZATION */
 
-    // Next, initialize video subsystem.
-    video_init();
+    if (!kargs_has("--no_video")) {
+        // Next, initialize video subsystem.
+        video_init();
 
-    video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
-    if (driver) {
-        video_switchDriver(driver);
+        video_driver_t *driver = grubvid_initialize(arch_get_generic_parameters());
+        if (driver) {
+            video_switchDriver(driver);
+        }
+
+        // Now, fonts - just do the backup one for now.
+        font_init();
+
+        // Terminal!
+        int term = terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+        if (term != 0) {
+            dprintf(WARN, "Terminal failed to initialize (return code %i)\n", term);
+        }
+
+        // Say hi again!
+        arch_say_hello(0);
+    } else {
+        dprintf(INFO, "Argument \"--no_video\" found, disabling video.\n");
     }
 
-    // Now, fonts - just do the backup one for now.
-    font_init();
-
-    // Terminal!
-    int term = terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
-    if (term != 0) {
-        dprintf(WARN, "Terminal failed to initialize (return code %i)\n", term);
-    }
-
-    // Say hi again!
-    arch_say_hello(0);
-
+    /* USB INITIALIZATION */
+    usb_init();
 }
 
 
