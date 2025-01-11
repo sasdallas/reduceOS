@@ -57,7 +57,7 @@ pool_t *pool_create(char *name, uintptr_t chunk_size, uintptr_t size, uintptr_t 
         // Best hope this will work out okay
         pool->starting_addr = addr;
     } else {
-        pool->starting_addr = mem_sbrk(size); // !!!: Oh boy
+        pool->starting_addr = mem_sbrk((size & 0xFFF) ? MEM_ALIGN_PAGE(size) : size); // !!!: Oh boy
     }
 
     return pool;

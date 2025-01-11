@@ -245,8 +245,11 @@ page_t *mem_getKernelDirectory() {
 uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
     page_t *directory = (dir == NULL) ? current_cpu->current_dir : dir;
     
+    // Create an offset
+    uintptr_t offset = (virtaddr & 0xFFF);
+
     // Get the directory entry and its corresponding table
-    uintptr_t addr = (virtaddr % PAGE_SIZE == 0) ? virtaddr : MEM_ALIGN_PAGE(virtaddr);
+    uintptr_t addr = (virtaddr % PAGE_SIZE == 0) ? virtaddr : (virtaddr & ~0xFFF);
     page_t *pde = &(directory[MEM_PAGEDIR_INDEX(addr)]);
     if (pde->bits.present == 0) {
         // The PDE wasn't present
@@ -259,7 +262,7 @@ uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
     
     mem_unmapPhys((uintptr_t)table, PMM_BLOCK_SIZE);
 
-    return MEM_GET_FRAME(pte);
+    return MEM_GET_FRAME(pte) + offset;
 }
 
 /**

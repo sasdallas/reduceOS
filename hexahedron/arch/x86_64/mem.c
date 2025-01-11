@@ -337,9 +337,16 @@ void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
  * @returns NULL on a PDE not being present or the address
  */
 uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
+    
+    uintptr_t offset = 0x000; // Offset in case address isn't page aligned
+    if (virtaddr & 0xFFF) {
+        offset = virtaddr & 0xFFF;
+        virtaddr = virtaddr & ~0xFFF;
+    } 
+    
     page_t *pg = mem_getPage(dir, virtaddr, MEM_DEFAULT);
 
-    if (pg) return MEM_GET_FRAME(pg);
+    if (pg) return MEM_GET_FRAME(pg) + offset;
     return 0x0;
 }
 
