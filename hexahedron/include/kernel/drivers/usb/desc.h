@@ -36,6 +36,14 @@
 // Hub types
 #define USB_DESC_HUB            0x29
 
+// Endpoint usage types
+#define USB_ENDP_USAGE          0x30    // Bitmask
+#define USB_ENDP_DATA           0x00
+#define USB_ENDP_FEEDBACK       0x10
+#define USB_ENDP_FEEDBACK_IMPL  0x30
+
+// TODO: Endpoint transfer types and syncronization types
+
 /**** TYPES ****/
 
 /**
@@ -65,5 +73,19 @@ typedef struct USBDeviceDescriptor {
 
     uint8_t     bNumConfigurations; // Number of possible configurations
 } USBDeviceDescriptor_t;
+
+/**
+ * @brief Endpoint descriptor
+ */
+typedef struct USBEndpointDescriptor {
+    uint8_t     bLength;            // Size of this descriptor in bytes
+    uint8_t     bDescriptorType;    // USB_DESC_ENDPOINT
+
+    uint8_t     bEndpointAddress;   // Address of the endpoint on the USB device (bit 7 is direction, bits 0-3 are the endpoint number)
+    uint8_t     bmAttributes;       // Endpoint attributes
+    uint16_t    wMaxPacketSize;     // Maximum packet size
+    uint8_t     bInterval;          // Interval for polling a device during a transfer
+} USBEndpointDescriptor_t;
+
 
 #endif

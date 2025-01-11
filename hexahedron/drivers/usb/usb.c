@@ -13,6 +13,7 @@
 
 #include <kernel/drivers/usb/usb.h>
 #include <kernel/drivers/clock.h>
+#include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
 #include <structs/list.h>
 
@@ -51,6 +52,23 @@ void usb_init() {
     }
 
     LOG(INFO, "USB system online");
+}
+
+/**
+ * @brief Create a USB controller
+ * 
+ * @param hc The host controller
+ * @param poll The host controller poll method, will be called once per tick
+ * @returns A @c USBController_t structure
+ */
+USBController_t *usb_createController(void *hc, usb_poll_t poll) {
+    USBController_t *controller = kmalloc(sizeof(USBController_t));
+    controller->hc = hc;
+    controller->poll = poll;
+    controller->devices = list_create("usb devices");
+    controller->last_address = 0;
+
+    return controller;
 }
 
 /**
