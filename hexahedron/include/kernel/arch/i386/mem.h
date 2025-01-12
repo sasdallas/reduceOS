@@ -100,21 +100,26 @@ typedef union page {
 // IMPORTANT: THIS IS THE HEXAHEDRON MEMORY MAP CONFIGURED FOR I386
 // 0x00000000 - 0x00200000: Kernel code. This can be expanded since heap is positioned right after
 // 0x00200000 - 0x00400000: Kernel heap. This is just an example heap.
+// 0x70000000 - 0x80000000: DMA region
 // 0x90000000 - 0xA0000000: MMIO region
 // 0xA0000000 - 0xB0000000: Driver memory space.
 // 0xB0000000 - 0xC0000000: Physical memory cache
 // 0xC0000000 - 0xF0000000: Physical memory mapping region. Basically one big pool.
 // 0xFD000000 - 0xFFFFFFFF: Framebuffer for the kernel. It can be unmapped for later usage if needed.
 
-#define MEM_MMIO_REGION                 0x90000000
-#define MEM_MMIO_SIZE                   0x10000000
-#define MEM_DRIVER_REGION               0xA0000000 // !!!: This region is bad - we should have much more space for drivers (but i386 is so damn limited)
-#define MEM_DRIVER_REGION_SIZE          0x10000000
-#define MEM_PHYSMEM_CACHE_REGION        0xB0000000
-#define MEM_PHYSMEM_CACHE_SIZE          0x10000000
-#define MEM_PHYSMEM_MAP_REGION          0xC0000000
-#define MEM_PHYSMEM_MAP_SIZE            0x20000000
-#define MEM_FRAMEBUFFER_REGION          0xFD000000
+#define MEM_DMA_REGION                  (uintptr_t)0x70000000
+#define MEM_MMIO_REGION                 (uintptr_t)0x90000000
+#define MEM_DRIVER_REGION               (uintptr_t)0xA0000000
+#define MEM_PHYSMEM_CACHE_REGION        (uintptr_t)0xB0000000
+#define MEM_PHYSMEM_CACHE_SIZE          (uintptr_t)0x10000000
+#define MEM_PHYSMEM_MAP_REGION          (uintptr_t)0xC0000000
+#define MEM_PHYSMEM_MAP_SIZE            (uintptr_t)0x20000000
+#define MEM_FRAMEBUFFER_REGION          (uintptr_t)0xFD000000
+
+#define MEM_DMA_REGION_SIZE             (uintptr_t)0x10000000 
+#define MEM_MMIO_REGION_SIZE            (uintptr_t)0x10000000
+#define MEM_DRIVER_REGION_SIZE          (uintptr_t)0x10000000 // !!!: This region is bad - we should have much more space for drivers (but i386 is so damn limited)
+
 
 
 /**** MACROS ****/

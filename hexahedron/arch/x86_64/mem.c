@@ -29,11 +29,12 @@
 // Heap/MMIO/driver space
 uintptr_t mem_kernelHeap                = 0xAAAAAAAAAAAAAAAA;   // Kernel heap
 uintptr_t mem_driverRegion              = MEM_DRIVER_REGION;    // Driver space
-
+uintptr_t mem_dmaRegion                 = MEM_DMA_REGION;       // DMA region
 
 // Spinlocks
 static spinlock_t heap_lock = { 0 };
 static spinlock_t driver_lock = { 0 };
+static spinlock_t dma_lock = { 0 };
 
 // Stub variables (for debugger)
 uintptr_t mem_mapPool                   = 0xAAAAAAAAAAAAAAAA;
@@ -61,9 +62,6 @@ page_t mem_heapBasePD[512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_heapBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
 
 
-
-
-
 /**
  * @brief Map a physical address to a virtual address
  * 
@@ -72,9 +70,13 @@ page_t mem_heapBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
  * @param virt The virtual address
  */
 void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
+    if (!MEM_IS_CANONICAL(virt)) return;
+
     page_t *pg = mem_getPage(dir, virt, MEM_CREATE);
-    mem_allocatePage(pg, MEM_NOALLOC);
-    MEM_SET_FRAME(pg, phys);
+    if (pg) {
+        mem_allocatePage(pg, MEM_NOALLOC);
+        MEM_SET_FRAME(pg, phys);
+    }
 }
 
 
@@ -88,14 +90,17 @@ void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
  *          Please use a function such as mem_allocatePage to do that.
  */
 page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
+    // Validate that the address is canonical
+    if (!MEM_IS_CANONICAL(address)) return NULL;
+
+    // Align the address and get the dircetory
     uintptr_t addr = (address % PAGE_SIZE != 0) ? MEM_ALIGN_PAGE(address) : address;
     page_t *directory = (dir == NULL) ? current_cpu->current_dir : dir;
 
+    // Get the PML4
     page_t *pml4_entry = &(directory[MEM_PML4_INDEX(addr)]);
     if (!pml4_entry->bits.present) {
         if (!flags & MEM_CREATE) goto bad_page;
-
-        // dprintf(DEBUG, "PDPT for address 0x%llX unavailable, allocating...\n", address);
 
         // Allocate a new PML4 entry and zero it
         uintptr_t block = pmm_allocateBlock();
@@ -117,8 +122,6 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     
     if (!pdpt_entry->bits.present) {
         if (!flags & MEM_CREATE) goto bad_page;
-
-        // dprintf(DEBUG, "PD for address 0x%llX unavailable, allocating...\n", address);
 
         // Allocate a new PDPT entry and zero it
         uintptr_t block = pmm_allocateBlock();
@@ -188,6 +191,8 @@ bad_page:
  * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified and there isn't a frame already set.
  */
 void mem_allocatePage(page_t *page, uintptr_t flags) {
+    if (!page) return;
+
     if (flags & MEM_FREE_PAGE) {
         // Just free the page
         mem_freePage(page);
@@ -240,11 +245,81 @@ uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
 }
 
 /**
+ * @brief Allocate a DMA region from the kernel
+ * 
+ * DMA regions are contiguous blocks that currently cannot be destroyed
+ */
+uintptr_t mem_allocateDMA(uintptr_t size) {
+    // Align size
+    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
+
+    // Check if we're going to overexpand
+    if (mem_dmaRegion + size > MEM_DMA_REGION + MEM_DMA_REGION_SIZE) {
+        // We have a problem
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space trying to map DMA region of size 0x%x\n", size);
+        __builtin_unreachable();
+    }
+
+    spinlock_acquire(&dma_lock);
+
+    // Map into memory
+    for (uintptr_t i = mem_dmaRegion; i < mem_dmaRegion + size; i += PAGE_SIZE) {
+        page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
+        if (pg) mem_allocatePage(pg, MEM_KERNEL | MEM_NOT_CACHEABLE);
+    }
+
+    // Update size
+    mem_dmaRegion += size;
+
+    spinlock_release(&dma_lock);
+
+    return mem_dmaRegion - size;
+}
+
+/**
+ * @brief Unallocate a DMA region from the kernel
+ * 
+ * @param base The address returned by @c mem_allocateDMA
+ * @param size The size of the base
+ */
+void mem_freeDMA(uintptr_t base, uintptr_t size) {
+    if (!base || !size) return;
+
+    // Align size
+    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
+
+    // If this was the last DMA region mapped, we can unmap it
+    if (base == mem_dmaRegion - size) {
+        // Get the lock
+        spinlock_acquire(&dma_lock);
+
+        // Free the pages
+        // TODO: Do we not need to actually free pages? Can't we just hack in support in mem_mapDriver?
+        mem_dmaRegion -= size;
+        for (uintptr_t i = mem_dmaRegion; i < mem_dmaRegion + size; i += PAGE_SIZE) {
+            page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
+            if (pg) mem_freePage(pg);
+        }
+
+        // Release the lock
+        spinlock_release(&dma_lock);
+
+        return;
+    }
+
+    // Else we're out of luck
+    dprintf(WARN, "DMA unmapping is not implemented (tried to unmap region %p - %p)\n", base, base+size);
+}
+
+/**
  * @brief Map a driver into memory
  * @param size The size of the driver in memory
  * @returns A pointer to the mapped space
  */
 uintptr_t mem_mapDriver(size_t size) {
+    // Align size
+    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
+    
     if (mem_driverRegion + size > MEM_DRIVER_REGION + MEM_DRIVER_REGION_SIZE) {
         // We have a problem
         kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space trying to allocate driver of size 0x%x\n", size);
@@ -253,13 +328,10 @@ uintptr_t mem_mapDriver(size_t size) {
 
     spinlock_acquire(&driver_lock);
 
-    // Align size
-    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
-
     // Map into memory
     for (uintptr_t i = mem_driverRegion; i < mem_driverRegion + size; i += PAGE_SIZE) {
         page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
-        mem_allocatePage(pg, MEM_KERNEL);
+        if (pg) mem_allocatePage(pg, MEM_KERNEL);
     }
 
     // Update size
@@ -288,8 +360,8 @@ void mem_unmapDriver(uintptr_t base, size_t size) {
         // TODO: Do we not need to actually free pages? Can't we just hack in support in mem_mapDriver?
         mem_driverRegion -= size;
         for (uintptr_t i = mem_driverRegion; i < mem_driverRegion + size; i += PAGE_SIZE) {
-            page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
-            mem_freePage(pg);
+            page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
+            if (pg) mem_freePage(pg);
         }
 
         // Release the lock
@@ -325,7 +397,7 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
  * @param size The size of the frame to unmap
  */
 void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
-    // No caching system is in place.
+    // No caching system is in place, no unmapping.
 }
 
 
@@ -337,7 +409,8 @@ void mem_unmapPhys(uintptr_t frame_address, uintptr_t size) {
  * @returns NULL on a PDE not being present or the address
  */
 uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
-    
+    if (!MEM_IS_CANONICAL(virtaddr)) return 0x0;
+
     uintptr_t offset = 0x000; // Offset in case address isn't page aligned
     if (virtaddr & 0xFFF) {
         offset = virtaddr & 0xFFF;
@@ -400,8 +473,6 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     uintptr_t kernel_end_aligned = MEM_ALIGN_PAGE(kernel_addr);
     size_t kernel_pages = (kernel_end_aligned >> MEM_PAGE_SHIFT);
 
-    dprintf(DEBUG, "Kernel requires %i pages\n", kernel_pages);
-
     // How many of those pages can fit into PTs?
     // !!!: Weird math
     size_t kernel_pts = (kernel_pages >= 512) ? (kernel_pages / 512) + ((kernel_pages%512) ? 1 : 0) : 1;
@@ -425,7 +496,6 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     }
 
     dprintf(DEBUG, "Kernel will use %i pages (0x%x)\n", kernel_pages, kernel_pages*PAGE_SIZE);
-    dprintf(DEBUG, "PT limit: %i\n", kernel_pts);
 
     // Setup hierarchy (note: we don't setup the PML4 map just yet, that would be really bad.)
     mem_lowBasePDPT[0].bits.address = ((uintptr_t)&mem_lowBasePD >> MEM_PAGE_SHIFT);
@@ -508,10 +578,6 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
 
     // Setup kernel heap to point to after frames
     mem_kernelHeap = MEM_HEAP_REGION + frame_bytes;
-
-    // Now expand a little past the frame space (TODO: do we need to?)
-    mem_sbrk(0x1000);
-
 
     // Now that we have finished creating our basic memory system, we can map the kernel code to be R/O.
     // Force map kernel code (text section)

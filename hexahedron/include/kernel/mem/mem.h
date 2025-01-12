@@ -160,6 +160,21 @@ void mem_freePage(page_t *page);
 uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size);
 
 /**
+ * @brief Allocate a DMA region from the kernel
+ * 
+ * DMA regions are contiguous blocks that currently cannot be destroyed
+ */
+uintptr_t mem_allocateDMA(uintptr_t size);
+
+/**
+ * @brief Unallocate a DMA region from the kernel
+ * 
+ * @param base The address returned by @c mem_allocateDMA
+ * @param size The size of the base
+ */
+void mem_freeDMA(uintptr_t base, uintptr_t size);
+
+/**
  * @brief Map a driver into memory
  * @param size The size of the driver in memory
  * @returns A pointer to the mapped space
