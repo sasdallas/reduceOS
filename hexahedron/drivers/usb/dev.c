@@ -125,13 +125,13 @@ int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, ui
     // Create a new transfer
     USBTransfer_t *transfer = kmalloc(sizeof(USBTransfer_t));
     transfer->req = req;
-    transfer->endpoint = NULL;      // TODO: Allow custom endpoints - CONTROL requests don't necessary have to come from the DCP
+    transfer->endpoint = 0;      // TODO: Allow custom endpoints - CONTROL requests don't necessary have to come from the DCP
     transfer->status = USB_TRANSFER_IN_PROGRESS;
     transfer->length = length;
     transfer->data = data;
     
     // Now send the device control request
-    if (device->control) device->control(device, transfer);
+    if (device->control) device->control(device->c, device, transfer);
 
     // Cleanup and return whether the transfer was successful
     int status = transfer->status;

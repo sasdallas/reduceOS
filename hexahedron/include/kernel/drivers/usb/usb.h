@@ -73,7 +73,7 @@ void usb_registerController(USBController_t *controller);
  * @brief Initialize a USB device and assign to the USB controller's list of devices
  * @param dev The device to initialize
  * 
- * @returns Negative value on failure and index of the new device on success.
+ * @returns Negative value on failure and 0 on success
  */
 int usb_initializeDevice(USBDevice_t *dev);
 
