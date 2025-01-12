@@ -88,6 +88,15 @@ int usb_initializeDevice(USBDevice_t *dev);
 USBDevice_t *usb_createDevice(USBController_t *controller, uint32_t port, int speed, hc_control_t control);
 
 /**
+ * @brief Destroy a USB device
+ * @param controller The controller
+ * @param dev The device to destroy
+ * 
+ * @warning Does not shut the device down, just frees it from memory
+ */
+void usb_destroyDevice(USBController_t *controller, USBDevice_t *dev);
+
+/**
  * @brief Initialize a USB device and assign to the USB controller's list of devices
  * @param dev The device to initialize
  * 

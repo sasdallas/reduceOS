@@ -123,7 +123,7 @@ uhci_td_t *uhci_createTD(uhci_t *hc, int speed, uint32_t toggle, uint32_t devadd
     // Setup buffer
     td->buffer = (uint32_t)(uintptr_t)data;
 
-    LOG(DEBUG, "[TD] New TD created at %p/%p - type 0x%x ls %i devaddr 0x%x toggle 0x%x endp 0x%x\n", td, mem_getPhysicalAddress(NULL, (uintptr_t)td), td->token.pid, td->cs.ls, td->token.device_addr, td->token.d, td->token.endpt);
+    // LOG(DEBUG, "[TD] New TD created at %p/%p - type 0x%x ls %i devaddr 0x%x toggle 0x%x endp 0x%x\n", td, mem_getPhysicalAddress(NULL, (uintptr_t)td), td->token.pid, td->cs.ls, td->token.device_addr, td->token.d, td->token.endpt);
     // LOG(DEBUG, "[TD] Pool system has %d bytes remaining\n", hc->td_pool->allocated - hc->td_pool->used);
 
     // Done
@@ -274,6 +274,8 @@ int uhci_probe(USBController_t *controller) {
 
             if (usb_initializeDevice(dev)) {
                 LOG(ERR, "Failed to initialize UHCI device\n");
+                
+                usb_destroyDevice(controller, dev);
                 found_ports--;
                 break;
             }

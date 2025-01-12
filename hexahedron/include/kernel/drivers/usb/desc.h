@@ -36,8 +36,12 @@
 // Hub types
 #define USB_DESC_HUB            0x29
 
+// Endpoint bitmasks
+#define USB_ENDP_NUMBER         0x0F
+#define USB_ENDP_USAGE          0x30
+
+
 // Endpoint usage types
-#define USB_ENDP_USAGE          0x30    // Bitmask
 #define USB_ENDP_DATA           0x00
 #define USB_ENDP_FEEDBACK       0x10
 #define USB_ENDP_FEEDBACK_IMPL  0x30
@@ -105,6 +109,8 @@ typedef struct USBInterfaceDescriptor {
 
 /**
  * @brief Configuration descriptor
+ * 
+ * At the end of this resides wTotalLength - bLength interface/endpoint descriptors that you can read
  */
 typedef struct USBConfigurationDescriptor {
     uint8_t     bLength;                // Size of this descriptor in bytes

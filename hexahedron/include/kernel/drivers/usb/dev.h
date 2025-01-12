@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <kernel/drivers/usb/desc.h>
 #include <kernel/drivers/usb/req.h>
+#include <structs/list.h>
 
 /**** DEFINITIONS ****/
 
@@ -44,6 +45,22 @@ typedef struct USBEndpoint {
     uint32_t toggle;                // For bulk data transfers
 } USBEndpoint_t;
 
+/**
+ * @brief USB interface
+ */
+typedef struct USBInterface {
+    USBInterfaceDescriptor_t desc;  // Descriptor
+    list_t *endpoint_list;          // List of endpoints (USBEndpoint_t)
+} USBInterface_t;
+
+/**
+ * @brief USB configuration
+ */
+typedef struct USBConfiguration {
+    int index;                          // Index of the endpoint
+    USBConfigurationDescriptor_t desc;  // Descriptor
+    list_t *interface_list;             // List of interfaces
+} USBConfiguration_t;
 
 /**
  * @brief USB transfer
@@ -87,7 +104,12 @@ typedef struct USBDevice {
     uint32_t    address;                    // Address assigned to the device
     uint32_t    mps;                        // Max packet size as determined by device descriptor
 
-    USBEndpoint_t endpoint;                 // Endpoint #0 (default control pipe)
+    USBConfiguration_t *config;             // Current configuration selected
+    USBEndpoint_t *endpoint;                // Current endpoint selected
+    USBInterface_t *interface;              // Current interface selected
+    
+    list_t *config_list;                    // List of endpoints
+
     USBDeviceDescriptor_t device_desc;      // Device descriptor
     USBStringLanguagesDescriptor_t *langs;  // Languages (this is a pointer as we need to realloc after reading bLength)
 
