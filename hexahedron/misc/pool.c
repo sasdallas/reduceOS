@@ -150,7 +150,7 @@ uintptr_t pool_allocateChunk(pool_t *pool) {
 
 _oom:
     spinlock_release(pool->lock);
-    dprintf(WARN, "Pool '%s' has run out of memory", pool->name);
+    dprintf(WARN, "Pool '%s' has run out of memory\n", pool->name);
     return (uintptr_t)NULL;
 }
 

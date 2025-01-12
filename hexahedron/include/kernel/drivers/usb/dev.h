@@ -79,19 +79,23 @@ typedef int (*hc_control_t)(struct USBController *controller, struct USBDevice *
  * @brief USB device
  */
 typedef struct USBDevice {
-    struct USBController *c;            // Controller
+    struct USBController *c;                // Controller
 
     // Device info
-    uint32_t    port;                   // Port of the device
-    int         speed;                  // Speed of the device
-    uint32_t    address;                // Address assigned to the device
-    uint32_t    mps;                    // Max packet size as determined by device descriptor
+    uint32_t    port;                       // Port of the device
+    int         speed;                      // Speed of the device
+    uint32_t    address;                    // Address assigned to the device
+    uint32_t    mps;                        // Max packet size as determined by device descriptor
 
-    USBEndpoint_t endpoint;             // Endpoint #0 (default control pipe)
-    USBDeviceDescriptor_t device_desc;  // Device descriptor
+    USBEndpoint_t endpoint;                 // Endpoint #0 (default control pipe)
+    USBDeviceDescriptor_t device_desc;      // Device descriptor
+    USBStringLanguagesDescriptor_t *langs;  // Languages (this is a pointer as we need to realloc after reading bLength)
+
+    // HACK: Probably have to remove this
+    uint16_t chosen_language;               // Chosen language for Hexahedron to use by default
 
     // Host controller methods
-    hc_control_t    control;    // Control transfer request
+    hc_control_t    control;                // Control transfer request
 } USBDevice_t;
 
 #endif

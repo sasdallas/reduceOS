@@ -87,7 +87,7 @@ int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
     header_prefix[4] = 0;
 
     // If the clock driver isn't ready we just print a blank header.
-    char header[128];
+    char header[129];
     size_t header_length = 0;
     if (!clock_isReady()) {
         if (module) {

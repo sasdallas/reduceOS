@@ -110,4 +110,13 @@ int usb_initializeDevice(USBDevice_t *dev);
  */
 int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, uintptr_t value, uintptr_t index, uintptr_t length, void *data);
 
+/**
+ * @brief Read a string from the USB device
+ * @param dev The device to read the string from
+ * @param idx The index of the string to read
+ * @param lang The language code
+ * @returns ASCII string (converted from the normal unicode)
+ */
+char *usb_getStringIndex(USBDevice_t *device, int idx, uint16_t lang);
+
 #endif

@@ -4,6 +4,8 @@
  * 
  * @warning Does not work on x86_64 for some reason
  * 
+ * @todo SLOWWW!!! Needs some timeouts and fixes!
+ * @todo Bulk transfers, interrupt transfers, isochronous transfers (not sure if we can do the last now)
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -121,8 +123,8 @@ uhci_td_t *uhci_createTD(uhci_t *hc, int speed, uint32_t toggle, uint32_t devadd
     // Setup buffer
     td->buffer = (uint32_t)(uintptr_t)data;
 
-    // LOG(DEBUG, "[TD] New TD created at %p/%p - type 0x%x speed %i devaddr 0x%x toggle 0x%x endp 0x%x\n", td, mem_getPhysicalAddress(NULL, (uintptr_t)td), td->token.pid, td->cs.ls, td->token.device_addr, td->token.endpt);
-
+    LOG(DEBUG, "[TD] New TD created at %p/%p - type 0x%x ls %i devaddr 0x%x toggle 0x%x endp 0x%x\n", td, mem_getPhysicalAddress(NULL, (uintptr_t)td), td->token.pid, td->cs.ls, td->token.device_addr, td->token.d, td->token.endpt);
+    // LOG(DEBUG, "[TD] Pool system has %d bytes remaining\n", hc->td_pool->allocated - hc->td_pool->used);
 
     // Done
     return td;
@@ -309,6 +311,7 @@ void uhci_waitForQH(USBController_t *controller, uhci_qh_t *qh) {
             if (td_remapped->cs.stalled) {
                 // Stalled :(
                 LOG(ERR, "UHCI controller detected a fatal TD stall - transfer terminated\n");
+                LOG(ERR, "Transfer terminated - controller could not process physical TD %p (PID 0x%x)\n", qh->qe_link.qelp << 4, td_remapped->token.pid);
                 transfer->status = USB_TRANSFER_FAILED;
             }
 
@@ -338,8 +341,7 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     qh->transfer = transfer;
     QH_LINK_TERM(qh);
 
-    LOG(DEBUG, "UHCI control transfer - type 0x%x port 0x%x data %p length %d\n", transfer->req->bRequest, dev->port, transfer->data, transfer->length);
-    LOG(DEBUG, "restructure data %p -> %p\n", transfer->data, mem_getPhysicalAddress(NULL, (uintptr_t)transfer->data));
+    // LOG(DEBUG, "UHCI control transfer - type 0x%x port 0x%x data %p length %d endp %d\n", transfer->req->bRequest, dev->port, transfer->data, transfer->length, transfer->endpoint);
 
     // Setup variables that will change on the TDs
     uint32_t toggle = 0; // Toggle bit
@@ -353,9 +355,10 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     uint8_t *buffer_end = (uint8_t*)((uintptr_t)transfer->data + (uintptr_t)transfer->length);
     uhci_td_t *last = td_setup;
     while (buffer < buffer_end) {
-        size_t transaction_size = (size_t)(buffer_end - buffer);
+        uint32_t transaction_size = buffer_end - buffer;
         if (transaction_size > dev->mps) transaction_size = dev->mps; // Limit
 
+        if (!transaction_size) break;
         // Now create the TD 
         toggle ^= 1;
         uhci_td_t *td = uhci_createTD(hc, dev->speed, toggle, dev->address, transfer->endpoint, 
@@ -363,6 +366,7 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
                                         transaction_size, (void*)mem_getPhysicalAddress(NULL, (uintptr_t)buffer));
         
         TD_LINK_TD(qh, last, td);
+
 
         // Update variables and go again
         buffer += transaction_size;
@@ -384,14 +388,13 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     list_append(hc->qh_list, (void*)qh);
     // spinlock_release(&uhci_lock);
 
-    LOG(DEBUG, "Chain created - waiting for transfer to process\n");
     // Wait for the transfer to finish
     while (transfer->status == USB_TRANSFER_IN_PROGRESS) {
         uhci_waitForQH(controller, qh);
     }
 
     // Destroy the queue head
-    uhci_destroyQH(controller, qh);
+    uhci_destroyQH(controller, qh); 
 
     return transfer->status;
 }

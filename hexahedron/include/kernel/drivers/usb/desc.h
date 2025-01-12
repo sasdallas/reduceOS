@@ -48,6 +48,12 @@
 #define USB_CONF_REMOTE_WAKEUP  0x20
 #define USB_CONF_SELF_POWERED   0x40
 
+// String language IDs (bitmasks)
+// IDs are presented as a short where bits 15-10 are the sublanguage ID and bits 9-0 are the language ID
+// See https://github.com/brookebasile/USB-langids/blob/master/USB_LANGIDs.pdf for full list
+#define USB_LANGID_ENGLISH      0xFF09  // English
+
+
 /**** TYPES ****/
 
 /**
@@ -65,6 +71,7 @@ typedef struct USBDeviceDescriptor {
 
     uint8_t     bDeviceClass;       // Class code
     uint8_t     bDeviceSubClass;    // Subclass code
+    uint8_t     bDeviceProtocol;    // Protocol code
     uint8_t     bMaxPacketSize0;    // Maximum packet size for the endpoint 0 (8/16/32/64 only valid)
     
     uint16_t    idVendor;           // Vendor ID
