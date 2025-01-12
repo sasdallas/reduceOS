@@ -60,8 +60,8 @@ typedef union page {
 // 0xFFFFFF8000000000 - 0xFFFFFF9000000000: High base region for identity mapping
 // 0xFFFFFFFF00000000 - 0xFFFFFFFF80000000: Driver memory space
 
-#define MEM_DMA_REGION              (uintptr_t)0x0000000000000000 
-#define MEM_FRAMEBUFFER_REGION      (uintptr_t)0x00000000A0000000
+#define MEM_DMA_REGION              (uintptr_t)0x00000000A0000000 
+#define MEM_FRAMEBUFFER_REGION      (uintptr_t)0x0000080000000000
 #define MEM_HEAP_REGION             (uintptr_t)0xFFFFFF0000000000
 #define MEM_PHYSMEM_MAP_REGION      (uintptr_t)0xFFFFFF8000000000 // !!!: PHYSMEM_MAP is close to kernel heap
 #define MEM_DRIVER_REGION           (uintptr_t)0xFFFFFFFF00000000
