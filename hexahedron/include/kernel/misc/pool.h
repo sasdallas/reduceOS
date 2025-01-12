@@ -25,6 +25,13 @@
 #include <stddef.h>
 #include <kernel/misc/spinlock.h>
 
+/**** DEFINITIONS ****/
+
+// Pool creation flags (TODO: expand on this)
+#define POOL_DEFAULT        0       // Allocate via mem_sbrk
+#define POOL_DMA            1       // Allocate via mem_allocateDMA
+#define POOL_NOLOCK         2       // Do not use a pool lock
+
 /**** TYPES ****/
 
 typedef struct _pool {
@@ -50,10 +57,11 @@ typedef struct _pool {
  * @param name Optional name for debugging
  * @param chunk_size The size of each chunk in the pool
  * @param size The size of the pool. This size is FINAL. It must be divisible by chunk_size
- * @param addr The starting address of the pool. If NULL, it will be allocated via @c mem_sbrk.
- * @returns The new pool object.
+ * @param addr The starting address of the pool. If NULL, depending on @c flags it will be allocated
+ * @param flags The pool creation flags
+ * @returns The new pool object or NULL if something is wrong.
  */
-pool_t *pool_create(char *name, uintptr_t chunk_size, uintptr_t size, uintptr_t addr);
+pool_t *pool_create(char *name, uintptr_t chunk_size, uintptr_t size, uintptr_t addr, int flags);
 
 /**
  * @brief Allocate a chunk from the pool

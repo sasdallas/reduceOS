@@ -32,10 +32,11 @@
  * @param name Optional name for debugging
  * @param chunk_size The size of each chunk in the pool
  * @param size The size of the pool. This size is FINAL. It must be divisible by chunk_size
- * @param addr The starting address of the pool. If NULL, it will be allocated via @c mem_sbrk.
- * @returns The new pool object.
+ * @param addr The starting address of the pool. If NULL, depending on @c flags it will be allocated
+ * @param flags The pool creation flags
+ * @returns The new pool object or NULL if something is wrong.
  */
-pool_t *pool_create(char *name, uintptr_t chunk_size, uintptr_t size, uintptr_t addr) {
+pool_t *pool_create(char *name, uintptr_t chunk_size, uintptr_t size, uintptr_t addr, int flags) {
     if (size % chunk_size != 0) {
         kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "pool");
         __builtin_unreachable();
@@ -48,16 +49,18 @@ pool_t *pool_create(char *name, uintptr_t chunk_size, uintptr_t size, uintptr_t 
     pool->bitmap = kmalloc((size / chunk_size)); // !!!: Is this bad? 
     memset(pool->bitmap, 0, (size / chunk_size));
 
-
     pool->allocated = size;
     pool->used = 0;
-    pool->lock = spinlock_create("pool_lock");
+
+    if (!(flags & POOL_NOLOCK)) pool->lock = spinlock_create("pool_lock");
 
     if (addr != (uintptr_t)NULL) {
         // Best hope this will work out okay
         pool->starting_addr = addr;
     } else {
-        pool->starting_addr = mem_sbrk((size & 0xFFF) ? MEM_ALIGN_PAGE(size) : size); // !!!: Oh boy
+        // Allocate the pool ourselves
+        if (flags & POOL_DMA) pool->starting_addr = mem_allocateDMA((size & 0xFFF) ? MEM_ALIGN_PAGE(size) : size);
+        else pool->starting_addr = mem_sbrk((size & 0xFFF) ? MEM_ALIGN_PAGE(size) : size); // !!!: Oh boy
     }
 
     return pool;

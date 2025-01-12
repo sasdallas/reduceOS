@@ -131,7 +131,7 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) {
         // !!!: There is a potential for a disaster if mem_getPage tries to remap phys. and the pool hasn't been initialized.  
         // !!!: Luckily this system is abstracted enough that we can fix this, hopefully.
         // !!!: However if the allocator hasn't been initialized, we are so screwed.
-        mem_mapPool = pool_create("map_pool", PAGE_SIZE, MEM_PHYSMEM_MAP_SIZE, MEM_PHYSMEM_MAP_REGION);
+        mem_mapPool = pool_create("map pool", PAGE_SIZE, MEM_PHYSMEM_MAP_SIZE, MEM_PHYSMEM_MAP_REGION, POOL_DEFAULT);
         dprintf(INFO, "Physical memory identity map pool created (0x%x - 0x%x)\n", MEM_PHYSMEM_MAP_REGION, MEM_PHYSMEM_MAP_REGION + MEM_PHYSMEM_MAP_SIZE);
     }
 
