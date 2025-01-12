@@ -55,7 +55,7 @@ void usb_init() {
         LOG(ERR, "Failed to register poll method\n");
     }
 
-    LOG(INFO, "USB system online");
+    LOG(INFO, "USB system online\n");
 }
 
 /**
