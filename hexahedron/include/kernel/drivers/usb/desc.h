@@ -44,6 +44,10 @@
 
 // TODO: Endpoint transfer types and syncronization types
 
+// USB configuration attributes
+#define USB_CONF_REMOTE_WAKEUP  0x20
+#define USB_CONF_SELF_POWERED   0x40
+
 /**** TYPES ****/
 
 /**
@@ -74,6 +78,39 @@ typedef struct USBDeviceDescriptor {
     uint8_t     bNumConfigurations; // Number of possible configurations
 } USBDeviceDescriptor_t;
 
+
+/**
+ * @brief Interface descriptor
+ */
+typedef struct USBInterfaceDescriptor {
+    uint8_t     bLength;            // Size of this descriptor in bytes
+    uint8_t     bDescriptorType;    // USB_DESC_INTERFACE
+
+    uint8_t     bInterfaceNumber;   // Interface number (zero-based)
+    uint8_t     bAlternateSetting;  // Selects the alternate settings described by this descriptor
+    uint8_t     bNumEndpoints;      // Number of endpoints used by this interface
+    uint8_t     bInterfaceClass;    // Class code
+    uint8_t     bInterfaceSubClass; // Subclass code
+    uint8_t     bInterfaceProtocol; // Protocol code
+
+    uint8_t     iInterface;         // Index of STRING descriptor describing this interface
+} USBInterfaceDescriptor_t;
+
+/**
+ * @brief Configuration descriptor
+ */
+typedef struct USBConfigurationDescriptor {
+    uint8_t     bLength;                // Size of this descriptor in bytes
+    uint8_t     bDescriptorType;        // USB_DESC_CONF
+
+    uint16_t    wTotalLength;           // Total combined length in bytes of all descriptors returned with the request for this descriptor
+    uint8_t     bNumInterfaces;         // Number of interfaces supported by this configuration
+    uint8_t     bConfigurationValue;    // Used as an argument in USB_REQ_SET_CONFIGURATION
+    uint8_t     iConfiguration;         // Index of STRING descriptor describing this configuration
+    uint8_t     bmAttributes;           // Bitmap of attributes (see USB_CONF_...)
+    uint8_t     bMaxPower;              // Maximum power consumption in units of 2mA
+} USBConfigurationDescriptor_t;
+
 /**
  * @brief Endpoint descriptor
  */
@@ -87,5 +124,24 @@ typedef struct USBEndpointDescriptor {
     uint8_t     bInterval;          // Interval for polling a device during a transfer
 } USBEndpointDescriptor_t;
 
+/**
+ * @brief String descriptor (for language)
+ */
+typedef struct USBStringLanguagesDescriptor {
+    uint8_t     bLength;            // Size of this descriptor in bytes
+    uint8_t     bDescriptorType;    // USB_DESC_STRING
+
+    uint16_t    wLangID[];          // Language IDs
+} USBStringLanguagesDescriptor_t;
+
+/**
+ * @brief String descriptor
+ */
+typedef struct USBStringDescriptor {
+    uint8_t     bLength;            // Size of this descriptor in bytes
+    uint8_t     bDescriptorType;    // USB_DESC_STRING
+
+    uint8_t     bString[];          // Unicode string
+} USBStringDescriptor_t;
 
 #endif

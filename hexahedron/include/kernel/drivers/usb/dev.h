@@ -21,6 +21,7 @@
 
 /**** DEFINITIONS ****/
 
+// Speeds
 #define USB_FULL_SPEED      0x00    // Full speed
 #define USB_LOW_SPEED       0x01    // Low speed
 #define USB_HIGH_SPEED      0x02    // High speed (fastest)
@@ -54,7 +55,7 @@ typedef struct USBTransfer {
     USBDeviceRequest_t *req;        // Device request  
     void *data;                     // Data
     uint32_t length;                // Length of the data
-    int status;                     // Transfer status
+    int status;                     // Transfer status (USB_TRANSFER_...)
 } USBTransfer_t;
 
 // Prototype
@@ -72,15 +73,16 @@ struct USBController;
  * @brief USB device
  */
 typedef struct USBDevice {
-    struct USBController *c;    // Controller
+    struct USBController *c;            // Controller
 
     // Device info
-    uint32_t    port;           // Port of the device
-    int         speed;          // Speed of the device
-    uint32_t    address;        // Address assigned to the device
-    uint32_t    mps;            // Max packet size as determined by device descriptor
+    uint32_t    port;                   // Port of the device
+    int         speed;                  // Speed of the device
+    uint32_t    address;                // Address assigned to the device
+    uint32_t    mps;                    // Max packet size as determined by device descriptor
 
-    USBEndpoint_t endpoint;     // Endpoint #0
+    USBEndpoint_t endpoint;             // Endpoint #0 (default control pipe)
+    USBDeviceDescriptor_t device_desc;  // Device descriptor
 
     // Host controller methods
     hc_control_t    control;    // Control transfer request

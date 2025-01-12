@@ -25,14 +25,18 @@ list_t *usb_controller_list = NULL;
 
 /**
  * @brief Poll method (done once per tick)
+ * 
+ * @note    This method needs to be replaced with probably some kernel threading system once that is implemented.
+ *          Through some testing I have determined that this can and will hang the system if polls take too long
  */
 void usb_poll(uint64_t ticks) {
-    if (!usb_controller_list) return;
+    // !!!: polling disabled
+    // if (!usb_controller_list) return;
 
-    foreach(n, usb_controller_list) {
-        USBController_t *controller = (USBController_t*)n->value;
-        if (controller->poll) controller->poll(controller);
-    }
+    // foreach(n, usb_controller_list) {
+    //     USBController_t *controller = (USBController_t*)n->value;
+    //     if (controller->poll) controller->poll(controller);
+    // }
 
 }
 

@@ -54,11 +54,8 @@ USBDevice_t *usb_createDevice(USBController_t *controller, uint32_t port, int sp
 int usb_initializeDevice(USBDevice_t *dev) {
     LOG(DEBUG, "Initializing USB device on port 0x%x...\n", dev->port);
 
-    USBDeviceDescriptor_t device_desc;
-
-
     if (usb_requestDevice(dev, USB_RT_D2H | USB_RT_STANDARD | USB_RT_DEV,
-                    USB_REQ_GET_DESC, (USB_DESC_DEVICE << 8) | 0, 0, dev->mps, &device_desc) != USB_TRANSFER_SUCCESS) 
+                    USB_REQ_GET_DESC, (USB_DESC_DEVICE << 8) | 0, 0, dev->mps, &dev->device_desc) != USB_TRANSFER_SUCCESS) 
     {
         // The request did not succeed
         LOG(ERR, "USB_REQ_GET_DESC did not succeed\n");
@@ -78,11 +75,11 @@ int usb_initializeDevice(USBDevice_t *dev) {
         return -1;
     }
 
-    dev->address = address; // Yes, this is required, else the device panicks.
+    dev->address = address; // Yes, this is required to be set after SET_ADDR, else the device panicks.
 
     // Now we can read the whole descriptor
     if (usb_requestDevice(dev, USB_RT_D2H | USB_RT_STANDARD | USB_RT_DEV,
-                USB_REQ_GET_DESC, (USB_DESC_DEVICE << 8) | 0, 0, sizeof(USBDeviceDescriptor_t), &device_desc) != USB_TRANSFER_SUCCESS) 
+                USB_REQ_GET_DESC, (USB_DESC_DEVICE << 8) | 0, 0, sizeof(USBDeviceDescriptor_t), &dev->device_desc) != USB_TRANSFER_SUCCESS) 
     {
         // The request did not succeed
         LOG(ERR, "Device initialization failed - failed to read full descriptor\n");
@@ -90,9 +87,12 @@ int usb_initializeDevice(USBDevice_t *dev) {
     }
 
 
-    LOG(DEBUG, "USB Device: Version %d.%d, VID 0x%04x, PID 0x%04x\n", device_desc.bcdUSB >> 8, (device_desc.bcdUSB >> 4) & 0xF, device_desc.idVendor, device_desc.idProduct);
+    LOG(DEBUG, "USB Device: Version %d.%d, VID 0x%04x, PID 0x%04x\n", dev->device_desc.bcdUSB >> 8, (dev->device_desc.bcdUSB >> 4) & 0xF, dev->device_desc.idVendor, dev->device_desc.idProduct);
 
-    // Add it to the device list
+    // Assign a few parts of the device descriptor
+    dev->mps = dev->device_desc.bMaxPacketSize0;
+
+    // Add it to the device list of the controller
     list_append(dev->c->devices, dev);
 
     return 0;
@@ -125,7 +125,7 @@ int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, ui
     // Create a new transfer
     USBTransfer_t *transfer = kmalloc(sizeof(USBTransfer_t));
     transfer->req = req;
-    transfer->endpoint = NULL;
+    transfer->endpoint = NULL;      // TODO: Allow custom endpoints - CONTROL requests don't necessary have to come from the DCP
     transfer->status = USB_TRANSFER_IN_PROGRESS;
     transfer->length = length;
     transfer->data = data;
@@ -139,3 +139,4 @@ int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, ui
     kfree(req);
     return status;
 }
+
