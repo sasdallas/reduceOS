@@ -96,10 +96,10 @@
  */
 typedef union uhci_flp {
     struct {
-        uintptr_t terminate:1;  // Terminate - if set, empty frame (invalid ptr), else pointer is valid
-        uintptr_t qh:1;         // QH/TD select (1 = QH)
-        uintptr_t reserved:2;   // Reserved
-        uintptr_t flp:28;       // Frame list pointer
+        uint32_t terminate:1;  // Terminate - if set, empty frame (invalid ptr), else pointer is valid
+        uint32_t qh:1;         // QH/TD select (1 = QH)
+        uint32_t reserved:2;   // Reserved
+        uint32_t flp:28;       // Frame list pointer
     };
 
     uint32_t flp_raw;
@@ -119,11 +119,11 @@ typedef union uhci_flp {
 typedef struct uhci_td {
     union {
         struct {
-            uintptr_t terminate:1;      // Terminate (validity)
-            uintptr_t qh:1;             // QH/TD select
-            uintptr_t vf:1;             // Depth/breadth select
-            uintptr_t reserved:1;       // Reserved
-            uintptr_t lp:28;            // Link pointer - points to another TD/QH
+            uint32_t terminate:1;      // Terminate (validity)
+            uint32_t qh:1;             // QH/TD select
+            uint32_t vf:1;             // Depth/breadth select
+            uint32_t reserved:1;       // Reserved
+            uint32_t lp:28;            // Link pointer - points to another TD/QH
         };
 
         uint32_t raw;
@@ -131,24 +131,24 @@ typedef struct uhci_td {
 
     union {
         struct {
-            uintptr_t actlen:11;        // Actual length
-            uintptr_t reserved:6;       // Reserved (+1 for the reserved bit in status)
+            uint32_t actlen:11;        // Actual length
+            uint32_t reserved:6;       // Reserved (+1 for the reserved bit in status)
             
             // The following fields are all part of "status"
-            uintptr_t bitstuff:1;       // Bitstuff Error (Receive data stream contained a sequence of >6 ones in a row)
-            uintptr_t crc:1;            // CRC/Timeout Error
-            uintptr_t nak:1;            // NAK received
-            uintptr_t babble:1;         // Babble
-            uintptr_t data_buffer:1;    // Data Buffer Error
-            uintptr_t stalled:1;        // Stalled (serious error)
-            uintptr_t active:1;         // Active
+            uint32_t bitstuff:1;       // Bitstuff Error (Receive data stream contained a sequence of >6 ones in a row)
+            uint32_t crc:1;            // CRC/Timeout Error
+            uint32_t nak:1;            // NAK received
+            uint32_t babble:1;         // Babble
+            uint32_t data_buffer:1;    // Data Buffer Error
+            uint32_t stalled:1;        // Stalled (serious error)
+            uint32_t active:1;         // Active
 
-            uintptr_t ioc:1;            // Interrupt on Complete
-            uintptr_t ios:1;            // Isochronous select
-            uintptr_t ls:1;             // Low speed device
-            uintptr_t errors:2;         // Error count
-            uintptr_t spd:1;            // Short packet detect
-            uintptr_t reserved2:2;      // Reserved
+            uint32_t ioc:1;            // Interrupt on Complete
+            uint32_t ios:1;            // Isochronous select
+            uint32_t ls:1;             // Low speed device
+            uint32_t errors:2;         // Error count
+            uint32_t spd:1;            // Short packet detect
+            uint32_t reserved2:2;      // Reserved
         };
 
         uint32_t raw;
@@ -156,12 +156,12 @@ typedef struct uhci_td {
 
     union {
         struct {
-            uintptr_t pid:8;            // Packet ID
-            uintptr_t device_addr:7;    // Device address
-            uintptr_t endpt:4;          // Endpoint
-            uintptr_t d:1;              // Data toggle
-            uintptr_t reserved:1;       // Reserved
-            uintptr_t maxlen:11;        // Maximum length      
+            uint32_t pid:8;            // Packet ID
+            uint32_t device_addr:7;    // Device address
+            uint32_t endpt:4;          // Endpoint
+            uint32_t d:1;              // Data toggle
+            uint32_t reserved:1;       // Reserved
+            uint32_t maxlen:11;        // Maximum length      
         };
 
         uint32_t raw;
@@ -185,10 +185,10 @@ typedef struct uhci_td {
 typedef struct uhci_qh {
     union {
         struct {
-            uintptr_t terminate:1;      // Terminate (validity)
-            uintptr_t qh:1;             // QH/TD select
-            uintptr_t reserved:2;       // Reserved
-            uintptr_t qhlp:28;          // Queue head link pointer
+            uint32_t terminate:1;      // Terminate (validity)
+            uint32_t qh:1;             // QH/TD select
+            uint32_t reserved:2;       // Reserved
+            uint32_t qhlp:28;          // Queue head link pointer
         };
 
         uint32_t raw;
@@ -196,10 +196,10 @@ typedef struct uhci_qh {
 
     union {
         struct {
-            uintptr_t terminate:1;      // Terminate (validity)
-            uintptr_t qh:1;             // QH/TD select
-            uintptr_t reserved:2;       // Reserved
-            uintptr_t qelp:28;          // Queue element link pointer
+            uint32_t terminate:1;      // Terminate (validity)
+            uint32_t qh:1;             // QH/TD select
+            uint32_t reserved:2;       // Reserved
+            uint32_t qelp:28;          // Queue element link pointer
         };
 
         uint32_t raw;
@@ -210,6 +210,9 @@ typedef struct uhci_qh {
     USBTransfer_t   *transfer;          // Pointer to the current transfer
     list_t          *td_list;           // Transfer descriptor list for this QH (virtual addresses rather than the QE physical addresses)
 
+#if defined(__ARCH_X86_64__)
+    uint64_t        extra_qword;        // On 64-bit architectures, the transfer/td_list pointers will be 16 bytes and qh/qe link will only be 8, making total 24 and not 16 aligned. 
+#endif
 } uhci_qh_t;
 
 /**
@@ -237,7 +240,7 @@ typedef struct uhci {
 #define TD_LINK_TERM(td) (td->link.terminate = 1)
 
 // Convert address to link pointer (bitshifting for the union)
-#define LINK(addr) ((mem_getPhysicalAddress(NULL, (uintptr_t)addr) >> 4))
+#define LINK(addr) ((uint32_t)(mem_getPhysicalAddress(NULL, (uintptr_t)addr) >> 4))
 
 // Link together a queue head and a transfer descriptor (QE_LINK)
 #define QH_LINK_TD(target_qh, td)  {target_qh->qe_link.qh = 0; \
