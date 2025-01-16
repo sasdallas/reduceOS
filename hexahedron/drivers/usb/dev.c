@@ -16,6 +16,7 @@
 
 #include <kernel/drivers/usb/usb.h>
 #include <kernel/drivers/usb/dev.h>
+#include <kernel/drivers/clock.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
 #include <string.h>
@@ -316,7 +317,8 @@ int usb_initializeDevice(USBDevice_t *dev) {
     dev->mps = dev->device_desc.bMaxPacketSize0;
 
     // Get an address for it 
-    uint32_t address = dev->c->last_address++;
+    uint32_t address = dev->c->last_address;
+    dev->c->last_address++;
 
     // Request it to set that address
     if (usb_requestDevice(dev, USB_RT_H2D | USB_RT_STANDARD | USB_RT_DEV,
@@ -327,7 +329,10 @@ int usb_initializeDevice(USBDevice_t *dev) {
         return -1;
     }
 
-    dev->address = address; // Yes, this is required to be set after SET_ADDR, else the device panicks.
+    // Allow the device a 20ms recovery time
+    clock_sleep(20);
+
+    dev->address = address;
 
     // Now we can read the whole descriptor
     if (usb_requestDevice(dev, USB_RT_D2H | USB_RT_STANDARD | USB_RT_DEV,

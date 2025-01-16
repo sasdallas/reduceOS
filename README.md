@@ -28,6 +28,8 @@ Certain external components are available in `external`. Here is a list of them 
 ## Keeping track of potential issues
 - Relocatable code is not implemented in x86_64
 - GRUB might error out on Multiboot2 if the relocatable max address is too low
+- UHCI driver is very slow and doesn't work on x86_64
+- USB device structure uses a lot of memory (it stores all configurations, interfaces, and endpoints but this is probably a terrible idea)
 
 ## Licensing
 

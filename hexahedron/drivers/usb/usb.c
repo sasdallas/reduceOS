@@ -70,7 +70,7 @@ USBController_t *usb_createController(void *hc, usb_poll_t poll) {
     controller->hc = hc;
     controller->poll = poll;
     controller->devices = list_create("usb devices");
-    controller->last_address = 0;
+    controller->last_address = 1;   // Always start at 1 - default address is 0x0
 
     return controller;
 }

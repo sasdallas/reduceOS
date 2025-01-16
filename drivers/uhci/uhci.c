@@ -343,7 +343,7 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     qh->transfer = transfer;
     QH_LINK_TERM(qh);
 
-    // LOG(DEBUG, "UHCI control transfer - type 0x%x port 0x%x data %p length %d endp %d\n", transfer->req->bRequest, dev->port, transfer->data, transfer->length, transfer->endpoint);
+    // LOG(DEBUG, "UHCI control transfer - type 0x%x port 0x%x address 0x%x data %p length %d endp %d\n", transfer->req->bRequest, dev->port, dev->address, transfer->data, transfer->length, transfer->endpoint);
 
     // Setup variables that will change on the TDs
     uint32_t toggle = 0; // Toggle bit
