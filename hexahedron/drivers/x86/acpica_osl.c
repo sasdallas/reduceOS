@@ -19,6 +19,8 @@
 #include <acpica/acpi.h>
 #include <acpica/actypes.h>
 
+
+// HAL-specific types
 #if defined(__ARCH_I386__)
 #include <kernel/arch/i386/hal.h>
 #elif defined(__ARCH_X86_64__)
@@ -27,13 +29,14 @@
 #error "No support"
 #endif
 
-
+// Kernel includes
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 #include <kernel/mem/mem.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/misc/spinlock.h>
 #include <kernel/misc/semaphore.h>
+#include <kernel/drivers/pci.h>
 
 #include <stdarg.h>
 #include <errno.h>
@@ -90,32 +93,18 @@ ACPI_STATUS AcpiOsPhysicalTableOverride(ACPI_TABLE_HEADER *ExistingTable, ACPI_P
 /* MEMORY FUNCTIONS */
 
 void *AcpiOsMapMemory(ACPI_PHYSICAL_ADDRESS PhysicalAddress, ACPI_SIZE Length) {
-    // just like pmm it
     // LOG(DEBUG, "AcpiOsMapMemory %p 0x%x\n", (uintptr_t)PhysicalAddress, Length);
+    return (void*)mem_remapPhys(PhysicalAddress, Length);
 
-#if defined(__ARCH_I386__)
-    uintptr_t phys_aligned = ((uintptr_t)PhysicalAddress & ~0xFFF);
-    uintptr_t phys_diff = ((uintptr_t)PhysicalAddress & 0xFFF);
-    uintptr_t phys_size = MEM_ALIGN_PAGE(((uintptr_t)Length + phys_diff));
-
-    uintptr_t phys_start = mem_remapPhys(phys_aligned, phys_size);
-    return (void*)(phys_start + phys_diff);
-#elif defined(__ARCH_X86_64__)
-    return (void*)mem_remapPhys(PhysicalAddress, Length); // no need to unmap
-#else
-    #error "fix this on your arch"
-#endif
 }
 
 /* Unmap memory */
 void AcpiOsUnmapMemory(void *where, ACPI_SIZE Length) {
     // LOG(DEBUG, "AcpiOsUnmapMemory 0x%x 0x%x\n", where, Length);
 
-    // !!!: HORRIBLY WASTEFUL ON I386. ACPICA WILL UNMAP MANY BITS OF MEMORY WITHIN OUR CHUNK SIZES!
-    // uintptr_t phys_aligned = ((uintptr_t)where & ~0xFFF);
-    // uintptr_t phys_diff = ((uintptr_t)where & 0xFFF);
-    // uintptr_t phys_size = MEM_ALIGN_PAGE(((uintptr_t)Length + phys_diff));
-    // mem_unmapPhys(phys_aligned, phys_size);
+    // !!!: I have genuinely no idea why, but when unmapping memory ACPICA freaks out and tries to allocate a ton of chunks, which the pool system catches and panics.
+    // mem_unmapPhys((uintptr_t)where, Length);
+
 }
 
 /* Get a physical address */
@@ -408,15 +397,27 @@ ACPI_STATUS AcpiOsWritePort(ACPI_IO_ADDRESS Address, UINT32 Value, UINT32 Width)
     return AE_OK;
 }
 
-/* (UNIMPLEMENTED) PCI FUNCTIONS */
+/* PCI FUNCTIONS */
 
 ACPI_STATUS AcpiOsReadPciConfiguration(ACPI_PCI_ID *PciId, UINT32 Register, UINT64 *Value, UINT32 Width) {
-    FUNC_UNIMPLEMENTED("AcpiOsReadPciConfiguration");
+    // LOG(DEBUG, "AcpiOsReadPciConfiguration Bus %04x Slot %04x Func %04x Offset %04x Register 0x%x Width 0x%x\n", PciId->Bus, PciId->Device, PciId->Function, PciId->Segment, Register, Width);
+    uint32_t value = pci_readConfigOffset(PciId->Bus, PciId->Device, PciId->Function, PciId->Segment + Register, Width / 8);
+    
+    if (value == PCI_NONE) {
+        return AE_ERROR;
+    }
+
+    *Value = (UINT64)value; 
     return AE_OK;
 }
 
 ACPI_STATUS AcpiOsWritePciConfiguration(ACPI_PCI_ID *PciId, UINT32 Register, UINT64 Value, UINT32 Width) {
-    FUNC_UNIMPLEMENTED("AcpiOsWritePciConfiguration");
+    // LOG(DEBUG, "AcpiOsWritePciConfiguration Bus %04x Slot %04x Func %04x Offset %04x Register 0x%x Width 0x%x Value 0x%llX\n", PciId->Bus, PciId->Device, PciId->Function, PciId->Segment, Register, Width, Value);
+
+    if (pci_writeConfigOffset(PciId->Bus, PciId->Device, PciId->Function, PciId->Segment + Register, (UINT32)(Value & 0xFFFFFFFF))) {
+        return AE_ERROR;
+    }
+
     return AE_OK;
 }
 
