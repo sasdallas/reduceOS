@@ -12,6 +12,8 @@ However, they do contain a list of up to 127 (the max amount of devices currentl
 Devices are given out in the structure USBDevice_t. This structure is LARGE. It contains a list of configurations, interfaces, endpoints,
 as well as basic information about the device itself.
 
+Device drivers themselves will actually work with USB interfaces. One drievr will have 
+
 ==== II. Writing a USB driver
 
 When writing a USB driver, the first thing you want to do is register your driver.
@@ -23,8 +25,8 @@ However, the USB stack is forced to employ a syncronous/asyncronous approach, as
 
 The weight of locating your device is taken off your shoulders - usb_registerDriver will place your driver in the main list, 
 and every time a new device is initialized, it will cycle through the existing list to find a proper driver. You can employ find parameters,
-which is discussed later. As well as that, usb_registerDriver will also scan through all controllers and call your driver's dev_init method on
-each of them (just return USB_FAILURE if the device is invalid)
+which is discussed later. As well as that, usb_registerDriver will also scan through all controllers, their devices, and those devices' interfaces,
+and call your driver's dev_init method on each of them (just return USB_FAILURE if the device is invalid)
 
 NOTE:   If a driver was already registered to a device, then depending on your driver's setting for weak bind (which by default is 0),
         it may be unloaded from its existing driver and then loaded onto the new driver. Please set your driver as a weak bind if it is a generic driver.

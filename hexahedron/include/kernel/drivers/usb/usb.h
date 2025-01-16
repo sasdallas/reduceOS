@@ -88,6 +88,14 @@ void usb_registerController(USBController_t *controller);
 USB_STATUS usb_initializeDevice(USBDevice_t *dev);
 
 /**
+ * @brief Deinitialize a USB device
+ * @param dev The device to deinitialize
+ * 
+ * @note This WILL NOT free the memory of the device. Call @c usb_destroyDevice after this.
+ */
+USB_STATUS usb_deinitializeDevice(USBDevice_t *dev);
+
+/**
  * @brief Create a new USB device structure for initialization
  * @param controller The controller
  * @param port The device port
@@ -102,17 +110,8 @@ USBDevice_t *usb_createDevice(USBController_t *controller, uint32_t port, int sp
  * @param controller The controller
  * @param dev The device to destroy
  * 
- * @warning Does not shut the device down, just frees it from memory
+ * @warning Does not shut the device down, just frees it from memory. Call @c usb_deinitializeDevice first
  */
 void usb_destroyDevice(USBController_t *controller, USBDevice_t *dev);
-
-/**
- * @brief Read a string from the USB device
- * @param dev The device to read the string from
- * @param idx The index of the string to read
- * @param lang The language code
- * @returns ASCII string (converted from the normal unicode)
- */
-char *usb_getStringIndex(USBDevice_t *device, int idx, uint16_t lang);
 
 #endif

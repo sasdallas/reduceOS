@@ -65,8 +65,24 @@ USB_STATUS usb_controlTransferInterface(USBInterface_t *intf, uintptr_t type, ui
 USB_STATUS usb_controlTransferEndpoint(USBEndpoint_t *endp, uintptr_t type, uintptr_t request, uintptr_t value, uintptr_t index, uintptr_t length, void *data);
 
 /**
+ * @brief Perform a control transfer
+ * @param dev The device to do the transfer on
+ * @param type The request type. See USB_RT_... - this corresponds to bmRequestType
+ * @param request The request to send. See USB_REQ_... - this corresponds to bRequest
+ * @param value Optional parameter for the request - this corresponds to wValue
+ * @param index Optional index for the request - this corresponds to wIndex
+ * @param length The length of the output data
+ * @param data The output data
+ * 
+ * @returns USB_SUCCESS on success
+ */
+USB_STATUS usb_controlTransfer(USBDevice_t *dev, uintptr_t type, uintptr_t request, uintptr_t value, uintptr_t index, uintptr_t length, void *data);
+
+
+/**
  * @brief Read a descriptor from a device
  * @param dev The device to read the descriptor from
+ * @param request_type The request type (USB_RT_STANDARD or USB_RT_CLASS mainly)
  * @param type The type of the descriptor to get
  * @param index The index of the descriptor to get (default 0)
  * @param length The length of how much to read
@@ -74,31 +90,7 @@ USB_STATUS usb_controlTransferEndpoint(USBEndpoint_t *endp, uintptr_t type, uint
  * 
  * @returns USB_SUCCESS on success
  */
-USB_STATUS usb_getDescriptorDevice(USBDevice_t *dev, uintptr_t type, uintptr_t index, uintptr_t length, void *desc);
-
-/**
- * @brief Read a descriptor from an interface
- * @param intf The interface to read the descriptor from
- * @param type The type of the descriptor to get
- * @param index The index of the descriptor to get (default 0)
- * @param length The length of how much to read
- * @param desc The output descriptor
- * 
- * @returns USB_SUCCESS on success
- */
-USB_STATUS usb_getDescriptorInterface(USBInterface_t *intf, uintptr_t type, uintptr_t index, uintptr_t length, void *desc);
-
-/**
- * @brief Read a descriptor from an interface
- * @param intf The interface to read the descriptor from (done on device actually)
- * @param type The type of the descriptor to get
- * @param index The index of the descriptor to get (default 0)
- * @param length The length of how much to read
- * @param desc The output descriptor
- * 
- * @returns USB_SUCCESS on success
- */
-USB_STATUS usb_getDescriptorEndpoint(USBEndpoint_t *endp, uintptr_t type, uintptr_t index, uintptr_t length, void *desc);
+USB_STATUS usb_getDescriptor(USBDevice_t *dev, uintptr_t request_type, uintptr_t type, uintptr_t index, uintptr_t length, void *desc);
 
 /**
  * @brief Read a string from the USB device

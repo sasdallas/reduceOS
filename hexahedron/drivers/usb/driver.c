@@ -53,17 +53,21 @@ static USB_STATUS usb_driverInitializeDevice(USBDriver_t *driver, USBDevice_t *d
         if (driver->find->protocol && intf->desc.bInterfaceProtocol != driver->find->protocol) return USB_FAILURE;
     }
 
+
+    // Create a copy of the driver
+    USBDriver_t *driver_clone = kmalloc(sizeof(USBDriver_t));
+    memcpy((void*)driver_clone, (void*)driver, sizeof(USBDriver_t));
     
     // If there's already a driver given to the device, make sure this driver and the one that's currently loaded isn't a weak bind
     if (intf->driver) {
         // No find parameters? Skip this driver.
-        if (!driver->find) return USB_FAILURE;
+        if (!driver->find) goto _error;
 
         // We know that this driver specifically wants this device, and that there's already a driver loaded onto it
 
         if (driver->weak_bind) {
             // The current driver has a weak bind, meaning we can assume the currently loaded driver is better.
-            return USB_FAILURE;
+            goto _error;
         } else if (intf->driver->weak_bind) {
             // The currently loaded driver has a weak bind, meaning we can do a weird unload/load sequence
             // !!!: Clean this up
@@ -72,14 +76,14 @@ static USB_STATUS usb_driverInitializeDevice(USBDriver_t *driver, USBDevice_t *d
                 LOG(WARN, "Failed to deinitialize driver '%s' from device (loading new driver '%s')\n", prev_driver->name, driver->name);
             }
 
-            intf->driver = driver;
+            intf->driver = driver_clone;
 
             if (driver->dev_init(intf) != USB_SUCCESS) {
                 // The new driver failed to initialize, try to fallback to the old one.
                 LOG(WARN, "Failed to initialize driver '%s', fallback to previous driver '%s'\n", driver->name, prev_driver->name);
                 prev_driver->dev_init(intf);
                 intf->driver = prev_driver;
-                return USB_FAILURE;
+                goto _error;
             }
 
             return USB_SUCCESS;
@@ -89,7 +93,7 @@ static USB_STATUS usb_driverInitializeDevice(USBDriver_t *driver, USBDevice_t *d
             LOG(ERR, "Collision detected while initializing USB driver.");
             LOG(ERR, "Device loaded driver '%s' has a weak bind, but driver '%s' matches find parameters and also does/doesnot a weak bind.\n", intf->driver->name, driver->name);
             LOG(ERR, "This situation cannot be resolved with the current USB stack structure. Please contact the developer.\n");
-            return USB_FAILURE;
+            goto _error;
         }
     }
 
@@ -97,15 +101,18 @@ static USB_STATUS usb_driverInitializeDevice(USBDriver_t *driver, USBDevice_t *d
     if (driver->dev_init) {
         // Prematurely assign intf->driver
         USBDriver_t *prev_driver = intf->driver;
-        intf->driver = driver;
+        intf->driver = driver_clone;
 
         USB_STATUS ret = driver->dev_init(intf);
         if (ret == USB_SUCCESS) {
             return ret;
         }
 
-        intf->driver = prev_driver; // Reassign old driver
+        intf->driver = prev_driver; // Reassign old driver and fall through to _error
     }
+ 
+_error:
+    kfree(driver_clone);
     return USB_FAILURE;
 }
 

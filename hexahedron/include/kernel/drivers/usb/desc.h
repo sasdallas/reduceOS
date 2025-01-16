@@ -169,8 +169,7 @@ typedef struct USBHubDescriptor {
     uint8_t     bHubContrCurrent;       // Maximum current used by hub controller (mA)
     
     // The remaining two fields of the hub descriptor are DeviceRemovable and PortPwrControlMask.
-    // These take the size of bNbrPorts bits.
-    uint8_t     bRemainder[];
+    // These take the size of bNbrPorts bits and are not included
 } USBHubDescriptor_t;
 
 #endif

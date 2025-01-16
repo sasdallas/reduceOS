@@ -83,6 +83,10 @@ void usb_destroyDevice(USBController_t *controller, USBDevice_t *dev) {
                 }
 
                 if (!interface->endpoint_list) {
+                    if (interface->driver) {
+                        if (interface->driver->name) kfree(interface->driver->name);
+                        kfree(interface->driver);
+                    }
                     kfree(interface);
                     kfree(intf_node);
                     continue;
@@ -97,6 +101,11 @@ void usb_destroyDevice(USBController_t *controller, USBDevice_t *dev) {
 
                     kfree(endp);
                     kfree(endp_node);
+                }
+
+                if (interface->driver) {
+                    if (interface->driver->name) kfree(interface->driver->name);
+                    kfree(interface->driver);
                 }
 
                 kfree(interface->endpoint_list);
@@ -170,7 +179,7 @@ int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, ui
  * @param lang The language code
  * @returns ASCII string (converted from the normal unicode) or NULL if we failed to get the descriptor
  */
-char *usb_getStringIndex(USBDevice_t *device, int idx, uint16_t lang) {
+static char *usb_getStringIndex(USBDevice_t *device, int idx, uint16_t lang) {
     if (idx == 0) {
         // String index #0 is reserved for languages - this usually means that a driver attempted to get a nonexistant string ID
         LOG(WARN, "Tried to access string ID #0 - nonfatal\n");
@@ -262,10 +271,14 @@ USBConfiguration_t *usb_getConfigurationFromIndex(USBDevice_t *dev, int index) {
         // TODO: Clean this up
         if (buffer[1] == USB_DESC_INTF) {
             USBInterface_t *interface = kmalloc(sizeof(USBInterface_t));
+            memset(interface, 0, sizeof(USBInterface_t));
+
+            // Setup values
             memcpy((void*)&interface->desc, buffer, sizeof(USBInterfaceDescriptor_t));
             interface->endpoint_list = list_create("usb endpoint list");
             interface->dev = dev;
             list_append(config->interface_list, (void*)interface);
+
             LOG(INFO, "This interface has %i available endpoints, with class 0x%x subclass 0x%x\n", interface->desc.bNumEndpoints+1, interface->desc.bInterfaceClass, interface->desc.bInterfaceSubClass);
 
             // Push buffer ahead
@@ -433,5 +446,33 @@ USB_STATUS usb_initializeDevice(USBDevice_t *dev) {
     if (vendor_str) kfree(vendor_str);
     if (serial_number) kfree(serial_number);
 
+    return USB_SUCCESS;
+}
+
+/**
+ * @brief Deinitialize a USB device
+ * @param dev The device to deinitialize
+ * 
+ * @note This WILL NOT free the memory of the device. Call @c usb_destroyDevice after this.
+ */
+USB_STATUS usb_deinitializeDevice(USBDevice_t *dev) { 
+    if (!dev) return USB_FAILURE;
+
+    // We need to find all interfaces with a registered device driver
+    foreach(conf_node, dev->config_list) {
+        USBConfiguration_t *conf = (USBConfiguration_t*)conf_node->value;
+        if (!conf) continue;
+
+        foreach(intf_node, conf->interface_list) {
+            USBInterface_t *intf = (USBInterface_t*)intf_node->value;
+            if (!intf || !intf->driver || !intf->driver->dev_deinit) continue;
+
+            if (intf->driver->dev_deinit(intf) != USB_SUCCESS) {
+                LOG(WARN, "Driver '%s' failed to deinitialize\n", intf->driver->name);
+            }
+        }
+    }
+
+    // TODO: Implement a host controller shutdown method because we need to actually disable the device.
     return USB_SUCCESS;
 }
