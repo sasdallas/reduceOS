@@ -141,9 +141,6 @@ static size_t print_hex(unsigned long long value, unsigned int width, int (*call
  * vasprintf()
  */
 size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * fmt, va_list args) {
-	va_list args_copy;
-	__builtin_va_copy(args_copy, args);  // Create a copy of va_list to avoid undefined behavior
-	
 	const char * s;
 	size_t written = 0;
 	for (const char *f = fmt; *f; f++) {
@@ -167,7 +164,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				alt = 1;
 				++f;
 			} else if (*f == '*') {
-				arg_width = (int)va_arg(args_copy, int);
+				arg_width = (int)va_arg(args, int);
 				++f;
 			} else if (*f == '0') {
 				fill_zero = 1;
@@ -191,7 +188,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 			++f;
 			precision = 0;
 			if (*f == '*') {
-				precision = (int)va_arg(args_copy, int);
+				precision = (int)va_arg(args, int);
 				++f;
 			} else  {
 				while (*f >= '0' && *f <= '9') {
@@ -232,7 +229,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 					if (big) {
 						return written;
 					} else {
-						s = (char *)va_arg(args_copy, char *);
+						s = (char *)va_arg(args, char *);
 						if (s == NULL) {
 							s = "(null)";
 						}
@@ -258,7 +255,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				}
 				break;
 			case 'c': /* Single character */
-				OUT((char)va_arg(args_copy,int));
+				OUT((char)va_arg(args,int));
 				break;
 			case 'p':
 				alt = 1;
@@ -269,11 +266,11 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				{
 					unsigned long long val;
 					if (big == 2) {
-						val = (unsigned long long)va_arg(args_copy, unsigned long long);
+						val = (unsigned long long)va_arg(args, unsigned long long);
 					} else if (big == 1) {
-						val = (unsigned long)va_arg(args_copy, unsigned long);
+						val = (unsigned long)va_arg(args, unsigned long);
 					} else {
-						val = (unsigned int)va_arg(args_copy, unsigned int);
+						val = (unsigned int)va_arg(args, unsigned int);
 					}
 					written += print_hex(val, arg_width, callback, userData, fill_zero, alt, !(*f & 32), align);
 				}
@@ -283,11 +280,11 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				{
 					long long val;
 					if (big == 2) {
-						val = (long long)va_arg(args_copy, long long);
+						val = (long long)va_arg(args, long long);
 					} else if (big == 1) {
-						val = (long)va_arg(args_copy, long);
+						val = (long)va_arg(args, long);
 					} else {
-						val = (int)va_arg(args_copy, int);
+						val = (int)va_arg(args, int);
 					}
 					if (val < 0) {
 						OUT('-');
@@ -302,11 +299,11 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				{
 					unsigned long long val;
 					if (big == 2) {
-						val = (unsigned long long)va_arg(args_copy, unsigned long long);
+						val = (unsigned long long)va_arg(args, unsigned long long);
 					} else if (big == 1) {
-						val = (unsigned long)va_arg(args_copy, unsigned long);
+						val = (unsigned long)va_arg(args, unsigned long);
 					} else {
-						val = (unsigned int)va_arg(args_copy, unsigned int);
+						val = (unsigned int)va_arg(args, unsigned int);
 					}
 					written += print_dec(val, arg_width, callback, userData, fill_zero, align, precision);
 				}
@@ -317,7 +314,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 			case 'f':
 				{
 					if (precision == -1) precision = 8; // To 8 decimal points
-					double val = (double)va_arg(args_copy, double);
+					double val = (double)va_arg(args, double);
 					uint64_t asBits;
 					memcpy(&asBits, &val, sizeof(double));
 #define SIGNBIT(d) (d & 0x8000000000000000UL)
@@ -377,7 +374,6 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				break;
 		}
 	}
-	va_end(args_copy);  // Clean up the va_list copy
 	return written;
 }
 

@@ -65,7 +65,7 @@ mkdir -p "$INITRD/"
 
 # Configure CFLAGS (TODO: Don't expose KERNEL_BUILD_CONFIGURATION)
 export CFLAGS="-D__HEXAHEDRON__ -D__REDUCEOS__ -D__ARCH__=$BUILD_ARCH -D__ARCH_${BUILD_ARCH_UPPER}__ -D__KERNEL__ -D__KERNEL_${KERNEL_BUILD_CONF}__"
-export CFLAGS="$CFLAGS -MD -MP --sysroot=$SYSROOT"
+export CFLAGS="$CFLAGS -MD -MP --sysroot=$SYSROOT -O2"
 
 # polyhedron/kstructures are given, these are mainly just for external projects
 export KERNEL_LIBS=""

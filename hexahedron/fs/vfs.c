@@ -289,6 +289,8 @@ tree_node_t *vfs_mount(fs_node_t *node, char *path) {
         return NULL;
     }
 
+    tree_node_t *parent_node = vfs_tree->root; // We start at the root node
+
     spinlock_acquire(vfs_lock);
 
     // If the path strlen is 0, then we're trying to set the root node
@@ -302,8 +304,6 @@ tree_node_t *vfs_mount(fs_node_t *node, char *path) {
     // Ok we still have to do work :(
     // We can use strtok_r and iterate through each part of the path, creating new nodes when needed.
 
-    tree_node_t *parent_node = vfs_tree->root; // We start at the root node
-    
     char *pch;
     char *saveptr;
     char *strtok_path = strdup(path); // strtok_r messes with the string
