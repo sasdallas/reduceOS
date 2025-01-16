@@ -29,35 +29,35 @@
  * 
  * @param vid A specific vendor ID to look for. Can be 0 to not look for one
  * @param pid A specific product ID to look for. Can be 0 to not look for one
- * @param classcode The class code to look for. Can be 0 to not look for one
- * @param subclasscode The subclass code to look for. Can be 0 to not look for one.
- * @param protocol A protocol to look for. Can be 0 to not look for one. 
+ * @param classcode The class code to look for IN THE INTERFACE. Can be 0 to not look for one
+ * @param subclasscode The subclass code to look for IN THE INTERFACE. Can be 0 to not look for one.
+ * @param protocol A protocol to look for IN THE INTERFACE. Can be 0 to not look for one. 
  */
 typedef struct USBDriverFindParameters {
     uint16_t vid;           // Vendor ID to look for. Can be 0.
     uint16_t pid;           // Product ID to look for. Can be 0.
-    uint8_t classcode;      // Class code to look for. Can be 0.
-    uint8_t subclasscode;   // Subclass code to look for. Can be 0.
-    uint8_t protocol;       // Protocol to look for. Can be 0.
+    uint8_t classcode;      // Class code to look for in the interface. Can be 0.
+    uint8_t subclasscode;   // Subclass code to look for in the interface. Can be 0.
+    uint8_t protocol;       // Protocol to look for in the interface. Can be 0.
 } USBDriverFindParameters_t;
 
 /**
  * @brief Device check/initialize method
- * @param dev The device to initialize
+ * @param intf The interface to deinitialize
  * 
  * @note This will be called multiple times. Verify the device found is the correct device.
  * @returns @c USB_SUCCESS on a successfully initialized device
  */
-typedef USB_STATUS (*driver_dev_init_t)(USBDevice_t *dev);
+typedef USB_STATUS (*driver_dev_init_t)(USBInterface_t *intf);
 
 /**
  * @brief Device deinitialize method. This should just unload and free any driver-specific structures related to this device.
- * @param dev The device to deinitialize
+ * @param intf The interface to deinitialize
  * 
  * @note This device may be claimed by another driver after deinitialization.
  * @returns @c USB_SUCCESS on a successfully deinitialized device
  */
-typedef USB_STATUS (*driver_dev_deinit_t)(USBDevice_t *dev);
+typedef USB_STATUS (*driver_dev_deinit_t)(USBInterface_t *intf);
 
 /**
  * @brief USB driver structure
@@ -74,6 +74,8 @@ typedef struct USBDriver {
     driver_dev_init_t dev_init;         // Device initialize method
     driver_dev_deinit_t dev_deinit;     // Device deinitialize method
     USBDriverFindParameters_t *find;    // Optional find parameters.
+
+    void *s;                            // Driver-specific structure
 
     // BIND SETTINGS
     // Collisions are not handled very well yet. However, certain drivers can set themselves as a weak bind.

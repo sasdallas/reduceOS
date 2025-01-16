@@ -264,6 +264,7 @@ USBConfiguration_t *usb_getConfigurationFromIndex(USBDevice_t *dev, int index) {
             USBInterface_t *interface = kmalloc(sizeof(USBInterface_t));
             memcpy((void*)&interface->desc, buffer, sizeof(USBInterfaceDescriptor_t));
             interface->endpoint_list = list_create("usb endpoint list");
+            interface->dev = dev;
             list_append(config->interface_list, (void*)interface);
             LOG(INFO, "This interface has %i available endpoints, with class 0x%x subclass 0x%x\n", interface->desc.bNumEndpoints+1, interface->desc.bInterfaceClass, interface->desc.bInterfaceSubClass);
 
@@ -411,24 +412,8 @@ USB_STATUS usb_initializeDevice(USBDevice_t *dev) {
         return USB_FAILURE;
     }
 
-    // TODO: We're just picking the first interface we can find!
-    dev->interface = (USBInterface_t*)dev->config->interface_list->head->value;
-    if (!dev->interface) {
-        LOG(ERR, "No interfaces?? KERNEL BUG!\n");
-        return USB_FAILURE;
-    }
-
-    // TODO: We're just picking the LAST endpoint we can find!
-    dev->endpoint = (USBEndpoint_t*)dev->interface->endpoint_list->tail->value;
-    if (!dev->endpoint) {
-        LOG(ERR, "No endpoints?? KERNEL BUG!\n");
-        return USB_FAILURE;
-    }
-
     char *conf_str = usb_getStringIndex(dev, dev->config->desc.iConfiguration, dev->chosen_language);
-    char *intf_str = usb_getStringIndex(dev, dev->interface->desc.iInterface, dev->chosen_language);
-    LOG(INFO, "Selected configuration '%s' with interface '%s' and endpoint #%d\n", conf_str, intf_str, dev->endpoint->desc.bEndpointAddress & USB_ENDP_NUMBER);
-    if (intf_str) kfree(intf_str);
+    LOG(INFO, "Selected configuration '%s'\n", conf_str);
     if (conf_str) kfree(conf_str);
 
     // Now send the device the request to set its configuration
@@ -444,7 +429,6 @@ USB_STATUS usb_initializeDevice(USBDevice_t *dev) {
 
     // All done!
     LOG(INFO, "Initialized USB device '%s' from '%s' (SN %s)\n", product_str, vendor_str, serial_number);
-    if (dev->driver) LOG(INFO, "Device given driver: '%s'\n", dev->driver->name);
     if (product_str) kfree(product_str);
     if (vendor_str) kfree(vendor_str);
     if (serial_number) kfree(serial_number);

@@ -43,21 +43,19 @@ USBDriver_t *usb_createDriver() {
  * 
  * @returns @c USB_SUCCESS on success
  */
-static USB_STATUS usb_driverInitializeDevice(USBDriver_t *driver, USBDevice_t *dev) {
-    if (!driver || !dev) return USB_FAILURE;
+static USB_STATUS usb_driverInitializeDevice(USBDriver_t *driver, USBDevice_t *dev, USBInterface_t *intf) {
+    if (!driver || !dev || !intf) return USB_FAILURE;
 
     if (driver->find) {
         // Check parameters
-        if (driver->find->vid && dev->device_desc.idVendor != driver->find->vid) return USB_FAILURE;
-        if (driver->find->pid && dev->device_desc.idProduct != driver->find->pid) return USB_FAILURE; // I mean, this is kinda weird if you have a NULL VID but want a PID, but whatever
-        if (driver->find->classcode && dev->device_desc.bDeviceClass != driver->find->classcode) return USB_FAILURE;
-        if (driver->find->subclasscode && dev->device_desc.bDeviceSubClass != driver->find->subclasscode) return USB_FAILURE;
-        if (driver->find->protocol && dev->device_desc.bDeviceProtocol != driver->find->protocol) return USB_FAILURE;
+        if (driver->find->classcode && intf->desc.bInterfaceClass != driver->find->classcode) return USB_FAILURE;
+        if (driver->find->subclasscode && intf->desc.bInterfaceSubClass != driver->find->subclasscode) return USB_FAILURE;
+        if (driver->find->protocol && intf->desc.bInterfaceProtocol != driver->find->protocol) return USB_FAILURE;
     }
 
     
     // If there's already a driver given to the device, make sure this driver and the one that's currently loaded isn't a weak bind
-    if (dev->driver) {
+    if (intf->driver) {
         // No find parameters? Skip this driver.
         if (!driver->find) return USB_FAILURE;
 
@@ -66,29 +64,30 @@ static USB_STATUS usb_driverInitializeDevice(USBDriver_t *driver, USBDevice_t *d
         if (driver->weak_bind) {
             // The current driver has a weak bind, meaning we can assume the currently loaded driver is better.
             return USB_FAILURE;
-        } else if (dev->driver->weak_bind) {
+        } else if (intf->driver->weak_bind) {
             // The currently loaded driver has a weak bind, meaning we can do a weird unload/load sequence
             // !!!: Clean this up
-            USBDriver_t *prev_driver = dev->driver; // Save a copy of the previous driver
-            if (dev->driver->dev_deinit(dev) != USB_SUCCESS) {
+            USBDriver_t *prev_driver = intf->driver; // Save a copy of the previous driver
+            if (intf->driver->dev_deinit(intf) != USB_SUCCESS) {
                 LOG(WARN, "Failed to deinitialize driver '%s' from device (loading new driver '%s')\n", prev_driver->name, driver->name);
             }
 
-            if (driver->dev_init(dev) != USB_SUCCESS) {
+            intf->driver = driver;
+
+            if (driver->dev_init(intf) != USB_SUCCESS) {
                 // The new driver failed to initialize, try to fallback to the old one.
                 LOG(WARN, "Failed to initialize driver '%s', fallback to previous driver '%s'\n", driver->name, prev_driver->name);
-                prev_driver->dev_init(dev);
-                dev->driver = prev_driver;
+                prev_driver->dev_init(intf);
+                intf->driver = prev_driver;
                 return USB_FAILURE;
             }
 
-            dev->driver = driver;
             return USB_SUCCESS;
         } else {
             // Both drivers do not have weak binds or both do have weak binds. What the hell do we do?
             // This cannot be resolved easily in any way I can think of without a full USB stack restructure, and god knows I am not doing that.
             LOG(ERR, "Collision detected while initializing USB driver.");
-            LOG(ERR, "Device loaded driver '%s' has a weak bind, but driver '%s' matches find parameters and also does/doesnot a weak bind.\n", dev->driver->name, driver->name);
+            LOG(ERR, "Device loaded driver '%s' has a weak bind, but driver '%s' matches find parameters and also does/doesnot a weak bind.\n", intf->driver->name, driver->name);
             LOG(ERR, "This situation cannot be resolved with the current USB stack structure. Please contact the developer.\n");
             return USB_FAILURE;
         }
@@ -96,11 +95,16 @@ static USB_STATUS usb_driverInitializeDevice(USBDriver_t *driver, USBDevice_t *d
 
     // Try to initialize
     if (driver->dev_init) {
-        USB_STATUS ret = driver->dev_init(dev);
+        // Prematurely assign intf->driver
+        USBDriver_t *prev_driver = intf->driver;
+        intf->driver = driver;
+
+        USB_STATUS ret = driver->dev_init(intf);
         if (ret == USB_SUCCESS) {
-            dev->driver = driver;
             return ret;
         }
+
+        intf->driver = prev_driver; // Reassign old driver
     }
     return USB_FAILURE;
 }
@@ -128,8 +132,18 @@ extern list_t *usb_controller_list;
             USBDevice_t *dev = (USBDevice_t*)(devnode->value);
             if (!dev) continue;
             
-            // Try to initialize it. usb_driverInitializeDevice is our internal method
-            usb_driverInitializeDevice(driver, dev);
+            if (driver->find->vid && dev->device_desc.idVendor != driver->find->vid) continue;
+            if (driver->find->pid && dev->device_desc.idProduct != driver->find->pid) continue; // I mean, this is kinda weird if you have a NULL VID but want a PID, but whatever
+            
+
+            // Now we need to iterate through the interfaces to find the correct one
+            foreach(intf_node, dev->config->interface_list) {
+                USBInterface_t *intf = (USBInterface_t*)(intf_node->value);
+                if (!intf) continue;
+                if (usb_driverInitializeDevice(driver, dev, intf) == USB_SUCCESS) {
+                    return USB_SUCCESS; // All done
+                }       
+            }
         }
     }
 
@@ -149,9 +163,20 @@ USB_STATUS usb_initializeDeviceDriver(USBDevice_t *dev) {
         USBDriver_t *driver = (USBDriver_t*)(drv_node->value);
         if (!driver) continue;
 
-        if (usb_driverInitializeDevice(driver, dev) == USB_SUCCESS) {
-            return USB_SUCCESS; // All done
+        // Check VID/PID
+        if (driver->find->vid && dev->device_desc.idVendor != driver->find->vid) continue;
+        if (driver->find->pid && dev->device_desc.idProduct != driver->find->pid) continue;
+
+
+        // Now we need to iterate through the interfaces to find the correct one
+        foreach(intf_node, dev->config->interface_list) {
+            USBInterface_t *intf = (USBInterface_t*)(intf_node->value);
+            if (!intf) continue;
+            if (usb_driverInitializeDevice(driver, dev, intf) == USB_SUCCESS) {
+                return USB_SUCCESS; // All done
+            }       
         }
+        
     }
 
     return USB_FAILURE;

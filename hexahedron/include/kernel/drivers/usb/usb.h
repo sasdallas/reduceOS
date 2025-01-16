@@ -24,6 +24,7 @@
 #include <kernel/drivers/usb/dev.h>
 #include <kernel/drivers/usb/driver.h>
 #include <kernel/drivers/usb/status.h>
+#include <kernel/drivers/usb/api.h>
 
 /**** TYPES ****/
 
@@ -104,21 +105,6 @@ USBDevice_t *usb_createDevice(USBController_t *controller, uint32_t port, int sp
  * @warning Does not shut the device down, just frees it from memory
  */
 void usb_destroyDevice(USBController_t *controller, USBDevice_t *dev);
-
-/**
- * @brief USB device request method
- * 
- * @param device The device
- * @param type The request type (should have a direction, type, and recipient - bmRequestType)
- * @param request The request to send (USB_REQ_... - bRequest)
- * @param value Optional parameter to the request (wValue)
- * @param index Optional index for the request (this field differs depending on the recipient - wIndex)
- * @param length The length of the data (wLength)
- * @param data The data
- * 
- * @returns The transfer status (not USB_STATUS)
- */
-int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, uintptr_t value, uintptr_t index, uintptr_t length, void *data);
 
 /**
  * @brief Read a string from the USB device

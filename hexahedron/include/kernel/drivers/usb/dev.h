@@ -37,10 +37,20 @@
 
 /**** TYPES ****/
 
+// Prototypes
+struct USBDevice;
+struct USBInterface;
+
+// Can't include these headers because they include us
+struct USBController;
+struct USBDriver;
+
+
 /**
  * @brief USB endpoint
  */
 typedef struct USBEndpoint {
+    struct USBInterface *intf;      // Parent interface
     USBEndpointDescriptor_t desc;   // Descriptor
     uint32_t toggle;                // For bulk data transfers
 } USBEndpoint_t;
@@ -49,8 +59,12 @@ typedef struct USBEndpoint {
  * @brief USB interface
  */
 typedef struct USBInterface {
+    struct USBDevice *dev;          // Parent device
+
     USBInterfaceDescriptor_t desc;  // Descriptor
     list_t *endpoint_list;          // List of endpoints (USBEndpoint_t)
+
+    struct USBDriver *driver;       // Driver currently registered to this interface
 } USBInterface_t;
 
 /**
@@ -75,12 +89,6 @@ typedef struct USBTransfer {
     int status;                     // Transfer status (USB_TRANSFER_...)
 } USBTransfer_t;
 
-// Prototype
-struct USBDevice;
-
-// Can't include these headers because they include us
-struct USBController;
-struct USBDriver;
 
 /**
  * @brief Host controller transfer method for a CONTROL transfer
@@ -108,23 +116,37 @@ typedef struct USBDevice {
 
     // Configuration/endpoint/interface
     USBConfiguration_t *config;             // Current configuration selected
-    USBEndpoint_t *endpoint;                // Current endpoint selected
-    USBInterface_t *interface;              // Current interface selected
-    
+
     list_t *config_list;                    // List of endpoints
 
     // Other descriptors
     USBDeviceDescriptor_t device_desc;      // Device descriptor
     USBStringLanguagesDescriptor_t *langs;  // Languages (this is a pointer as we need to realloc after reading bLength)
-
-    // Loaded driver
-    struct USBDriver *driver;               // Currently loaded driver
-
+    
     // HACK: Probably have to remove this
     uint16_t chosen_language;               // Chosen language for Hexahedron to use by default
 
     // Host controller methods
     hc_control_t    control;                // Control transfer request
 } USBDevice_t;
+
+/**** FUNCTIONS ****/
+
+/**
+ * @brief USB device request method
+ * 
+ * @param device The device
+ * @param type The request type (should have a direction, type, and recipient - bmRequestType)
+ * @param request The request to send (USB_REQ_... - bRequest)
+ * @param value Optional parameter to the request (wValue)
+ * @param index Optional index for the request (this field differs depending on the recipient - wIndex)
+ * @param length The length of the data (wLength)
+ * @param data The data
+ * 
+ * @returns The transfer status (not USB_STATUS)
+ */
+int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, uintptr_t value, uintptr_t index, uintptr_t length, void *data);
+
+
 
 #endif

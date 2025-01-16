@@ -157,4 +157,20 @@ typedef struct USBStringDescriptor {
     uint8_t     bString[];          // Unicode string
 } USBStringDescriptor_t;
 
+/**
+ * @brief Hub descriptor
+ */
+typedef struct USBHubDescriptor {
+    uint8_t     bLength;                // Size of this descriptor in bytes
+    uint8_t     bDescriptorType;        // USB_DESC_HUB
+    uint8_t     bNbrPorts;              // Number of ports
+    uint16_t    wHubCharacteristics;    // Hub characteristics
+    uint8_t     bPowerOnGood;           // Time (*2ms) from port power on to power good
+    uint8_t     bHubContrCurrent;       // Maximum current used by hub controller (mA)
+    
+    // The remaining two fields of the hub descriptor are DeviceRemovable and PortPwrControlMask.
+    // These take the size of bNbrPorts bits.
+    uint8_t     bRemainder[];
+} USBHubDescriptor_t;
+
 #endif
