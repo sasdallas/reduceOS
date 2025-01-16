@@ -132,7 +132,7 @@ void usb_destroyDevice(USBController_t *controller, USBDevice_t *dev) {
  * @param length The length of the data (wLength)
  * @param data The data
  * 
- * @returns The request status 
+ * @returns The request status, in terms of @c USB_TRANSFER_xxx
  */
 int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, uintptr_t value, uintptr_t index, uintptr_t length, void *data) {
     if (!device) return -1;
@@ -168,12 +168,12 @@ int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, ui
  * @param dev The device to read the string from
  * @param idx The index of the string to read
  * @param lang The language code
- * @returns ASCII string (converted from the normal unicode)
+ * @returns ASCII string (converted from the normal unicode) or NULL if we failed to get the descriptor
  */
 char *usb_getStringIndex(USBDevice_t *device, int idx, uint16_t lang) {
     if (idx == 0) {
-        // String index #0 is reserved for languages
-        LOG(WARN, "Cannot read string index #0 - reserved for languages\n");
+        // String index #0 is reserved for languages - this usually means that a driver attempted to get a nonexistant string ID
+        LOG(WARN, "Tried to access string ID #0 - nonfatal\n");
         return NULL;
     }
 
@@ -195,6 +195,7 @@ char *usb_getStringIndex(USBDevice_t *device, int idx, uint16_t lang) {
                 USB_REQ_GET_DESC, (USB_DESC_STRING << 8) | idx, lang, bLength, desc) != USB_TRANSFER_SUCCESS)
     {
         LOG(WARN, "Failed to get string index %i for device\n", idx);
+        kfree(desc);
         return NULL;
     }
 
@@ -264,7 +265,7 @@ USBConfiguration_t *usb_getConfigurationFromIndex(USBDevice_t *dev, int index) {
             memcpy((void*)&interface->desc, buffer, sizeof(USBInterfaceDescriptor_t));
             interface->endpoint_list = list_create("usb endpoint list");
             list_append(config->interface_list, (void*)interface);
-            LOG(INFO, "This interface has %i available endpoints, with class 0x%x subclass 0x%x\n", interface->desc.bNumEndpoints, interface->desc.bInterfaceClass, interface->desc.bInterfaceSubClass);
+            LOG(INFO, "This interface has %i available endpoints, with class 0x%x subclass 0x%x\n", interface->desc.bNumEndpoints+1, interface->desc.bInterfaceClass, interface->desc.bInterfaceSubClass);
 
             // Push buffer ahead
             buffer += interface->desc.bLength;
@@ -297,9 +298,12 @@ USBConfiguration_t *usb_getConfigurationFromIndex(USBDevice_t *dev, int index) {
  * @brief Initialize a USB device and assign to the USB controller's list of devices
  * @param dev The device to initialize
  * 
- * @returns Negative value on failure and 0 on success
+ * @todo This is a bit hacky
+ * 
+ * @note If this fails, please call @c usb_destroyDevice to cleanup
+ * @returns USB_FAILURE on failure and USB_SUCCESS on success
  */
-int usb_initializeDevice(USBDevice_t *dev) {
+USB_STATUS usb_initializeDevice(USBDevice_t *dev) {
     LOG(DEBUG, "Initializing USB device on port 0x%x...\n", dev->port);
 
 
@@ -310,7 +314,7 @@ int usb_initializeDevice(USBDevice_t *dev) {
     {
         // The request did not succeed
         LOG(ERR, "USB_REQ_GET_DESC did not succeed\n");
-        return -1;
+        return USB_FAILURE;
     }
 
     // Set the maximum packet size
@@ -326,7 +330,7 @@ int usb_initializeDevice(USBDevice_t *dev) {
     {
         // The request did not succeed
         LOG(ERR, "Device initialization failed - USB_REQ_SET_ADDR 0x%x did not succeed\n", address);
-        return -1;
+        return USB_FAILURE;
     }
 
     // Allow the device a 20ms recovery time
@@ -340,7 +344,7 @@ int usb_initializeDevice(USBDevice_t *dev) {
     {
         // The request did not succeed
         LOG(ERR, "Device initialization failed - failed to read full descriptor\n");
-        return -1;
+        return USB_FAILURE;
     }
 
 
@@ -357,7 +361,7 @@ int usb_initializeDevice(USBDevice_t *dev) {
                 USB_REQ_GET_DESC, (USB_DESC_STRING << 8) | 0, 0, 1, &lang_length) != USB_TRANSFER_SUCCESS) 
     {
         LOG(ERR, "Device initialization failed - could not get language codes\n");
-        return -1;
+        return USB_FAILURE;
     }
 
     // Now we can read the full descriptor
@@ -367,7 +371,7 @@ int usb_initializeDevice(USBDevice_t *dev) {
                 USB_REQ_GET_DESC, (USB_DESC_STRING << 8) | 0, 0, lang_length, dev->langs) != USB_TRANSFER_SUCCESS)
     {
         LOG(ERR, "Device initialization failed - could not get all language codes\n");
-        return -1;
+        return USB_FAILURE;
     }
 
     for (int i = 0; i < (dev->langs->bLength - 2) / 2; i++) {
@@ -404,21 +408,21 @@ int usb_initializeDevice(USBDevice_t *dev) {
     dev->config = (USBConfiguration_t*)dev->config_list->head->value;
     if (!dev->config) {
         LOG(ERR, "No configurations?? KERNEL BUG!\n");
-        return -1;
+        return USB_FAILURE;
     }
 
     // TODO: We're just picking the first interface we can find!
     dev->interface = (USBInterface_t*)dev->config->interface_list->head->value;
     if (!dev->interface) {
         LOG(ERR, "No interfaces?? KERNEL BUG!\n");
-        return -1;
+        return USB_FAILURE;
     }
 
     // TODO: We're just picking the LAST endpoint we can find!
     dev->endpoint = (USBEndpoint_t*)dev->interface->endpoint_list->tail->value;
     if (!dev->endpoint) {
         LOG(ERR, "No endpoints?? KERNEL BUG!\n");
-        return -1;
+        return USB_FAILURE;
     }
 
     char *conf_str = usb_getStringIndex(dev, dev->config->desc.iConfiguration, dev->chosen_language);
@@ -432,16 +436,18 @@ int usb_initializeDevice(USBDevice_t *dev) {
                 USB_REQ_SET_CONF, dev->config->index, 0, 0, NULL) != USB_TRANSFER_SUCCESS)
     {
         LOG(ERR, "USB initialization failed - could not set configuration\n");
-        return -1;
+        return USB_FAILURE;
     }
 
-    // All done! Now when other drivers initialize, they can find this device.
+    // Try to find a driver
+    usb_initializeDeviceDriver(dev);
+
+    // All done!
     LOG(INFO, "Initialized USB device '%s' from '%s' (SN %s)\n", product_str, vendor_str, serial_number);
+    if (dev->driver) LOG(INFO, "Device given driver: '%s'\n", dev->driver->name);
     if (product_str) kfree(product_str);
     if (vendor_str) kfree(vendor_str);
     if (serial_number) kfree(serial_number);
 
-    
-
-    return 0;
+    return USB_SUCCESS;
 }

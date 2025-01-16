@@ -78,9 +78,9 @@ typedef struct USBTransfer {
 // Prototype
 struct USBDevice;
 
-// Can't include the header
+// Can't include these headers because they include us
 struct USBController;
-
+struct USBDriver;
 
 /**
  * @brief Host controller transfer method for a CONTROL transfer
@@ -93,7 +93,9 @@ typedef int (*hc_control_t)(struct USBController *controller, struct USBDevice *
 
 
 /**
- * @brief USB device
+ * @brief Main USB device structure
+ * 
+ * @note This uses a TON of memory, as it holds config/endpoint/interface lists. When you want to deinitialize, CALL @c usb_destroyDevice TO CLEAN ALL MEMORY!
  */
 typedef struct USBDevice {
     struct USBController *c;                // Controller
@@ -104,14 +106,19 @@ typedef struct USBDevice {
     uint32_t    address;                    // Address assigned to the device
     uint32_t    mps;                        // Max packet size as determined by device descriptor
 
+    // Configuration/endpoint/interface
     USBConfiguration_t *config;             // Current configuration selected
     USBEndpoint_t *endpoint;                // Current endpoint selected
     USBInterface_t *interface;              // Current interface selected
     
     list_t *config_list;                    // List of endpoints
 
+    // Other descriptors
     USBDeviceDescriptor_t device_desc;      // Device descriptor
     USBStringLanguagesDescriptor_t *langs;  // Languages (this is a pointer as we need to realloc after reading bLength)
+
+    // Loaded driver
+    struct USBDriver *driver;               // Currently loaded driver
 
     // HACK: Probably have to remove this
     uint16_t chosen_language;               // Chosen language for Hexahedron to use by default

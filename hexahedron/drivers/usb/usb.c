@@ -2,6 +2,7 @@
  * @file hexahedron/drivers/usb/usb.c
  * @brief Main USB interface
  * 
+ * This USB interface handles basic controller stuff such as registering controllers
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -31,13 +32,6 @@ list_t *usb_controller_list = NULL;
  */
 void usb_poll(uint64_t ticks) {
     // !!!: polling disabled
-    // if (!usb_controller_list) return;
-
-    // foreach(n, usb_controller_list) {
-    //     USBController_t *controller = (USBController_t*)n->value;
-    //     if (controller->poll) controller->poll(controller);
-    // }
-
 }
 
 
@@ -54,6 +48,9 @@ void usb_init() {
     if (clock_registerUpdateCallback(usb_poll) < 0) {
         LOG(ERR, "Failed to register poll method\n");
     }
+
+    // Create the driver list
+    usb_driver_list = list_create("usb drivers");
 
     LOG(INFO, "USB system online\n");
 }
@@ -85,3 +82,5 @@ void usb_registerController(USBController_t *controller) {
 
     list_append(usb_controller_list, controller);
 }
+
+

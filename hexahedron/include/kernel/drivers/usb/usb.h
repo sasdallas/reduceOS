@@ -19,7 +19,11 @@
 /**** INCLUDES ****/
 #include <stdint.h>
 #include <structs/list.h>
+
+// USB
 #include <kernel/drivers/usb/dev.h>
+#include <kernel/drivers/usb/driver.h>
+#include <kernel/drivers/usb/status.h>
 
 /**** TYPES ****/
 
@@ -29,18 +33,23 @@ struct USBController;
 /**
  * @brief Poll method for USB controller
  * 
+ * @warning Currently unused as of Jan 16, 2025
+ * 
  * @param controller The controller
  */
 typedef void (*usb_poll_t)(struct USBController *controller);
 
 /**
  * @brief USB controller structure
+ * 
+ * Normal USB drivers do not need to register this. This is for host controller
+ * drivers, such as xHCI/EHCI
  */
 typedef struct USBController {
     void *hc;               // Pointer to the host controller structure
     usb_poll_t poll;        // Poll method, will be called once every tick
     list_t *devices;        // List of USB devices with a maximum of 127
-    uint32_t last_address;  // Last address (index in devices) given to a device
+    uint32_t last_address;  // Last address given to a device. Starts at 0x1
 } USBController_t;
 
 
@@ -75,7 +84,7 @@ void usb_registerController(USBController_t *controller);
  * 
  * @returns Negative value on failure and 0 on success
  */
-int usb_initializeDevice(USBDevice_t *dev);
+USB_STATUS usb_initializeDevice(USBDevice_t *dev);
 
 /**
  * @brief Create a new USB device structure for initialization
@@ -97,14 +106,6 @@ USBDevice_t *usb_createDevice(USBController_t *controller, uint32_t port, int sp
 void usb_destroyDevice(USBController_t *controller, USBDevice_t *dev);
 
 /**
- * @brief Initialize a USB device and assign to the USB controller's list of devices
- * @param dev The device to initialize
- * 
- * @returns Negative value on failure and 0 on success.
- */
-int usb_initializeDevice(USBDevice_t *dev);
-
-/**
  * @brief USB device request method
  * 
  * @param device The device
@@ -115,7 +116,7 @@ int usb_initializeDevice(USBDevice_t *dev);
  * @param length The length of the data (wLength)
  * @param data The data
  * 
- * @returns The request status 
+ * @returns The transfer status (not USB_STATUS)
  */
 int usb_requestDevice(USBDevice_t *device, uintptr_t type, uintptr_t request, uintptr_t value, uintptr_t index, uintptr_t length, void *data);
 
