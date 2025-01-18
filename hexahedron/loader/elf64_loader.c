@@ -80,7 +80,7 @@ static int elf_checkSupported(Elf64_Ehdr *ehdr) {
  * @param table The table of the symbol
  * @param idx The index of the symbol
  * @param flags The flags of loading the ELF file, by default assume ELF_USER
- * @returns Absolute address of a symbol, 0x0 (does not indicate failure), or ELF_RELOC_FAIL if failed.
+ * @returns Absolute address of a symbol, 0x0 (does not indicate failure), or ELF_FAIL if failed.
  * 
  * @note This will also bind symbols if they are required
  * 
@@ -88,7 +88,7 @@ static int elf_checkSupported(Elf64_Ehdr *ehdr) {
  */
 static uintptr_t elf_getSymbolAddress(Elf64_Ehdr *ehdr, int table, uintptr_t idx, int flags) {
     // First make sure parameters are correct
-    if (table == SHN_UNDEF || idx == SHN_UNDEF || flags > ELF_DRIVER) return ELF_RELOC_FAIL;
+    if (table == SHN_UNDEF || idx == SHN_UNDEF || flags > ELF_DRIVER) return ELF_FAIL;
 
     // Get the symbol table and calculate its entries
     Elf64_Shdr *symtab = ELF_SECTION(ehdr, table);
@@ -96,7 +96,7 @@ static uintptr_t elf_getSymbolAddress(Elf64_Ehdr *ehdr, int table, uintptr_t idx
     
     if (idx >= entry_count) {
         LOG(ERR, "elf_getSymbolAddress(): Symbol index out of range (%d:%u)\n", table, idx);
-        return ELF_RELOC_FAIL;
+        return ELF_FAIL;
     }
 
     // Now get the symbol
@@ -112,7 +112,7 @@ static uintptr_t elf_getSymbolAddress(Elf64_Ehdr *ehdr, int table, uintptr_t idx
 
             if (flags != ELF_KERNEL && flags != ELF_DRIVER) {
                 LOG(ERR, "elf_getSymbolAddress(): Unimplemented usermode lookup for symbol '%s'\n", name);
-                return ELF_RELOC_FAIL;
+                return ELF_FAIL;
             }
 
             uintptr_t addr = ksym_resolve(name);
@@ -123,7 +123,7 @@ static uintptr_t elf_getSymbolAddress(Elf64_Ehdr *ehdr, int table, uintptr_t idx
                     return 0;
                 } else {
                     LOG(ERR, "elf_getSymbolAddress(): External symbol '%s' not found in kernel.\n", name);
-                    return ELF_RELOC_FAIL;
+                    return ELF_FAIL;
                 }
             } else {
                 return addr;
@@ -158,7 +158,7 @@ static char *elf_lookupSectionName(Elf64_Ehdr *ehdr, int idx) {
  * @param rel The symbol to relocate
  * @param reltab The section header of the symbol
  * @param flags The flags passed to @c elf_load
- * @returns Symbol value or @c ELF_RELOC_FAIL
+ * @returns Symbol value or @c ELF_FAIL
  * 
  * @see https://wiki.osdev.org/ELF_Tutorial
  */
@@ -173,7 +173,7 @@ static uintptr_t elf_relocateSymbol(Elf64_Ehdr *ehdr, Elf64_Rel *rel, Elf64_Shdr
     if (ELF64_R_SYM(rel->r_info) != SHN_UNDEF) {
         // We need to get the symbol value for this
         symval = elf_getSymbolAddress(ehdr, reltab->sh_link, ELF64_R_SYM(rel->r_info), flags);
-        if (symval == ELF_RELOC_FAIL) return -1; // Didn't work..
+        if (symval == ELF_FAIL) return -1; // Didn't work..
     }
 
     // Relocate based on the type
@@ -195,7 +195,7 @@ static uintptr_t elf_relocateSymbol(Elf64_Ehdr *ehdr, Elf64_Rel *rel, Elf64_Shdr
 
         case R_X86_64_PLT32:
             LOG(ERR, "Cannot parse PLT32! Link with -nostdlib and compile with -fno-pie!\n"); // Spent about an entire day debugging this. I hate PLT32.
-            return ELF_RELOC_FAIL;
+            return ELF_FAIL;
 
         case R_X86_64_PC32:
             // Symbol + Offset - Section Offset
@@ -207,7 +207,7 @@ static uintptr_t elf_relocateSymbol(Elf64_Ehdr *ehdr, Elf64_Rel *rel, Elf64_Shdr
 
         default:
             LOG(ERR, "Unsupported relocaton type: %i\n", rel->r_info);
-            return ELF_RELOC_FAIL;
+            return ELF_FAIL;
     }
 
     return symval;
@@ -219,7 +219,7 @@ static uintptr_t elf_relocateSymbol(Elf64_Ehdr *ehdr, Elf64_Rel *rel, Elf64_Shdr
  * @param rel The symbol to relocate
  * @param reltab The section header of the symbol
  * @param flags The flags passed to @c elf_load
- * @returns Symbol value or @c ELF_RELOC_FAIL
+ * @returns Symbol value or @c ELF_FAIL
  */
 static uintptr_t elf_relocateSymbolAddend(Elf64_Ehdr *ehdr, Elf64_Rela *rel, Elf64_Shdr *reltab, int flags) {
     // Calculate offset
@@ -233,7 +233,7 @@ static uintptr_t elf_relocateSymbolAddend(Elf64_Ehdr *ehdr, Elf64_Rela *rel, Elf
     if (ELF64_R_SYM(rel->r_info) != SHN_UNDEF) {
         // We need to get the symbol value for this
         symval = elf_getSymbolAddress(ehdr, reltab->sh_link, ELF64_R_SYM(rel->r_info), flags);
-        if (symval == ELF_RELOC_FAIL) return -1; // Didn't work..
+        if (symval == ELF_FAIL) return -1; // Didn't work..
     }
 
     // Relocate based on the type
@@ -255,7 +255,7 @@ static uintptr_t elf_relocateSymbolAddend(Elf64_Ehdr *ehdr, Elf64_Rela *rel, Elf
 
         case R_X86_64_PLT32:
             LOG(ERR, "Cannot parse PLT32! Link with -nostdlib and compile with -fno-pie!\n"); // Spent about an entire day debugging this. I hate PLT32.
-            return ELF_RELOC_FAIL;
+            return ELF_FAIL;
 
         case R_X86_64_PC32:
             // Symbol + Offset - Section Offset
@@ -267,7 +267,7 @@ static uintptr_t elf_relocateSymbolAddend(Elf64_Ehdr *ehdr, Elf64_Rela *rel, Elf
 
         default:
             LOG(ERR, "Unsupported relocaton type: %i\n", rel->r_info);
-            return ELF_RELOC_FAIL;
+            return ELF_FAIL;
     }
 
     return symval;
@@ -328,7 +328,7 @@ int elf_loadRelocatable(Elf64_Ehdr *ehdr, int flags) {
 
                 // Relocate the symbol
                 uintptr_t result = elf_relocateSymbol(ehdr, rel, section, flags);
-                if (result == ELF_RELOC_FAIL) return -1;
+                if (result == ELF_FAIL) return -1;
             }
         } else if (section->sh_type == SHT_RELA) {
             // We need to do relocation, process entries
@@ -337,10 +337,50 @@ int elf_loadRelocatable(Elf64_Ehdr *ehdr, int flags) {
 
                 // Relocate the symbol
                 uintptr_t result = elf_relocateSymbolAddend(ehdr, rela, section, flags);
-                if (result == ELF_RELOC_FAIL) return -1;
+                if (result == ELF_FAIL) return -1;
             }
         }
     }
+
+    return 0;
+}
+
+/**
+ * @brief Load an executable
+ * @param ehdr The EHDR of the executable
+ * @returns 0 on success
+ */
+int elf_loadExecutable(Elf64_Ehdr *ehdr) {
+    if (!ehdr) return ELF_FAIL;
+
+    // All we have to do is load PHDRs
+    for (int i = 0; i < ehdr->e_phnum; i++) {
+        // Get the PHDR
+        Elf64_Phdr *phdr = ELF_PHDR(ehdr, i);
+
+        switch (phdr->p_type) {
+            case PT_NULL:
+                // No work to be done - PT_NULL
+                break;
+            
+            case PT_LOAD:
+                // We have to load and map it into memory
+                // !!!: Presume that if we're being called, the page directory in use is the one assigned to the executable
+                LOG(DEBUG, "PHDR #%d - OFFSET 0x%x VADDR %p PADDR %p FILESIZE %d MEMSIZE %d\n", i, phdr->p_offset, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz, phdr->p_memsz);
+                
+                for (uintptr_t i = 0; i < MEM_ALIGN_PAGE(phdr->p_filesz); i += PAGE_SIZE) {
+                    page_t *pg = mem_getPage(NULL, i + phdr->p_vaddr, MEM_CREATE);
+                    if (pg) mem_allocatePage(pg, MEM_DEFAULT);
+                }
+
+                memcpy((void*)phdr->p_vaddr, (void*)((uintptr_t)ehdr + phdr->p_offset), phdr->p_filesz);
+                break;
+            default:
+                LOG(ERR, "Failed to load PHDR #%d - unimplemented type 0x%x\n", i, phdr->p_type);
+                return ELF_FAIL;
+        }
+    }
+
 
     return 0;
 }
@@ -390,6 +430,19 @@ uintptr_t elf_findSymbol(uintptr_t ehdr_address, char *name) {
 }
 
 /**
+ * @brief Get the entrypoint of an executable file
+ * @param ehdr_address The address of the EHDR (as elf64/elf32 could be in use)
+ * @returns A pointer to the start or NULL
+ */
+uintptr_t elf_getEntrypoint(uintptr_t ehdr_address) {
+    if (!ehdr_address) return (uintptr_t)NULL;
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr*)ehdr_address;
+
+    return ehdr->e_entry;
+}
+
+
+/**
  * @brief Load an ELF file fully
  * @param fbuf The buffer to load the file from
  * @param flags The flags to use (ELF_KERNEL or ELF_USER)
@@ -398,6 +451,11 @@ uintptr_t elf_findSymbol(uintptr_t ehdr_address, char *name) {
 uintptr_t elf_loadBuffer(uint8_t *fbuf, int flags) {
     // Cast ehdr to fbuf - routines can now access sections by adding to ehdr
     Elf64_Ehdr *ehdr = (Elf64_Ehdr*)fbuf;
+
+    // Check to make sure the ELF file is supported
+    if (!elf_checkSupported(ehdr)) {
+        return 0x0;
+    }
 
     // Which are we loading?
     switch (ehdr->e_type) {
@@ -411,8 +469,13 @@ uintptr_t elf_loadBuffer(uint8_t *fbuf, int flags) {
             break;
         
         case ET_EXEC:
-            // Executable file (unimplemented)
-            goto _error;
+            // Executable file
+            if (elf_loadExecutable(ehdr)) {
+                LOG(ERR, "Failed to load executable ELF file.\n");
+                goto _error;
+            }
+
+            break;
         
         default:
             // ???
@@ -467,11 +530,11 @@ uintptr_t elf_load(fs_node_t *node, int flags) {
  * @note REMEMBER TO FREE ELF BUFFER WHEN FINISHED!
  */
 int elf_cleanup(uintptr_t elf_address) {
-    if (elf_address == 0x0) return -1;
+    if (elf_address == 0x0) return ELF_FAIL;
 
     // Get EHDR
     Elf64_Ehdr *ehdr = (Elf64_Ehdr*)elf_address; 
-    if (!elf_checkSupported(ehdr)) return -1;
+    if (!elf_checkSupported(ehdr)) return ELF_FAIL;
 
     // Check EHDR type
     if (ehdr->e_type == ET_REL) {
@@ -485,7 +548,30 @@ int elf_cleanup(uintptr_t elf_address) {
             }
         }
     } else if (ehdr->e_type == ET_EXEC) {
-        LOG(ERR, "ET_EXEC cleanup unimplemented - leaking memory\n");
+        for (int i = 0; i < ehdr->e_phnum; i++) {
+            // Get the PHDR
+            Elf64_Phdr *phdr = ELF_PHDR(ehdr, i);
+
+            switch (phdr->p_type) {
+                case PT_NULL:
+                    // No work to be done - PT_NULL
+                    break;
+                
+                case PT_LOAD:
+                    // We have to unload and unmap it from memory
+                    // !!!: Presume that if we're being called, the page directory in use is the one assigned to the executable
+                    
+                    for (uintptr_t i = 0; i < MEM_ALIGN_PAGE(phdr->p_filesz); i += PAGE_SIZE) {
+                        page_t *pg = mem_getPage(NULL, i + phdr->p_vaddr, MEM_CREATE);
+                        if (pg) mem_freePage(pg);
+                    }
+
+                    break;
+                default:
+                    LOG(ERR, "Failed to cleanup PHDR #%d - unimplemented type 0x%x\n", i, phdr->p_type);
+                    break;
+            }
+        }
     }
 
     return 0;

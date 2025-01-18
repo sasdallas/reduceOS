@@ -28,8 +28,8 @@ Certain external components are available in `external`. Here is a list of them 
 ## Keeping track of potential issues
 - Relocatable code is not implemented in x86_64
 - GRUB might error out on Multiboot2 if the relocatable max address is too low
-- UHCI driver is very slow on QEMU
-- USB device structure uses a lot of memory (it stores all configurations, interfaces, and endpoints but this is probably a terrible idea)
+- USB device structure uses a lot of memory (it stores all configurations, interfaces, and endpoints but this is probably a terrible idea - implement getter functions instead?)
+- Some legacy code/unused functions in the USB stack (or other areas) may have been left
 
 ## Licensing
 

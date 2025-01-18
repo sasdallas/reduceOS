@@ -24,7 +24,7 @@
 #define ELF_USER    1   // Load an ELF file with usermode access (programs)
 #define ELF_DRIVER  2   // Equivalent to ELF_KERNEL but load the program with allocations in driver memory space
 
-#define ELF_RELOC_FAIL  (uintptr_t)-1       // Ugliest value ever...
+#define ELF_FAIL    (uintptr_t)-1       // Ugliest value ever...
 
 /**** FUNCTIONS ****/
 
@@ -39,10 +39,17 @@
 uintptr_t elf_findSymbol(uintptr_t ehdr_address, char *name);
 
 /**
+ * @brief Get the entrypoint of an executable file
+ * @param ehdr_address The address of the EHDR (as elf64/elf32 could be in use)
+ * @returns A pointer to the start or NULL
+ */
+uintptr_t elf_getEntrypoint(uintptr_t ehdr_address);
+
+/**
  * @brief Load an ELF file fully
  * @param fbuf The buffer to load the file from
  * @param flags The flags to use (ELF_KERNEL or ELF_USER)
- * @returns A pointer to the file that can be passed to @c elf_startExecution or @c elf_findSymbol - or NULL if there was an error. 
+ * @returns A pointer to the file that can be passed to @c elf_getEntrypoint or @c elf_findSymbol - or NULL if there was an error. 
  */
 uintptr_t elf_loadBuffer(uint8_t *fbuf, int flags);
 
@@ -50,7 +57,7 @@ uintptr_t elf_loadBuffer(uint8_t *fbuf, int flags);
  * @brief Load an ELF file into memory
  * @param file The file to load into memory
  * @param flags The flags to use (ELF_KERNEL or ELF_USER)
- * @returns A pointer to the file that can be passed to @c elf_startExecution or @c elf_findSymbol - or NULL if there was an error. 
+ * @returns A pointer to the file that can be passed to @c elf_getEntrypoint or @c elf_findSymbol - or NULL if there was an error. 
  */
 uintptr_t elf_load(fs_node_t *node, int flags);
 
