@@ -4,7 +4,6 @@
  * 
  * @warning Does not work on x86_64 for some reason
  * 
- * @todo SLOWWW!!! Needs some timeouts and fixes!
  * @todo Bulk transfers, interrupt transfers, isochronous transfers (not sure if we can do the last now)
  * 
  * @copyright
@@ -180,6 +179,7 @@ void uhci_destroyQH(USBController_t *controller, uhci_qh_t *qh) {
     spinlock_release(&uhci_lock);
 }
 
+
 /**
  * @brief Write to a port (PORTSC1 or PORTSC2)
  * @param port The port to write to (should be PORTSC1 or PORTSC2)
@@ -343,7 +343,6 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     qh->transfer = transfer;
     QH_LINK_TERM(qh);
 
-    // LOG(DEBUG, "UHCI control transfer - type 0x%x port 0x%x address 0x%x data %p length %d endp %d\n", transfer->req->bRequest, dev->port, dev->address, transfer->data, transfer->length, transfer->endpoint);
 
     // Setup variables that will change on the TDs
     uint32_t toggle = 0; // Toggle bit
@@ -384,11 +383,11 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     TD_LINK_TERM(td_status);
 
     // Insert it into the chain
-    // spinlock_acquire(&uhci_lock);
+    spinlock_acquire(&uhci_lock);
     uhci_qh_t *current = (uhci_qh_t*)hc->qh_list->tail->value;
     QH_LINK_QH(current, qh);
     list_append(hc->qh_list, (void*)qh);
-    // spinlock_release(&uhci_lock);
+    spinlock_release(&uhci_lock);
 
     // Wait for the transfer to finish
     while (transfer->status == USB_TRANSFER_IN_PROGRESS) {
@@ -469,11 +468,11 @@ int uhci_init(int argc, char **argv) {
     for (int i = 0; i < 1024; i++) {
         hc->frame_list[i].qh = 1;
         hc->frame_list[i].flp = LINK(qh);
-        hc->frame_list[i].terminate = 1; // TODO: Our current method of transactions doesn't bother with the frame list at all. Could it be useful?
+        hc->frame_list[i].terminate = 0;
     }
 
-    // Unmark entry 0 as terminate
-    hc->frame_list[0].terminate = 0;
+    // Mark entry 1024 as terminate
+    hc->frame_list[1023].terminate = 1;
 
     // Configure the UHCI controller
     outportw(hc->io_addr + UHCI_REG_LEGSUP, 0x8F00);        // Disable legacy support

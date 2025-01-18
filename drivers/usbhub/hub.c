@@ -99,7 +99,7 @@ USB_STATUS usbhub_probe(USBHub_t *hub) {
             }
 
             // Insert into list
-            list_insert(hub->hub_ports, (void*)dev);
+            list_append(hub->hub_ports, (void*)dev);
         }
 
     }  
@@ -142,6 +142,8 @@ USB_STATUS usbhub_initializeDevice(USBInterface_t *intf) {
  * @brief Hub deinitialize device
  */
 USB_STATUS usbhub_deinitializeDevice(USBInterface_t *intf) {
+    // !!!: We have to also deinitialize all devices connected to the hub, and likely also free their memory.
+    // !!!: This is to allow for the next USB hub driver (or whatever it is) to reinitialize everything properly.
     return USB_FAILURE;
 }
 
