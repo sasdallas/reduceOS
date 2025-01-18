@@ -29,6 +29,7 @@
 /* Macros to assist in getting section header/section */
 #define ELF_SHDR(ehdr) ((Elf64_Shdr*)((uintptr_t)ehdr + ehdr->e_shoff))
 #define ELF_SECTION(ehdr, idx) ((Elf64_Shdr*)&ELF_SHDR(ehdr)[idx])
+#define ELF_PHDR(ehdr, idx) ((Elf64_Phdr*)((uintptr_t)ehdr + ehdr->e_phoff + ehdr->e_phentsize * idx))
 
 /**
  * @brief Check if an ELF file is supported
