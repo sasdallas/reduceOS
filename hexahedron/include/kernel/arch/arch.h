@@ -25,6 +25,17 @@
 #include <stdint.h>
 #include <kernel/generic_mboot.h>
 
+/**** TYPES ****/
+
+#if defined(__ARCH_I386__)
+#include <kernel/arch/i386/context.h>
+#elif defined(__ARCH_X86_64__)
+#include <kernel/arch/x86_64/context.h>
+#else
+#error "Please define your context"
+#endif
+
+
 /**** FUNCTIONS ****/
 
 /**
@@ -32,7 +43,6 @@
  * moving things around, whatever you need to do
  */
 extern void arch_panic_prepare();
-
 
 /**
  * @brief Finish handling the panic, clean everything up and halt.
@@ -48,6 +58,27 @@ extern generic_parameters_t *arch_get_generic_parameters();
 /**
  * @brief Returns the current CPU ID active in the system
  */
-int arch_current_cpu();
+extern int arch_current_cpu();
+
+/**
+ * @brief Jump to usermode and execute at an entrypoint
+ * @param entrypoint The entrypoint
+ * @param stack The stack to use
+ */
+extern __attribute__((noreturn))  void arch_start_execution(uintptr_t entrypoint, uintptr_t stack);
+
+/**
+ * @brief Save the current thread context
+ * 
+ * Equivalent to the C function for setjmp
+ */
+extern __attribute__((returns_twice)) int arch_save_context(struct arch_context *context);
+
+/**
+ * @brief Load the current thread context
+ * 
+ * Equivalent to the C function for longjmp
+ */
+extern __attribute__((noreturn)) void arch_load_context(struct arch_context *context);
 
 #endif
