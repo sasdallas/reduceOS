@@ -27,6 +27,7 @@
 #include <kernel/loader/driver.h>
 
 // Memory
+#include <kernel/mem/mem.h>
 #include <kernel/mem/alloc.h>
 
 // VFS
@@ -36,6 +37,7 @@
 
 // Misc.
 #include <kernel/misc/ksym.h>
+#include <kernel/misc/args.h>
 
 
 /* Log method of generic */
@@ -83,6 +85,22 @@ void kernel_mountRamdisk(generic_parameters_t *parameters) {
 }
 
 /**
+ * @brief Load kernel drivers
+ */
+void kernel_loadDrivers() {
+    driver_initialize(); // Initialize the driver system
+
+    fs_node_t *conf_file = kopen(DRIVER_DEFAULT_CONFIG_LOCATION, O_RDONLY);
+    if (!conf_file) {
+        kernel_panic_extended(INITIAL_RAMDISK_CORRUPTED, "kernel", "*** Missing driver configuration file (%s)\n", DRIVER_DEFAULT_CONFIG_LOCATION);
+        __builtin_unreachable();
+    }
+    
+    driver_loadConfiguration(conf_file); // Load the configuration
+    fs_close(conf_file);
+}
+
+/**
  * @brief Kernel main function
  */
 void kmain() {
@@ -118,15 +136,9 @@ void kmain() {
 
     LOG(INFO, "Loaded %i symbols from symbol map\n", symbols);
 
-    // Let's start loading drivers
-    driver_initialize(); // Initialize the driver system
-
-    fs_node_t *conf_file = kopen(DRIVER_DEFAULT_CONFIG_LOCATION, O_RDONLY);
-    if (!conf_file) {
-        kernel_panic_extended(INITIAL_RAMDISK_CORRUPTED, "kernel", "*** Missing driver configuration file (%s)\n", DRIVER_DEFAULT_CONFIG_LOCATION);
-        __builtin_unreachable();
+    if (!kargs_has("--no-load-drivers")) {
+        kernel_loadDrivers();
+    } else {
+        LOG(WARN, "Not loading any drivers, found argument \"--no-load-drivers\".\n");
     }
-    
-    driver_loadConfiguration(conf_file); // Load the configuration
-    fs_close(conf_file);
 }

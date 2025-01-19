@@ -20,20 +20,6 @@
 
 /**** TYPES ****/
 
-typedef uint32_t pde_t; // Page directory entry
-typedef uint32_t pte_t; // Page table entry
-
-// Page directory and page table structures.
-// THESE ARE LEGACY. USE "union page"
-typedef struct _page_directory {
-    pde_t entries[1024];
-} page_directory_t;
-
-typedef struct _page_table {
-    pte_t entries[1024];
-} page_table_t;
-
-
 typedef union page {
     // You can manually manipulate these flags 
     struct {

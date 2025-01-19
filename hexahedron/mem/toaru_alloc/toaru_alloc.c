@@ -114,10 +114,12 @@ allocator_info_t *alloc_getInfo() {
 #endif
 
 static void __assert_fail(const char * f, int l, const char * stmt) {
+	// Assertion failed, crash.
     kernel_panic_prepare(MEMORY_MANAGEMENT_ERROR);
     dprintf(NOHEADER, "*** Assertion failed in allocator (%s:%i): %s\n\n", f, l, stmt);
-    dprintf(NOHEADER, "CURRENT ALLOCATOR IN USE: toaru_alloc\n");
+    dprintf(NOHEADER, "Current allocator in use: toaru_alloc version %i.%i\n", ALLOC_VERSION_MAJOR, ALLOC_VERSION_MINOR);
     kernel_panic_finalize();
+	__builtin_unreachable();
 }
 
 static void __assert_warn(const char *f, int l, const char *stmt) {

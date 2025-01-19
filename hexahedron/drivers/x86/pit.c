@@ -53,11 +53,11 @@ int pit_irqHandler(uintptr_t exception_index, uintptr_t int_number, registers_t 
  * @brief Initialize PIT
  */
 void pit_initialize() {
-    // On default use 100 Hz for divisor
-    pit_setTimerPhase(100);
-
     // Register handler
     hal_registerInterruptHandler(PIT_IRQ, pit_irqHandler);
+
+    // On default use 100 Hz for divisor
+    pit_setTimerPhase(100);
 
     dprintf_module(INFO, "X86:PIT", "Programmable interval timer initialized\n");
 }

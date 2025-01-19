@@ -38,6 +38,7 @@
 // Drivers (x86)
 #include <kernel/drivers/x86/serial.h>
 #include <kernel/drivers/x86/clock.h>
+#include <kernel/drivers/x86/pit.h>
 #include <kernel/drivers/x86/acpica.h> // #ifdef ACPICA_ENABLED in this file
 #include <kernel/drivers/x86/minacpi.h>
 
@@ -81,7 +82,9 @@ static void hal_init_stage1() {
 
     // Initialize clock driver
     clock_initialize();
-    dprintf(INFO, "Clock initialized\n");
+
+    // Initialize the PIT
+    pit_initialize();
 
     // Initialize interrupts
     hal_initializeInterrupts();
