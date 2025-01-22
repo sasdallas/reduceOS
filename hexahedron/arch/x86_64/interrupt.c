@@ -197,6 +197,26 @@ void hal_endInterrupt(uintptr_t interrupt_number) {
  * @brief Common exception handler
  */
 void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
+    // Call the exception handler
+    if (hal_exception_handler_table[exception_index] != NULL) {
+        exception_handler_t handler = (hal_exception_handler_table[exception_index]);
+        int return_value = handler(exception_index, regs, regs_extended);
+
+        if (return_value != 0) {
+            kernel_panic(IRQ_HANDLER_FAILED, "hal");
+            __builtin_unreachable();
+        }
+
+        // Now we're finished so return
+        return;
+    }
+
+    // NMIs are fired as of now only for a core shutdown. If we receive one, just halt.
+    if (exception_index == 2) {
+        smp_acknowledgeCoreShutdown();
+        for (;;);
+    }
+    
     // Looks like no one caught this exception.
     kernel_panic_prepare(CPU_EXCEPTION_UNHANDLED);
 

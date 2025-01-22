@@ -60,6 +60,18 @@ static int ap_shutdown_finished = 0;
 #define LOG(status, ...) dprintf_module(status, "SMP", __VA_ARGS__)
 
 /**
+ * @brief Collect AP information to store in processor_data
+ * @param ap The core to store information on
+ */
+static void smp_collectAPInfo(int ap) {
+    processor_data[ap].cpu_id = smp_getCurrentCPU();
+    processor_data[ap].cpu_manufacturer = cpu_getVendorName();
+    strncpy(processor_data[ap].cpu_model, cpu_getBrandString(), 48);
+    processor_data[ap].cpu_model_number = cpu_getModelNumber();
+    processor_data[ap].cpu_family = cpu_getFamily();
+}
+
+/**
  * @brief Finish an AP's setup. This is done right after the trampoline code gets to 32-bit mode and sets up a stack
  * @param params The AP parameters set up by @c smp_prepareAP
  */
@@ -87,7 +99,7 @@ __attribute__((noreturn)) void smp_finalizeAP() {
     lapic_initialize(lapic_remapped);
 
     // Now collect information
-    // smp_collectAPInfo(smp_getCurrentCPU());
+    smp_collectAPInfo(smp_getCurrentCPU());
 
     // Allow BSP to continue
     LOG(DEBUG, "CPU%i online and ready\n", smp_getCurrentCPU());
@@ -199,4 +211,42 @@ int smp_getCurrentCPU() {
 	uint32_t ebx, unused;
     __cpuid(0x1, unused, ebx, unused, unused);
     return (int)(ebx >> 24);
+}
+
+/**
+ * @brief Acknowledge core shutdown (called by ISR)
+ * 
+ * @bug On an NMI, we just assume it's a core shutdown - is this okay?
+ */
+void smp_acknowledgeCoreShutdown() {
+    LOG(INFO, "CPU%i finished shutting down\n", smp_getCurrentCPU());
+    ap_shutdown_finished = 1;
+}
+
+/**
+ * @brief Shutdown all cores in a system
+ * 
+ * This causes ISR2 (NMI) to be thrown, disabling the core's interrupts and 
+ * looping it on a halt instruction.
+ */
+void smp_disableCores() {
+    if (smp_data == NULL) return;
+    LOG(INFO, "Disabling cores - please wait...\n");
+
+    for (int i = 0; i < smp_data->processor_count; i++) {
+        if (i != 0) {
+            lapic_sendNMI(smp_data->lapic_ids[i], 124);
+
+            uint8_t error;
+            do { asm volatile ("pause"); } while (!ap_shutdown_finished && !(error = lapic_readError()));
+
+            if (error) {
+                LOG(WARN, "APIC error detected while shutting down CPU%i: ESR read as 0x%x\n", i, error);
+                LOG(WARN, "Failed to shutdown SMP cores. Continuing anyway.\n");
+                break;
+            }
+
+            ap_shutdown_finished = 0;
+        }
+    }
 }

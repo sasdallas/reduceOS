@@ -73,11 +73,10 @@ void arch_say_hello(int is_debug) {
                     __kernel_build_configuration,
                     __kernel_version_codename);
 
-        printf("%i system processors - %i KB of RAM\n", 1, parameters->mem_size);
+        printf("%i system processors - %i KB of RAM\n", smp_getCPUCount(), parameters->mem_size);
 
         // NOTE: This should only be called once, so why not just modify some parameters?
-        // parameters->cpu_count = smp_getCPUCount();
-        printf("this is a mental note to remind me to uncomment the above line\n");
+        parameters->cpu_count = smp_getCPUCount();
 
         // Draw logo
         gfx_drawLogo(RGB(255, 255, 255));
@@ -155,6 +154,7 @@ extern uintptr_t __bss_end;
  */
 void arch_panic_prepare() {
     dprintf(ERR, "Fatal panic state detected - please wait, cleaning up...\n");
+    smp_disableCores();
 }
 
 /**
