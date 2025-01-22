@@ -83,13 +83,14 @@ uintptr_t mem_getKernelHeap() {
  * @param dir The directory to map them in (leave blank for current)
  * @param phys The physical address
  * @param virt The virtual address
+ * @param flags Additional flags to use (e.g. MEM_KERNEL)
  */
-void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt) {
+void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt, int flags) {
     if (!MEM_IS_CANONICAL(virt)) return;
 
     page_t *pg = mem_getPage(dir, virt, MEM_CREATE);
     if (pg) {
-        mem_allocatePage(pg, MEM_NOALLOC);
+        mem_allocatePage(pg, MEM_NOALLOC | flags);
         MEM_SET_FRAME(pg, phys);
     }
 }

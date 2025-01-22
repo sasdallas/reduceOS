@@ -82,15 +82,15 @@ int mem_switchDirectory(page_t *pagedir);
  * @brief Get the kernel page directory/root-level PML
  */
 page_t *mem_getKernelDirectory();
-
 /**
  * @brief Map a physical address to a virtual address
  * 
  * @param dir The directory to map them in (leave blank for current)
  * @param phys The physical address
  * @param virt The virtual address
+ * @param flags Additional flags to use (e.g. MEM_KERNEL)
  */
-void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt);
+void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt, int flags);
 
 /**
  * @brief Allocate a page using the physical memory manager
@@ -120,27 +120,42 @@ uintptr_t mem_remapPhys(uintptr_t frame_address, uintptr_t size) ;
 void mem_unmapPhys(uintptr_t frame_address, uintptr_t size);
 
 /**
- * @brief Die in the cold winter
- * @param bytes How many bytes were trying to be allocated
- * @param seq The sequence of failure
- */
-void mem_outofmemory(int bytes, char *seq);
-
-/**
  * @brief Get the current page directory/root-level PML
  */
 page_t *mem_getCurrentDirectory();
 
 /**
+ * @brief Increment a page refcount
+ * @param page The page to increment reference counts of
+ * @returns The number of reference counts or 0 if maximum is reached
+ */
+int mem_incrementPageReference(page_t *page);
+
+/**
+ * @brief Decrement a page refcount
+ * @param page The page to decrement the reference count of
+ * @returns The number of reference counts. Panicks if 0
+ */
+int mem_decrementPageReference(page_t *page);
+
+/**
+ * @brief Create a new, completely blank virtual address space
+ * @returns A pointer to the VAS
+ */
+page_t *mem_createVAS();
+
+/**
  * @brief Clone a page directory.
  * 
- * This is a full PROPER page directory clone. The old one just memcpyd the pagedir.
+ * This is a full PROPER page directory clone.
  * This function does it properly and clones the page directory, its tables, and their respective entries fully.
+ * It also has the option to do CoW on usermode pages
  * 
- * @param pd_in The source page directory. Keep as NULL to clone the current page directory.
+ * @param dir The source page directory. Keep as NULL to clone the current page directory.
  * @returns The page directory on success
  */
-page_t *mem_clone(page_t *pd_in);
+page_t *mem_clone(page_t *dir);
+
 
 /**
  * @brief Free a page

@@ -33,7 +33,8 @@ typedef union page {
         uint32_t dirty:1;
         uint32_t pat:1;
         uint32_t global:1;
-        uint32_t available:3;
+        uint32_t cow:1;         // Part of available bits, used from a prototype memory system. If this is 1 then a page fault on this page will cause a new writable one to be created
+        uint32_t available:2;
         uint32_t address:20;
     } bits;
 
