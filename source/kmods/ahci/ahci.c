@@ -117,11 +117,6 @@ static void find_ahci(uint32_t device, uint16_t vendorID, uint16_t deviceID, voi
 
     ahci_hba_mem_t *mem = (ahci_hba_mem_t*)addr;
 
-    uint32_t enabledPorts = mem->ports;
-    serialPrintf("[module ahci] Enabled ports = %#x\n", enabledPorts);
-
-    
-
     // Read the AHCI version (debug)
     uint32_t ahciVersion = mem->vs;
     serialPrintf("[module ahci] Controller version %d.%d%d\n", (ahciVersion >> 16) & 0xFFF, (ahciVersion >> 8) & 0xFF, (ahciVersion) & 0xFF);
