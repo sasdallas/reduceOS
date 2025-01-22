@@ -127,7 +127,7 @@ page_t *mem_getKernelDirectory() {
 
 /**
  * @brief Switch the memory management directory
- * @param pagedir The page directory to switch to
+ * @param pagedir The page directory to switch to, or NULL for the kernel directory
  * 
  * @warning Pass something mapped by mem_clone() or something in the identity-mapped PMM region.
  *          Anything greater than IDENTITY_MAP_MAXSIZE will be truncated in the PDBR.
@@ -135,13 +135,13 @@ page_t *mem_getKernelDirectory() {
  * @returns -EINVAL on invalid, 0 on success.
  */
 int mem_switchDirectory(page_t *pagedir) {
-    if (!pagedir) return -EINVAL;
+    if (!pagedir) pagedir = mem_getKernelDirectory();
 
     // Load into current directory
     current_cpu->current_dir = pagedir;
 
     // Load PDBR
-    mem_load_pdbr((uintptr_t)pagedir & ~MEM_PHYSMEM_CACHE_REGION);
+    mem_load_pdbr((uintptr_t)pagedir & ~MEM_PHYSMEM_CACHE_REGION); 
 
     return 0;
 }

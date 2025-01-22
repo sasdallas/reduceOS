@@ -31,6 +31,9 @@ uintptr_t mem_kernelHeap                = 0xAAAAAAAAAAAAAAAA;   // Kernel heap
 uintptr_t mem_driverRegion              = MEM_DRIVER_REGION;    // Driver space
 uintptr_t mem_dmaRegion                 = MEM_DMA_REGION;       // DMA region
 
+// Reference counts
+uint8_t  *mem_pageReferences            = NULL;
+
 // Spinlocks
 static spinlock_t heap_lock = { 0 };
 static spinlock_t driver_lock = { 0 };
@@ -63,10 +66,17 @@ page_t mem_heapBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
 
 
 /**
+ * @brief Get the current directory (just current CPU)
+ */
+page_t *mem_getCurrentDirectory() {
+    return current_cpu->current_dir;
+}
+
+/**
  * @brief Get the kernel page directory/root-level PML
  */
 page_t *mem_getKernelDirectory() {
-    return &mem_kernelPML[0];
+    return (page_t*)mem_remapPhys((uintptr_t)&mem_kernelPML[0], 0);
 }
 
 /**
@@ -75,6 +85,187 @@ page_t *mem_getKernelDirectory() {
  */
 uintptr_t mem_getKernelHeap() {
     return mem_kernelHeap;
+}
+
+
+/**
+ * @brief Increment a page refcount
+ * @param page The page to increment reference counts of
+ * @returns The number of reference counts or 0 if maximum is reached
+ */
+int mem_incrementPageReference(page_t *page) {
+    if (!page) return 0; // ???
+    if (!page->bits.present) {
+        dprintf(ERR, "Tried incrementing reference count on non-present page\n");
+        return 0;
+    }
+
+    // First get the index in refcounts of the frame
+    uintptr_t idx = page->bits.address;
+    if (mem_pageReferences[idx] == UINT8_MAX) {
+        // We're too high, return 0 and hope they make a copy of the page
+        return 0; 
+    }
+
+    mem_pageReferences[idx]++;
+    return mem_pageReferences[idx];
+}
+
+/**
+ * @brief Decrement a page refcount
+ * @param page The page to decrement the reference count of
+ * @returns The number of reference counts. Panicks if 0
+ */
+int mem_decrementPageReference(page_t *page) {
+    if (!page) return 0; // ???
+    if (!page->bits.present) {
+        dprintf(ERR, "Tried decrementing reference count on non-present page\n");
+        return 0;
+    }
+
+    // First get the index in refcounts of the frame
+    uintptr_t idx = page->bits.address;
+    if (mem_pageReferences[idx] == 0) {
+        // Bail out!
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "pageref", "*** Tried to release reference on page with 0 references (bug)\n");
+        __builtin_unreachable();
+    }
+
+    mem_pageReferences[idx]--;
+    return mem_pageReferences[idx];
+}
+
+/**
+ * @brief Switch the memory management directory
+ * @param pagedir The page directory to switch to, or NULL for the kernel region
+ * 
+ * @warning Pass something mapped by mem_clone() or something in the identity-mapped PMM region.
+ *          Anything greater than IDENTITY_MAP_MAXSIZE will be truncated in the PDBR.
+ * 
+ * @returns -EINVAL on invalid, 0 on success.
+ */
+int mem_switchDirectory(page_t *pagedir) {
+    if (!pagedir) pagedir = (page_t*)mem_remapPhys((uintptr_t)mem_getKernelDirectory(), 0); // remapping?
+    current_cpu->current_dir = pagedir;
+
+    // Load PDBR
+    asm volatile ("movq %0, %%cr3" :: "r"((uintptr_t)pagedir & ~0xFFF));
+    return 0;
+
+}
+
+/**
+ * @brief Create a new, completely blank virtual address space
+ * @returns A pointer to the VAS
+ */
+page_t *mem_createVAS() {
+    page_t *vas = (page_t*)mem_remapPhys(pmm_allocateBlock(), PMM_BLOCK_SIZE);
+    memset((void*)vas, 0, PMM_BLOCK_SIZE);
+    return vas;
+}
+
+// TODO: Destroy VAS function?
+
+/**
+ * @brief Clone a page directory.
+ * 
+ * This is a full PROPER page directory clone.
+ * This function does it properly and clones the page directory, its tables, and their respective entries fully.
+ * It also has the option to do CoW on usermode pages
+ * 
+ * @ref https://github.com/klange/toaruos/blob/master/kernel/arch/x86_64/mmu.c
+ * 
+ * 
+ * @param dir The source page directory. Keep as NULL to clone the current page directory.
+ * @returns The page directory on success
+ */
+page_t *mem_clone(page_t *dir) {
+    if (!dir) dir = mem_getCurrentDirectory();
+
+    // Create a new VAS
+    page_t *dest = mem_createVAS();
+
+    // Copy top half
+    memcpy(&dest[256], &dir[256], 256 * sizeof(page_t));
+
+    // Copy PDPTs 
+    for (size_t pdpt = 0; pdpt < 256; pdpt++) {
+        page_t *pdpt_srcentry = &dir[pdpt]; // terrible naming lol
+        if (!(pdpt_srcentry->bits.present)) continue;
+
+        page_t *pdpt_destentry = &dest[pdpt];
+
+        // Create a new PDPT
+        uintptr_t pdpt_dest_block = pmm_allocateBlock();
+        page_t *pdpt_dest = (page_t*)mem_remapPhys(pdpt_dest_block, PAGE_SIZE);
+        memset((void*)pdpt_dest, 0, PAGE_SIZE); 
+
+        // Do a raw copy but set the frame
+        pdpt_destentry->data = pdpt_srcentry->data;
+        MEM_SET_FRAME(pdpt_destentry, pdpt_dest_block);
+
+        // Now map in the existing PDPT
+        page_t *pdpt_src = (page_t*)mem_remapPhys(MEM_GET_FRAME(pdpt_srcentry), PAGE_SIZE);
+
+        // Copy PDs
+        for (size_t pd = 0; pd < 512; pd++) {
+            page_t *pd_srcentry = &pdpt_src[pd];
+            if (!(pd_srcentry->bits.present)) continue;
+
+            page_t *pd_destentry = &pdpt_dest[pd];
+
+            // Allocate a new page directory
+            uintptr_t pd_dest_block = pmm_allocateBlock();
+            page_t *pd_dest  = (page_t*)mem_remapPhys(pd_dest_block, PAGE_SIZE);
+            memset((void*)pd_dest, 0, PAGE_SIZE); 
+        
+            // Do a raw copy but set the frame
+            pd_destentry->data = pd_srcentry->data;
+            MEM_SET_FRAME(pd_destentry, pd_dest_block);
+
+            // Now map in the existing PD
+            page_t *pd_src = (page_t*)mem_remapPhys(MEM_GET_FRAME(pd_srcentry), PAGE_SIZE);
+
+            // Copy PTs
+            for (size_t pt = 0; pt < 512; pt++) {
+                page_t *pt_srcentry = &pd_src[pt];
+                if (!(pt_srcentry->bits.present)) continue;
+
+                page_t *pt_destentry = &pd_dest[pt];
+
+                // Allocate a new page table
+                uintptr_t pt_dest_block = pmm_allocateBlock();
+                page_t *pt_dest  = (page_t*)mem_remapPhys(pt_dest_block, PAGE_SIZE);
+                memset((void*)pt_dest, 0, PAGE_SIZE);
+
+                // Do a raw copy but set the frame
+                pt_destentry->data = pt_srcentry->data;
+                MEM_SET_FRAME(pt_destentry, pt_dest_block);
+
+                // Now map in the existing PT
+                page_t *pt_src = (page_t*)mem_remapPhys(MEM_GET_FRAME(pt_srcentry), PAGE_SIZE);
+
+                // Copy pages
+                for (size_t page = 0; page < 512; page++) {
+                    page_t *page_src = &pt_src[page];
+                    page_t *page_dest = &pt_dest[page];
+                    if (!(page_src->bits.present)) continue; // Not present
+
+                    if (page_src->bits.usermode) {
+                        uintptr_t address = ((pdpt << (9 * 3 + 12)) | (pd << (9*2 + 12)) | (pt << (9 + 12)) | (page << MEM_PAGE_SHIFT));
+                        dprintf(DEBUG, "Usermode page at address %p - stall\n", address);
+                        for (;;);
+                    } else {
+                        // Raw copy
+                        page_dest->data = page_src->data;
+                    }
+                } 
+            }
+        }
+    }
+    
+
+    return dest;
 }
 
 /**
@@ -602,13 +793,18 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     uintptr_t kernel_code_end = (uintptr_t)&__text_end;
 
     // Align kernel code end (as text section is positioned at the beginning)
-    kernel_code_end = kernel_code_end & ~0xFFF;
+    kernel_code_end = kernel_code_end & ~0xFFF; // This should gurantee that we don't overmap into, say, BSS
 
     for (uintptr_t i = kernel_code_start; i < kernel_code_end; i += PAGE_SIZE) {
         page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
         if (pg) pg->bits.rw = 0;
     }
 
+    // Make space for reference counts in kernel heap
+    // Reference counts will be initialized when a user PTE is copied.
+    size_t refcount_bytes = frame_bytes >> MEM_PAGE_SHIFT;  // One byte per page
+    mem_pageReferences = (uint8_t*)mem_sbrk((refcount_bytes & 0xFFF) ? MEM_ALIGN_PAGE(refcount_bytes) : refcount_bytes);
+    memset(mem_pageReferences, 0, refcount_bytes);
 
     dprintf(INFO, "Memory management initialized\n");
 }
@@ -648,10 +844,6 @@ uintptr_t mem_sbrk(int b) {// Sanity checks
         mem_kernelHeap += b; // Subtracting wouldn't be very good, would it?
         spinlock_release(&heap_lock);
         return oldStart;
-    }
-
-    if (mem_kernelHeap + b > MEM_PHYSMEM_MAP_REGION) {
-        dprintf(WARN, "EXPANDING INTO MAP REGION\n");
     }
 
     for (uintptr_t i = mem_kernelHeap; i < mem_kernelHeap + b; i += 0x1000) {

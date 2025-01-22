@@ -69,7 +69,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags);
 
 /**
  * @brief Switch the memory management directory
- * @param pagedir The page directory to switch to
+ * @param pagedir The page directory to switch to, or NULL for the kernel directory
  * 
  * @warning Pass something mapped by mem_clone() or something in the identity-mapped PMM region.
  *          Anything greater than IDENTITY_MAP_MAXSIZE will be truncated in the PDBR.
@@ -82,6 +82,7 @@ int mem_switchDirectory(page_t *pagedir);
  * @brief Get the kernel page directory/root-level PML
  */
 page_t *mem_getKernelDirectory();
+
 /**
  * @brief Map a physical address to a virtual address
  * 

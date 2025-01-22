@@ -35,7 +35,8 @@ typedef union page {
         uint64_t available2:3;      // Free bits!
         uint64_t address:28;        // The page data
         uint64_t reserved:12;       // These should be set to 0
-        uint64_t available3:11;     // Free bits!
+        uint64_t cow:1;             // Copy on write, part of available and impl-specific
+        uint64_t available3:10;     // Free bits!
         uint64_t nx:1;              // No execute bit
     } bits;
     
