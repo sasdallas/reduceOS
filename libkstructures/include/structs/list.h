@@ -124,5 +124,11 @@ void list_delete_index(list_t *list, size_t index);
  */
 node_t *list_pop(list_t *list);
 
+/**
+ * @brief Pop the first node off the list and return it
+ * @param list The list to pop left on
+ */
+node_t *list_popleft(list_t *list);
+
 #endif
 

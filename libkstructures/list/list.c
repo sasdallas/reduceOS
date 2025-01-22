@@ -240,3 +240,14 @@ node_t *list_pop(list_t *list) {
     list_delete(list, out);
     return out;
 }
+
+/**
+ * @brief Pop the first node off the list and return it
+ * @param list The list to pop left on
+ */
+node_t *list_popleft(list_t *list) {
+    if (!list->head) return NULL;
+    node_t *out = list->head;
+    list_delete(list, out);
+    return out;
+}
