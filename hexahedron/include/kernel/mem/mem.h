@@ -80,6 +80,7 @@ int mem_switchDirectory(page_t *pagedir);
 
 /**
  * @brief Get the kernel page directory/root-level PML
+ * @note RETURNS A VIRTUAL ADDRESS
  */
 page_t *mem_getKernelDirectory();
 

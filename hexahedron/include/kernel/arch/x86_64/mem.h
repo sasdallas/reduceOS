@@ -59,14 +59,17 @@ typedef union page {
 // 0x0000800000000000 - 0x0000800000400000: Framebuffer memory (todo: this can probably be relocated).  
 // 0xFFFFFF0000000000 - 0xFFFFFF0000010000: Heap memory 
 // 0xFFFFFF8000000000 - 0xFFFFFF9000000000: High base region for identity mapping
+// 0xFFFFFFF000000000 - 0xFFFFFFF100000000: MMIO region
 // 0xFFFFFFFF00000000 - 0xFFFFFFFF80000000: Driver memory space
 
 #define MEM_DMA_REGION              (uintptr_t)0x00000000A0000000 
 #define MEM_FRAMEBUFFER_REGION      (uintptr_t)0x0000080000000000
 #define MEM_HEAP_REGION             (uintptr_t)0xFFFFFF0000000000
 #define MEM_PHYSMEM_MAP_REGION      (uintptr_t)0xFFFFFF8000000000 // !!!: PHYSMEM_MAP is close to kernel heap
+#define MEM_MMIO_REGION             (uintptr_t)0xFFFFFFF000000000
 #define MEM_DRIVER_REGION           (uintptr_t)0xFFFFFFFF00000000
 
+#define MEM_MMIO_REGION_SIZE        (uintptr_t)0x0000000100000000
 #define MEM_DMA_REGION_SIZE         (uintptr_t)0x0000000050000000
 #define MEM_PHYSMEM_MAP_SIZE        (uintptr_t)0x0000001000000000
 #define MEM_DRIVER_REGION_SIZE      (uintptr_t)0x0000000080000000

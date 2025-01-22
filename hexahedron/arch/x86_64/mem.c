@@ -30,6 +30,7 @@
 uintptr_t mem_kernelHeap                = 0xAAAAAAAAAAAAAAAA;   // Kernel heap
 uintptr_t mem_driverRegion              = MEM_DRIVER_REGION;    // Driver space
 uintptr_t mem_dmaRegion                 = MEM_DMA_REGION;       // DMA region
+uintptr_t mem_mmioRegion                = MEM_MMIO_REGION;      // MMIO region
 
 // Reference counts
 uint8_t  *mem_pageReferences            = NULL;
@@ -38,6 +39,7 @@ uint8_t  *mem_pageReferences            = NULL;
 static spinlock_t heap_lock = { 0 };
 static spinlock_t driver_lock = { 0 };
 static spinlock_t dma_lock = { 0 };
+static spinlock_t mmio_lock = { 0 };
 
 // Stub variables (for debugger)
 uintptr_t mem_mapPool                   = 0xAAAAAAAAAAAAAAAA;
@@ -74,9 +76,10 @@ page_t *mem_getCurrentDirectory() {
 
 /**
  * @brief Get the kernel page directory/root-level PML
+ * @note RETURNS A VIRTUAL ADDRESS
  */
 page_t *mem_getKernelDirectory() {
-    return (page_t*)mem_remapPhys((uintptr_t)&mem_kernelPML[0], 0);
+    return (page_t*)&mem_kernelPML[0];
 }
 
 /**
@@ -447,8 +450,28 @@ void mem_freePage(page_t *page) {
  * @warning MMIO regions cannot be destroyed.
  */
 uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "stub");
-    __builtin_unreachable();
+    if (size % PAGE_SIZE != 0) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "mem");
+
+    if (mem_mmioRegion + size > MEM_MMIO_REGION + MEM_MMIO_REGION_SIZE) {
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space for MMIO allocation\n");
+        __builtin_unreachable();
+    }
+
+    spinlock_acquire(&mmio_lock);
+
+    uintptr_t address = mem_mmioRegion;
+    for (uintptr_t i = 0; i < size; i += PAGE_SIZE) {
+        page_t *page = mem_getPage(NULL, address + i, MEM_CREATE);
+        if (page) {
+            MEM_SET_FRAME(page, (phys + i));
+            mem_allocatePage(page, MEM_KERNEL | MEM_WRITETHROUGH | MEM_NOT_CACHEABLE | MEM_NOALLOC);
+        }
+    }
+    
+    mem_mmioRegion += size;
+
+    spinlock_release(&mmio_lock);
+    return address;
 }
 
 /**

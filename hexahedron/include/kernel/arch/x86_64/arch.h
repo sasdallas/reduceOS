@@ -88,4 +88,9 @@ void arch_mark_memory(generic_parameters_t *parameters, uintptr_t highest_addres
  */
 void arch_panic_traceback(int depth, registers_t *regs);
 
+/**
+ * @brief Set the GSbase using MSRs
+ */
+void arch_set_gsbase(uintptr_t base);
+
 #endif
