@@ -44,6 +44,13 @@ void hal_init(int stage);
 void hal_initializeInterrupts();
 
 /**
+ * @brief Setup a core's data
+ * @param core The core to setup data for
+ * @param rsp The stack for the TSS
+ */
+void hal_gdtInitCore(int core, uintptr_t rsp);
+
+/**
  * @brief Register an interrupt handler
  * @param int_no Interrupt number (start at 0)
  * @param handler A handler. This should return 0 on success, anything else panics.

@@ -109,6 +109,30 @@ static void hal_setupGDTCoreData(int core) {
 }
 
 /**
+ * @brief Setup a core's data
+ * @param core The core to setup data for
+ * @param rsp The stack for the TSS
+ */
+void hal_gdtInitCore(int core, uintptr_t rsp) {
+    if (!core) return;
+
+    // Setup the TSS' RSP to point to our top of the stac
+    gdt[core].tss.rsp[0] = (uintptr_t)rsp;
+
+    // Load and install
+    asm volatile (
+        "lgdt %0\n"
+        "movw $0x10, %%ax\n"
+        "movw %%ax, %%ds\n"
+        "movw %%ax, %%es\n"
+        "movw %%ax, %%ss\n"
+        "movw $0x28, %%ax\n" // 0x28 = 6th entry in the GDT (TSS)
+        "ltr %%ax\n"
+        :: "m"(gdt[core].gdtr) : "rax"
+    ); 
+}
+
+/**
  * @brief Initializes and installs the GDT
  */
 void hal_gdtInit() {
