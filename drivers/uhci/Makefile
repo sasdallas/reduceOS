@@ -1,7 +1,7 @@
 # Hexahedron Makefile for any driver
 # Just drop this into your driver system, it will handle everything
 
-include ../make_driver.config
+include ../make.config
 
 # Output directory
 OUTPUT_DIR = $(OBJ_OUTPUT_DIRECTORY)/drivers/$(notdir $(CURDIR))

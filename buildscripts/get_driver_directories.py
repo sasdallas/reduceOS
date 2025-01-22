@@ -13,29 +13,45 @@ arch = sys.argv[1].lower()
 # Walk through and get all subdirectories
 dirs = next(os.walk("."))[1]
 
-compatible_directories = "" # This will be printed out at the end
 
 # For each subdirectory, check the driver.conf file in it
-for dir in dirs:
-    lines = []
-    try:    
-        conf = open(os.path.join(dir, "driver.conf"), "r")
-        lines = [line.strip() for line in conf.readlines()]
-        conf.close()
-    except FileNotFoundError:
-        continue
+def walk_dir(path, dirs):
+    found_directories = ""
+    for dir in dirs:
+        lines = []
 
-    # Now find the line with ARCH in it
-    arch_line = [line for line in lines if line.startswith("ARCH = ")][0].replace("ARCH = ", "")
-    
-    # ARCH = ANY?
-    if arch_line == "ANY":
-        compatible_directories = compatible_directories + " " + dir
-        continue
+        # First get the full directory path
+        dirpath = os.path.join(path, dir)
 
-    # No, but they can specify multiple architectures
-    potential_architectures = [a.lower() for a in arch_line.split(" OR ")]
-    if arch in potential_architectures:
-        compatible_directories = compatible_directories + " " + dir
+        # Try to open driver.conf
+        try:    
+            conf = open(os.path.join(dirpath, "driver.conf"), "r")
+            lines = [line.strip() for line in conf.readlines()]
+            conf.close()
+        except FileNotFoundError:
+            # Does the directory contain "make.config"? If so it's a driver subdirectory
+            if os.path.exists(os.path.join(path, "make.config")):
+                # Driver subdirectory
+                found_directories = found_directories + walk_dir(dirpath, next(os.walk(dirpath))[1])
+            continue
 
-print(compatible_directories)
+        # Now find the line with ARCH in it
+        arch_line = [line for line in lines if line.startswith("ARCH = ")][0].replace("ARCH = ", "")
+        
+        # Fix dirpath, Makefile will replace "-" with "/"
+        dirpath = dirpath.replace("./", "").replace("/", "-")
+
+        # ARCH = ANY?
+        if arch_line == "ANY":
+            found_directories = found_directories + " " + dirpath
+            continue
+
+        # No, but they can specify multiple architectures
+        potential_architectures = [a.lower() for a in arch_line.split(" OR ")]
+        if arch in potential_architectures:
+            found_directories = found_directories + " " + dirpath
+
+    return found_directories
+
+driver_dirs = walk_dir(".", dirs)
+print(driver_dirs)

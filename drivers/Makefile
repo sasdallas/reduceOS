@@ -1,13 +1,14 @@
 # Hexahedron drivers makefile
 # NOTE: YOU DO NOT NEED TO MODIFY THIS!
 
-include ./make.config
+include ./make_main.config
 
 # Source directories
 # MODDIRS := $(shell find -mindepth 1 -maxdepth 1 -type d -not -path "./arch")
 # MODDIRS := $(patsubst ./%, %, $(MODDIRS))
 
 MODDIRS := $(shell $(PYTHON) $(BUILDSCRIPTS_ROOT)/get_driver_directories.py $(BUILD_ARCH))
+MODDIR_TARGETS = $(patsubst %, install-%, $(MODDIRS))
 
 all: TARGET_DISABLED
 
@@ -16,11 +17,11 @@ TARGET_DISABLED:
 	@echo "Please use make install."
 
 
-install-%: %
-	$(MAKE) -C $< install
+install-%:
+	$(MAKE) -C $(subst $e-,/,$(patsubst install-%, %, $@)) install
 
-clean-%: %
-	$(MAKE) -C $< clean
+clean-%:
+	$(MAKE) -C $(subst $e-,/,$(patsubst clean-%, %, $@)) clean
 
 # Create build directories
 MAKE_DIRS:
@@ -39,7 +40,7 @@ PRINT_HEADER:
 
 # Install/clean targets
 
-install: PRINT_HEADER MAKE_DIRS $(patsubst %, install-%, $(MODDIRS))
+install: PRINT_HEADER MAKE_DIRS $(MODDIR_TARGETS)
 	$(PYTHON) $(BUILDSCRIPTS_ROOT)/create_driver_data.py $(MODDIRS)
 	cp  driver_conf.json $(INITRD)/drivers/
 	cp  driver_conf.json $(DESTDIR)$(BOOT_OUTPUT)/drivers/
