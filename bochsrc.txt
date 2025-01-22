@@ -42,8 +42,8 @@ clock: sync=none, time0=local, rtc_sync=0
 # no cmosimage
 log: -
 logprefix: %t%e%d
-usb_uhci: port1=mouse
-debug: action=ignore, apic0=report, usb_uhci=report
+usb_uhci: port1=mouse, options1="debug", port2=hub, options2="speed:full, ports:4"
+debug: action=ignore, apic0=report, usb_uhci=report, usbdevctl=report
 info: action=report
 error: action=report
 panic: action=ask

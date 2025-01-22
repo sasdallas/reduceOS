@@ -7,12 +7,50 @@
  +------+'
 
 Hexahedron 1.0.2-x86_64-DEBUG (codename "Phoenix")
-	Compiled by GCC 14.1.0 on Jan  6 2025 12:54:19
+	Compiled by GCC 14.1.0 on Jan 22 2025 12:42:11
 
-[no clock ready] [INFO] [CLOCK] TSC calculated speed is 3 MHz
-[no clock ready] [INFO] [CLOCK] Initial boot time is 1736168532 (UNIX timestamp)
-[no clock ready] [INFO] [CLOCK] TSC baseline is 36365091us
-[Mon Jan 06 13:02:12 2025] [CPU0] [INFO] Clock initialized
-[Mon Jan 06 13:02:12 2025] [CPU0] [INFO] Interrupts enabled.
-[Mon Jan 06 13:02:12 2025] [CPU0] [INFO] HAL stage 1 initialization completed
-[Mon Jan 06 13:02:12 2025] [CPU0] [INFO] Found a Multiboot1 structure
+[no clock ready] [WARN] [CLOCK] Failed to calculate the TSC MHz - defaulting to 2000
+[no clock ready] [INFO] [CLOCK] TSC calculated speed is 2000 MHz
+[no clock ready] [INFO] [CLOCK] Initial boot time is 1737549758 (UNIX timestamp)
+[no clock ready] [INFO] [CLOCK] TSC baseline is 52355us
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] [X86:PIT] Programmable interval timer initialized
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] Interrupts enabled.
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] HAL stage 1 initialization completed
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] Found a Multiboot1 structure
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] Module found that is greater than kernel address (0x211800)
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] 5-level paging is not supported by this CPU
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] Kernel will use 531 pages (0x213000)
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] Finished identity mapping kernel, mapping heap...
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 000000000009F000 (636 KB) as available memory
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000001FF0000 (31680 KB) as available memory
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] Marked memory descriptor 0000000000000000 - 0000000000100000 (1024 KB) as reserved memory (QEMU bug)
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] Marked memory descriptor 0000000000100000 - 0000000000200000 (1024 KB) as kernel memory
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] Marked valid memory - PMM has 7055 free blocks / 8175 max blocks
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] Memory management initialized
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] [ALLOC:LIBALLOC] initialization of liballoc 1.1
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] [ALLOC:LIBALLOC] set up first memory major 2000
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] Allocator information: liballoc version 1.1 (valloc not supported, profiling supported)
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] Loaded by 'GRUB 2.06-2ubuntu7.2+zorin1' with command line '--no_video'
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] Available physical memory to machine: 32316 KB
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] Finished parsing argument '--no_video' with value 'NULL'
+[Wed Jan 22 12:42:38 2025] [CPU0] [WARN] COM2 is faulty or nonexistent
+[Wed Jan 22 12:42:38 2025] [CPU0] [WARN] Failed to initialize COM2 for debugging
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] [ACPICA:KRN] ACPICA was compiled into kernel. Initializing ACPICA
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: RSDP 0x       0   FA430 000014 (v00 BOCHS )
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: RSDT 0x       0 1FF0000 000034 (v01 BOCHS  BXPCRSDT 00000001 BXPC 00000001)
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: FACP 0x       0 1FF0034 000074 (v01 BOCHS  BXPCFACP 00000001 BXPC 00000001)
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: DSDT 0x       0 1FF0100 000E38 (v01 BXPC   BXDSDT   00000001 INTL 20130823)
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: FACS 0x       0 1FF00C0 000040
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: APIC 0x       0 1FF0F98 000062 (v01 BOCHS  BXPCAPIC 00000001 BXPC 00000001)
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: SSDT 0x       0 1FF0F38 00005E (v01 BOCHS  BXPCSSDT 00000001 BXPC 00000001)
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: HPET 0x       0 1FF1000 000038 (v01 BOCHS  BXPCHPET 00000001 BXPC 00000001)
+[EXTERNAL                ] [CPU0] [INFO] [ACPICA:INT] ACPI: 2 ACPI AML tables successfully acquired and loaded
+[Wed Jan 22 12:42:38 2025] [CPU0] [INFO] [ACPICA:KRN] Initialization completed successfully.
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] [ACPICA:KRN] MADT Local APIC address = 0xfee00000
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] [ACPICA:KRN] LOCAL APIC - ID 0x0 FLAGS 0x1 PROCESSOR ID 0x0
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] [ACPICA:KRN] LOCAL APIC - ID 0x1 FLAGS 0x1 PROCESSOR ID 0x1
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] [ACPICA:KRN] LOCAL APIC - ID 0x2 FLAGS 0x1 PROCESSOR ID 0x2
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] [ACPICA:KRN] LOCAL APIC - ID 0x3 FLAGS 0x1 PROCESSOR ID 0x3
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] [ACPICA:KRN] I/O APIC - ADDR 0xfec00000 GLOBAL IRQ 0x0 ID 0x4
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] [ACPICA:KRN] INTERRUPT OVERRIDE - SRCIRQ 0x0 BUS 0x0 GLOBAL IRQ 0x2 INTI FLAGS 0x0
+[Wed Jan 22 12:42:38 2025] [CPU0] [DBG ] [SMP] CPU1 online and ready
