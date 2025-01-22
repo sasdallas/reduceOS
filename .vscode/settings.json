@@ -63,6 +63,11 @@
     "mem.h": "c",
     "tarfs.h": "c",
     "elf_loader.h": "c",
-    "generic_mboot.h": "c"
+    "generic_mboot.h": "c",
+    "pool.h": "c",
+    "alloc.h": "c",
+    "process.h": "c",
+    "registers.h": "c",
+    "hal.h": "c"
   }
 }

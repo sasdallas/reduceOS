@@ -4,11 +4,12 @@
 include ./make_main.config
 
 # Source directories
-# MODDIRS := $(shell find -mindepth 1 -maxdepth 1 -type d -not -path "./arch")
-# MODDIRS := $(patsubst ./%, %, $(MODDIRS))
+# MODDIR_TARGETS_xxx should contain the targets (e.g. install-storage-ahci), and then we can substitute the "-" for "/" in MODDIRS
+MODDIRS_RAW := $(shell $(PYTHON) $(BUILDSCRIPTS_ROOT)/get_driver_directories.py $(BUILD_ARCH))
+MODDIR_TARGETS_INSTALL := $(patsubst %, install-%, $(MODDIRS_RAW))
+MODDIR_TARGETS_CLEAN := $(patsubst %, clean-%, $(MODDIRS_RAW))
+MODDIRS := $(subst $e-,/,$(MODDIRS_RAW)) # such weird naming...
 
-MODDIRS := $(shell $(PYTHON) $(BUILDSCRIPTS_ROOT)/get_driver_directories.py $(BUILD_ARCH))
-MODDIR_TARGETS = $(patsubst %, install-%, $(MODDIRS))
 
 all: TARGET_DISABLED
 
@@ -40,10 +41,10 @@ PRINT_HEADER:
 
 # Install/clean targets
 
-install: PRINT_HEADER MAKE_DIRS $(MODDIR_TARGETS)
+install: PRINT_HEADER MAKE_DIRS $(MODDIR_TARGETS_INSTALL)
 	$(PYTHON) $(BUILDSCRIPTS_ROOT)/create_driver_data.py $(MODDIRS)
 	cp  driver_conf.json $(INITRD)/drivers/
 	cp  driver_conf.json $(DESTDIR)$(BOOT_OUTPUT)/drivers/
 	rm driver_conf.json
 
-clean: $(patsubst %, clean-%, $(MODDIRS))
+clean: $(MODDIR_TARGETS_CLEAN)
