@@ -136,9 +136,13 @@ void kmain() {
 
     LOG(INFO, "Loaded %i symbols from symbol map\n", symbols);
 
+    // Load drivers
     if (!kargs_has("--no-load-drivers")) {
         kernel_loadDrivers();
     } else {
         LOG(WARN, "Not loading any drivers, found argument \"--no-load-drivers\".\n");
     }
+
+
+
 }
