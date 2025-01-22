@@ -26,10 +26,13 @@
 // IMPORTANT: This value controls the maximum amount of supported interrupt overrides
 #define MAX_INT_OVERRIDES   24
 
+// IMPORTANT: This value controls the page that AP bootstrap code is aligned to (if this isn't an aligned value, I will kill you)
+// !!!: DO. NOT. MODIFY. THIS WILL BREAK LITERALLY EVERYTHING!
+#define SMP_AP_BOOTSTRAP_PAGE   0x1000
 
 /**** TYPES ****/
 
-// Structure passed to SMP driver containing information (MADT/MP table/whatever)
+// Structure passed to SMP driver containing information (MADT/MP table/whatever) - TODO: check uint32_t?
 typedef struct _smp_info {
     // CPUs/local APICs
     void        *lapic_address;             // Local APIC address (will be mmio'd)
@@ -47,11 +50,46 @@ typedef struct _smp_info {
     uint32_t    irq_overrides[MAX_INT_OVERRIDES];   // IRQ overrides (index of array = source, content = map)
 } smp_info_t;
 
+// AP parameters, unused now mostly
 typedef struct _smp_ap_parameters {
-    uint32_t stack;
-    uint32_t idt;
-    uint32_t pagedir;
-    uint32_t lapic_id;
+    uintptr_t stack;
+    uintptr_t idt;
+    uintptr_t pagedir;
+    uintptr_t lapic_id;
 } smp_ap_parameters_t;
+
+/**** FUNCTIONS ****/
+
+/**
+ * @brief Initialize the SMP system
+ * @param info Collected SMP information
+ * @returns 0 on success, non-zero is failure
+ */
+int smp_init(smp_info_t *info);
+
+/**
+ * @brief Get the amount of CPUs present in the system
+ */
+int smp_getCPUCount();
+
+/**
+ * @brief Get the current CPU's APIC ID
+ */
+int smp_getCurrentCPU();
+
+/**
+ * @brief Shutdown all cores in a system
+ * 
+ * This causes ISR2 (NMI) to be thrown, disabling the core's interrupts and 
+ * looping it on a halt instruction.
+ */
+void smp_disableCores();
+
+/**
+ * @brief Acknowledge core shutdown (called by ISR)
+ * 
+ * @bug On an NMI, we just assume it's a core shutdown - is this okay?
+ */
+void smp_acknowledgeCoreShutdown();
 
 #endif

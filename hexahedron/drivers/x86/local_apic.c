@@ -18,14 +18,17 @@
 #include <kernel/panic.h>
 #include <errno.h>
 
-// x86_64 is unsupported currently
-#if defined(__ARCH_I386__) || defined(__INTELLISENSE__)
+#if defined(__ARCH_I386__)
 #include <kernel/arch/i386/cpu.h>
 #include <kernel/arch/i386/registers.h>
 #include <kernel/arch/i386/hal.h>
-
-
-
+#elif defined(__ARCH_X86_64__)
+#include <kernel/arch/x86_64/cpu.h>
+#include <kernel/arch/x86_64/registers.h>
+#include <kernel/arch/x86_64/hal.h>
+#else
+#error "Unsupported"
+#endif
 
 /* APIC base */
 uintptr_t lapic_base = 0x0;
@@ -38,14 +41,10 @@ uintptr_t lapic_base = 0x0;
  * @brief Returns whether the CPU has an APIC
  */
 int lapic_available() {
-#if defined(__ARCH_I386__)
     // Use CPUID
     uint32_t eax, discard, edx;
     __cpuid(CPUID_GETFEATURES, eax, discard, discard, edx);
     return edx & CPUID_FEAT_EDX_APIC;
-#else
-    #error "Unimplemented"
-#endif
 
     return 0;
 }
@@ -84,8 +83,7 @@ uint8_t lapic_getID() {
 uint8_t lapic_getVersion() {
     uint32_t ver_reg = lapic_read(LAPIC_REGISTER_VERSION);
     uint8_t lapic_ver = ((ver_reg & 0xFF));
-    //uint8_t lapic_maximum_lvt = (ver_reg & 0xFF0000) >> 16;
-
+    
     return lapic_ver;
 }
 
@@ -101,10 +99,6 @@ void lapic_setEnabled(int enabled) {
         lapic_write(LAPIC_REGISTER_SPURINT, lapic_read(LAPIC_REGISTER_SPURINT) & ~LAPIC_SPUR_ENABLE);
     }
 }
-
-/**
- * @brief Get the error in the local APIC
- */
 
 /**
  * @brief Send SIPI signal
@@ -214,4 +208,3 @@ int lapic_initialize(uintptr_t lapic_address) {
     // Finished!
     return 0;
 }
-#endif

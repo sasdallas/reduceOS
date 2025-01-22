@@ -187,8 +187,9 @@ _no_debug: ;
     if (!smp) goto _no_smp;
     
     /* SMP INITIALIZATION */
-
-    // TODO
+    if (smp_init(smp)) {
+        dprintf(ERR, "Failed to initialize SMP\n");
+    }
 
 _no_smp: ;
 

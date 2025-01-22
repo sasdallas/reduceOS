@@ -251,7 +251,7 @@ gdt_base:
     .long 0
 
     /* Code segment - 64-bit kernel mode */
-    .word 0x0000
+    .word 0xFFFF
     .word 0x0000
     .byte 0x00
     .byte 0x9A

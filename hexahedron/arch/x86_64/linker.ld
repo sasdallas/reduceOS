@@ -22,6 +22,9 @@ SECTIONS
         *(.text)
         __text_end = .;
 
+        __ap_start = .;
+        *(.ap_bootstrap)
+        __ap_end = .;
     }
 
     /* Read-only data */
