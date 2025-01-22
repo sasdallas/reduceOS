@@ -63,6 +63,21 @@ page_t mem_heapBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
 
 
 /**
+ * @brief Get the kernel page directory/root-level PML
+ */
+page_t *mem_getKernelDirectory() {
+    return &mem_kernelPML[0];
+}
+
+/**
+ * @brief Get the current position of the kernel heap
+ * @returns The current position of the kernel heap
+ */
+uintptr_t mem_getKernelHeap() {
+    return mem_kernelHeap;
+}
+
+/**
  * @brief Map a physical address to a virtual address
  * 
  * @param dir The directory to map them in (leave blank for current)

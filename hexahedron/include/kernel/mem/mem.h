@@ -202,4 +202,10 @@ uintptr_t mem_sbrk(int b);
  */
 void mem_setPaging(bool status);
 
+/**
+ * @brief Get the current position of the kernel heap
+ * @returns The current position of the kernel heap
+ */
+uintptr_t mem_getKernelHeap();
+
 #endif

@@ -74,6 +74,14 @@ void mem_outofmemory(int bytes, char *seq) {
 }
 
 /**
+ * @brief Get the current position of the kernel heap
+ * @returns The current position of the kernel heap
+ */
+uintptr_t mem_getKernelHeap() {
+    return mem_kernelHeap;
+}
+
+/**
  * @brief Invalidate a page in the TLB
  * @param addr The address of the page 
  * @warning This function is only to be used when removing P-V mappings. Just free the page if it's identity.
