@@ -35,7 +35,7 @@ extern void hal_installGDT();
 i386_interrupt_descriptor_t hal_idt_table[I86_MAX_INTERRUPTS] = { 0 };
 
 /* Interrupt handler table - TODO: More than one handler per interrupt? */
-interrupt_handler_t hal_handler_table[I86_MAX_INTERRUPTS] = { 0 };
+void *hal_handler_table[I86_MAX_INTERRUPTS] = { 0 };
 
 /* Exception handler table - TODO: More than one handlers per exception? */
 exception_handler_t hal_exception_handler_table[I86_MAX_EXCEPTIONS] = { 0 };
@@ -166,7 +166,7 @@ void hal_interruptHandler(uintptr_t exception_index, uintptr_t int_number, regis
             interrupt_handler_context_t handler = (interrupt_handler_context_t)(hal_handler_table[int_number]);
             return_value = handler(hal_interrupt_context_table[int_number]);
         } else {
-            interrupt_handler_t handler = (hal_handler_table[int_number]);
+            interrupt_handler_t handler = (interrupt_handler_t)(hal_handler_table[int_number]);
             return_value = handler(exception_index, int_number, regs, regs_extended);
         }
 

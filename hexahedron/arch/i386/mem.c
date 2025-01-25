@@ -887,40 +887,17 @@ uintptr_t mem_sbrk(int b) {
     }
 
 
-    // Now lock
-    spinlock_acquire(&heap_lock);
-
-    // If you need to shrink the heap, you can pass a negative integer
+    // Trying to shrink the heap?
     if (b < 0) {
-        for (uintptr_t i = mem_kernelHeap; i >= mem_kernelHeap + b; i -= 0x1000) {
-            mem_freePage(mem_getPage(NULL, i, 0));
-        }
+        size_t positive = (size_t)(b * -1);
 
-        uintptr_t oldStart = mem_kernelHeap;
-        mem_kernelHeap += b; // Subtracting wouldn't be very good, would it?
-        spinlock_release(&heap_lock);
-        return oldStart;
+        uintptr_t ret = mem_getKernelHeap();
+        mem_free(ret - positive, positive, MEM_ALLOC_HEAP);
+        return ret;
     }
 
-    for (uintptr_t i = mem_kernelHeap; i < mem_kernelHeap + b; i += 0x1000) {
-        // Check if the page already exists
-        page_t *pagechk = mem_getPage(NULL, i, 0);
-        if (pagechk && pagechk->bits.present) {
-            // hmmm
-            dprintf(WARN, "sbrk found odd pages at 0x%x - 0x%x\n", i, i + 0x1000);
-
-            // whatever its free memory
-            continue;
-        }
-
-        page_t *page = mem_getPage(NULL, i, MEM_CREATE);
-        mem_allocatePage(page, MEM_PAGE_KERNEL);
-    }
-
-    uintptr_t oldStart = mem_kernelHeap;
-    mem_kernelHeap += b;
-    spinlock_release(&heap_lock);
-    return oldStart;
+    // Else just use mem_allocate
+    return mem_allocate(0x0, (size_t)(b), MEM_ALLOC_HEAP, MEM_PAGE_KERNEL);
 }
 
 /**
@@ -961,7 +938,7 @@ uintptr_t mem_allocate(uintptr_t start, size_t size, uintptr_t flags, uintptr_t 
     // Align start
     uintptr_t size_actual = size + (start & 0xFFF);
     start &= ~0xFFF;
-    size_actual = MEM_ALIGN_PAGE(size_actual);
+    if (size_actual & 0xFFF) size_actual = MEM_ALIGN_PAGE(size_actual);
 
     // If we're doing fragile allocation we need to make sure none of the pages are in use
     if (flags & MEM_ALLOC_FRAGILE) {
