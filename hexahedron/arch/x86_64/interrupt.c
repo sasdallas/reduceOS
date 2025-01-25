@@ -44,10 +44,13 @@ x86_64_gdt_t gdt[MAX_CPUS] __attribute__((used)) = {{
 x86_64_interrupt_descriptor_t hal_idt_table[X86_64_MAX_INTERRUPTS];
 
 /* Interrupt handler table - TODO: More than one handler per interrupt? */
-interrupt_handler_t hal_handler_table[X86_64_MAX_INTERRUPTS];
+void *hal_handler_table[X86_64_MAX_INTERRUPTS] = { 0 }; // Looks ugly as there are two types of interrupt handlers (context and registers)
 
 /* Exception handler table - TODO: More than one handler per exception? */
-exception_handler_t hal_exception_handler_table[X86_64_MAX_EXCEPTIONS];
+exception_handler_t hal_exception_handler_table[X86_64_MAX_EXCEPTIONS] = { 0 };
+
+/* Context table (makes drivers have a better time with interrupts) */
+void *hal_interrupt_context_table[X86_64_MAX_INTERRUPTS] = { 0 };
 
 /* String table for exceptions */
 const char *hal_exception_table[X86_64_MAX_EXCEPTIONS] = {
@@ -273,6 +276,25 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
  * @brief Common interrupt handler
  */
 void hal_interruptHandler(uintptr_t exception_index, uintptr_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
+    // Call any handler registered
+    if (hal_handler_table[int_number] != NULL) {
+        int return_value = 1;
+
+        // Context specified?
+        if (hal_interrupt_context_table[int_number] != NULL) {
+            interrupt_handler_context_t handler = (interrupt_handler_context_t)(hal_handler_table[int_number]);
+            return_value = handler(hal_interrupt_context_table[int_number]);
+        } else {
+            interrupt_handler_t handler = (interrupt_handler_t)(hal_handler_table[int_number]);
+            return_value = handler(exception_index, int_number, regs, regs_extended);
+        }
+
+        if (return_value != 0) {
+            kernel_panic(IRQ_HANDLER_FAILED, "hal");
+            __builtin_unreachable();
+        }
+    }
+    
     hal_endInterrupt(int_number);
 }
 
@@ -289,6 +311,7 @@ int hal_registerInterruptHandler(uintptr_t int_no, interrupt_handler_t handler) 
     }
 
     hal_handler_table[int_no] = handler;
+    hal_interrupt_context_table[int_no] = NULL;
 
     return 0;
 }
@@ -322,6 +345,25 @@ int hal_registerExceptionHandler(uintptr_t int_no, exception_handler_t handler) 
  */
 void hal_unregisterExceptionHandler(uintptr_t int_no) {
     hal_exception_handler_table[int_no] = NULL;
+}
+
+/**
+ * @brief Register an interrupt handler with context
+ * @param int_no The interrupt number
+ * @param handler The handler for the interrupt (should accept context)
+ * @param context The context to pass to the handler
+ * @returns 0 on success, -EINVAL if taken
+ */
+int hal_registerInterruptHandlerContext(uintptr_t int_no, interrupt_handler_context_t handler, void *context) {
+    if (hal_handler_table[int_no] != NULL) {
+        return -EINVAL;
+    }
+
+    // !!!: i mean, they're the same data type at the core level.. right?
+    hal_handler_table[int_no] = handler;
+    hal_interrupt_context_table[int_no] = context;
+
+    return 0;
 }
 
 /**
