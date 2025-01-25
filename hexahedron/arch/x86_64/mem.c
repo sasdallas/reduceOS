@@ -284,7 +284,7 @@ void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt, int flags) {
 
     page_t *pg = mem_getPage(dir, virt, MEM_CREATE);
     if (pg) {
-        mem_allocatePage(pg, MEM_NOALLOC | flags);
+        mem_allocatePage(pg, MEM_PAGE_NOALLOC | flags);
         MEM_SET_FRAME(pg, phys);
     }
 }
@@ -403,24 +403,24 @@ bad_page:
 void mem_allocatePage(page_t *page, uintptr_t flags) {
     if (!page) return;
 
-    if (flags & MEM_FREE_PAGE) {
+    if (flags & MEM_PAGE_FREE) {
         // Just free the page
         mem_freePage(page);
         return;
     }
 
-    if (!page->bits.address && !(flags & MEM_NOALLOC)) {
+    if (!page->bits.address && !(flags & MEM_PAGE_NOALLOC)) {
         // There isn't a frame configured, and the user wants to allocate one.
         uintptr_t block = pmm_allocateBlock();
         MEM_SET_FRAME(page, block);
     }
 
     // Configure page bits
-    page->bits.present          = (flags & MEM_NOT_PRESENT) ? 0 : 1;
-    page->bits.rw               = (flags & MEM_READONLY) ? 0 : 1;
-    page->bits.usermode         = (flags & MEM_KERNEL) ? 0 : 1;
-    page->bits.writethrough     = (flags & MEM_WRITETHROUGH) ? 1 : 0;
-    page->bits.cache_disable    = (flags & MEM_NOT_CACHEABLE) ? 1 : 0;
+    page->bits.present          = (flags & MEM_PAGE_NOT_PRESENT) ? 0 : 1;
+    page->bits.rw               = (flags & MEM_PAGE_READONLY) ? 0 : 1;
+    page->bits.usermode         = (flags & MEM_PAGE_KERNEL) ? 0 : 1;
+    page->bits.writethrough     = (flags & MEM_PAGE_WRITETHROUGH) ? 1 : 0;
+    page->bits.cache_disable    = (flags & MEM_PAGE_NOT_CACHEABLE) ? 1 : 0;
 }
 
 /**
@@ -464,7 +464,7 @@ uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
         page_t *page = mem_getPage(NULL, address + i, MEM_CREATE);
         if (page) {
             MEM_SET_FRAME(page, (phys + i));
-            mem_allocatePage(page, MEM_KERNEL | MEM_WRITETHROUGH | MEM_NOT_CACHEABLE | MEM_NOALLOC);
+            mem_allocatePage(page, MEM_PAGE_KERNEL | MEM_PAGE_WRITETHROUGH | MEM_PAGE_NOT_CACHEABLE | MEM_PAGE_NOALLOC);
         }
     }
     
@@ -495,7 +495,7 @@ uintptr_t mem_allocateDMA(uintptr_t size) {
     // Map into memory
     for (uintptr_t i = mem_dmaRegion; i < mem_dmaRegion + size; i += PAGE_SIZE) {
         page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
-        if (pg) mem_allocatePage(pg, MEM_KERNEL | MEM_NOT_CACHEABLE);
+        if (pg) mem_allocatePage(pg, MEM_PAGE_KERNEL | MEM_PAGE_NOT_CACHEABLE);
     }
 
     // Update size
@@ -561,7 +561,7 @@ uintptr_t mem_mapDriver(size_t size) {
     // Map into memory
     for (uintptr_t i = mem_driverRegion; i < mem_driverRegion + size; i += PAGE_SIZE) {
         page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
-        if (pg) mem_allocatePage(pg, MEM_KERNEL);
+        if (pg) mem_allocatePage(pg, MEM_PAGE_KERNEL);
     }
 
     // Update size
@@ -881,7 +881,7 @@ uintptr_t mem_sbrk(int b) {// Sanity checks
         }
 
         page_t *page = mem_getPage(NULL, i, MEM_CREATE);
-        mem_allocatePage(page, MEM_KERNEL);
+        mem_allocatePage(page, MEM_PAGE_KERNEL);
     }
 
     uintptr_t oldStart = mem_kernelHeap;

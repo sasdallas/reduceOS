@@ -142,7 +142,7 @@ void* liballoc_alloc(size_t n) {
     // Found the pages! Allocate them
     for (uintptr_t i = 0; i < n * PAGE_SIZE; i += PAGE_SIZE) {
         page_t *pg = mem_getPage(NULL, start + i, MEM_CREATE);
-        if (pg) mem_allocatePage(pg, MEM_KERNEL); // !!!: Usermode allocations?
+        if (pg) mem_allocatePage(pg, MEM_PAGE_KERNEL); // !!!: Usermode allocations?
     }
 
     liballoc_first_free_page = start + (n * PAGE_SIZE);

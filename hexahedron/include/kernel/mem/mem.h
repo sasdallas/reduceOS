@@ -32,18 +32,22 @@
 
 /**** DEFINITIONS ****/
 
-// Flags for the memory mapper
-// TODO: These are kinda gross.
-#define MEM_DEFAULT             0x00    // Default settings to memory allocator (usermode, writable, and present)
+// General flags
+#define MEM_DEFAULT             0x00    // Default settings to everything. For mem_allocatePage: usermode, writable, and present
+
+// Flags to mem_getPage
 #define MEM_CREATE              0x01    // Create the page. Commonly used with mem_getPage during mappings
-#define MEM_KERNEL              0x02    // The page is kernel-mode only
-#define MEM_READONLY            0x04    // The page is read-only
-#define MEM_WRITETHROUGH        0x08    // The page is marked as writethrough
-#define MEM_NOT_CACHEABLE       0x10    // The page is not cacheable
-#define MEM_NOT_PRESENT         0x20    // The page is not present in memory
-#define MEM_NOALLOC             0x40    // Do not allocate the page and instead use what was given
-#define MEM_FREE_PAGE           0x80    // Free the page. Sets it to zero if specified in mem_allocatePage
-#define MEM_NO_EXECUTE         0x100    // (x86_64 only) Set the page as non-executable.
+
+// Flags to mem_allocatePage
+#define MEM_PAGE_KERNEL             0x02    // The page is kernel-mode only
+#define MEM_PAGE_READONLY           0x04    // The page is read-only
+#define MEM_PAGE_WRITETHROUGH       0x08    // The page is marked as writethrough
+#define MEM_PAGE_NOT_CACHEABLE      0x10    // The page is not cacheable
+#define MEM_PAGE_NOT_PRESENT        0x20    // The page is not present in memory
+#define MEM_PAGE_NOALLOC            0x40    // Do not allocate the page and instead use what was given
+#define MEM_PAGE_FREE               0x80    // Free the page. Sets it to zero if specified in mem_allocatePage
+#define MEM_PAGE_NO_EXECUTE         0x100   // (x86_64 only) Set the page as non-executable.
+
 
 /**** FUNCTIONS ****/
 
@@ -157,7 +161,6 @@ page_t *mem_createVAS();
  * @returns The page directory on success
  */
 page_t *mem_clone(page_t *dir);
-
 
 /**
  * @brief Free a page
