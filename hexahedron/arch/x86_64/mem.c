@@ -492,10 +492,16 @@ uintptr_t mem_allocateDMA(uintptr_t size) {
 
     spinlock_acquire(&dma_lock);
 
+    // Allocate contiguous blocks
+    uintptr_t mapped_blocks = pmm_allocateBlocks(size / PMM_BLOCK_SIZE);
+    
     // Map into memory
-    for (uintptr_t i = mem_dmaRegion; i < mem_dmaRegion + size; i += PAGE_SIZE) {
-        page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
-        if (pg) mem_allocatePage(pg, MEM_PAGE_KERNEL | MEM_PAGE_NOT_CACHEABLE);
+    for (uintptr_t i = 0x0; i <  size; i += PAGE_SIZE) {
+        page_t *pg = mem_getPage(NULL, (i + mem_dmaRegion), MEM_CREATE);
+        if (pg) {
+            mem_allocatePage(pg, MEM_PAGE_KERNEL | MEM_PAGE_NOT_CACHEABLE | MEM_PAGE_NOALLOC);
+            MEM_SET_FRAME(pg, (i + mapped_blocks));
+        }
     }
 
     // Update size
@@ -888,4 +894,138 @@ uintptr_t mem_sbrk(int b) {// Sanity checks
     mem_kernelHeap += b;
     spinlock_release(&heap_lock);
     return oldStart;
+}
+
+/**
+ * @brief Allocate a region of memory
+ * @param start The starting virtual address (OPTIONAL IF YOU SPECIFY MEM_ALLOC_HEAP)
+ * @param size How much memory to allocate (will be aligned)
+ * @param flags Flags to use for @c mem_allocate (e.g. MEM_ALLOC_CONTIGUOUS)
+ * @param page_flags Flags to use for @c mem_allocatePage (e.g. MEM_PAGE_KERNEL)
+ * @returns Pointer to the new region of memory or 0x0 on failure
+ * 
+ * @note This is a newer addition to the memory subsystem. It may seem like it doesn't fit in.
+ */
+uintptr_t mem_allocate(uintptr_t start, size_t size, uintptr_t flags, uintptr_t page_flags) {
+    if (!size) return start;
+
+    // Save variables
+    uintptr_t start_original = start;
+    size_t size_original = size;
+
+    // Check
+    if (!MEM_IS_CANONICAL(start)) goto _error;
+
+    // Sanity checks
+    if (start == 0x0 && !(flags & MEM_ALLOC_HEAP)) {
+        dprintf(WARN, "Cannot allocate to 0x0 (MEM_ALLOC_HEAP not specified)\n");
+        goto _error;
+    }
+
+    // If we're trying to allocate from the heap, update variables
+    if (flags & MEM_ALLOC_HEAP) {
+        // Position at start of heap
+        start = mem_getKernelHeap();
+
+        // We return start_original
+        start_original = start;
+
+        // Add MEM_PAGE_KERNEL to prevent leaking heap memory
+        page_flags |= MEM_PAGE_KERNEL;
+    }
+
+    // Align start
+    uintptr_t size_actual = size + (start & 0xFFF);
+    start &= ~0xFFF;
+    size_actual = MEM_ALIGN_PAGE(size_actual);
+
+    // If we're doing fragile allocation we need to make sure none of the pages are in use
+    if (flags & MEM_ALLOC_FRAGILE) {
+        for (uintptr_t i = start; i < start + size_actual; i += PAGE_SIZE) {
+            page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
+            if (pg) {
+                dprintf(ERR, "Fragile allocation failed - found present page at %p\n", i);
+                goto _error;
+            }
+        }
+    }
+
+    // Start allocation
+    if (flags & MEM_ALLOC_HEAP) spinlock_acquire(&heap_lock);
+
+
+    // Are we contiguous?
+    uintptr_t contig = 0x0;
+    if (flags & MEM_ALLOC_CONTIGUOUS) contig = pmm_allocateBlocks(size_actual / PMM_BLOCK_SIZE);
+
+    // Now actually start mapping
+    for (uintptr_t i = start; i < start + size_actual; i += PAGE_SIZE) {
+        page_t *pg = mem_getPage(NULL, i, MEM_CREATE); 
+        if (!pg) {
+            dprintf(ERR, "Could not get page at %p\n", i);
+            goto _error;
+        }
+
+        // We've got the page - did they want contiguous?
+        if (flags & MEM_ALLOC_CONTIGUOUS) {
+            mem_allocatePage(pg, page_flags | MEM_PAGE_NOALLOC);
+            MEM_SET_FRAME(pg, (contig + (i-start)));
+        } else {
+            mem_allocatePage(pg, page_flags);
+        }
+    }
+
+    // Done, update heap if needed
+    if (flags & MEM_ALLOC_HEAP) {
+        mem_kernelHeap += size_actual;
+        spinlock_release(&heap_lock);
+    }
+
+    // All done
+    return start_original;
+
+_error:
+    // Critical?
+    if (flags & MEM_ALLOC_CRITICAL) {
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Critical allocation failed - could not allocate %d bytes in %p (flags %d page flags %d)\n", size_original, start_original, flags, page_flags);
+        __builtin_unreachable();
+    }
+
+    return 0x0;
+}
+
+/**
+ * @brief Free a region of memory
+ * @param start The starting virtual address (must be specified)
+ * @param size How much memory was allocated (will be aligned)
+ * @param flags Flags to use for @c mem_free (e.g. MEM_ALLOC_HEAP)
+ * @note Most flags do not affect @c mem_free
+ */
+void mem_free(uintptr_t start, size_t size, uintptr_t flags) {
+    if (!MEM_IS_CANONICAL(start)) return; // Corruption?
+    if (!start || !size) return;
+
+    // Align start
+    uintptr_t size_actual = size + (start & 0xFFF);
+    start &= ~0xFFF;
+    size_actual = MEM_ALIGN_PAGE(size_actual);
+
+    // If we're getting from heap, grab lock
+    if (flags & MEM_ALLOC_HEAP) spinlock_acquire(&heap_lock);
+
+    // Start freeing
+    for (uintptr_t i = start; i < start + size; i += PAGE_SIZE) {
+        page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
+        if (!pg) {
+            dprintf(WARN, "Tried to free page %p but it is not present (?)\n", i);
+        }
+        
+        mem_allocatePage(pg, MEM_PAGE_FREE);
+    }
+
+    // All done
+    if (flags & MEM_ALLOC_HEAP) {
+        mem_kernelHeap -= size;
+        spinlock_release(&heap_lock);
+    }
 }

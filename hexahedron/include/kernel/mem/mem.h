@@ -48,6 +48,11 @@
 #define MEM_PAGE_FREE               0x80    // Free the page. Sets it to zero if specified in mem_allocatePage
 #define MEM_PAGE_NO_EXECUTE         0x100   // (x86_64 only) Set the page as non-executable.
 
+// Flags to mem_allocate
+#define MEM_ALLOC_CONTIGUOUS        0x01    // Allocate contiguous blocks of memory, rather than fragmenting PMM blocks
+#define MEM_ALLOC_FRAGILE           0x02    // Fragile, meaning that a check is first run to determine if any pages are already marked as present
+#define MEM_ALLOC_HEAP              0x04    // Allocate from the heap
+#define MEM_ALLOC_CRITICAL          0x08    // This allocation is critical, on failure terminate kernel
 
 /**** FUNCTIONS ****/
 
@@ -227,5 +232,24 @@ void mem_setPaging(bool status);
  * @returns The current position of the kernel heap
  */
 uintptr_t mem_getKernelHeap();
+
+/**
+ * @brief Allocate a region of memory
+ * @param start The starting virtual address (OPTIONAL IF YOU SPECIFY MEM_ALLOC_HEAP)
+ * @param size How much memory to allocate (will be aligned)
+ * @param flags Flags to use for @c mem_allocate (e.g. MEM_ALLOC_CONTIGUOUS)
+ * @param page_flags Flags to use for @c mem_allocatePage (e.g. MEM_PAGE_KERNEL)
+ * @returns Pointer to the new region of memory or 0x0 on failure
+ */
+uintptr_t mem_allocate(uintptr_t start, size_t size, uintptr_t flags, uintptr_t page_flags);
+
+/**
+ * @brief Free a region of memory
+ * @param start The starting virtual address (must be specified)
+ * @param size How much memory was allocated (will be aligned)
+ * @param flags Flags to use for @c mem_free (e.g. MEM_ALLOC_HEAP)
+ * @note Most flags do not affect @c mem_free
+ */
+void mem_free(uintptr_t start, size_t size, uintptr_t flags);
 
 #endif
