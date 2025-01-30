@@ -46,6 +46,8 @@ typedef enum {
 #define COLOR_CODE_RED_BOLD     "\033[1;31m"
 #define COLOR_CODE_YELLOW       "\033[0;33m"
 #define COLOR_CODE_YELLOW_BOLD  "\033[1;33m"
+#define COLOR_CODE_GREEN        "\033[0;32m"
+#define COLOR_CODE_GREEN_BOLD   "\033[1;32m"
 
 
 
