@@ -11,8 +11,8 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-#ifndef DRIVERS_X86_PCI_H
-#define DRIVERS_X86_PCI_H
+#ifndef DRIVERS_PCI_H
+#define DRIVERS_PCI_H
 
 /**** INCLUDES ****/
 #include <stdint.h>
