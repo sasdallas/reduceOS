@@ -158,6 +158,9 @@ int terminal_putchar(int c) {
             // Newline
             terminal_x = 0;
             terminal_y++;
+
+            // Flush
+            video_updateScreen();
             break;
     
         case '\b':

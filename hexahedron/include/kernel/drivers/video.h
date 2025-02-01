@@ -32,10 +32,11 @@ typedef union _color {
 
 struct _video_driver; // Prototype
 
-typedef void (*putpixel_t)(struct _video_driver *driver, int x, int y, color_t color); // Place a pixel
-typedef void (*clearscreen_t)(struct _video_driver *driver, color_t bg); // Clear the screen
-typedef void (*updscreen_t)(struct _video_driver *driver); // Update the screen
-typedef int (*communicate_t)(struct _video_driver *driver, int type, uint32_t *data); // Communication. Allows for a sort of ioctl between drivers.
+/**
+ * @brief Update the screen and draw the given framebuffer
+ * @param buffer A linear framebuffer to update the screen with
+ */
+typedef void (*updscreen_t)(struct _video_driver *driver, uint8_t *buffer);
 
 typedef struct _video_driver {
     // Driver information
@@ -51,10 +52,7 @@ typedef struct _video_driver {
     int             allowsGraphics;         // Whether it allows graphics (WARNING: This may be used. It is best to leave this correct!)
 
     // Functions
-    putpixel_t      putpixel;
-    clearscreen_t   clear;
     updscreen_t     update;
-    communicate_t   communicate;
 
     // Fonts and other information will be handled by the font driver
 } video_driver_t;
@@ -139,5 +137,14 @@ void video_clearScreen(color_t bg);
  * @brief Update the screen
  */
 void video_updateScreen();
+
+/**
+ * @brief Returns the current video framebuffer
+ * @returns The framebuffer or NULL
+ * 
+ * You are allowed to draw in this just like you would a normal linear framebuffer,
+ * just call @c video_updateScreen when finished
+ */
+uint8_t *video_getFramebuffer();
 
 #endif

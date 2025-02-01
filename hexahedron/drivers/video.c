@@ -6,6 +6,12 @@
  * It supports text-only video drivers (but may cause gfx display issues) and it
  * supports pixel-based video drivers.
  * 
+ * The video system works by drawing in a linear framebuffer and then passing it to the video driver
+ * to update the screen based off this linear framebuffer.
+ * 
+ * Video acceleration (for font drawers) is allowed, they are allowed to manually modify the pixels of the system
+ * without bothering to mess with anything else.
+ * 
  * Currently, implementation is rough because we are at the beginnings of a new kernel,
  * but here is what is planned:
  * - Implement a list system to allow choosing
@@ -20,6 +26,7 @@
  */
 
 #include <kernel/drivers/video.h>
+#include <kernel/mem/alloc.h>
 #include <structs/list.h>
 #include <string.h>
 #include <errno.h>
@@ -29,6 +36,9 @@ static list_t *video_driver_list = NULL;
 
 /* Current driver */
 static video_driver_t *current_driver = NULL;
+
+/* Video framebuffer. This will be passed to the driver */
+uint8_t *video_framebuffer = NULL;
 
 /**
  * @brief Initialize and prepare the video system.
@@ -60,6 +70,16 @@ void video_switchDriver(video_driver_t *driver) {
         video_addDriver(driver);
     }
 
+    // Allocate framebuffer
+    if (video_framebuffer) {
+        // Reallocate
+        video_framebuffer = krealloc(video_framebuffer, (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch));
+    } else {
+        // Allocate
+        video_framebuffer = kmalloc((driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch));
+    }
+
+    // Set driver
     current_driver = driver; // TODO: If this interface gets more flushed out, drivers will need a load/unload method.
 }
 
@@ -95,8 +115,10 @@ video_driver_t *video_getDriver() {
  * @param color The color to plot
  */
 void video_plotPixel(int x, int y, color_t color) {
-    if (current_driver != NULL && current_driver->putpixel) {
-        current_driver->putpixel(current_driver, x, y, color);
+    if ((unsigned)x > current_driver->screenWidth || (unsigned)y > current_driver->screenHeight) return;
+    if (video_framebuffer) {
+        uintptr_t location = (uintptr_t)video_framebuffer + (x * 4 + y * current_driver->screenPitch);
+        *(uint32_t*)location = color.rgb;
     }
 }
 
@@ -105,9 +127,17 @@ void video_plotPixel(int x, int y, color_t color) {
  * @param bg The background of the screen
  */
 void video_clearScreen(color_t bg) {
-    if (current_driver != NULL && current_driver->clear) {
-        current_driver->clear(current_driver, bg);
+    uint8_t *buffer = video_framebuffer;
+    for (uint32_t y = 0; y < current_driver->screenHeight; y++) {
+        for (uint32_t x = 0; x < current_driver->screenWidth; x++) {
+            ((uint32_t*)buffer)[x*4] = bg.rgb; 
+        }
+
+        buffer += current_driver->screenPitch;
     }
+
+    // Update screen
+    video_updateScreen();
 }
 
 /**
@@ -115,23 +145,17 @@ void video_clearScreen(color_t bg) {
  */
 void video_updateScreen() {
     if (current_driver != NULL && current_driver->update) {
-        current_driver->update(current_driver);
+        current_driver->update(current_driver, video_framebuffer);
     }
 }
 
 /**
- * @brief Communicate with the internal driver.
- * @param type The type of communication
- * @param data The data of this communication
- * @returns A success value (-EINVAL is returned if driver is invalid/no comm method)
+ * @brief Returns the current video framebuffer
+ * @returns The framebuffer or NULL
  * 
- * This allows for a sort of ioctl between drivers. A driver that can accelerate if used with grubvid
- * can use an identify command (instead of wasting cycles on strcmp) and then accelerate with specific commands.
+ * You are allowed to draw in this just like you would a normal linear framebuffer,
+ * just call @c video_updateScreen when finished
  */
-int video_communicate(int type, uint32_t *data) {
-    if (current_driver != NULL && current_driver->communicate) {
-        return current_driver->communicate(current_driver, type, data);
-    }
-
-    return -EINVAL;
+uint8_t *video_getFramebuffer() {
+    return video_framebuffer;
 }

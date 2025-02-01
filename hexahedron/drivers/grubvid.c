@@ -26,48 +26,10 @@
 #define LOG(status, message, ...) dprintf_module(status, "GRUBVID", message, ## __VA_ARGS__)
 
 /**
- * @brief Put pixel function
- */
-void grubvid_putPixel(video_driver_t *driver, int x, int y, color_t color) {
-    uintptr_t location = x * 4 + y * driver->screenPitch;
-
-    driver->videoBuffer[location] = RGB_B(color);
-    driver->videoBuffer[location + 1] = RGB_G(color);
-    driver->videoBuffer[location + 2] = RGB_R(color);
-}
-
-/**
- * @brief Clear screen function
- */
-void grubvid_clearScreen(video_driver_t *driver, color_t bg) {
-    // fg is ignored, fill screen with bg
-    uint8_t *buffer = driver->videoBuffer;
-    for (uint32_t y = 0; y < driver->screenHeight; y++) {
-        for (uint32_t x = 0; x < driver->screenWidth; x++) {
-            buffer[x*4] = RGB_B(bg);
-            buffer[x*4+1] = RGB_G(bg);
-            buffer[x*4+2] = RGB_R(bg);  
-        }
-
-        buffer += driver->screenPitch;
-    }
-}
-
-/**
  * @brief Update screen function
  */
-void grubvid_updateScreen(struct _video_driver *driver) {
-    // No double buffering
-}
-
-/**
- * @brief Communication function. Allows for ioctl on video-specific drivers.
- * 
- * See @c grubvid.c for specific calls
- */
-int grubvid_communicate(struct _video_driver *driver, int type, uint32_t *data) {
-    // Unimplemented
-    return 0;
+void grubvid_updateScreen(struct _video_driver *driver, uint8_t *buffer) {
+    memcpy(driver->videoBuffer, buffer, (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch));
 }
 
 /**
@@ -89,14 +51,11 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
     driver->screenBPP = parameters->framebuffer->framebuffer_bpp;
     driver->allowsGraphics = 1;
 
-    driver->putpixel = grubvid_putPixel;
-    driver->clear = grubvid_clearScreen;
     driver->update = grubvid_updateScreen;
-    driver->communicate = grubvid_communicate;
 
     // BEFORE WE DO ANYTHING, WE HAVE TO REMAP THE FRAMEBUFFER TO SPECIFIED ADDRESS
     for (uintptr_t phys = parameters->framebuffer->framebuffer_addr, virt = MEM_FRAMEBUFFER_REGION;
-            phys < parameters->framebuffer->framebuffer_addr + ((driver->screenWidth * driver->screenHeight) * 4);
+            phys < parameters->framebuffer->framebuffer_addr + (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
             phys += PAGE_SIZE, virt += PAGE_SIZE) 
     {
         mem_mapAddress(NULL, phys, virt, MEM_PAGE_KERNEL); // !!!: usermode access?

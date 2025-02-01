@@ -52,16 +52,32 @@ void font_putCharacterBackup(int c, int _x, int _y, color_t fg, color_t bg) {
     int x = _x * current_font->width;
     int y = _y * current_font->height;
 
+    // Is there a framebuffer?
+    if (video_getFramebuffer() == NULL) {
+        return;
+    }
+
+    // Is there a driver?
+    video_driver_t *driver = video_getDriver();
+    if (driver == NULL) {
+        return;
+    }
+
+    // Accelerate!
+    uint8_t *buffer = video_getFramebuffer() + (driver->screenPitch * y) + (x * 4); 
+
     for (uint8_t h = 0; h < font_getHeight(); h++) {
         for (uint8_t w = 0; w < font_getWidth(); w++) {
             if (fc[h] & (1 << (BACKUP_LARGE_FONT_MASK - w))) {
                 // Foreground pixel
-                video_plotPixel(x+w, y+h, fg);
+                *(uint32_t*)(buffer + (w*4)) = fg.rgb; 
             } else {
                 // Background pixel
-                video_plotPixel(x+w, y+h, bg);
+                *(uint32_t*)(buffer + (w*4)) = bg.rgb; 
             }
         }
+
+        buffer += driver->screenPitch;
     }
 }
 
