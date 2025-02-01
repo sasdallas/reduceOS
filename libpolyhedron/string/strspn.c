@@ -24,7 +24,7 @@ size_t strspn(const char *str, const char *c) {
     // Now check if there is a second character in c.
     if (!c[1]) {
         // No, we're only looking for one character.
-        for (; *str == *c; str++);
+        while (*str && *str == *c) str++;
         return str-a;
     }
 

@@ -29,6 +29,7 @@ typedef int dev_t;
 typedef int ino_t;
 typedef int mode_t;
 typedef int caddr_t;
+typedef int pid_t;
 
 typedef long off_t;
 typedef long time_t;
