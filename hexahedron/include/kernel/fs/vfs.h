@@ -214,4 +214,9 @@ fs_node_t *vfs_mountFilesystemType(char *name, char *argp, char *mountpoint);
  */
 fs_node_t *kopen(const char *path, unsigned int flags);
 
+/**
+ * @brief Dump VFS tree system
+ */
+void vfs_dump();
+
 #endif

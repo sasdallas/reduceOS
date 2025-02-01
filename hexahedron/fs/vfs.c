@@ -161,6 +161,45 @@ int fs_unlink(char *name) { return -ENOTSUP; }
 /**** VFS TREE FUNCTIONS ****/
 
 /**
+ * @brief Dump VFS tree system (recur)
+ * @param node The current tree node to search
+ * @param depth The depth of the tree node
+ */
+static void vfs_dumpRecursive(tree_node_t *node, int depth) {
+    if (!node) return;
+
+    // Calculate spaces
+    char spaces[256] = { 0 };
+    for (int i = 0; i < ((depth > 256) ? 256 : depth); i++) {
+        spaces[i] = ' ';
+    }
+    
+    if (node->value) {
+        vfs_tree_node_t *tnode = (vfs_tree_node_t*)node->value;
+        if (tnode->node) {
+            LOG(DEBUG, "%s%s (filesystem %s, %p) -> file %s (%p)\n", spaces, tnode->name, tnode->fs_type, tnode, tnode->node->name, tnode->node);
+        } else {
+            LOG(DEBUG, "%s%s (filesystem %s, %p) -> NULL\n", spaces, tnode->name, tnode->fs_type, tnode);
+        }
+    } else {
+        LOG(DEBUG, "%s(node %p has NULL value)\n", spaces, node);
+    }
+
+    foreach (child, node->children) {
+        vfs_dumpRecursive((tree_node_t*)child->value, depth +  1);
+    }
+
+} 
+
+/**
+ * @brief Dump VFS tree system
+ */
+void vfs_dump() {
+    LOG(DEBUG, "VFS tree dump:\n");
+    vfs_dumpRecursive(vfs_tree->root, 0);
+}
+
+/**
  * @brief Initialize the virtual filesystem with no root node.
  */
 void vfs_init() {
