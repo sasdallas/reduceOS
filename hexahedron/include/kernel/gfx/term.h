@@ -42,7 +42,7 @@ int terminal_putchar(int c);
 /**
  * @brief Put character method (printf-conforming)
  */
-int terminal_print(void *user, int c);
+int terminal_print(void *user, char c);
 
 /**
  * @brief Clear terminal screen

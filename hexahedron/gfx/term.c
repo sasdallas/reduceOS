@@ -79,6 +79,9 @@ void terminal_clear(color_t fg, color_t bg) {
             font_putCharacter(' ', x, y, terminal_fg, terminal_bg);
         }
     }
+
+    terminal_x = 0;
+    terminal_y = 0;
 }
 
 /**
@@ -250,7 +253,7 @@ int terminal_putchar(int c) {
 /**
  * @brief Put character method (printf-conforming)
  */
-int terminal_print(void *user, int c) {
+int terminal_print(void *user, char c) {
     return terminal_putchar(c);
 }
 
