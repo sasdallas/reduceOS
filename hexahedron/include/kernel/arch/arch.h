@@ -81,4 +81,10 @@ extern __attribute__((returns_twice)) int arch_save_context(struct arch_context 
  */
 extern __attribute__((noreturn)) void arch_load_context(struct arch_context *context);
 
+/**
+ * @brief Say hi!
+ * @param is_debug Print to dprintf or printf
+ */
+void arch_say_hello(int is_debug);
+
 #endif

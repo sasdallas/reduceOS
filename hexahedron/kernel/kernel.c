@@ -35,6 +35,13 @@
 #include <kernel/fs/tarfs.h>
 #include <kernel/fs/ramdev.h>
 
+// Drivers
+#include <kernel/drivers/font.h>
+
+// Graphics
+#include <kernel/gfx/term.h>
+#include <kernel/gfx/gfx.h>
+
 // Misc.
 #include <kernel/misc/ksym.h>
 #include <kernel/misc/args.h>
@@ -124,6 +131,22 @@ void kmain() {
     // Now we need to mount the initial ramdisk
     kernel_mountRamdisk(parameters);
 
+    // Try to load new font file
+    fs_node_t *new_font = kopen("/device/initrd/ter-112n.psf", O_RDONLY);
+    if (new_font) {
+        // Load PSF
+        if (!font_loadPSF(new_font)) {
+            // Say hello
+            gfx_drawLogo(TERMINAL_DEFAULT_FG);
+            arch_say_hello(0);
+        } else {
+            fs_close(new_font);
+            LOG(ERR, "Failed to load font file \"/device/initrd/ter-112n.psf\".\n");
+        }
+    } else {
+        LOG(ERR, "Could not find new font file \"/device/initrd/ter-112n.psf\", using old font\n");
+    }
+
     // Load symbols
     fs_node_t *symfile = kopen("/device/initrd/hexahedron-kernel-symmap.map", O_RDONLY);
     if (!symfile) {
@@ -143,6 +166,5 @@ void kmain() {
         LOG(WARN, "Not loading any drivers, found argument \"--no-load-drivers\".\n");
     }
 
-
-
+    
 }
