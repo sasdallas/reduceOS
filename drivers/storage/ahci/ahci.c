@@ -50,7 +50,9 @@ int ahci_interrupt(void *context) {
     // Get the AHCI structure
     ahci_t *ahci = (ahci_t*)context;
 
-    LOG(DEBUG, "AHCI interrupt - IS %08x\n", ahci->mem->is);
+    // LOG(DEBUG, "AHCI interrupt - IS %08x\n", ahci->mem->is);
+
+    uint32_t is = ahci->mem->is;
 
     // For each port...
     for (int port = 0; port < 32; port++) {
@@ -58,10 +60,14 @@ int ahci_interrupt(void *context) {
         if (ahci->ports[port] == NULL) continue;
 
         // Does it have an IRQ to handle?
-        if (ahci->mem->is & (1 << port)) {
+        if (is & (1 << port)) {
             ahci_portIRQ(ahci->ports[port]);
         }
     }
+
+    // Clear pending interrupts
+    ahci->mem->is = is;
+
     return 0;
 }
 
@@ -139,7 +145,7 @@ int ahci_init(int argc, char **argv) {
     uint16_t ahci_pci_command = pci_readConfigOffset(PCI_BUS(ahci_data), PCI_SLOT(ahci_data), PCI_FUNCTION(ahci_data), PCI_COMMAND_OFFSET, 2);
     ahci_pci_command &= ~(PCI_COMMAND_IO_SPACE | PCI_COMMAND_INTERRUPT_DISABLE); // Enable interrupts and disable I/O space
     ahci_pci_command |= (PCI_COMMAND_BUS_MASTER | PCI_COMMAND_MEMORY_SPACE);
-    pci_writeConfigOffset(PCI_BUS(ahci_data), PCI_SLOT(ahci_data), PCI_FUNCTION(ahci_data), PCI_COMMAND_OFFSET, ahci_pci_command);
+    pci_writeConfigOffset(PCI_BUS(ahci_data), PCI_SLOT(ahci_data), PCI_FUNCTION(ahci_data), PCI_COMMAND_OFFSET, (uint32_t)ahci_pci_command & 0xFFFF);
 
     // Map it into MMIO
     ahci_hba_mem_t *hbamem = (ahci_hba_mem_t*)mem_mapMMIO(bar->address, bar->size);
@@ -160,6 +166,10 @@ int ahci_init(int argc, char **argv) {
         LOG(ERR, "This is an implementation bug, halting system (REPORT THIS)\n");
         for (;;);
     }
+
+
+    LOG(DEBUG, "Registering IRQ%d for AHCI controller\n", irq);
+
 
     // Register a context-based interrupt handler?
     if (hal_registerInterruptHandlerContext(irq, ahci_interrupt, (void*)ahci) != 0) {

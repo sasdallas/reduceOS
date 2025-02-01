@@ -18,6 +18,9 @@
 
 /**** INCLUDES ****/
 #include <stdint.h>
+#include <stddef.h>
+#include <kernel/fs/vfs.h>
+#include <kernel/drivers/clock.h>
 
 /**** DEFINITIONS ****/
 
@@ -545,6 +548,7 @@ typedef struct ahci_cmd_table
 	ahci_prdt_entry_t	prdt_entry[AHCI_PRDT_COUNT];      // Physical region descriptor table entries, 0 ~ 65535
 } ahci_cmd_table_t;
 
+
 /**
  * @brief ATA identification space
  * 
@@ -572,7 +576,11 @@ typedef struct ata_ident {
     uint32_t command_sets;      // Command/feature sets
     uint16_t obsolete9[16];     // Contain nothing really useful
     uint64_t sectors_lba48;     // LBA48 maximum sectors, AND by 0000FFFFFFFFFFFF for validity
-    uint16_t obsolete10[152];   // Contain nothing really useful
+    uint16_t obsolete10[2];     // Contain nothing really useful
+    uint16_t phys_to_logical;   // Confirms physical sector size to logical sector size
+    uint16_t obsolete11[11];   	// Contain nothing really useful
+	uint32_t sector_size;		// Logical sector size
+	uint16_t obsolete12[136];	// Nothing really useful
 } __attribute__((packed)) ata_ident_t;
 
 
@@ -588,6 +596,9 @@ typedef struct ahci_port {
 	int port_num;					// Number of the port
 	int type;						// Type of the device connected
 	uint64_t size;              	// Size of the device in bytes
+
+	// DMA
+	uintptr_t dma_buffer;			// DMA buffer for quick access
 
 	// ATA
 	ata_ident_t *ident;				// Identification space
@@ -674,9 +685,37 @@ int ahci_portFinishInitialization(ahci_port_t *port);
 void ahci_portDeinitialize(ahci_port_t *port);
 
 /**
+ * @brief Execute a request for a specific port
+ * @param port The port to execute the request for
+ * @param operation The operation to do
+ * @param lba The LBA
+ * @param sectors The amount of sectors to operate on
+ * @param buffer The buffer to use (assume DMA)
+ * @returns Error code
+ */
+int ahci_portOperate(ahci_port_t *port, int operation, uint64_t lba, size_t sectors, uint8_t *buffer);
+
+/**
  * @brief Handle a port IRQ
  * @param port The port
  */
 void ahci_portIRQ(ahci_port_t *port);
+
+/**
+ * @brief VFS read method for AHCI device
+ * @warning !!! THIS MATH IS HORRIBLE DO NOT READ !!!
+ */
+ssize_t ahci_read(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer);
+
+/**
+ * @brief VFS write method for AHCI device
+ * @warning !!! HORRIBLE CODING !!!
+ */
+ssize_t ahci_write(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer);
+
+/**
+ * @brief Allocate a new filesystem node for AHCI
+ */ 
+fs_node_t *ahci_createNode(ahci_port_t *port);
 
 #endif
