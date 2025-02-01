@@ -371,12 +371,6 @@ int hal_registerInterruptHandlerContext(uintptr_t int_no, interrupt_handler_cont
  * Uses default offsets 0x20 for master and 0x28 for slave
  */
 void hal_initializePIC() {
-    uint8_t master_mask, slave_mask;
-
-    // Read & save the PIC masks
-    master_mask = inportb(X86_64_PIC1_DATA);
-    slave_mask = inportb(X86_64_PIC2_DATA);
-
     // Begin initialization sequence in cascade mode
     outportb(X86_64_PIC1_COMMAND, X86_64_PIC_ICW1_INIT | X86_64_PIC_ICW1_ICW4); 
     io_wait();
@@ -402,10 +396,6 @@ void hal_initializePIC() {
     io_wait();
     outportb(X86_64_PIC2_DATA, X86_64_PIC_ICW4_8086);  
     io_wait();
-    
-    // Restore old masks
-    outportb(X86_64_PIC1_DATA, master_mask);
-    outportb(X86_64_PIC2_DATA, slave_mask);
 }
 
 /**

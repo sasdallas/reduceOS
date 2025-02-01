@@ -278,12 +278,6 @@ int hal_registerInterruptVector(uint8_t index, uint8_t flags, uint16_t segment, 
  * Uses default offsets 0x20 for master and 0x28 for slave
  */
 void hal_initializePIC() {
-    uint8_t master_mask, slave_mask;
-
-    // Read & save the PIC masks
-    master_mask = inportb(I86_PIC1_DATA);
-    slave_mask = inportb(I86_PIC2_DATA);
-
     // Begin initialization sequence in cascade mode
     outportb(I86_PIC1_COMMAND, I86_PIC_ICW1_INIT | I86_PIC_ICW1_ICW4); 
     io_wait();
@@ -309,10 +303,6 @@ void hal_initializePIC() {
     io_wait();
     outportb(I86_PIC2_DATA, I86_PIC_ICW4_8086);  
     io_wait();
-
-    // Restore old masks
-    outportb(I86_PIC1_DATA, master_mask);
-    outportb(I86_PIC2_DATA, slave_mask);
 }
 
 /**
