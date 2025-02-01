@@ -30,7 +30,8 @@ char *kernel_bugcode_strings[KERNEL_STOP_CODES] = {
     "INSUFFICIENT_HARDWARE_REQUIREMENTS", // This one is different, looks better.
     "INITIAL_RAMDISK_CORRUPTED",
     "DRIVER_LOADER_ERROR",
-    "DRIVER_LOAD_FAILED"
+    "DRIVER_LOAD_FAILED",
+    "TASK_SCHEDULER_ERROR"
 };
 
 char *kernel_panic_messages[KERNEL_STOP_CODES] = {
@@ -39,12 +40,13 @@ char *kernel_panic_messages[KERNEL_STOP_CODES] = {
     "A bad argument was passed to a critical function. This is (unless specified) a bug in the kernel - please contact the developers.\n",
     "The system has run out of memory. Try closing applications or adjusting your pagefile.\n",
     "An IRQ handler did not return a success value. This could be caused by an external driver or an internal kernel driver.\n",
-    "A CPU exception in the kernel was not handled correctly.",
+    "A CPU exception in the kernel was not handled correctly.\n",
     "An unsupported kernel function was called. This as a bug in the kernel - please contact the developers.\n",
     "Your computer is not compliant with ACPI specifications, or is not compatible with the ACPICA library.\n",
     "An assertion within the kernel failed.\n",
     "Your computer does not meet the requirements necessary to run Hexahedron.\n",
     "The initial startup disk (initrd.tar.img) was not found or was corrupted.\n",
     "The driver loader encountered a malformatted/invalid driver entry.\n",
-    "A critical driver failed to load correctly.\n"
+    "A critical driver failed to load correctly.\n",
+    "The task scheduler encountered an error.\n"
 };

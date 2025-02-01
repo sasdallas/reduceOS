@@ -17,16 +17,24 @@
 #ifndef KERNEL_PROCESSOR_DATA_H
 #define KERNEL_PROCESSOR_DATA_H
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 /**** INCLUDES ****/
 #include <stdint.h>
 #include <kernel/arch/arch.h>
 #include <kernel/mem/mem.h>
+#include <kernel/task/process.h>
+
+
 
 /**** TYPES ****/
 
 typedef struct _processor {
-    int cpu_id;
-    page_t *current_dir;
+    int cpu_id;                 // CPU ID
+    page_t *current_dir;        // Current page directory
+    thread_t *current_thread;   // Current thread of the process
+
+
 
 #if defined(__ARCH_X86_64__) || defined(__ARCH_I386__)
     int lapic_id;
@@ -37,8 +45,8 @@ typedef struct _processor {
     int cpu_model_number;
     int cpu_family;
 #endif
-} processor_t;
 
+} processor_t;
 
 /* External variables defined by architecture */
 extern processor_t processor_data[];
