@@ -152,7 +152,16 @@ int ahci_init(int argc, char **argv) {
     ahci->pci_device = ahci_data;
 
     // Register the interrupt handler
-    uint8_t irq = (uint8_t)pci_readConfigOffset(PCI_BUS(ahci->pci_device), PCI_SLOT(ahci->pci_device), PCI_FUNCTION(ahci->pci_device), 0x3C, 1);
+    uint8_t irq = pci_getInterrupt(PCI_BUS(ahci->pci_device), PCI_SLOT(ahci->pci_device), PCI_FUNCTION(ahci->pci_device));
+
+    // Does it have an IRQ?
+    if (irq == 0xFF) {
+        LOG(ERR, "AHCI controller does not have interrupt number\n");
+        LOG(ERR, "This is an implementation bug, halting system (REPORT THIS)\n");
+        for (;;);
+    }
+
+    // Register a context-based interrupt handler?
     if (hal_registerInterruptHandlerContext(irq, ahci_interrupt, (void*)ahci) != 0) {
         LOG(ERR, "Error registering AHCI controller IRQ (I/O APIC in use?)\n");
         kfree(ahci);

@@ -25,6 +25,74 @@
 #define LOG_PORT(status, port, ...) LOG(status, "[PORT%d] ", port->port_num); \
                                     dprintf(NOHEADER, __VA_ARGS__)
 
+
+/**
+ * @brief Dump port state
+ * @param port The port to dump the state of
+ */
+static void ahci_dumpPortState(ahci_port_t *port) {
+    LOG_PORT(DEBUG, port, "PORT DUMP STATE:\n");
+    LOG_PORT(DEBUG, port, "\tIS %08x\n", port->port->is);
+    LOG_PORT(DEBUG, port, "\tIE %08x\n", port->port->ie);
+    LOG_PORT(DEBUG, port, "\tCMD %08x\n", port->port->cmd);
+    LOG_PORT(DEBUG, port, "\tTFD %08x\n", port->port->tfd);
+    LOG_PORT(DEBUG, port, "\tSIG %08x\n", port->port->sig);
+    LOG_PORT(DEBUG, port, "\tSSTS %08x\n", port->port->ssts);
+    LOG_PORT(DEBUG, port, "\tSCTL %08x\n", port->port->sctl);
+    LOG_PORT(DEBUG, port, "\tSERR %08x\n", port->port->serr);
+    LOG_PORT(DEBUG, port, "\tSACT %08x\n", port->port->sact);
+    LOG_PORT(DEBUG, port, "\tCI %08x\n", port->port->ci);
+    LOG_PORT(DEBUG, port, "\tSNTF %08x\n", port->port->sntf);
+    LOG_PORT(DEBUG, port, "\tFBS %08x\n", port->port->fbs);
+
+    // Dump error
+    if (port->port->serr & 0xFFFFFFFF) {
+        LOG_PORT(DEBUG, port, "ERROR STATE OF PORT:\n");
+        if (port->port->serr & HBA_PORT_PXSERR_X) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Exchanged\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_F) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Unknown FIS type\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_T) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Transport state transition error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_S) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Link sequence error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_H) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Handshake error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_C) {
+            LOG_PORT(ERR, port, "\t- PxSERR: CRC error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_B) {
+            LOG_PORT(ERR, port, "\t- PxSERR: 10B to 8B decode error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_W) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Comm wake\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_I) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Phy internal error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_N) {
+            LOG_PORT(ERR, port, "\t- PxSERR: PhyRdy change\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_ERR_E) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Internal error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_ERR_P) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Protocol error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_ERR_C) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Persistent communication or data integrity error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_ERR_T) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Transient data integrity error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_ERR_M) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Recovered communications error\n");
+        } else if (port->port->serr & HBA_PORT_PXSERR_ERR_I) {
+            LOG_PORT(ERR, port, "\t- PxSERR: Recovered data integrity error\n");
+        }
+    }
+
+    // Dump D2HFIS
+    LOG_PORT(DEBUG, port, "D2HFIS:\n");
+    LOG_PORT(DEBUG, port, "\tFIS_TYPE %02x\n", port->fis->rfis.fis_type);
+    LOG_PORT(DEBUG, port, "\tPMPORT %x\n", port->fis->rfis.pmport);
+    LOG_PORT(DEBUG, port, "\tINTERRUPT %i\n", port->fis->rfis.i);
+    LOG_PORT(DEBUG, port, "\tSTATUS %02x\n", port->fis->rfis.status);
+    LOG_PORT(DEBUG, port, "\tERROR %02x\n", port->fis->rfis.error);
+
+}
+
 /**
  * @brief Disable a port
  * @param port The port to disable
@@ -82,6 +150,23 @@ static int ahci_portEnable(ahci_port_t *port) {
 }
 
 /**
+ * @brief Find an unused command header
+ * @param port The port to search for an unused command header on
+ * @returns Command header index or -1
+ */
+static int ahci_portFindUnusedHeader(ahci_port_t *port) {
+    uint32_t ci = port->port->ci;
+    for (int i = 0; i < 32; i++) {
+        if (!(ci & (1 << i))) {
+            // Found one!
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/**
  * @brief Fill the PRDT of a command header
  * @param port The port to fill the PRDT of
  * @param data The data to fill the PRDT with
@@ -93,11 +178,17 @@ static int ahci_portFillPRDT(ahci_port_t *port, ahci_cmd_header_t *header, uintp
 
     // Get the command table
     ahci_cmd_table_t *table = port->cmd_table;
-    
+
+    // Clear the command table
+    memset(table, 0, sizeof(ahci_cmd_table_t));
+
+    // Clear the PRDs in the comand table
+    memset(table->prdt_entry, 0, sizeof(ahci_prdt_entry_t) * AHCI_PRDT_COUNT);
+
     uintptr_t *buffer = data;
     size_t remaining = size;
     int prds_filled = 0;
-    for (int entry = 0; entry < header->prdtl-1; entry++) {
+    for (int entry = 0; entry < AHCI_PRDT_COUNT; entry++) {
         if (remaining <= 0) break;
         AHCI_SET_ADDRESS(table->prdt_entry[entry].dba, data);
         
@@ -106,7 +197,7 @@ static int ahci_portFillPRDT(ahci_port_t *port, ahci_cmd_header_t *header, uintp
         if (bytes > AHCI_PRD_MAX_BYTES) bytes = AHCI_PRD_MAX_BYTES;
 
         // Set the length of the data
-        table->prdt_entry[entry].dbc = bytes; 
+        table->prdt_entry[entry].dbc = bytes - 1; 
 
         // Update
         remaining -= bytes;
@@ -130,16 +221,23 @@ static int ahci_portFillPRDT(ahci_port_t *port, ahci_cmd_header_t *header, uintp
  * @param timeout The timeout to use
  * @returns AHCI_SUCCESS on success, anything else is a failure
  */
-static int ahci_portWaitTransfer(ahci_port_t *port, int timeout) {
+static int ahci_portWaitTransfer(ahci_port_t *port, int timeout, int header) {
     while (1) {
-        if (!(port->port->ci & (1))) {
+        if (!(port->port->ci & (1 << header))) {
             return AHCI_SUCCESS;
         }
 
+        // Decrement timeout
         timeout--;
         if (timeout <= 0) break;
 
-        // TODO: ERROR HANDLING!!!!!!
+        // Check for errors in the IS flag
+        if (port->port->is & HBA_PORT_PXIS_TFES) {
+            LOG_PORT(ERR, port, "Transfer failure - dumping port state.\n");
+            ahci_dumpPortState(port);
+            return AHCI_ERROR;
+        }
+
     }
     
     return AHCI_TIMEOUT;   
@@ -153,12 +251,21 @@ static int ahci_portWaitTransfer(ahci_port_t *port, int timeout) {
  */
 static int ahci_readIdentificationSpace(ahci_port_t *port, ata_ident_t *ident) {
     // Get the command header
-    ahci_cmd_header_t *header = (ahci_cmd_header_t*)port->cmd_list;
+    int free_command_header = ahci_portFindUnusedHeader(port);
+    if (free_command_header < 0) {
+        // No free command headers
+        LOG_PORT(ERR, port, "No free command headers\n");
+        return AHCI_ERROR;
+    }
+
+    ahci_cmd_header_t *header = (ahci_cmd_header_t*)&port->cmd_list[free_command_header];
 
     // Setup header
-    header->cfl = sizeof(ahci_fis_d2h_t) / sizeof(uint32_t);
+    header->cfl = sizeof(ahci_fis_h2d_t) / sizeof(uint32_t);
     header->prdtl = ahci_portFillPRDT(port, header, (uintptr_t*)ident, sizeof(ata_ident_t));
-    // NOTE: header->a is only set when cmd_table->acmd is being set, and since ATA_CMD_IDENTIFY_PACKET is technically an ATA command, don't do that
+    header->w = 0;
+    header->a = 0;
+    header->p = 1;
 
     // Create the FIS
     ahci_fis_h2d_t *fis = (ahci_fis_h2d_t*)(&(port->cmd_table->cfis));
@@ -174,11 +281,10 @@ static int ahci_readIdentificationSpace(ahci_port_t *port, ata_ident_t *ident) {
     }
 
     // Send the command!
-    port->port->ci = 1;
+    port->port->ci = (1 << free_command_header);
 
     // Wait for the transfer to complete
-    int transfer = ahci_portWaitTransfer(port, 10000000);
-
+    int transfer = ahci_portWaitTransfer(port, 10000000, free_command_header);
     if (transfer != AHCI_SUCCESS) {
         LOG_PORT(ERR, port, "Failed to read drive identification space\n");
         return AHCI_ERROR;
@@ -188,6 +294,67 @@ static int ahci_readIdentificationSpace(ahci_port_t *port, ata_ident_t *ident) {
     return AHCI_SUCCESS;
 }
 
+/**
+ * @brief Read the capacity of an ATAPI drive
+ * @param port The port to read the capacity of
+ * @param capacity The output buffer of capacity. Should be 12 bytes long (6 shorts)
+ * @returns Status code
+ */
+static int ahci_readCapacityATAPI(ahci_port_t *port, uint16_t *capacity) {
+    if (port->type != AHCI_DEVICE_SATAPI || !capacity) return AHCI_ERROR;
+
+    // Construct the read capacity packet
+    uint16_t read_capacity_packet[6] = { ATAPI_READ_CAPACITY, 0, 0, 0, 0, 0 };
+    
+    // Get the command header
+    int free_command_header = ahci_portFindUnusedHeader(port);
+    if (free_command_header < 0) {
+        LOG_PORT(ERR, port, "No free command headers found.\n");
+        return AHCI_ERROR;
+    }
+
+    ahci_cmd_header_t *header = (ahci_cmd_header_t*)&port->cmd_list[free_command_header];
+
+    // Setup header
+    header->cfl = sizeof(ahci_fis_h2d_t) / sizeof(uint32_t);
+    header->prdtl = ahci_portFillPRDT(port, header, (uintptr_t*)capacity, 8);
+    header->w = 0;
+    header->a = 1;
+
+    // Create the FIS
+    ahci_fis_h2d_t *fis = (ahci_fis_h2d_t*)(&(port->cmd_table->cfis));
+    memset(fis, 0, sizeof(ahci_fis_h2d_t));
+
+    // Setup FIS variables
+    fis->fis_type = FIS_TYPE_REG_H2D;
+    fis->command = ATA_CMD_PACKET;
+    fis->c = 1; // Specify that this FIS is a command
+
+    // Copy ATAPI comamnd
+    memset((void*)port->cmd_table->acmd, 0, 16);
+    memcpy((void*)port->cmd_table->acmd, read_capacity_packet, 12);
+
+    // Wait for device to not be busy
+    int timeout = TIMEOUT(!(port->port->tfd & (ATA_SR_BSY | ATA_SR_DRQ)), 1000000);
+    if (timeout) {
+        LOG_PORT(ERR, port, "Timeout waiting for existing command to process (BSY/DRQ set)\n");
+        return AHCI_ERROR;
+    }
+
+    // Send the command!
+    port->port->ci = 1;
+
+    // Wait for the transfer to complete
+    int transfer = ahci_portWaitTransfer(port, 10000000, 0);
+
+    if (transfer != AHCI_SUCCESS) {
+        LOG_PORT(ERR, port, "Failed to read drive identification space\n");
+        return AHCI_ERROR;
+    }
+
+    // Transfer succeeded
+    return AHCI_SUCCESS;
+}
 
 /**
  * @brief Initialize a port
@@ -335,6 +502,12 @@ int ahci_portFinishInitialization(ahci_port_t *port) {
             break;
     }
 
+    if (port->type != AHCI_DEVICE_SATA && port->type != AHCI_DEVICE_SATAPI) {
+        // Done here
+        LOG_PORT(INFO, port, "Port initialized successfully\n");
+        return AHCI_SUCCESS;
+    }
+
     // If the device is ATAPI, we should also set the command bit
     if (port->type == AHCI_DEVICE_SATAPI) {
         port->port->cmd |= HBA_PORT_PXCMD_ATAPI;
@@ -344,46 +517,67 @@ int ahci_portFinishInitialization(ahci_port_t *port) {
 
     // Now we should read the drive information, e.g. sector size and count
     // Allocate identification space
-    ata_ident_t *ident = kmalloc(sizeof(ata_ident_t));
-    memset(ident, 0, sizeof(ata_ident_t));
+    port->ident = kmalloc(sizeof(ata_ident_t));
+    memset(port->ident, 0, sizeof(ata_ident_t));
 
     // Read identification space in
-    if (ahci_readIdentificationSpace(port, ident) != AHCI_SUCCESS) {
+    if (ahci_readIdentificationSpace(port, port->ident) != AHCI_SUCCESS) {
         LOG_PORT(ERR, port, "Failed to read identification space.\n");
         return AHCI_ERROR;
     }
 
     // Reorder bytes
-    ATA_REORDER_BYTES(ident->model, 40);
-    ATA_REORDER_BYTES(ident->serial, 20);
-    ATA_REORDER_BYTES(ident->firmware, 8);
+    ATA_REORDER_BYTES(port->ident->model, 40);
+    ATA_REORDER_BYTES(port->ident->serial, 20);
+    ATA_REORDER_BYTES(port->ident->firmware, 8);
 
     // Null-terminate
-    ident->model[39] = 0;
-    ident->serial[19] = 0;
-    ident->firmware[7] = 0;
-    LOG_PORT(DEBUG, port, "Model %s - serial %s firmware %s\n", ident->model, ident->serial, ident->firmware);
+    port->ident->model[39] = 0;
+    port->ident->serial[19] = 0;
+    port->ident->firmware[7] = 0;
+    LOG_PORT(DEBUG, port, "Model %s - serial %s firmware %s\n", port->ident->model, port->ident->serial, port->ident->firmware);
+
+    // Now we need to get the capacities of each drive on the port
+    if (port->type == AHCI_DEVICE_SATA) {
+        // SATA drives have this embedded in the identification space
+        // Check the device's addressing type
+        if ((port->ident->command_sets & (1 << 26))) {
+            // LBA48 addressing
+            port->size = (port->ident->sectors_lba48 & 0x0000FFFFFFFFFFFF) * 512;
+        } else {
+            // CHS or LBA28 addressing
+            port->size = port->ident->sectors * 512;
+        }
+
+        LOG_PORT(DEBUG, port, "Capacity: %d MB\n", (port->size) / 1024 / 1024);
+    } else {
+        uint16_t capacity[6];
+        if (ahci_readCapacityATAPI(port, (uint16_t*)&capacity) != AHCI_SUCCESS) {
+            // Failed to read in capacity
+            LOG_PORT(ERR, port, "Failed to read AHCI device capacity\n");
+            return AHCI_ERROR;
+        }
+
+        // htonl source: https://github.com/klange/toaruos/blob/master/modules/ata.c#L686
+        #define htonl(l)  ( (((l) & 0xFF) << 24) | (((l) & 0xFF00) << 8) | (((l) & 0xFF0000) >> 8) | (((l) & 0xFF000000) >> 24))
+        
+        // Convert LBA and block size
+        uint32_t lba, block_size;
+        memcpy(&lba, &capacity[0], sizeof(uint32_t));
+        lba = htonl(lba);
+        memcpy(&block_size, &capacity[2], sizeof(uint32_t));
+        block_size = htonl(block_size);
+
+        // Save in port data
+        port->atapi_block_size = block_size;
+        port->size = (lba + 1) * block_size;
+
+        LOG_PORT(DEBUG, port, "Capacity: %d MB\n", port->size / 1024 / 1024);
+    }
 
     // TODO: Mount port as VFS node, main kernel needs a drive "driver" (to assign mountpoints to different drives)
 
     // All done! Port should be initialized
-    return AHCI_SUCCESS;
-}
-
-/**
- * @brief Execute a request for a specific port
- * @param port The port to execute the request for
- * @param operation The operation to do
- * @param lba The LBA
- * @param sectors The amount of sectors to operate on
- * @param buffer The buffer to use
- * @returns Error code
- */
-int ahci_portOperate(ahci_port_t *port, int operation, uint64_t lba, size_t sectors, uint8_t *buffer) {
-    if (!port || !sectors) return AHCI_ERROR;
-
-    // TODO
-
     return AHCI_SUCCESS;
 }
 

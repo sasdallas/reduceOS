@@ -68,6 +68,19 @@
 #define ATA_CMD_IDENTIFY_PACKET   	0xA1
 #define ATA_CMD_IDENTIFY          	0xEC
 
+// (incomplete) List of ATAPI packet commands
+#define ATAPI_TEST_UNIT_READY       0x00
+#define ATAPI_REQUEST_SENSE         0x03
+#define ATAPI_FORMAT_UNIT           0x04
+#define ATAPI_START_STOP_UNIT       0x1B    // Eject
+#define ATAPI_PREVENT_REMOVAL       0x1E    // Prevent removal
+#define ATAPI_READ_CAPACITY         0x25    // Read capacity
+#define ATAPI_SEEK                  0x2B    // Seek
+#define ATAPI_WRITE_AND_VERIFY      0x2E    // Write and verify
+#define ATAPI_READ                  0xA8    // Read (12)
+#define ATAPI_WRITE                 0xAA    // Write (12)
+
+
 // ATA statuses (PxTFD)
 #define ATA_SR_BSY      0x80    // Busy
 #define ATA_SR_DRDY     0x40    // Drive ready
@@ -170,6 +183,44 @@
 #define HBA_PORT_SCTL_IPM_PARTIAL		0x00000100	// Transitions to partial state disabled
 #define HBA_PORT_SCTL_IPM_SLUMBER		0x00000200	// Transitions to slumber state disabled
 #define HBA_PORT_SCTL_IPM_DEVSLEEP		0x00000400	// Transitions to DevSleep state disabled
+
+// HBA port - Interrupt Status (PxIS)
+#define HBA_PORT_PXIS_CPDS				0x80000000	// Cold port detect status
+#define HBA_PORT_PXIS_TFES				0x40000000	// Task file error status
+#define HBA_PORT_PXIS_HBFS				0x20000000	// Host bus fatal error status
+#define HBA_PORT_PXIS_HBDS				0x10000000	// Host bus data error status
+#define HBA_PORT_PXIS_IFS				0x08000000	// Interface fatal error status
+#define HBA_PORT_PXIS_INFS				0x04000000	// Interface non-fatal error status
+#define HBA_PORT_PXIS_OFS				0x01000000	// Overflow status
+#define HBA_PORT_PXIS_IPMS				0x00800000	// Incorrect port multiplier status
+#define HBA_PORT_PXIS_PRCS				0x00400000	// PhyRdy change status
+#define HBA_PORT_PXIS_DMPS				0x00000080	// Device mechanical presence status
+#define HBA_PORT_PXIS_PCS				0x00000040	// Port connect change status
+#define HBA_PORT_PXIS_DPS				0x00000020	// Descriptor processed
+#define HBA_PORT_PXIS_UFS				0x00000010	// Unknown FIS interrupt
+#define HBA_PORT_PXIS_SDBS				0x00000008	// Set device bits interrupt
+#define HBA_PORT_PXIS_DSS				0x00000004	// DMA setup FIS interrupt
+#define HBA_PORT_PXIS_PSS				0x00000002	// PIO setup FIS interrupt
+#define HBA_PORT_PXIS_DHRS				0x00000001	// Device to host register FIS interrupt
+
+// HBA port - SATA Error (PxSERR)
+#define HBA_PORT_PXSERR_X				0x04000000	// Exchanged - Change in device presence detected
+#define HBA_PORT_PXSERR_F				0x02000000	// Unknown FIS type
+#define HBA_PORT_PXSERR_T				0x01000000	// Transport state transition error
+#define HBA_PORT_PXSERR_S				0x00800000	// Link sequence error
+#define HBA_PORT_PXSERR_H				0x00400000	// Handshake error
+#define HBA_PORT_PXSERR_C				0x00200000	// CRC error
+#define HBA_PORT_PXSERR_D				0x00100000	// Unused
+#define HBA_PORT_PXSERR_B				0x00080000	// 10B to 8B decode error
+#define HBA_PORT_PXSERR_W				0x00040000	// Comm wake
+#define HBA_PORT_PXSERR_I				0x00020000	// Phy internal error
+#define HBA_PORT_PXSERR_N				0x00010000	// PhyRdy change
+#define HBA_PORT_PXSERR_ERR_E			0x00000800	// Internal error
+#define HBA_PORT_PXSERR_ERR_P			0x00000400	// Protocol error
+#define HBA_PORT_PXSERR_ERR_C			0x00000200	// Persistent communication or data integrity error
+#define HBA_PORT_PXSERR_ERR_T			0x00000100	// Transient data integrity error
+#define HBA_PORT_PXSERR_ERR_M			0x00000002	// Recovered communications error
+#define HBA_PORT_PXSERR_ERR_I			0x00000001	// Recovered data integrity error
 
 // Entry counts
 #define AHCI_CMD_HEADER_COUNT		32		// Length of command list
@@ -312,7 +363,6 @@ typedef struct ahci_fis_pio_setup
 	uint8_t  rsv4[2];	// Reserved
 } ahci_fis_pio_setup_t;
 
-
 /**
  * @brief DMA setup structure
  */
@@ -373,7 +423,6 @@ typedef volatile struct ahci_hba_port
 	uint32_t rsv1[11];	// 0x44 ~ 0x6F, Reserved
 	uint32_t vendor[4];	// 0x70 ~ 0x7F, vendor specific
 } ahci_hba_port_t;
-
 
 /**
  * @brief HBA memory tag
@@ -534,10 +583,19 @@ struct ahci;
  * @brief AHCI port structure (internal to driver)
  */
 typedef struct ahci_port {
+	// GENERAL
 	struct ahci *parent;			// Parent controller
 	int port_num;					// Number of the port
 	int type;						// Type of the device connected
-	
+	uint64_t size;              	// Size of the device in bytes
+
+	// ATA
+	ata_ident_t *ident;				// Identification space
+
+    // ATAPI
+    uint64_t atapi_block_size;  	// Block size for ATAPI
+
+	// PORT SPECIFICS
 	ahci_hba_port_t *port;			// HBA port structure (registers)
 	ahci_received_fis_t *fis;		// FIS receive area
 	ahci_cmd_header_t *cmd_list;	// Command list
