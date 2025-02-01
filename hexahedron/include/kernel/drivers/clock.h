@@ -58,7 +58,6 @@ typedef void (*clock_callback_t)(uint64_t ticks);
  */
 int clock_gettimeofday(struct timeval *t, void *z);
 
-
 /**
  * @brief Set the current time of day
  */
@@ -91,7 +90,6 @@ int clock_registerUpdateCallback(clock_callback_t callback);
  * @param index Index to unregister.
  */
 void clock_unregisterUpdateCallback(int index);
-
 
 /**
  * @brief Set the main clock device

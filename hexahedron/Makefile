@@ -6,10 +6,10 @@ OUT_OBJ = $(OBJ_OUTPUT_DIRECTORY)/hexahedron/
 OUT_BUILD = $(BUILD_OUTPUT_DIRECTORY)/hexahedron
 
 # Edit this to add more source directories. MAKE SURE TO HAVE SUBDIRECTORIES SEPARATE!
-SOURCE_DIRECTORIES = kernel kernel/panic drivers drivers/usb debug mem misc gfx fs loader
+SOURCE_DIRECTORIES = kernel kernel/panic drivers drivers/usb debug mem misc gfx fs loader task
  
 # Edit this to change the allocator in use. ONLY ONE.
-SOURCE_DIRECTORIES += mem/toaru_alloc/
+SOURCE_DIRECTORIES += mem/liballoc/
 
 # Include the architecture Make configuration
 include arch/$(BUILD_ARCH)/make.config

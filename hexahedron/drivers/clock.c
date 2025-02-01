@@ -80,6 +80,8 @@ void clock_sleep(size_t delay) {
  * @brief Get the current time of day
  */
 int clock_gettimeofday(struct timeval *t, void *z) {
+    if (!t) return -EINVAL;
+    
     uint64_t ticks = clock_device.get_timer();
     uint64_t timer_ticks, timer_subticks;
     if (clock_device.get_tick_counts) {
@@ -138,6 +140,8 @@ void clock_relative(unsigned long seconds, unsigned long subseconds, unsigned lo
  * @returns -EINVAL on too many full, else it returns the index.
  */
 int clock_registerUpdateCallback(clock_callback_t callback) {
+    if (callback == NULL) return -EINVAL;
+    
     // Find the first free one
     int first_free = -1; 
     for (int i = 0; i < MAX_CLOCK_CALLBACKS; i++) {

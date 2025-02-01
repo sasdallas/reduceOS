@@ -344,3 +344,17 @@ uint16_t pci_readVendorID(uint8_t bus, uint8_t slot, uint8_t func) {
 uint16_t pci_readDeviceID(uint8_t bus, uint8_t slot, uint8_t func) {
     return pci_readConfigOffset(bus, slot, func, PCI_DEVID_OFFSET, 2);
 }
+
+/**
+ * @brief Get the interrupt registered to a PCI device
+ * 
+ * @param bus The bus of the PCI device
+ * @param slot The slot of the PCI device
+ * @param func The function of the PCI device
+ * 
+ * @returns PCI_NONE or the interrupt ID
+ */
+uint8_t pci_getInterrupt(uint8_t bus, uint8_t slot, uint8_t func) {
+    // TODO: Make sure header type is 1?
+    return pci_readConfigOffset(bus, slot, func, PCI_GENERAL_INTERRUPT_OFFSET, 1);
+}
