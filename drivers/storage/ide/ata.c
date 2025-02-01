@@ -21,6 +21,7 @@
 #include <kernel/drivers/pci.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/misc/spinlock.h>
+#include <kernel/fs/drivefs.h>
 #include <string.h>
 
 // Architecture-specific
@@ -60,9 +61,6 @@ static spinlock_t *ata_lock = NULL;
 #define LOG_DEVICE(status, device, ...)     LOG(status, "[DRIVE %s:%s%s%s] ", (device->channel == ATA_PRIMARY) ? "PRIMARY" : "SECONDARY", (device->slave) ? "SLAVE" : "MASTER", (device->channel == ATA_PRIMARY) ? "  " : "", (device->slave) ? " " : ""); \
                                             dprintf(NOHEADER, __VA_ARGS__)
 
-/* WARNING: This needs to be moved into kernel. */
-int drive_index = 0;
-int cd_index = 0;
 
 
 /**
@@ -588,12 +586,7 @@ fs_node_t *ide_createNode(ide_device_t *device) {
     fs_node_t *out = kmalloc(sizeof(fs_node_t));
     memset(out, 0, sizeof(fs_node_t));
 
-    if (device->atapi) {
-        snprintf(out->name, 256, "hd%i", drive_index);
-    } else {
-        snprintf(out->name, 256, "cdrom%i", cd_index);
-    }
-
+    // Don't set name, let drivefs handle that
     out->read = ide_readFS;
     out->write = ide_writeFS;
     out->flags = VFS_BLOCKDEVICE;
@@ -811,11 +804,8 @@ void ide_detectDevice(ide_device_t *device) {
         // Create a VFS node for it
         fs_node_t *node = ide_createNode(device);
 
-        // Mount the node
-        char devname[64];
-        snprintf(devname, 64, "/device/%s", node->name);
-        vfs_mount(node, devname);
-        cd_index++;
+        // Mount node
+        drive_mount(node, DRIVE_TYPE_CDROM);
     } else if ((cl == 0x00 && ch == 0x00) || (cl == 0x3C && ch == 0xC3)) {
         // ATA device
         LOG_DEVICE(DEBUG, device, "Detected an ATA device\n");
@@ -832,10 +822,7 @@ void ide_detectDevice(ide_device_t *device) {
         fs_node_t *node = ide_createNode(device);
 
         // Mount the node
-        char devname[64];
-        snprintf(devname, 64, "/device/%s", node->name);
-        vfs_mount(node, devname);
-        drive_index++;
+        drive_mount(node, DRIVE_TYPE_IDE_HD);
     } else if ((cl == 0xFF && ch == 0xFF)) {
         LOG_DEVICE(DEBUG, device, "No device was detected\n");
     } else {
