@@ -140,7 +140,7 @@ int mem_decrementPageReference(page_t *page) {
 
 /**
  * @brief Switch the memory management directory
- * @param pagedir The page directory to switch to, or NULL for the kernel region
+ * @param pagedir The virtual address of the page directory to switch to, or NULL for the kernel region
  * 
  * @warning Pass something mapped by mem_clone() or something in the identity-mapped PMM region.
  *          Anything greater than IDENTITY_MAP_MAXSIZE will be truncated in the PDBR.
@@ -148,11 +148,25 @@ int mem_decrementPageReference(page_t *page) {
  * @returns -EINVAL on invalid, 0 on success.
  */
 int mem_switchDirectory(page_t *pagedir) {
-    if (!pagedir) pagedir = (page_t*)mem_remapPhys((uintptr_t)mem_getKernelDirectory(), 0); // remapping?
-    current_cpu->current_dir = pagedir;
+    if (!pagedir) pagedir = mem_getKernelDirectory();
+
+    // !!!: Weird check, I'm really tired and want to fix this.
+    // !!!: If something wants to load a pagedir from the physmem map, because it's 2MB paging,
+    // !!!: mem_getPage will fail (and subsequently mem_getPhysicalAddress). Assume if mem_getPhysicalAddress
+    // !!!: fails its a physical address (i hate my life)
+    uintptr_t phys = mem_getPhysicalAddress(NULL, (uintptr_t)pagedir);
+    if (phys == 0x0) {
+        // Not correct, assume pagedir is a phys address or is physmem
+        phys = (uintptr_t)pagedir & ~(MEM_PHYSMEM_MAP_REGION);
+    }
 
     // Load PDBR
-    asm volatile ("movq %0, %%cr3" :: "r"((uintptr_t)pagedir & ~0xFFF));
+    asm volatile ("movq %0, %%cr3" :: "r"(phys & ~0xFFF));
+
+    // Set current directory
+    // !!!: THIS WILL CAUSE PROBLEMS IF THIS IS PHYSMEM MAPPED
+    current_cpu->current_dir = pagedir;
+
     return 0;
 
 }
@@ -183,7 +197,7 @@ page_t *mem_createVAS() {
  * @returns The page directory on success
  */
 page_t *mem_clone(page_t *dir) {
-    if (!dir) dir = mem_getCurrentDirectory();
+    if (!dir) dir = current_cpu->current_dir;
 
     // Create a new VAS
     page_t *dest = mem_createVAS();
@@ -193,8 +207,8 @@ page_t *mem_clone(page_t *dir) {
 
     // Copy PDPTs 
     for (size_t pdpt = 0; pdpt < 256; pdpt++) {
+        if (!(dir[pdpt].bits.present)) continue;
         page_t *pdpt_srcentry = &dir[pdpt]; // terrible naming lol
-        if (!(pdpt_srcentry->bits.present)) continue;
 
         page_t *pdpt_destentry = &dest[pdpt];
 
@@ -222,6 +236,7 @@ page_t *mem_clone(page_t *dir) {
             page_t *pd_dest  = (page_t*)mem_remapPhys(pd_dest_block, PAGE_SIZE);
             memset((void*)pd_dest, 0, PAGE_SIZE); 
         
+
             // Do a raw copy but set the frame
             pd_destentry->data = pd_srcentry->data;
             MEM_SET_FRAME(pd_destentry, pd_dest_block);
@@ -252,11 +267,11 @@ page_t *mem_clone(page_t *dir) {
                 for (size_t page = 0; page < 512; page++) {
                     page_t *page_src = &pt_src[page];
                     page_t *page_dest = &pt_dest[page];
-                    if (!(page_src->bits.present)) continue; // Not present
+                    if (!page_src || !(page_src->bits.present)) continue; // Not present
 
                     if (page_src->bits.usermode) {
                         uintptr_t address = ((pdpt << (9 * 3 + 12)) | (pd << (9*2 + 12)) | (pt << (9 + 12)) | (page << MEM_PAGE_SHIFT));
-                        dprintf(DEBUG, "Usermode page at address %p - stall\n", address);
+                        dprintf(DEBUG, "Usermode page at address %016llX - stall\n", address);
                         for (;;);
                     } else {
                         // Raw copy

@@ -127,7 +127,7 @@ page_t *mem_getKernelDirectory() {
 
 /**
  * @brief Switch the memory management directory
- * @param pagedir The page directory to switch to, or NULL for the kernel directory
+ * @param pagedir The virtual address of the page directory to switch to, or NULL for the kernel directory
  * 
  * @warning Pass something mapped by mem_clone() or something in the identity-mapped PMM region.
  *          Anything greater than IDENTITY_MAP_MAXSIZE will be truncated in the PDBR.
@@ -141,7 +141,8 @@ int mem_switchDirectory(page_t *pagedir) {
     current_cpu->current_dir = pagedir;
 
     // Load PDBR
-    mem_load_pdbr((uintptr_t)pagedir & ~MEM_PHYSMEM_CACHE_REGION); 
+    uintptr_t phys = mem_getPhysicalAddress(NULL, (uintptr_t)pagedir);
+    mem_load_pdbr(phys); 
 
     return 0;
 }
@@ -856,7 +857,8 @@ void mem_init(uintptr_t high_address) {
     dprintf(DEBUG, "\tKernel heap will begin at 0x%x\n", mem_kernelHeap);
 
     mem_kernelDirectory = page_directory;
-    mem_switchDirectory(mem_kernelDirectory);
+    mem_load_pdbr((uintptr_t)mem_kernelDirectory);
+    current_cpu->current_dir = mem_kernelDirectory;
     mem_setPaging(true);
 
     // Make space for reference counts in kernel heap
