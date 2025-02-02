@@ -414,6 +414,8 @@ uintptr_t elf_getEntrypoint(uintptr_t ehdr_address) {
     if (!ehdr_address) return (uintptr_t)NULL;
     Elf32_Ehdr *ehdr = (Elf32_Ehdr*)ehdr_address;
 
+    if (ehdr->e_type != ET_EXEC) return 0x0;
+
     return ehdr->e_entry;
 }
 
