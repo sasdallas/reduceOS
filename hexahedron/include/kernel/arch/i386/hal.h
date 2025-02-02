@@ -44,6 +44,11 @@ void hal_init(int stage);
 void hal_initializeInterrupts();
 
 /**
+ * @brief Handle ending an interrupt
+ */
+void hal_endInterrupt(uintptr_t interrupt_number);
+
+/**
  * @brief Initialize the 8259 PIC(s)
  * Uses default offsets 0x20 for master and 0x28 for slave
  */

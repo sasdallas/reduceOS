@@ -39,6 +39,8 @@
 /**** TYPES ****/
 
 struct thread; // Prototype
+struct _registers;
+struct _extended_registers;
 
 /**** FUNCTIONS ****/
 
@@ -70,10 +72,25 @@ extern int arch_current_cpu();
 void arch_pause();
 
 /**
+ * @brief Determine whether the interrupt fired came from usermode 
+ * 
+ * Useful to main timer logic to know when to switch tasks.
+ */
+int arch_from_usermode(struct _registers *registers, struct _extended_registers *extended);
+
+/**
  * @brief Prepare to switch to a new thread
  * @param thread The thread to prepare to switch to
  */
 void arch_prepare_switch(struct thread *thread);
+
+/**
+ * @brief Initialize the thread context
+ * @param thread The thread to initialize the context for
+ * @param entry The requested entrypoint for the thread
+ * @param stack The stack to use for the thread
+ */
+void arch_initialize_context(struct thread *thread, uintptr_t entry, uintptr_t stack);
 
 /**
  * @brief Jump to usermode and execute at an entrypoint

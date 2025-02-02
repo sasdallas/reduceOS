@@ -44,6 +44,11 @@ void hal_init(int stage);
 void hal_initializeInterrupts();
 
 /**
+ * @brief Handle ending an interrupt
+ */
+void hal_endInterrupt(uintptr_t interrupt_number);
+
+/**
  * @brief Setup a core's data
  * @param core The core to setup data for
  * @param rsp The stack for the TSS

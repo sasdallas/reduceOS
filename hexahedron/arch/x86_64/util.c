@@ -41,6 +41,15 @@ void arch_pause() {
 }
 
 /**
+ * @brief Determine whether the interrupt fired came from usermode 
+ * 
+ * Useful to main timer logic to know when to switch tasks.
+ */
+int arch_from_usermode(registers_t *registers, extended_registers_t *extended) {
+    return (registers->cs != 0x08);
+}
+
+/**
  * @brief Prepare to switch to a new thread
  * @param thread The thread to prepare to switch to
  */
@@ -48,3 +57,14 @@ void arch_prepare_switch(struct thread *thread) {
     // TODO: Implement, need to load TSS stack
 }
 
+/**
+ * @brief Initialize the thread context
+ * @param thread The thread to initialize the context for
+ * @param entry The requested entrypoint for the thread
+ * @param stack The stack to use for the thread
+ */
+void arch_initialize_context(struct thread *thread, uintptr_t entry, uintptr_t stack) {
+    thread->context.rip = entry;
+    thread->context.rsp = stack;
+    thread->context.rbp = stack;
+}
