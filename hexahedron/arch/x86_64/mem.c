@@ -450,7 +450,12 @@ void mem_freePage(page_t *page) {
  * @warning MMIO regions cannot be destroyed.
  */
 uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
-    if (size % PAGE_SIZE != 0) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "mem");
+    uintptr_t offset = 0; // Offset to be added at the end
+    if (phys % PAGE_SIZE) {
+        offset = phys & 0xFFF;
+        phys &= ~(0xFFF);
+        size += offset; // Don't forget to add offset to size!
+    }
 
     if (mem_mmioRegion + size > MEM_MMIO_REGION + MEM_MMIO_REGION_SIZE) {
         kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space for MMIO allocation\n");
@@ -471,7 +476,7 @@ uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
     mem_mmioRegion += size;
 
     spinlock_release(&mmio_lock);
-    return address;
+    return address + offset;
 }
 
 /**

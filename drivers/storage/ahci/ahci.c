@@ -148,6 +148,7 @@ int ahci_init(int argc, char **argv) {
     pci_writeConfigOffset(PCI_BUS(ahci_data), PCI_SLOT(ahci_data), PCI_FUNCTION(ahci_data), PCI_COMMAND_OFFSET, (uint32_t)ahci_pci_command & 0xFFFF);
 
     // Map it into MMIO
+    LOG(INFO, "HBA memory space location: %p\n", bar->address);
     ahci_hba_mem_t *hbamem = (ahci_hba_mem_t*)mem_mapMMIO(bar->address, bar->size);
     hbamem->ghc &= ~HBA_GHC_IE; // Disable interrupts
 
