@@ -287,8 +287,6 @@ int font_loadPSF(fs_node_t *file) {
     if (current_font->data) kfree(current_font->data); // NOTE: Unless we plan on supporting custom fonts in the future this should be fine.
     if (current_font) kfree(current_font);
 
-    // Clear screen with terminal
-    terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
 
     // Load new PSF font
     font_data_t *font_data = kmalloc(sizeof(font_data_t));
@@ -298,6 +296,8 @@ int font_loadPSF(fs_node_t *file) {
     font_data->type = FONT_TYPE_PSF;
     current_font = font_data;
 
+    // As we are switching fonts, we need to reinitialize the terminal
+    terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
 
     // Done!
     return 0;

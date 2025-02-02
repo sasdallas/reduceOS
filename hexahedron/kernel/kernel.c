@@ -147,6 +147,13 @@ void kmain() {
         LOG(ERR, "Could not find new font file \"/device/initrd/ter-112n.psf\", using old font\n");
     }
 
+    // At this point in time if the user wants to view debugging output not on the serial console, they
+    // can. Look for kernel boot argument "--debug=console"
+
+    if (kargs_has("--debug") && !strcmp(kargs_get("--debug"), "console")) {
+        debug_setOutput(terminal_print);
+    }
+
     // Load symbols
     fs_node_t *symfile = kopen("/device/initrd/hexahedron-kernel-symmap.map", O_RDONLY);
     if (!symfile) {
