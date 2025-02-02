@@ -74,11 +74,7 @@ void terminal_clear(color_t fg, color_t bg) {
     terminal_fg = fg;
     terminal_bg = bg;
 
-    for (int y = 0; y < terminal_height; y++) {
-        for (int x = 0; x < terminal_width; x++) {
-            font_putCharacter(' ', x, y, terminal_fg, terminal_bg);
-        }
-    }
+    video_clearScreen(terminal_bg);
 
     terminal_x = 0;
     terminal_y = 0;

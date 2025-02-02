@@ -57,13 +57,16 @@ void gfx_drawLine(int x1, int y1, int x2, int y2, color_t color) {
  * @param color The logo color
  */
 void gfx_drawLogo(color_t color) {
-    // Calculate the center x/y of the screen
-    int center_x = video_getDriver()->screenWidth / 2 - 10; // Subtract 10 for some extra centering
-    int center_y = video_getDriver()->screenHeight / 2 - 10;
-
+    // Calculate size and offsets
     int size = 100;
     int offsetX = size / 2;
     int offsetY = size / 2;
+
+    // Calculate the center x/y of the screen
+    int center_x = video_getDriver()->screenWidth - size - 10; // Subtract 10 for some extra centering
+    int center_y = size + 10;
+
+    
 
 
     // Vertices of the cube in 3D space (without any projection applied)
