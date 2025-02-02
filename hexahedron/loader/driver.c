@@ -28,6 +28,8 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <kernel/misc/args.h>
+#include <structs/hashmap.h>
 #include <structs/json.h>
 #include <structs/json-builder.h>
 #include <string.h>
@@ -227,6 +229,36 @@ static json_value *driver_getField(json_value *object, char * field, json_type e
 }
 
 /**
+ * @brief Get a hashmap of what drivers NOT to load (as specified by kernel argument)
+ * 
+ * You can specify what drivers to not load via the karg "--noload=<drivers separated by commas>"
+ */
+static hashmap_t *driver_getNoLoadHashmap() {
+    if (!kargs_has("--noload")) {
+        return NULL;
+    }
+    
+    hashmap_t *ret = hashmap_create("driver no load", 20);
+    char *noload = kargs_get("--noload");
+
+    if (noload) {
+        // Dupe noload, don't want to mess with kargs
+        noload = strdup(noload);
+
+        // Now start strtok
+        char *save;
+        char *pch = strtok_r(noload, ",", &save);
+
+        while (pch) {
+            hashmap_set(ret, pch, 0x0);
+            pch = strtok_r(NULL, ",", &save);
+        }
+    }
+
+    return ret;
+}
+
+/**
  * @brief Load and parse a JSON file containing driver information
  * @param file The file to parse
  * @returns Amount of drivers loaded
@@ -235,6 +267,9 @@ static json_value *driver_getField(json_value *object, char * field, json_type e
  */
 int driver_loadConfiguration(fs_node_t *file) {
     if (!file) kernel_panic(KERNEL_BAD_ARGUMENT_ERROR, "driver");
+
+    // Get the "no load" map
+    hashmap_t *noload_map = driver_getNoLoadHashmap();
 
     // Read the file into a buffer
     uint8_t *data = kmalloc(file->length);
@@ -280,6 +315,12 @@ int driver_loadConfiguration(fs_node_t *file) {
         // Get the filename field
         json_value *filename_obj = driver_getField(driver, "filename", json_string);
         char *filename = filename_obj->u.string.ptr;
+
+        // Make sure filename isn't blacklisted
+        if (noload_map && hashmap_has(noload_map, filename)) {
+            LOG(INFO, "Refusing to load driver \"%s\" as it is blacklisted by kernel arguments.\n", filename);
+            continue;
+        }
 
         // Get the priority field
         json_value *priority_obj = driver_getField(driver, "priority", json_integer);
