@@ -173,21 +173,6 @@ void arch_panic_finalize() {
     for (;;);
 }
 
-/**
- * @brief Returns the current CPU active in the system
- */
-int arch_current_cpu() {
-    return 0;
-}
-
-/**
- * @brief Get the generic parameters
- */
-generic_parameters_t *arch_get_generic_parameters() {
-    return parameters;
-}
-
-
 /**** INTERNAL ARCHITECTURE FUNCTIONS ****/
 
 

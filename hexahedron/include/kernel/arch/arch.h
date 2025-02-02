@@ -36,6 +36,10 @@
 #endif
 
 
+/**** TYPES ****/
+
+struct thread; // Prototype
+
 /**** FUNCTIONS ****/
 
 /**
@@ -59,6 +63,17 @@ extern generic_parameters_t *arch_get_generic_parameters();
  * @brief Returns the current CPU ID active in the system
  */
 extern int arch_current_cpu();
+
+/**
+ * @brief Pause execution on the current CPU for one cycle
+ */
+void arch_pause();
+
+/**
+ * @brief Prepare to switch to a new thread
+ * @param thread The thread to prepare to switch to
+ */
+void arch_prepare_switch(struct thread *thread);
 
 /**
  * @brief Jump to usermode and execute at an entrypoint

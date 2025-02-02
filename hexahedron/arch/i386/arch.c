@@ -170,22 +170,6 @@ void arch_panic_finalize() {
     for (;;);
 }
 
-/**
- * @brief Returns the current CPU active in the system
- */
-int arch_current_cpu() {
-    return smp_getCurrentCPU();
-}
-
-
-/**
- * @brief Get the generic parameters
- */
-generic_parameters_t *arch_get_generic_parameters() {
-    return parameters;
-}
-
-
 
 static uintptr_t highest_kernel_address = ((uintptr_t)&__bss_end);  // This is ONLY used until memory management is initialized.
                                                                     // mm will take over this
