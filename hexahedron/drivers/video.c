@@ -128,9 +128,12 @@ void video_plotPixel(int x, int y, color_t color) {
  */
 void video_clearScreen(color_t bg) {
     uint8_t *buffer = video_framebuffer;
+#include <kernel/debug.h>
     for (uint32_t y = 0; y < current_driver->screenHeight; y++) {
         for (uint32_t x = 0; x < current_driver->screenWidth; x++) {
-            ((uint32_t*)buffer)[x*4] = bg.rgb; 
+            buffer[x*4] = RGB_B(bg);
+            buffer[x*4+1] = RGB_G(bg);
+            buffer[x*4+2] = RGB_R(bg);  
         }
 
         buffer += current_driver->screenPitch;
