@@ -34,9 +34,8 @@ typedef struct _i386_idtr {
     uint32_t base;
 } __attribute__((packed)) i386_idtr_t;
 
-/* GDT structures are unused for now. They were planned to be used but are now vestigal. */
 
-// This structure is ugly to implement
+// GDT descriptor
 typedef struct _i386_gdt_descriptor {
     uint16_t limit;                 // Maximum address
     uint16_t base_lo;               // Lower 16 bits of the base
@@ -47,10 +46,51 @@ typedef struct _i386_gdt_descriptor {
     uint8_t base_hi;                // Final 8 bits of base
 } __attribute__((packed)) i386_gdt_descriptor_t;
 
+// GDTR
 typedef struct _i386_gdtr {
     uint16_t limit;
     uint32_t base;
-} i386_gdtr_t;
+} __attribute__((packed)) i386_gdtr_t;
+
+// TSS descriptor (NOTE: For certain registers, the top bits are reserved)
+typedef struct _i386_tss {
+    uint32_t link;
+    uint32_t esp0;
+    uint32_t ss0;
+    uint32_t esp1;
+    uint32_t ss1;
+    uint32_t esp2;
+    uint32_t ss2;
+    uint32_t cr3;
+    uint32_t eip;
+    uint32_t eflags;
+    uint32_t eax;
+    uint32_t ecx;
+    uint32_t edx;
+    uint32_t ebx;
+    uint32_t esp;
+    uint32_t ebp;
+    uint32_t esi;
+    uint32_t edi;
+    uint32_t es;
+    uint32_t cs;
+    uint32_t ss;
+    uint32_t ds;
+    uint32_t fs;
+    uint32_t gs;
+    uint32_t ldtr;
+    uint32_t iopb;  // The bottom 16 bits of this are reserved
+    uint32_t ssp;
+} __attribute__((packed)) i386_tss_t;
+
+// Full I386 GDT (packed structure for each core, makes installing GDTs much easier)
+typedef struct _i386_gdt {
+    i386_gdt_descriptor_t   entries[8];
+    i386_tss_t              tss;
+    i386_gdtr_t             gdtr;
+} __attribute__((packed)) __attribute__((aligned(0x10))) i386_gdt;
+
+
 
 // Interrupt/exception handlers
 

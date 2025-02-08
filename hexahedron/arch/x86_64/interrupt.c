@@ -112,6 +112,14 @@ static void hal_setupGDTCoreData(int core) {
 }
 
 /**
+ * @brief Load kernel stack
+ * @param stack The stack to load
+ */
+void hal_loadKernelStack(uintptr_t stack) {
+    gdt[smp_getCurrentCPU()].tss.rsp[0] = stack;
+}
+
+/**
  * @brief Setup a core's data
  * @param core The core to setup data for
  * @param rsp The stack for the TSS

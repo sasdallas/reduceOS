@@ -55,6 +55,19 @@ void hal_endInterrupt(uintptr_t interrupt_number);
 void hal_initializePIC();
 
 /**
+ * @brief Setup a core's data
+ * @param core The core to setup data for
+ * @param esp The stack for the TSS
+ */
+void hal_gdtInitCore(int core, uintptr_t esp);
+
+/**
+ * @brief Load kernel stack
+ * @param stack The stack to load
+ */
+void hal_loadKernelStack(uintptr_t stack);
+
+/**
  * @brief Disable the 8259 PIC(s)
  */
 void hal_disablePIC();

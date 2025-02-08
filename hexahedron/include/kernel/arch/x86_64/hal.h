@@ -49,6 +49,12 @@ void hal_initializeInterrupts();
 void hal_endInterrupt(uintptr_t interrupt_number);
 
 /**
+ * @brief Load kernel stack
+ * @param stack The stack to load
+ */
+void hal_loadKernelStack(uintptr_t stack);
+
+/**
  * @brief Setup a core's data
  * @param core The core to setup data for
  * @param rsp The stack for the TSS

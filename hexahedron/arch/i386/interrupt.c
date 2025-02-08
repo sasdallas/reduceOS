@@ -29,7 +29,21 @@
 #include <errno.h>
 
 /* irq.S functions (note: all handlers defined in interrupt.h) */
-extern void hal_installGDT();
+extern void hal_installGDT(uintptr_t gdtr);
+
+/* GDT */
+i386_gdt hal_gdt[MAX_CPUS] __attribute__((used)) = {{
+    {
+        {0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00},       // Null entry
+        {0xFFFF, 0x0000, 0x00, 0x9A, 0xCF, 0x00},       // 32-bit kernel-mode code segment
+        {0xFFFF, 0x0000, 0x00, 0x92, 0xCF, 0x00},       // 32-bit kernel-mode data segment
+        {0xFFFF, 0x0000, 0x00, 0xFA, 0xCF, 0x00},       // 32-bit user-mode code segment
+        {0xFFFF, 0x0000, 0x00, 0xF2, 0xCF, 0x00},       // 32-bit user-mode data segment
+        {0x0067, 0x0000, 0x00, 0xE9, 0x00, 0x00},       // 32-bit TSS
+    },
+    { 0 },                                              // TSS
+    { 0x0000, 0x00000000 },                             // GDTR                          
+}};
 
 /* IDT */
 i386_interrupt_descriptor_t hal_idt_table[I86_MAX_INTERRUPTS] = { 0 };
@@ -79,11 +93,93 @@ const char *hal_exception_table[I86_MAX_EXCEPTIONS] = {
 };
 
 
+/**
+ * @brief Sets up a core's data in the global GDT
+ * @param core The core number to setup
+ */
+static void hal_setupGDTCoreData(int core) {
+    if (core > MAX_CPUS) return;
+
+    // Copy the core's data from BSP
+    if (core != 0) memcpy(&hal_gdt[core], &hal_gdt[0], sizeof(*hal_gdt));
+
+    // Setup the GDTR
+    hal_gdt[core].gdtr.limit = sizeof(hal_gdt[core].entries) - 1;
+    hal_gdt[core].gdtr.base = (uintptr_t)&hal_gdt[core].entries;
+
+    // Configure the TSS entry
+    uintptr_t tss = (uintptr_t)&hal_gdt[core].tss;
+    hal_gdt[core].entries[5].limit = sizeof(hal_gdt[core].tss);
+    hal_gdt[core].entries[5].base_lo = (tss & 0xFFFF);
+    hal_gdt[core].entries[5].base_mid = (tss >> 16) & 0xFF;
+    hal_gdt[core].entries[5].base_hi = (tss >> 24) & 0xFF;
+
+    // Configure the TSS
+    hal_gdt[core].tss.ss0 = 0x10;   // GDT entry #3, kernel data segment
+    hal_gdt[core].tss.iopb = sizeof(i386_tss_t); // Should always be 104
+}
+
+/**
+ * @brief Setup a core's data
+ * @param core The core to setup data for
+ * @param esp The stack for the TSS
+ */
+void hal_gdtInitCore(int core, uintptr_t esp) {
+    if (core > MAX_CPUS || core == 0) return;
+
+    // Setup the TSS' ESP to point to the top of the stack
+    hal_gdt[core].tss.esp0 = esp;
+
+    // Load and install - source of inline ASM https://forum.osdev.org/viewtopic.php?t=37245
+    asm volatile("lgdtl %0         \n\t"
+                 "ljmp $0x08,$.L%= \n\t"
+                 ".L%=:            \n\t"
+                 "mov %1, %%ds     \n\t"
+                 "mov %1, %%es     \n\t"
+                 "mov %1, %%fs     \n\t"
+                 "mov %1, %%gs     \n\t"
+                 "mov %1, %%ss     \n\t" :: "m"(hal_gdt[core].gdtr), "r"(0x10) );
+
+    // Load TSS
+    asm volatile (  "mov $0x28, %ax\n"
+                    "ltr %ax\n");
+                  
+}
+
+/**
+ * @brief Initializes and installs the GD
+ */
+void hal_gdtInit() {
+    // For every CPU core setup its data
+    for (int i = 0; i < MAX_CPUS; i++) hal_setupGDTCoreData(i);
+
+    // Setup the TSS' ESP to point to our top of the stack
+    extern void *__stack_top;
+    hal_gdt[0].tss.esp0 = (uintptr_t)&__stack_top;
+
+    dprintf(DEBUG, "TSS.ESP0 = %p\n", &__stack_top);
+    dprintf(DEBUG, "GDTR AT %p - LIMIT %04x BASE %08x\n", &hal_gdt[0].gdtr, hal_gdt[0].gdtr.limit, hal_gdt[0].gdtr.base);
+
+    // Load and install - source of inline ASM https://forum.osdev.org/viewtopic.php?t=37245
+    asm volatile("lgdtl %0         \n\t"
+                 "ljmp $0x08,$.L%= \n\t"
+                 ".L%=:            \n\t"
+                 "mov %1, %%ds     \n\t"
+                 "mov %1, %%es     \n\t"
+                 "mov %1, %%fs     \n\t"
+                 "mov %1, %%gs     \n\t"
+                 "mov %1, %%ss     \n\t" :: "m"(hal_gdt[0].gdtr), "r"(0x10) );
+
+    // Load TSS
+    asm volatile (  "mov $0x28, %ax\n"
+                    "ltr %ax\n");
+
+}
 
 /**
  * @brief Handle ending an interrupt
  */
-void hal_endInterrupt(uint32_t interrupt_number) {
+void hal_endInterrupt(uintptr_t interrupt_number) {
     if (interrupt_number > 8) outportb(I86_PIC2_COMMAND, I86_PIC_EOI);
     outportb(I86_PIC1_COMMAND, I86_PIC_EOI);
 }
@@ -274,6 +370,20 @@ int hal_registerInterruptVector(uint8_t index, uint8_t flags, uint16_t segment, 
 }
 
 /**
+ * @brief Install the TSS
+ */
+static void hal_installTSS() {
+}
+
+/**
+ * @brief Load kernel stack
+ * @param stack The stack to load
+ */
+void hal_loadKernelStack(uintptr_t stack) {
+
+}
+
+/**
  * @brief Initialize the 8259 PIC(s)
  * Uses default offsets 0x20 for master and 0x28 for slave
  */
@@ -329,7 +439,7 @@ void hal_installIDT() {
  */
 void hal_initializeInterrupts() {
     // Start the GDT
-    hal_installGDT();
+    hal_gdtInit();
 
     // Clear the IDT table
     memset((void*)hal_idt_table, 0x00, sizeof(hal_idt_table));
@@ -384,6 +494,7 @@ void hal_initializeInterrupts() {
 
     // Setup the PIC
     hal_initializePIC();
+
 
     // Enable interrupts
     __asm__ __volatile__("sti");

@@ -129,6 +129,7 @@ multiboot2_header_end:
 
 // Reserve a stack
 .section .bss
+.global __stack_top
 .align 16
 __stack_bottom:
 .skip 16384 // Provide 16 KiB of stack

@@ -67,7 +67,7 @@ typedef struct _x86_64_tss_entry {
     uint32_t reserved0;
     uint64_t rsp[3];
     uint64_t reserved1;
-    uint64_t its[7];
+    uint64_t ist[7];
     uint64_t reserved2;
     uint16_t reserved3;
     uint16_t iomap_base;
@@ -79,7 +79,7 @@ typedef struct _x86_64_gdt_table{
 } __attribute__((packed)) __attribute__((aligned(0x10))) x86_64_gdt_table_t;
 
 // This structure is used because we need to have a more complex control
-// over the GDT than i386. As well as that, it needs to be aligned.
+// over the GDT. As well as that, it needs to be aligned.
 typedef struct _x86_64_gdt {
     x86_64_gdt_table_t  table;  // GDT table
     x86_64_tss_entry_t  tss;    // TSS
