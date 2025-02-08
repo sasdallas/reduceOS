@@ -19,7 +19,7 @@ arch_start_execution:
     /* Now we need to push the frame that IRET wants */
     /* It expects SS, the stack, EFLAGS, CS, and EIP */
     pushq $0x23
-    pushq %rdi
+    pushq %rsi
     
     /* We should set the IF bit in EFLAGS */
     pushf
@@ -28,8 +28,8 @@ arch_start_execution:
     pushq %rcx
 
     /* Now push CS:EIP and IRET */
-    push $0x2b
-    push %rsi
+    push $0x1b
+    push %rdi
     iretq
 
 

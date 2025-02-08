@@ -18,8 +18,8 @@
 arch_start_execution:
     /* The first passed parameter is entrypoint, the second is stack */
     /* EAX -> entrypoint, ECX -> stack */
-    movl 4(%esp), %ecx
-    movl 8(%esp), %eax
+    movl 4(%esp), %eax
+    movl 8(%esp), %ecx
 
     /* Now we need to push the frame that IRET wants */
     /* It expects SS, the stack, EFLAGS, CS, and EIP */
@@ -33,7 +33,7 @@ arch_start_execution:
     pushl %ecx
 
     /* Now push CS:EIP and IRET */
-    pushl $0x2b
+    pushl $0x1b
     pushl %eax
     iret
 
