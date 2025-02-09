@@ -48,6 +48,8 @@ uintptr_t mem_identityMapCacheSize      = 0xAAAAAAAAAAAAAAAA;
 // Whether to use 5-level paging (TODO)
 static int mem_use5LevelPaging = 0;
 
+// TODO: i386 doesn't use this method of having preallocated page structures... maybe we should use it there?
+
 // Base page layout - loader uses this
 page_t mem_kernelPML[3][512] __attribute__((aligned(PAGE_SIZE))) = {0};
 
@@ -335,7 +337,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
         // Setup the bits in the directory index
         pml4_entry->bits.present = 1;
         pml4_entry->bits.rw = 1;
-        pml4_entry->bits.usermode = 1; // !!!: Not upholding security 
+        pml4_entry->bits.usermode = 1; // NOTE: As long as the entries here aren't usermode this should be fine... right?
         MEM_SET_FRAME(pml4_entry, block);
 
         mem_unmapPhys(block_remap, PMM_BLOCK_SIZE); // we don't even have to do this
@@ -356,7 +358,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
         // Setup the bits in the directory index
         pdpt_entry->bits.present = 1;
         pdpt_entry->bits.rw = 1;
-        pdpt_entry->bits.usermode = 1; // !!!: Not upholding security 
+        pdpt_entry->bits.usermode = 1; // NOTE: As long as the entries here aren't usermode this should be fine... right?
         MEM_SET_FRAME(pdpt_entry, block);
 
         mem_unmapPhys(block_remap, PMM_BLOCK_SIZE); // we don't even have to do this
@@ -383,7 +385,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
         // Setup the bits in the directory index
         pde->bits.present = 1;
         pde->bits.rw = 1;
-        pde->bits.usermode = 1; // !!!: Not upholding security 
+        pde->bits.usermode = 1; // NOTE: As long as the entries here aren't usermode this should be fine... right?
         MEM_SET_FRAME(pde, block);
 
         mem_unmapPhys(block_remap, PMM_BLOCK_SIZE); // we don't even have to do this
@@ -717,6 +719,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
         mem_highBasePDPT[i].bits.address = ((uintptr_t)&mem_highBasePDs[i]) >> MEM_PAGE_SHIFT;
         mem_highBasePDPT[i].bits.present = 1;
         mem_highBasePDPT[i].bits.rw = 1;
+        mem_highBasePDPT[i].bits.usermode = 1;  // NOTE: Do we want to do this?
 
         // Using 512-page blocks
         for (size_t j = 0; j < 512; j++) {
@@ -764,6 +767,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
         mem_lowBasePD[i].bits.address = ((uintptr_t)&mem_lowBasePT[i * 512] >> MEM_PAGE_SHIFT);
         mem_lowBasePD[i].bits.present = 1;
         mem_lowBasePD[i].bits.rw = 1;
+        mem_lowBasePD[i].bits.usermode = 1;
 
         for (size_t j = 0; j < 512; j++) {
             mem_lowBasePT[(i * 512) + j].bits.address = ((PAGE_SIZE*512) * i + PAGE_SIZE * j) >> MEM_PAGE_SHIFT;
@@ -782,6 +786,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     mem_kernelPML[0][510].bits.address = ((uintptr_t)&mem_heapBasePDPT >> MEM_PAGE_SHIFT);
     mem_kernelPML[0][510].bits.present = 1;
     mem_kernelPML[0][510].bits.rw = 1;
+    mem_kernelPML[0][510].bits.usermode = 1;
     
     // Calculate the amount of pages required for our PMM
     size_t frame_bytes = PMM_INDEX_BIT((mem_size >> 12) * 8);
@@ -798,18 +803,22 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     mem_heapBasePDPT[0].bits.address = ((uintptr_t)&mem_heapBasePD >> MEM_PAGE_SHIFT);
     mem_heapBasePDPT[0].bits.present = 1;
     mem_heapBasePDPT[0].bits.rw = 1;
+    mem_heapBasePDPT[0].bits.usermode = 1;
 
     mem_heapBasePD[0].bits.address = ((uintptr_t)&mem_heapBasePT[0] >> MEM_PAGE_SHIFT);
     mem_heapBasePD[0].bits.present = 1;
     mem_heapBasePD[0].bits.rw = 1;
+    mem_heapBasePD[0].bits.usermode = 1;
 
     mem_heapBasePD[1].bits.address = ((uintptr_t)&mem_heapBasePT[512] >> MEM_PAGE_SHIFT);
     mem_heapBasePD[1].bits.present = 1;
     mem_heapBasePD[1].bits.rw = 1;
+    mem_heapBasePD[1].bits.usermode = 1;
 
     mem_heapBasePD[2].bits.address = ((uintptr_t)&mem_heapBasePT[1024] >> MEM_PAGE_SHIFT);
     mem_heapBasePD[2].bits.present = 1;
     mem_heapBasePD[2].bits.rw = 1;
+    mem_heapBasePD[2].bits.usermode = 1;
 
     // Map a bunch o' entries
     for (size_t i = 0; i < frame_pages; i++) {
