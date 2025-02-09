@@ -91,14 +91,15 @@ static void smp_collectAPInfo(int ap) {
  */
 __attribute__((noreturn)) void smp_finalizeAP() {
     // We want all cores to have a consistent GDT
-    extern void hal_installGDT();
-    hal_installGDT();
+    hal_gdtInitCore(smp_getCurrentCPU(), _ap_stack_base);
     
     // Install the IDT
     hal_installIDT();
 
     // Setup paging for this AP
-    mem_switchDirectory(mem_getKernelDirectory());
+    // Manually load the page directory as switchDirectory expects an already present page directory.
+    asm volatile ("movl %0, %%cr3" :: "r"((uintptr_t)mem_getKernelDirectory() & ~MEM_PHYSMEM_CACHE_REGION)); // !!!: What if not cached?
+    current_cpu->current_dir = mem_getKernelDirectory(); 
     mem_setPaging(true);
 
     // HACK: We must load the stack here after paging has initialized. Trampoline will load a temporary stack.
@@ -110,11 +111,15 @@ __attribute__((noreturn)) void smp_finalizeAP() {
     // Now collect information
     smp_collectAPInfo(smp_getCurrentCPU());
 
+    // Spawn a new idle task
+    current_cpu->idle_process = process_spawnIdleTask();
+
     // Allow BSP to continue
     LOG(DEBUG, "CPU%i online and ready\n", smp_getCurrentCPU());
     ap_startup_finished = 1;
 
-    for (;;);
+    // Switch into idle task
+    process_switchNextThread();
 }
 
 
