@@ -78,9 +78,9 @@ typedef union page {
 
 #define MEM_ALIGN_PAGE(addr) ((addr + PAGE_SIZE) & ~0xFFF) // Align an address to the nearest page
 
-#define MEM_PML4_INDEX(x) (x >> (MEM_PAGE_SHIFT + 27) & 0x1FF)
-#define MEM_PDPT_INDEX(x) (x >> (MEM_PAGE_SHIFT + 18) & 0x1FF)
-#define MEM_PAGEDIR_INDEX(x) (x >> (MEM_PAGE_SHIFT + 9) & 0x1FF)
+#define MEM_PML4_INDEX(x) ((x >> (MEM_PAGE_SHIFT + 27)) & 0x1FF)
+#define MEM_PDPT_INDEX(x) ((x >> (MEM_PAGE_SHIFT + 18)) & 0x1FF)
+#define MEM_PAGEDIR_INDEX(x) ((x >> (MEM_PAGE_SHIFT + 9)) & 0x1FF)
 #define MEM_PAGETBL_INDEX(x) ((x >> MEM_PAGE_SHIFT) & 0x1FF)
 
 #define MEM_SET_FRAME(page, frame) (page->bits.address = ((uintptr_t)frame >> MEM_PAGE_SHIFT))      // Set the frame of a page. Used because of our weird union thing.

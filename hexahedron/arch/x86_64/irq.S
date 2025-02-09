@@ -47,11 +47,7 @@
     pushq %r9
     pushq %r8
 
-    movw %gs, %ax
-    pushw %ax
-    movw %fs, %ax
-    pushw %ax
-    movw %es, %ax
+    movw %ds, %ax
     pushw %ax
 
     /* This is pushing extended extended registers */
@@ -80,10 +76,6 @@
     /* Start popping registers */
     popw %ax
     // movw %ax, %ds
-    popw %ax
-    // movw %ax, %fs
-    popw %ax
-    // movw %ax, %gs
 
     popq %r8
     popq %r9
