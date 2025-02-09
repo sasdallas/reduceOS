@@ -97,8 +97,8 @@
     // Swap GS back
     _swapgs
 
-    // Skip over error code
-    add $8, %rsp
+    // Skip over error code and int no
+    add $16, %rsp
 .endm
 
 /* Common exception handler */
@@ -107,9 +107,8 @@ halCommonExceptionHandler:
 
     leaq 52(%rsp), %rax     // Load address of registers_t
 
-    movq halExceptionIndex, %rdi    // Exception index
-    movq %rax, %rsi                 // registers_t
-    movq %rsp, %rdx                 // extended_registers_t
+    movq %rax, %rdi                 // registers_t
+    movq %rsp, %rsi                 // extended_registers_t
     call hal_exceptionHandler 
     
     RESTORE_REGISTERS // Restore registers
@@ -123,10 +122,10 @@ halCommonIRQHandler:
 
     leaq 52(%rsp), %rax     // Load address of registers_t
 
-    movq halExceptionIndex, %rdi    // Exception index
-    movq halIRQIndex, %rsi          // IRQ index
-    movq %rax, %rdx                 // registers_t
-    movq %rsp, %rcx                 // extended_registers_t
+    // movq halExceptionIndex, %rdi    // Exception index
+    // movq halIRQIndex, %rsi          // IRQ index
+    movq %rax, %rdi                 // registers_t
+    movq %rsp, %rsi                 // extended_registers_t
     call hal_interruptHandler 
     
     RESTORE_REGISTERS // Restore registers
@@ -139,14 +138,14 @@ halCommonIRQHandler:
     .global \name
     &name:
         pushq $0 // Push dummy error code
-        movl $\index, halExceptionIndex
+        pushq $\index
         jmp halCommonExceptionHandler
 .endm
 
 .macro ISR_ERRCODE name index
     .global \name
     &name:
-        movq $\index, halExceptionIndex
+        pushq $\index // Push index
         jmp halCommonExceptionHandler
 .endm
 
@@ -155,8 +154,7 @@ halCommonIRQHandler:
     .global \name 
     &name:
         pushq $0 // Push dummy error code 
-        movq $\index, halExceptionIndex
-        movq $\index - 32, halIRQIndex 
+        pushq $\index // Push index
         jmp halCommonIRQHandler
 .endm
 

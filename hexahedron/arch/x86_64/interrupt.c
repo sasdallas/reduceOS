@@ -207,7 +207,9 @@ void hal_endInterrupt(uintptr_t interrupt_number) {
 /**
  * @brief Common exception handler
  */
-void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
+void hal_exceptionHandler(registers_t *regs, extended_registers_t *regs_extended) {
+    uintptr_t exception_index = regs->int_no;
+
     // Call the exception handler
     if (hal_exception_handler_table[exception_index] != NULL) {
         exception_handler_t handler = (hal_exception_handler_table[exception_index]);
@@ -283,7 +285,10 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
 /**
  * @brief Common interrupt handler
  */
-void hal_interruptHandler(uintptr_t exception_index, uintptr_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
+void hal_interruptHandler(registers_t *regs, extended_registers_t *regs_extended) {
+    uintptr_t exception_index = regs->int_no;
+    uintptr_t int_number = regs->int_no - 32;
+
     // Call any handler registered
     if (hal_handler_table[int_number] != NULL) {
         int return_value = 1;

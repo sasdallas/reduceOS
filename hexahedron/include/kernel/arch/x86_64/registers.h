@@ -33,6 +33,7 @@ typedef struct _registers {
     uint64_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
 
     // Pushed by the wrapper
+    uintptr_t int_no;
     uintptr_t err_code;
     
     // Pushed by the CPU
