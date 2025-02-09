@@ -267,9 +267,6 @@ int font_loadPSF(fs_node_t *file) {
                     table++;
                 }
 
-
-                LOG(DEBUG, "0x%x -> U+%04x (from sequence %02x)\n", glyph, uc, sequence);
-
                 // Store translation
                 psf->unicode[uc] = glyph;
             } else {
@@ -278,13 +275,8 @@ int font_loadPSF(fs_node_t *file) {
         }
     }
 
-    for (int i = 0; i < 0xFF; i++) {
-        
-
-    }
-
     // Unload current font
-    if (current_font->data) kfree(current_font->data); // NOTE: Unless we plan on supporting custom fonts in the future this should be fine.
+    if (current_font && current_font->data) kfree(current_font->data); // NOTE: Unless we plan on supporting custom fonts in the future this should be fine.
     if (current_font) kfree(current_font);
 
 

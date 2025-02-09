@@ -91,7 +91,7 @@ __attribute__((noreturn)) void smp_finalizeAP() {
 
     // Initialize FPU
     cpu_fpuInitialize();
-\
+
     // Set current core's directory
     current_cpu->current_dir = mem_getKernelDirectory();
 
