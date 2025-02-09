@@ -116,7 +116,7 @@ static void hal_setupGDTCoreData(int core) {
 
     // Configure the TSS
     hal_gdt[core].tss.ss0 = 0x10;   // GDT entry #3, kernel data segment
-    hal_gdt[core].tss.iopb = sizeof(i386_tss_t); // Should always be 104
+    hal_gdt[core].tss.iopb = 104;   // Should always be 104
 }
 
 /**
@@ -157,9 +157,6 @@ void hal_gdtInit() {
     extern void *__stack_top;
     hal_gdt[0].tss.esp0 = (uintptr_t)&__stack_top;
 
-    dprintf(DEBUG, "TSS.ESP0 = %p\n", &__stack_top);
-    dprintf(DEBUG, "GDTR AT %p - LIMIT %04x BASE %08x\n", &hal_gdt[0].gdtr, hal_gdt[0].gdtr.limit, hal_gdt[0].gdtr.base);
-
     // Load and install - source of inline ASM https://forum.osdev.org/viewtopic.php?t=37245
     asm volatile("lgdtl %0         \n\t"
                  "ljmp $0x08,$.L%= \n\t"
@@ -187,11 +184,11 @@ void hal_endInterrupt(uintptr_t interrupt_number) {
 /**
  * @brief Common exception handler
  */
-void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
+void hal_exceptionHandler(registers_t *regs, extended_registers_t *regs_extended) {
     // Call the exception handler
-    if (hal_exception_handler_table[exception_index] != NULL) {
-        exception_handler_t handler = (hal_exception_handler_table[exception_index]);
-        int return_value = handler(exception_index, regs, regs_extended);
+    if (hal_exception_handler_table[regs->int_no] != NULL) {
+        exception_handler_t handler = (hal_exception_handler_table[regs->int_no]);
+        int return_value = handler(regs->int_no, regs, regs_extended);
 
         if (return_value != 0) {
             kernel_panic(IRQ_HANDLER_FAILED, "hal");
@@ -203,7 +200,7 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
     }
 
     // NMIs are fired as of now only for a core shutdown. If we receive one, just halt.
-    if (exception_index == 2) {
+    if (regs->int_no == 2) {
         smp_acknowledgeCoreShutdown();
         for (;;);
     }
@@ -212,17 +209,17 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
     // Looks like no one caught this exception.
     kernel_panic_prepare(CPU_EXCEPTION_UNHANDLED);
 
-    if (exception_index == 14) {
+    if (regs->int_no == 14) {
         uintptr_t page_fault_addr = 0x0;
         asm volatile ("movl %%cr2, %0" : "=a"(page_fault_addr));
         dprintf(NOHEADER, "*** ISR detected exception: Page fault at address 0x%08X\n\n", page_fault_addr);
         printf("*** Page fault at address 0x%08X\n", page_fault_addr);
-    } else if (exception_index < I86_MAX_EXCEPTIONS) {
-        dprintf(NOHEADER, "*** ISR detected exception %i - %s\n\n", exception_index, hal_exception_table[exception_index]);
-        printf("*** ISR detected exception %i - %s\n", exception_index, hal_exception_table[exception_index]);
+    } else if (regs->int_no < I86_MAX_EXCEPTIONS) {
+        dprintf(NOHEADER, "*** ISR detected exception %i - %s\n\n", regs->int_no, hal_exception_table[regs->int_no]);
+        printf("*** ISR detected exception %i - %s\n", regs->int_no, hal_exception_table[regs->int_no]);
     } else {
-        dprintf(NOHEADER, "*** ISR detected exception %i - UNKNOWN TYPE\n\n", exception_index);
-        printf("*** ISR detected unknown exception: %i\n", exception_index);
+        dprintf(NOHEADER, "*** ISR detected exception %i - UNKNOWN TYPE\n\n", regs->int_no);
+        printf("*** ISR detected unknown exception: %i\n", regs->int_no);
     }
     
     
@@ -232,7 +229,7 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
     dprintf(NOHEADER, "EAX %08X EBX %08X ECX %08X EDX %08X\n", regs->eax, regs->ebx, regs->ecx, regs->edx);
     dprintf(NOHEADER, "EDI %08X ESI %08X EBP %08X ESP %08X\n", regs->edi, regs->esi, regs->ebp, regs->esp);
     dprintf(NOHEADER, "ERR %08X EIP %08X\n\n", regs->err_code, regs->eip);
-    dprintf(NOHEADER, "CS %04X DS %04X ES %04X GS %04X\n", regs->cs, regs->ds, regs->es, regs->gs);
+    dprintf(NOHEADER, "CS %04X DS %04X\n", regs->cs, regs->ds);
     dprintf(NOHEADER, "GDTR %08X %04X\nIDTR %08X %04X\n", regs_extended->gdtr.base, regs_extended->gdtr.limit, regs_extended->idtr.base, regs_extended->idtr.limit);
 
     // !!!: not conforming (should call kernel_panic_finalize) but whatever
@@ -252,18 +249,18 @@ void hal_exceptionHandler(uintptr_t exception_index, registers_t *regs, extended
 /**
  * @brief Common interrupt handler
  */
-void hal_interruptHandler(uintptr_t exception_index, uintptr_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
+void hal_interruptHandler(registers_t *regs, extended_registers_t *regs_extended) {
     // Call any handler registered
-    if (hal_handler_table[int_number] != NULL) {
+    if (hal_handler_table[regs->int_no - 32] != NULL) {
         int return_value = 1;
 
         // Context specified?
-        if (hal_interrupt_context_table[int_number] != NULL) {
-            interrupt_handler_context_t handler = (interrupt_handler_context_t)(hal_handler_table[int_number]);
-            return_value = handler(hal_interrupt_context_table[int_number]);
+        if (hal_interrupt_context_table[regs->int_no - 32] != NULL) {
+            interrupt_handler_context_t handler = (interrupt_handler_context_t)(hal_handler_table[regs->int_no - 32]);
+            return_value = handler(hal_interrupt_context_table[regs->int_no - 32]);
         } else {
-            interrupt_handler_t handler = (interrupt_handler_t)(hal_handler_table[int_number]);
-            return_value = handler(exception_index, int_number, regs, regs_extended);
+            interrupt_handler_t handler = (interrupt_handler_t)(hal_handler_table[regs->int_no - 32]);
+            return_value = handler(regs->int_no, regs->int_no - 32, regs, regs_extended);
         }
 
         if (return_value != 0) {
@@ -272,7 +269,7 @@ void hal_interruptHandler(uintptr_t exception_index, uintptr_t int_number, regis
         }
     }
 
-    hal_endInterrupt(int_number);
+    hal_endInterrupt(regs->int_no);
 }
 
 /**
@@ -370,17 +367,11 @@ int hal_registerInterruptVector(uint8_t index, uint8_t flags, uint16_t segment, 
 }
 
 /**
- * @brief Install the TSS
- */
-static void hal_installTSS() {
-}
-
-/**
  * @brief Load kernel stack
  * @param stack The stack to load
  */
 void hal_loadKernelStack(uintptr_t stack) {
-
+    hal_gdt[smp_getCurrentCPU()].tss.esp0 = stack;
 }
 
 /**
@@ -489,12 +480,11 @@ void hal_initializeInterrupts() {
     hal_registerInterruptVector(46, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ14);
     hal_registerInterruptVector(47, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ15);
 
-    // Install IDT in BSP
-    hal_installIDT();
-
     // Setup the PIC
     hal_initializePIC();
 
+    // Install IDT in BSP
+    hal_installIDT();
 
     // Enable interrupts
     __asm__ __volatile__("sti");

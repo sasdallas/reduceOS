@@ -123,11 +123,12 @@ typedef int (*interrupt_handler_context_t)(void *context);
 /**** DEFINITIONS ****/
 
 // Copied straight from old kernel. Provide interrupt descriptor types.
-#define I86_IDT_DESC_BIT16 0x06     // 00000110
-#define I86_IDT_DESC_BIT32 0x0E     // 00001110
-#define I86_IDT_DESC_RING1 0x40     // 01000000
-#define I86_IDT_DESC_RING2 0x20     // 00100000
-#define I86_IDT_DESC_RING3 0x60     // 01100000
+#define I86_IDT_DESC_TRAP   0x0F    // 00001111
+#define I86_IDT_DESC_BIT16  0x06    // 00000110
+#define I86_IDT_DESC_BIT32  0x0E    // 00001110
+#define I86_IDT_DESC_RING1  0x40    // 01000000
+#define I86_IDT_DESC_RING2  0x20    // 00100000
+#define I86_IDT_DESC_RING3  0x60    // 01100000
 #define I86_IDT_DESC_PRESENT 0x80   // 10000000
 #define I86_MAX_INTERRUPTS  255
 #define I86_MAX_EXCEPTIONS  31

@@ -29,10 +29,11 @@ typedef struct _descriptor {
 // Registers (Used by interrupts & exceptions)
 // Some of these are pushed by the CPU
 typedef struct _registers {
-    uint16_t ds, es, gs; // why are we using uint32
-    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax; // Pushed by pusha
+    uint16_t ds;                                        // NOTE: This is restored to aall segment registers (DS/ES/FS/GS) - bad?
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;    // Pushed by pusha
 
     // Pushed by the wrapper
+    uint32_t int_no;
     uint32_t err_code;
 
     // Pushed by the CPU

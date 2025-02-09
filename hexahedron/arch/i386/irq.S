@@ -21,12 +21,12 @@
 
 /* Save registers macro */
 .macro PUSH_REGISTERS
-    /* This is pushing registers_t */
+    /* Push general registers */
     pusha
 
-    pushw %ds
-    pushw %es
-    pushw %gs
+    /* Push DS */
+    movw %ds, %ax
+    pushw %ax
 
     /* This is pushing extended registers */
     
@@ -51,19 +51,19 @@
     /* Skip over extended registers */
     addl $28, %esp
 
+    /* Restore segments */
+    popw %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+
     /* Now we're at the beginning of registers_t */
-    popw %cx
-    movw %cx, %ds
-    popw %cx
-    movw %cx, %es
-    popw %cx
-    movw %cx, %gs
-    
     /* Restore main registers */
     popa
 
-    /* Skip over the err code */
-    addl $4, %esp
+    /* Skip over the err code and interrupt number */
+    addl $8, %esp
 .endm
     
 
@@ -73,13 +73,22 @@ halCommonExceptionHandler:
     PUSH_REGISTERS // Push registers
 
     leal 28(%esp), %eax // Load registers_t structure
-    pushl %esp
-    pushl %eax
-    pushl halExceptionIndex
+    
+    pushl %esp  // extended_registers_t
+    pushl %eax  // registers_t
+    
+    // Switch to kernel data sgements
+    mov $0x10, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+
+    // Call handler
     call hal_exceptionHandler
 
     // RESTORE_REGISTERS expects stack aligned
-    addl $12, %esp
+    addl $8, %esp
 
     RESTORE_REGISTERS
 
@@ -93,12 +102,19 @@ halCommonIRQHandler:
     
     pushl %esp // extended_registers_t
     pushl %eax // registers_t 
-    pushl halIRQIndex // IRQ index
-    pushl halExceptionIndex // Exception number
+
+    // Switch to kernel data sgements
+    mov $0x10, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+
+    // Call handler
     call hal_interruptHandler
 
-    // Negate last 4 pushes
-    addl $16, %esp
+    // Negate last 2 pushes
+    addl $8, %esp
 
     RESTORE_REGISTERS
 
@@ -111,14 +127,18 @@ halCommonIRQHandler:
     .global \name
     &name:
         pushl $0 // Push dummy error code
-        movl $\index, halExceptionIndex
+        pushl $\index   // Push index
+
+        // Now go to common handler
         jmp halCommonExceptionHandler
 .endm
 
 .macro ISR_ERRCODE name index
     .global \name
     &name:
-        movl $\index, halExceptionIndex
+        pushl $\index   // Push index
+
+        // Now go to common handler
         jmp halCommonExceptionHandler
 .endm
 
@@ -126,9 +146,10 @@ halCommonIRQHandler:
 .macro IRQ name index
     .global \name 
     &name:
-        pushl $0 // Push dummy error code 
-        movl $\index, halExceptionIndex
-        movl $\index - 32, halIRQIndex 
+        pushl $0        // Push dummy error code
+        pushl $\index   // Push index
+
+        // Now go to common handler
         jmp halCommonIRQHandler
 .endm
 
