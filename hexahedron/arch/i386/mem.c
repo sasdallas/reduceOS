@@ -127,22 +127,35 @@ page_t *mem_getKernelDirectory() {
 
 /**
  * @brief Switch the memory management directory
- * @param pagedir The virtual address of the page directory to switch to, or NULL for the kernel directory
+ * @param pagedir The virtual address of the page directory to switch to, or NULL for the kernel region
  * 
- * @warning Pass something mapped by mem_clone() or something in the identity-mapped PMM region.
- *          Anything greater than IDENTITY_MAP_MAXSIZE will be truncated in the PDBR.
+ * @warning If bootstrapping, it is best to load this yourself. This method may rely on things like mem_getPhysicalAddress
  * 
  * @returns -EINVAL on invalid, 0 on success.
  */
 int mem_switchDirectory(page_t *pagedir) {
     if (!pagedir) pagedir = mem_getKernelDirectory();
 
+
+    // Try to figure out what physical address we should use
+    // !!!: This is weird, not standardized.
+    if ((uintptr_t)pagedir > MEM_PHYSMEM_CACHE_REGION && (uintptr_t)pagedir < MEM_PHYSMEM_CACHE_REGION + MEM_PHYSMEM_CACHE_SIZE) {
+        // In cached region, just load it anyways
+        mem_load_pdbr((uintptr_t)pagedir & ~MEM_PHYSMEM_CACHE_REGION); 
+    } else {
+        // Not in cache, try to get physical address
+        if (!current_cpu->current_dir) return -ENOTSUP;
+
+        // Get physical
+        uintptr_t phys = mem_getPhysicalAddress(NULL, (uintptr_t)pagedir);
+        if (phys == 0x0) return -EINVAL;
+
+        // Load PDBR
+        mem_load_pdbr(phys);
+    }
+
     // Load into current directory
     current_cpu->current_dir = pagedir;
-
-    // Load PDBR
-    uintptr_t phys = mem_getPhysicalAddress(NULL, (uintptr_t)pagedir);
-    mem_load_pdbr(phys); 
 
     return 0;
 }
@@ -856,8 +869,13 @@ void mem_init(uintptr_t high_address) {
     dprintf(DEBUG, "\tKernel code is from 0x0 - 0x%x\n", high_address);
     dprintf(DEBUG, "\tKernel heap will begin at 0x%x\n", mem_kernelHeap);
 
-    mem_kernelDirectory = page_directory;
-    mem_load_pdbr((uintptr_t)mem_kernelDirectory);
+    // !!!: BAD!!!! WHY ARE WE GIVING IT A PHYSMEM REGION?? WHAT IF SOMEHOW THIS ISNT CACHED?
+    if ((uintptr_t)mem_kernelDirectory > MEM_PHYSMEM_CACHE_SIZE) {
+        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** BAD CODING DECISIONS HAVE LED TO THIS - Kernel directory is not in cache! Report this as a bug!!\n");
+    }
+
+    mem_kernelDirectory = (page_t*)((uintptr_t)page_directory | MEM_PHYSMEM_CACHE_REGION);
+    mem_load_pdbr((uintptr_t)page_directory); // Load PMM block only (CR3 expects a physical address)
     current_cpu->current_dir = mem_kernelDirectory;
     mem_setPaging(true);
 
