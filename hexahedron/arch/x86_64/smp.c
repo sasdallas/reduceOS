@@ -101,11 +101,15 @@ __attribute__((noreturn)) void smp_finalizeAP() {
     // Now collect information
     smp_collectAPInfo(smp_getCurrentCPU());
 
+    // Spawn idle task
+    current_cpu->idle_process = process_spawnIdleTask();
+
     // Allow BSP to continue
     LOG(DEBUG, "CPU%i online and ready\n", smp_getCurrentCPU());
     ap_startup_finished = 1;
 
-    for (;;);
+    // Switch
+    process_switchNextThread();
 }
 
 
@@ -234,7 +238,7 @@ void smp_disableCores() {
     LOG(INFO, "Disabling cores - please wait...\n");
 
     for (int i = 0; i < smp_data->processor_count; i++) {
-        if (i != 0) {
+        if (i != current_cpu->cpu_id) {
             lapic_sendNMI(smp_data->lapic_ids[i], 124);
 
             uint8_t error;

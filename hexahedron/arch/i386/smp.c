@@ -241,7 +241,7 @@ void smp_disableCores() {
     LOG(INFO, "Disabling cores - please wait...\n");
 
     for (int i = 0; i < smp_data->processor_count; i++) {
-        if (i != 0) {
+        if (i != current_cpu->cpu_id) {
             lapic_sendNMI(smp_data->lapic_ids[i], 124);
 
             uint8_t error;

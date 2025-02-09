@@ -22,6 +22,8 @@
 #include <kernel/arch/x86_64/hal.h>
 #endif
 
+#include <kernel/task/process.h>
+#include <kernel/arch/arch.h>
 #include <kernel/debug.h>
 
 
@@ -45,6 +47,13 @@ void pit_setTimerPhase(long hz) {
 int pit_irqHandler(uintptr_t exception_index, uintptr_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
     pit_ticks++;
     clock_update(pit_ticks);
+
+    // Check to see if we're from usermode
+    if (arch_from_usermode(regs, regs_extended)) {
+        // Yes, we are. Manually acknowledge this IRQ and switch to next process
+        hal_endInterrupt(int_number);
+        process_yield();
+    }
 
     return 0;
 }

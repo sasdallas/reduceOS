@@ -27,6 +27,9 @@
 #define THREAD_STATUS_RUNNING       0x04
 #define THREAD_STATUS_SLEEPING      0x08
 
+// Stack size of thread
+#define THREAD_STACK_SIZE           4096
+
 /**** TYPES ****/
 
 // Prototype
@@ -48,9 +51,21 @@ typedef struct thread {
     // THREAD VARIABLES
     arch_context_t context;     // Thread context (defined by architecture)
     uint8_t fp_regs[512] __attribute__((aligned(16))); // FPU registers (TEMPORARY - should be moved into arch_context?)
+
     page_t *dir;                // Page directory for the thread
+    uintptr_t stack;            // Thread stack (kernel will load parent->kstack in TSS)
 } thread_t;
 
 /**** FUNCTIONS ****/
+
+/**
+ * @brief Create a new thread
+ * @param parent The parent process of the thread
+ * @param dir Directory to use (for new threads being used as main, mem_clone() this first, else refcount the main thread's directory)
+ * @param entrypoint The entrypoint of the thread (you can also set this later)
+ * @param status Status of the thread
+ * @returns New thread pointer, just save context & add to scheduler queue
+ */
+thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoint, int status);
 
 #endif

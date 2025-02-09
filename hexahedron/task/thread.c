@@ -38,23 +38,36 @@ static thread_t *thread_createStructure(process_t *parent, page_t *dir, int stat
 
 /**
  * @brief Create a new thread
- * @param proc The process to append the thread to (if it doesn't have a main thread, this thread will automatically be set as main thread)
- * @param dir Directory TO CLONE. The thread will hold a CLONED copy of this directory.
- * @returns New thread pointer, save context & add to scheduler queue
+ * @param parent The parent process of the thread
+ * @param dir Directory to use (for new threads being used as main, mem_clone() this first, else refcount the main thread's directory)
+ * @param entrypoint The entrypoint of the thread (you can also set this later)
+ * @param status Status of the thread
+ * @returns New thread pointer, just save context & add to scheduler queue
  */
-thread_t *thread_create(process_t *parent, page_t *dir) {
-    page_t *dir_actual = mem_clone(dir);
-    thread_t *thr = thread_createStructure(parent, dir_actual, THREAD_STATUS_RUNNING);
+thread_t *thread_create(process_t *parent, page_t *dir, uintptr_t entrypoint, int status) {
+    // Switch directory to directory (as we will be mapping in it)
+    mem_switchDirectory(dir);
 
-    // Set thread in parent
-    if (parent->main_thread) {
-        if (!parent->thread_list) parent->thread_list = list_create("thread list");
-        list_append(parent->thread_list, (void*)thr);
+    // Create thread
+    thread_t *thr = thread_createStructure(parent, dir, status);
+    
+    if (!(status & THREAD_STATUS_KERNEL)) {
+        // Allocate usermode stack 
+        // !!!: VERY BAD, ONLY USED FOR TEMPORARY TESTING
+        thr->stack = mem_allocate(0, THREAD_STACK_SIZE*2, MEM_ALLOC_HEAP, MEM_DEFAULT) + THREAD_STACK_SIZE;
+        mem_allocatePage(mem_getPage(NULL, thr->stack - THREAD_STACK_SIZE, MEM_CREATE), MEM_PAGE_NOALLOC); // Reallocates pages as usermode
+        mem_allocatePage(mem_getPage(NULL, thr->stack, MEM_CREATE), MEM_PAGE_NOALLOC); // Reallocates pages as usermode
     } else {
-        parent->main_thread = thr;
+        // Don't bother, use the parent's kernel stack
+        thr->stack = parent->kstack; 
     }
+
+    // Initialize thread context
+    arch_initialize_context(thr, entrypoint, thr->stack);
+
+    // Switch back out of the directory back to kernel
+    mem_switchDirectory(NULL);
 
     return thr;
 }
-
 
