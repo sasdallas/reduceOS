@@ -493,6 +493,33 @@ _error:
 }
 
 /**
+ * @brief Check a file to make sure it is a valid ELF file
+ * @param file The file to check
+ * @param type The type of file to look for
+ * @returns 1 on valid ELF file, 0 on invalid
+ */
+int elf_check(fs_node_t *file, int type) {
+    if (!file) return 0;
+
+    // Read the EHDR field into a temporary holder
+    Elf64_Ehdr ehdrtmp;
+    if (fs_read(file, 0, sizeof(Elf64_Ehdr), (uint8_t*)&ehdrtmp) != sizeof(Elf64_Ehdr)) {
+        LOG(ERR, "Failed to read ELF file\n");
+        return 0;
+    }
+
+    // Check to make sure the ELF file is supported
+    if (!elf_checkSupported(&ehdrtmp)) {
+        return 0;
+    }
+
+    // Does it match the class?
+    if (type == ELF_EXEC && ehdrtmp.e_type != ET_EXEC) return 0;
+    if (type == ELF_RELOC && ehdrtmp.e_type != ET_REL) return 0;
+    return 1;
+}
+
+/**
  * @brief Load an ELF file into memory
  * @param file The file to load into memory
  * @param flags The flags to use (ELF_KERNEL or ELF_USER)
@@ -501,15 +528,8 @@ _error:
 uintptr_t elf_load(fs_node_t *node, int flags) {
     if (!node) return 0x0;
 
-    // Read the EHDR field into a temporary holder
-    Elf64_Ehdr ehdrtmp;
-    if (fs_read(node, 0, sizeof(Elf64_Ehdr), (uint8_t*)&ehdrtmp) != sizeof(Elf64_Ehdr)) {
-        LOG(ERR, "Failed to read ELF file\n");
-        return 0x0;
-    }
-
-    // Check to make sure the ELF file is supported
-    if (!elf_checkSupported(&ehdrtmp)) {
+    // Check the file
+    if (elf_check(node, ELF_ANY) == 0) {
         return 0x0;
     }
 

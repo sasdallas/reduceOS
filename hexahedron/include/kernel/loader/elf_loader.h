@@ -26,6 +26,11 @@
 
 #define ELF_FAIL    (uintptr_t)1       // Ugliest value ever...
 
+// The type of file we're trying to load
+#define ELF_EXEC        0   // Executable object files
+#define ELF_RELOC       1   // Relocatable object files
+#define ELF_ANY         2   // It doesn't matter what file we're looking for
+
 /**** FUNCTIONS ****/
 
 /**
@@ -37,6 +42,14 @@
  * @warning Make sure you've initialized the file!
  */
 uintptr_t elf_findSymbol(uintptr_t ehdr_address, char *name);
+
+/**
+ * @brief Check a file to make sure it is a valid ELF file
+ * @param file The file to check
+ * @param type The type of file to look for
+ * @returns 1 on valid ELF file, 0 on invalid
+ */
+int elf_check(fs_node_t *file, int type);
 
 /**
  * @brief Get the entrypoint of an executable file
