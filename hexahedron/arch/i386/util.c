@@ -55,7 +55,8 @@ int arch_from_usermode(registers_t *registers, extended_registers_t *extended) {
  * @param thread The thread to prepare to switch to
  */
 void arch_prepare_switch(struct thread *thread) {
-    // TODO: Implement, need to load TSS stack
+    // Ask HAL to nicely load the kstack
+    hal_loadKernelStack(thread->parent->kstack);
 }
 
 /**
