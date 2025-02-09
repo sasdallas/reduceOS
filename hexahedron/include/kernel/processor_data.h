@@ -26,15 +26,23 @@
 #include <kernel/task/process.h>
 
 
-
 /**** TYPES ****/
 
+// Temporary prototypes because this and process file are an include mess
+struct process;
+struct thread;
+
 typedef struct _processor {
-    int cpu_id;                 // CPU ID
-    page_t *current_dir;        // Current page directory
-    thread_t *current_thread;   // Current thread of the process
+    int cpu_id;                         // CPU ID
+    page_t *current_dir;                // Current page directory
+    struct thread *current_thread;      // Current thread of the process
 
+    struct process *current_process;    // Current process of the CPU
+                                        // TODO: Find a way to better organize tasking systems so this isn't needed, as thread should contain a pointer to this.
+                                        // TODO: Mainly this is used because init shouldn't HAVE a thread, so process_execute can just use this
 
+    struct process *idle_process;       // Idle process of the CPU
+                                        // TODO: Maybe use thread instead of storing pointer to process structure
 
 #if defined(__ARCH_X86_64__) || defined(__ARCH_I386__)
     int lapic_id;
