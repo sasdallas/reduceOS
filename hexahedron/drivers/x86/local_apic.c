@@ -18,6 +18,10 @@
 #include <kernel/panic.h>
 #include <errno.h>
 
+#include <kernel/arch/arch.h>
+#include <kernel/task/process.h>
+#include <kernel/drivers/clock.h>
+
 #if defined(__ARCH_I386__)
 #include <kernel/arch/i386/cpu.h>
 #include <kernel/arch/i386/registers.h>
@@ -162,6 +166,28 @@ int lapic_irq(uintptr_t exception_index, uintptr_t irq_number, registers_t *regi
 }
 
 /**
+ * @brief Local APIC timer IRQ
+ */
+int lapic_timer_irq(uintptr_t exception_index, uintptr_t irq_number, registers_t *registers, extended_registers_t *extended) {
+    // clock_update();
+
+    // Check to see if we're from usermode
+    if (arch_from_usermode(registers, extended)) {
+        // Is it time to switch processes?
+        if (scheduler_update(clock_getTickCount()) == 1) {
+            dprintf(DEBUG, "Process is out of timeslice - yielding\n");
+
+            // Yes, it is. Manually acknowledge this IRQ and switch to next process
+            hal_endInterrupt(123);
+            process_yield(0);   // IMPORTANT: We do not yield and reschedule here, as scheduler_reschedule already took care of that.
+                                // IMPORTANT: Only kernel threads will yield as the scheduler won't run for those (arch_from_usermode is 0), and those don't have timeslices
+        }
+    }
+
+    return 0;
+}
+
+/**
  * @brief Acknowledge local APIC interrupt
  */
 void lapic_acknowledge() {
@@ -196,14 +222,40 @@ int lapic_initialize(uintptr_t lapic_address) {
         return -EINVAL;
     }
 
-    lapic_base = lapic_address;
+    // Local APIC base should never change
+    if (!lapic_base) lapic_base = lapic_address;
 
     // Register the interrupt handler
     hal_registerInterruptHandler(LAPIC_SPUR_INTNO, lapic_irq); // NOTE: This might fail occasionally (BSP will reinitialize APICs for each core)
-    
+    hal_registerInterruptHandler(LAPIC_TIMER_IRQ, lapic_timer_irq);
+
     // Enable spurious vector register
     lapic_write(LAPIC_REGISTER_SPURINT, lapic_read(LAPIC_REGISTER_SPURINT) | LAPIC_SPUR_INTNO);
     lapic_setEnabled(1);
+
+    // Register timer IRQ and set divconf
+    lapic_write(LAPIC_REGISTER_TIMER, LAPIC_TIMER_IRQ);
+    lapic_write(LAPIC_REGISTER_DIVCONF, 1);
+
+
+    // SOURCE: https://github.com/klange/toaruos/blob/911daaad555e8872a99687121d84197803d9a16c/kernel/arch/x86_64/smp.c
+    // Time local APIC against the TSC
+    uint64_t before = clock_readTSC();
+    lapic_write(LAPIC_REGISTER_INITCOUNT, 1000000);
+    while (lapic_read(LAPIC_REGISTER_CURCOUNT));
+    uint64_t after = clock_readTSC();
+
+    // Calculate target
+    uint64_t ms = (after-before) / clock_getTSCSpeed();
+    uint64_t target = 10000000000UL / ms;
+
+    // Setup initial count register
+    lapic_write(LAPIC_REGISTER_DIVCONF, 1);
+    lapic_write(LAPIC_REGISTER_TIMER, LAPIC_TIMER_IRQ | 0x20000);
+    lapic_write(LAPIC_REGISTER_INITCOUNT, target);
+    
+    // Acknowledge any timer IRQ if one fired
+    lapic_acknowledge();
 
     // Finished!
     return 0;

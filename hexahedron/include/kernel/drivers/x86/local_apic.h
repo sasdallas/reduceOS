@@ -60,7 +60,7 @@
 #define LAPIC_LVT_SETMASK           0x10000 // (16) Set to mask
 
 // Spurious input vector register
-#define LAPIC_SPUR_INTNO            0xFF    // We want to set the interrupt number to 0x7B for ISR 123 (serves as mask and number)
+#define LAPIC_SPUR_INTNO            0xFF
 #define LAPIC_SPUR_ENABLE           0x100   // Bit 8 is enable
 
 // Interrupt command register (mask)
@@ -101,6 +101,9 @@
 #define LAPIC_SEND_ILLEGAL_VECTOR       0x20
 #define LAPIC_RECV_ILLEGAL_VECTOR       0x40
 #define LAPIC_ILLEGAL_REGISTER_ADDRESS  0x80
+
+// Timer IRQ
+#define LAPIC_TIMER_IRQ                 0x7B    // ISR 123
 
 /**** FUNCTIONS ****/
 
