@@ -201,12 +201,3 @@ IRQ             halIRQ13,   45
 IRQ             halIRQ14,   46
 IRQ             halIRQ15,   47
      
-
-     
-
-/* These indexes are useful because stack manipulation is hard :( */
-halExceptionIndex:
-    .long 0
-
-halIRQIndex:
-    .long 0

@@ -122,8 +122,6 @@ halCommonIRQHandler:
 
     leaq 52(%rsp), %rax     // Load address of registers_t
 
-    // movq halExceptionIndex, %rdi    // Exception index
-    // movq halIRQIndex, %rsi          // IRQ index
     movq %rax, %rdi                 // registers_t
     movq %rsp, %rsi                 // extended_registers_t
     call hal_interruptHandler 
@@ -206,10 +204,3 @@ IRQ             halIRQ13,   45
 IRQ             halIRQ14,   46
 IRQ             halIRQ15,   47
 
-
-/* These indexes are useful because stack manipulation is hard :( */
-halExceptionIndex:
-    .quad 0
-
-halIRQIndex:
-    .quad 0
