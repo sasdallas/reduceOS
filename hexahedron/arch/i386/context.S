@@ -94,7 +94,7 @@ arch_load_context:
     movl 16(%ecx), %esi
 
     /* arch_save_context returns twice, load that second return value in */
-    movl $1, %ecx
+    movl $1, %eax
     jmpl *20(%ecx)
 
 
