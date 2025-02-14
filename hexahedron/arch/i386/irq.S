@@ -15,6 +15,7 @@
 
 .extern hal_exceptionHandler
 .extern hal_interruptHandler
+.extern lapic_base
 .global hal_gdtr
 .global hal_gdt_base
 .global hal_gdt_end
@@ -201,3 +202,16 @@ IRQ             halIRQ13,   45
 IRQ             halIRQ14,   46
 IRQ             halIRQ15,   47
      
+/* ISR 123 */
+.global halLocalAPICTimerInterrupt
+halLocalAPICTimerInterrupt:
+    // Acknowledge the IPI
+    pushl %ecx
+    movl (lapic_base), %ecx
+    addl $0xB0, %ecx
+    movl $0, (%ecx)
+    popl %ecx
+
+    pushl $0x00
+    pushl $123
+    jmp halCommonIRQHandler

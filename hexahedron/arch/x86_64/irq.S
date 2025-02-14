@@ -14,6 +14,7 @@
 .code64
 .extern hal_exceptionHandler
 .extern hal_interruptHandler
+.extern lapic_base
 
 /* Swap GS base (make sure points to err_code) */
 .macro _swapgs
@@ -204,3 +205,17 @@ IRQ             halIRQ13,   45
 IRQ             halIRQ14,   46
 IRQ             halIRQ15,   47
 
+/* ISR 123 */
+.global halLocalAPICTimerInterrupt
+halLocalAPICTimerInterrupt:
+    // Try to acknowledge EOI in APIC
+    pushq %rcx
+    mov (lapic_base)(%rip), %rcx    // RIP-relative addressing
+    add $0xB0, %rcx                 // lapic_base + 0xB0 = EOI register
+    movq $0, (%rcx)
+    popq %rcx
+
+    // Now process
+    pushq $0x00
+    pushq $123
+    jmp halCommonIRQHandler

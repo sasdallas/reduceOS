@@ -485,6 +485,8 @@ void hal_initializeInterrupts() {
     hal_registerInterruptVector(46, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ14);
     hal_registerInterruptVector(47, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ15);
 
+    hal_registerInterruptVector(123, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halLocalAPICTimerInterrupt);
+
     // Install IDT in BSP
     hal_installIDT();
 

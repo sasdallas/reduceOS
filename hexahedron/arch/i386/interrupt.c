@@ -92,6 +92,9 @@ const char *hal_exception_table[I86_MAX_EXCEPTIONS] = {
     "security exception"
 };
 
+/* HACK: This variable is updated on an EOI so we don't send it twice (specifically for PIC) */
+static int hal_did_end_interrupt = 0;
+
 
 /**
  * @brief Sets up a core's data in the global GDT
@@ -179,6 +182,7 @@ void hal_gdtInit() {
 void hal_endInterrupt(uintptr_t interrupt_number) {
     if (interrupt_number > 8) outportb(I86_PIC2_COMMAND, I86_PIC_EOI);
     outportb(I86_PIC1_COMMAND, I86_PIC_EOI);
+    hal_did_end_interrupt = 1;
 }
 
 /**
@@ -269,7 +273,8 @@ void hal_interruptHandler(registers_t *regs, extended_registers_t *regs_extended
         }
     }
 
-    hal_endInterrupt(regs->int_no);
+    if (!hal_did_end_interrupt) hal_endInterrupt(regs->int_no);
+    hal_did_end_interrupt = 0;
 }
 
 /**
@@ -479,6 +484,8 @@ void hal_initializeInterrupts() {
     hal_registerInterruptVector(45, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ13);
     hal_registerInterruptVector(46, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ14);
     hal_registerInterruptVector(47, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ15);
+
+    hal_registerInterruptVector(123, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halLocalAPICTimerInterrupt);
 
     // Setup the PIC
     hal_initializePIC();
