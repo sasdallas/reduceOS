@@ -30,6 +30,7 @@ arch_start_execution:
     /* Now push CS:EIP and IRET */
     push $0x1b
     push %rdi
+    swapgs
     iretq
 
 
@@ -113,7 +114,7 @@ arch_load_context:
     wrmsr
 
     /* Set RAX to 1 for return value */
-    movq $1, %rax
+    mov $1, %rax
 
     /* Jump to RIP */
     jmpq *64(%rdi)

@@ -77,6 +77,6 @@ thread_t *scheduler_get();
 /**
  * @brief Scheduler tick method, called every update
  */
-void scheduler_update(uint64_t ticks);
+int scheduler_update(uint64_t ticks);
 
 #endif

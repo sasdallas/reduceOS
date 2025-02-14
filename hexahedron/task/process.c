@@ -59,8 +59,6 @@ void process_init() {
  * For CPU cores: This is jumped to immediately after AP initialization, specifically 
  * after the idle task has been created (through process_spawnIdleTask). It will automatically
  * enter the scheduling loop, and when a new process spawns the core can get it.
- * 
- * 
  */
 void __attribute__((noreturn)) process_switchNextThread() {
     // Get next thread in queue
@@ -70,6 +68,8 @@ void __attribute__((noreturn)) process_switchNextThread() {
     // Update CPU variables
     current_cpu->current_thread = next_thread;
     current_cpu->current_process = next_thread->parent;
+
+    dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.rsp);
 
     // Setup page directory
     mem_switchDirectory(next_thread->dir);
@@ -92,22 +92,9 @@ void __attribute__((noreturn)) process_switchNextThread() {
  * This will yield current execution to the next available task, but will return when
  * this process is loaded by @c process_switchNextThread
  * 
- * @note    This will return eventually. It's easiest to visualize with the x86 PIT timer - when the PIT interrupts
- *          during a usermode task (CS != 0x08), it has already rescheduled (through clock_update) and will now yield the task. When
- *          it becomes time to run this thread, load_context should return here, which just returns again (and the IRQ handler jumps back to usermode process)
+ * @param reschedule Whether to readd the process back to the queue, meaning it can return whenever and isn't waiting on something
  */
-void process_yield() {
-
-    // !!!: We need to reorder our scheduling system to avoid this stupidity. Basically this process system
-    // !!!: has no idea when its time to yield a thread (nor does the timer system), so we guess by watching when the scheduler adds
-    // !!!: the thread back into the queue.
-
-extern list_t *thread_queue;
-    if (list_find(thread_queue, (void*)current_cpu->current_thread) == NULL) {
-        // The thread wasn't added into the queue again, it still has time to execute.
-        return;
-    }
-
+void process_yield(uint8_t reschedule) {
     // Thread no longer has any time to execute. Save stuff
     asm volatile ("fxsave (%0)" :: "r"(current_cpu->current_thread->fp_regs));
 
@@ -117,6 +104,12 @@ extern list_t *thread_queue;
         asm volatile ("fxrstor (%0)" :: "r"(current_cpu->current_thread->fp_regs));
         dprintf(DEBUG, "Back from task switch\n");
         return;
+    }
+
+    // Do they want us to reschedule?
+    if (reschedule) {
+        // Yes, reschedule thread to back of queue
+        scheduler_insertThread(current_cpu->current_thread);
     }
 
     // Onward!
@@ -180,6 +173,7 @@ static process_t *process_createStructure(char *name, unsigned int flags, unsign
 
     // Create process' kernel stack
     process->kstack = mem_allocate(0, PROCESS_KSTACK_SIZE, MEM_ALLOC_HEAP, MEM_PAGE_KERNEL) + PROCESS_KSTACK_SIZE;
+    dprintf(DEBUG, "Process '%s' has had its kstack %p allocated in page directory %p\n", name, process->kstack, mem_getCurrentDirectory());
     
     return process;
 }
@@ -239,6 +233,16 @@ process_t *process_spawnInit() {
 }
 
 /**
+ * @brief Create a new process
+ * @param name The name of the process
+ * @param flags The flags of the process
+ * @param priority The priority of the process 
+ */
+process_t *process_create(char *name, int flags, int priority) {
+    return process_createStructure(name, flags, priority);
+}
+
+/**
  * @brief Execute a new ELF binary for the current process (execve)
  * @param file The file to execute
  * @param argc The argument count
@@ -260,6 +264,7 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
     // TODO
 
     // Create a new main thread with a blank entrypoint
+    mem_switchDirectory(NULL);
     current_cpu->current_process->main_thread = thread_create(current_cpu->current_process, mem_clone(NULL), 0x0, THREAD_STATUS_RUNNING);
 
     // Switch to directory
@@ -284,6 +289,7 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
     current_cpu->current_thread = current_cpu->current_process->main_thread;
 
     // Enter
+    LOG(DEBUG, "Launching new ELF process\n");
     arch_prepare_switch(current_cpu->current_thread);
     arch_start_execution(process_entrypoint, current_cpu->current_thread->stack);
 

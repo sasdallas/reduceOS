@@ -45,18 +45,18 @@ static thread_t *thread_createStructure(process_t *parent, page_t *dir, int stat
  * @returns New thread pointer, just save context & add to scheduler queue
  */
 thread_t *thread_create(process_t *parent, page_t *dir, uintptr_t entrypoint, int status) {
-    // Switch directory to directory (as we will be mapping in it)
-    mem_switchDirectory(dir);
-
     // Create thread
     thread_t *thr = thread_createStructure(parent, dir, status);
     
+    // Switch directory to directory (as we will be mapping in it)
+    mem_switchDirectory(dir);
+
     if (!(status & THREAD_STATUS_KERNEL)) {
         // Allocate usermode stack 
         // !!!: VERY BAD, ONLY USED FOR TEMPORARY TESTING
         thr->stack = mem_allocate(0, THREAD_STACK_SIZE*2, MEM_ALLOC_HEAP, MEM_DEFAULT) + THREAD_STACK_SIZE;
-        mem_allocatePage(mem_getPage(NULL, thr->stack - THREAD_STACK_SIZE, MEM_CREATE), MEM_PAGE_NOALLOC); // Reallocates pages as usermode
-        mem_allocatePage(mem_getPage(NULL, thr->stack, MEM_CREATE), MEM_PAGE_NOALLOC); // Reallocates pages as usermode
+        mem_allocatePage(mem_getPage(dir, thr->stack - THREAD_STACK_SIZE, MEM_CREATE), MEM_PAGE_NOALLOC); // Reallocates pages as usermode
+        mem_allocatePage(mem_getPage(dir, thr->stack, MEM_CREATE), MEM_PAGE_NOALLOC); // Reallocates pages as usermode
     } else {
         // Don't bother, use the parent's kernel stack
         thr->stack = parent->kstack; 

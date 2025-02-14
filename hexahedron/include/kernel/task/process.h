@@ -86,11 +86,9 @@ void __attribute__((noreturn)) process_switchNextThread();
  * This will yield current execution to the next available task, but will return when
  * this process is loaded by @c process_switchNextThread
  * 
- * @note    This will return eventually. It's easiest to visualize with the x86 PIT timer - when the PIT interrupts
- *          during a usermode task (CS != 0x08), it has already rescheduled (through clock_update) and will now yield the task. When
- *          it becomes time to run this thread, load_context should return here, which just returns again (and the IRQ handler jumps back to usermode process)
+ * @param reschedule Whether to readd the process back to the queue, meaning it can return whenever and isn't waiting on something
  */
-void process_yield();
+void process_yield(uint8_t reschedule);
 
 /**
  * @brief Create a new idle process
@@ -112,6 +110,14 @@ process_t *process_spawnIdleTask();
  * threads and sections with the process to execute for init.
  */
 process_t *process_spawnInit();
+
+/**
+ * @brief Create a new process
+ * @param name The name of the process
+ * @param flags The flags of the process
+ * @param priority The priority of the process 
+ */
+process_t *process_create(char *name, int flags, int priority);
 
 /**
  * @brief Execute a new ELF binary for the current process (execve)

@@ -40,19 +40,22 @@ spinlock_t scheduler_lock = { 0 };
 /**
  * @brief Scheduler tick method, called every update
  */
-void scheduler_update(uint64_t ticks) {
+int scheduler_update(uint64_t ticks) {
     // Update the current process' time
     if (!current_cpu->current_thread) {
-        return; // Before a process was initialized
+        return 0; // Before a process was initialized
     }
+
+    current_cpu->current_thread->total_ticks = clock_getTickCount();
 
     current_cpu->current_thread->preempt_ticks--;
     if (current_cpu->current_thread->preempt_ticks <= 0) {
         // Get out of here, you're out of your timeslice
         scheduler_reschedule();
+        return 1;
     }
 
-    current_cpu->current_thread->total_ticks = clock_getTickCount();
+    return 0;
 }
 
 /**
@@ -61,10 +64,10 @@ void scheduler_update(uint64_t ticks) {
 void scheduler_init() {
     thread_queue = list_create("thread queue");
     
-    if (clock_registerUpdateCallback(scheduler_update) < 0) {
-        // Could not register
-        kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "Failed to register tick callback\n");
-    }
+    // if (clock_registerUpdateCallback(scheduler_update) < 0) {
+    //     // Could not register
+    //     kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "Failed to register tick callback\n");
+    // }
 
     LOG(INFO, "Scheduler initialized\n");
 }

@@ -28,7 +28,7 @@ typedef struct arch_context {
     uintptr_t edi;  // EDI
     uintptr_t esi;  // ESI
     uintptr_t eip;  // Instruction pointer
-} arch_context_t;
+} __attribute__((packed)) arch_context_t;
 
 /**** FUNCTIONS ****/
 
