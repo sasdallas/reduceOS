@@ -169,8 +169,6 @@ int lapic_irq(uintptr_t exception_index, uintptr_t irq_number, registers_t *regi
  * @brief Local APIC timer IRQ
  */
 int lapic_timer_irq(uintptr_t exception_index, uintptr_t irq_number, registers_t *registers, extended_registers_t *extended) {
-    // clock_update();
-
     // Check to see if we're from usermode
     if (arch_from_usermode(registers, extended)) {
         // Is it time to switch processes?
@@ -224,6 +222,9 @@ int lapic_initialize(uintptr_t lapic_address) {
 
     // Local APIC base should never change
     if (!lapic_base) lapic_base = lapic_address;
+
+    // Turn the PIC off
+    hal_disablePIC();
 
     // Register the interrupt handler
     hal_registerInterruptHandler(LAPIC_SPUR_INTNO, lapic_irq); // NOTE: This might fail occasionally (BSP will reinitialize APICs for each core)

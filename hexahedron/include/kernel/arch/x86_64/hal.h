@@ -99,6 +99,11 @@ void hal_unregisterExceptionHandler(uintptr_t int_no);
 int hal_registerInterruptHandlerContext(uintptr_t int_no, interrupt_handler_context_t handler, void *context);
 
 /**
+ * @brief Disable the 8259 PIC(s)
+ */
+void hal_disablePIC();
+
+/**
  * @brief Sets an RSDP if one was set
  */
 void hal_setRSDP(uint64_t rsdp);

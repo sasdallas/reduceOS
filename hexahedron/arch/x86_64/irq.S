@@ -19,7 +19,7 @@
 /* Swap GS base (make sure points to err_code) */
 .macro _swapgs
     // We only need to swapgs on a usermode -> kernel mode interrupt
-    cmpq $8, 16(%rsp) // 16(%rsp) = CS pushed by CPU
+    cmpq $8, 24(%rsp) // 24(%rsp) = CS pushed by CPU
     je 1f
     swapgs
 1:
@@ -212,7 +212,7 @@ halLocalAPICTimerInterrupt:
     pushq %rcx
     mov (lapic_base)(%rip), %rcx    // RIP-relative addressing
     add $0xB0, %rcx                 // lapic_base + 0xB0 = EOI register
-    movq $0, (%rcx)
+    movl $0, (%rcx)
     popq %rcx
 
     // Now process
