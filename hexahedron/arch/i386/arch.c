@@ -125,7 +125,7 @@ void arch_panic_traceback(int depth, registers_t *regs) {
         // Okay, make sure it was in the kernel
         if (ip > (uintptr_t)&__bss_end) {
             // Corrupt frame?
-            dprintf(NOHEADER, COLOR_CODE_RED    "0x%08X(corrupt frame - outside of kernelspace)\n", ip);
+            dprintf(NOHEADER, COLOR_CODE_RED    "0x%08X (corrupt frame - outside of kernelspace)\n", ip);
             goto _next_frame;
         }
 
