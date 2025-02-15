@@ -101,6 +101,7 @@ void mem_setPaging(bool status) {
 
         asm volatile ("mov %%cr0, %0" : "=r"(cr0));
         cr0 = cr0 | 0x80010001; // Enable paging
+        cr0 = cr0 & 0x9FFFFFFF;
         asm volatile ("mov %0, %%cr0" :: "r"(cr0));
     } else {
         uint32_t cr0;
@@ -483,7 +484,7 @@ void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt, int flags) {
  *          Please use a function such as mem_allocatePage to do that.
  */
 page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
-    uintptr_t addr = (address % PAGE_SIZE != 0) ? MEM_ALIGN_PAGE(address) : address;
+    uintptr_t addr = (address % PAGE_SIZE != 0) ? MEM_ALIGN_PAGE_DESTRUCTIVE(address) : address;
 
     page_t *directory = (dir) ? dir : current_cpu->current_dir;
 

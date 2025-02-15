@@ -88,6 +88,7 @@ typedef union page {
 // 0x00000000 - 0x00200000: Kernel code. This can be expanded since heap is positioned right after
 // 0x00200000 - 0x00400000: Kernel heap. This is just an example heap.
 // 0x70000000 - 0x80000000: DMA region
+// 0x80000000 - 0x90000000: Usermode stack space
 // 0x90000000 - 0xA0000000: MMIO region
 // 0xA0000000 - 0xB0000000: Driver memory space.
 // 0xB0000000 - 0xC0000000: Physical memory cache
@@ -111,9 +112,12 @@ typedef union page {
 
 /**** MACROS ****/
 
+#define MEM_PAGE_SHIFT  12
+
 #define MEM_ALIGN_PAGE(addr) ((addr + PAGE_SIZE) & ~0xFFF) // Align an address to the nearest page
-#define MEM_PAGEDIR_INDEX(x) (((x) >> 22) & 0x3ff) // Returns the index of x within the page directory
-#define MEM_PAGETBL_INDEX(x) (((x) >> 12) & 0x3ff) // Returns the index of x within the page table
+#define MEM_ALIGN_PAGE_DESTRUCTIVE(addr) (addr & ~0xFFF) // Align an address to the nearest page, discarding any bits
+#define MEM_PAGEDIR_INDEX(x) (((x) >> (MEM_PAGE_SHIFT + 10)) & 0x3FF)
+#define MEM_PAGETBL_INDEX(x) (((x) >> MEM_PAGE_SHIFT) & 0x3FF)
 #define MEM_VIRTUAL_TO_PHYS(addr) (*addr & ~0xFFF) // Returns the physical frame address of a page.
 
 #define MEM_SET_FRAME(page, frame) (page->bits.address = ((uintptr_t)frame >> MEM_PAGE_SHIFT))      // Set the frame of a page. Used because of our weird union thing.
