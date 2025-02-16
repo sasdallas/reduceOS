@@ -365,7 +365,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     }
 
     if (pdpt_entry->bits.size) {
-        dprintf(WARN, "Tried to get page from a PDPT that is 1GiB\n");
+        // dprintf(WARN, "Tried to get page from a PDPT that is 1GiB\n");
         return NULL;
     }
 
@@ -392,7 +392,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     }
 
     if (pde->bits.size) {
-        dprintf(WARN, "Tried to get page from a PD that is 2MiB\n");
+        // dprintf(WARN, "Tried to get page from a PD that is 2MiB\n");
         return NULL;
     }
 

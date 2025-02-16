@@ -46,10 +46,11 @@
 #include <kernel/misc/ksym.h>
 #include <kernel/misc/args.h>
 
+// Tasking
+#include <kernel/task/process.h>
 
 /* Log method of generic */
 #define LOG(status, ...) dprintf_module(status, "GENERIC", __VA_ARGS__)
-
 
 /**
  * @brief Mount the initial ramdisk to /device/initrd/
@@ -84,6 +85,7 @@ void kernel_mountRamdisk(generic_parameters_t *parameters) {
         // Oops, we couldn't mount it.
         LOG(ERR, "Failed to mount initial ramdisk (tarfs)\n");
         kernel_panic(INITIAL_RAMDISK_CORRUPTED, "kernel");
+
         __builtin_unreachable();
     }
 
@@ -105,6 +107,16 @@ void kernel_loadDrivers() {
     
     driver_loadConfiguration(conf_file); // Load the configuration
     fs_close(conf_file);
+}
+
+#include <kernel/misc/spinlock.h>
+spinlock_t kthread_lock = { 0 };
+
+void kthread() {
+    for (;;) {
+        arch_pause();
+        process_yield(1);
+    }
 }
 
 /**
@@ -173,5 +185,39 @@ void kmain() {
         LOG(WARN, "Not loading any drivers, found argument \"--no-load-drivers\".\n");
     }
 
+
+    // Initialize process system
+    process_init();
+
+    // Spawn idle task for this CPU
+    current_cpu->idle_process = process_spawnIdleTask();
+
+    // Spawn init task for this CPU
+    current_cpu->current_process = process_spawnInit();
+
+    // Unmap 0x0 (fault detector, temporary)
+    page_t *pg = mem_getPage(NULL, 0, MEM_CREATE);
+    mem_allocatePage(pg, MEM_PAGE_NOT_PRESENT | MEM_PAGE_NOALLOC | MEM_PAGE_READONLY);
+
+    // Create some kernel threads
+    char name[256] = { 0 };
+    for (int i = 1; i <= 3; i++) {
+        snprintf(name, 256, "kthread%d", i);
+        process_t *process = process_create(name, PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
+        process->main_thread = thread_create(process, mem_clone(NULL), (uintptr_t)&kthread, THREAD_STATUS_KERNEL | THREAD_STATUS_RUNNING);
+        scheduler_insertThread(process->main_thread);
+    }
+
     
+
+#include <kernel/loader/elf_loader.h>
+#ifdef __ARCH_I386__
+    fs_node_t *app = kopen("/device/initrd/test_app", O_RDWR);
+#else
+    fs_node_t *app = kopen("/device/initrd/test_app64", O_RDWR);
+#endif
+    
+    if (app) {
+        process_execute(app, 0, NULL);
+    }
 }

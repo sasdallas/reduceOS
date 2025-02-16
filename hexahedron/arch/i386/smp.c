@@ -82,6 +82,15 @@ static void smp_collectAPInfo(int ap) {
     strncpy(current_cpu->cpu_model, cpu_getBrandString(), 48);
     current_cpu->cpu_model_number = cpu_getModelNumber();
     current_cpu->cpu_family = cpu_getFamily();
+
+    // Get lapic ID, make sure it matches
+    uint32_t ebx, _unused;
+    __cpuid(0x1, _unused, ebx, _unused, _unused);
+    if (smp_getCurrentCPU() != (int)(ebx >> 24)) {
+        LOG(WARN, "Local APIC mismatch ID\n");
+    } 
+
+    current_cpu->lapic_id = (int)(ebx >> 24);
 }
 
 

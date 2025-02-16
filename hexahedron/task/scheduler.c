@@ -63,12 +63,6 @@ int scheduler_update(uint64_t ticks) {
  */
 void scheduler_init() {
     thread_queue = list_create("thread queue");
-    
-    // if (clock_registerUpdateCallback(scheduler_update) < 0) {
-    //     // Could not register
-    //     kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "Failed to register tick callback\n");
-    // }
-
     LOG(INFO, "Scheduler initialized\n");
 }
 
@@ -107,6 +101,7 @@ int scheduler_removeThread(thread_t *thread) {
     }
 
     list_delete(thread_queue, thread_node);
+    kfree(thread_node); // Node structure is useless
     spinlock_release(&scheduler_lock);
 
     LOG(INFO, "Removed thread %p for process '%s' (priority: %d)\n", thread, thread->parent->name, thread->parent->priority);

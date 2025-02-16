@@ -14,6 +14,7 @@
  */
 
 #include <kernel/drivers/x86/pit.h>
+#include <kernel/drivers/x86/clock.h>
 #include <kernel/drivers/clock.h>
 
 #if defined(__ARCH_I386__)
@@ -46,7 +47,7 @@ void pit_setTimerPhase(long hz) {
  */
 int pit_irqHandler(uintptr_t exception_index, uintptr_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
     pit_ticks++;
-    clock_update(pit_ticks);
+    clock_update(clock_readTicks());
 
     // Check to see if we're from usermode
     if (arch_from_usermode(regs, regs_extended)) {

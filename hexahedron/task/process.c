@@ -63,13 +63,17 @@ void process_init() {
 void __attribute__((noreturn)) process_switchNextThread() {
     // Get next thread in queue
     thread_t *next_thread = scheduler_get();
-    if (!next_thread) kernel_panic(SCHEDULER_ERROR, "scheduler");
+    if (!next_thread) kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "*** No thread was found in the scheduler (or something has been corrupted)\n");
 
     // Update CPU variables
     current_cpu->current_thread = next_thread;
     current_cpu->current_process = next_thread->parent;
 
+    #ifdef __ARCH_I386__
+    dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.esp);
+    #else
     dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.rsp);
+    #endif
 
     // Setup page directory
     mem_switchDirectory(next_thread->dir);
@@ -81,7 +85,12 @@ void __attribute__((noreturn)) process_switchNextThread() {
     next_thread->status |= THREAD_STATUS_RUNNING;
 
     // Go!
+    #ifdef __ARCH_I386__
+    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.eip, next_thread->context.esp, next_thread->context.ebp);
+    #else
     dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.rip, next_thread->context.rsp, next_thread->context.rbp);
+    #endif
+
     arch_load_context(&next_thread->context);
     __builtin_unreachable();
 }
@@ -102,7 +111,7 @@ void process_yield(uint8_t reschedule) {
     if (arch_save_context(&current_cpu->current_thread->context) == 1) {
         // We are back, and were chosen to be executed. Return
         asm volatile ("fxrstor (%0)" :: "r"(current_cpu->current_thread->fp_regs));
-        dprintf(DEBUG, "Back from task switch\n");
+        // dprintf(DEBUG, "Back from task switch\n");
         return;
     }
 

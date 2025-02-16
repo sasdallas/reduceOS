@@ -57,8 +57,9 @@ size_t clock_getTSCSpeed();
 
 /**
  * @brief Gets the tick count (CPU timestamp counter / TSC speed)
+ * 
+ * You should probably use this in timers with clock_update(clock_readTicks())
  */
 uint64_t clock_readTicks();
-
 
 #endif
