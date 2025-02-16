@@ -204,7 +204,7 @@ void kmain() {
     for (int i = 1; i <= 3; i++) {
         snprintf(name, 256, "kthread%d", i);
         process_t *process = process_create(name, PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
-        process->main_thread = thread_create(process, mem_clone(NULL), (uintptr_t)&kthread, THREAD_STATUS_KERNEL | THREAD_STATUS_RUNNING);
+        process->main_thread = thread_create(process, NULL, (uintptr_t)&kthread, THREAD_STATUS_KERNEL | THREAD_STATUS_RUNNING);
         scheduler_insertThread(process->main_thread);
     }
 
