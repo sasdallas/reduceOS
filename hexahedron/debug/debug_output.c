@@ -28,10 +28,6 @@ static log_putchar_method_t debug_putchar_method = NULL;
 /* Spinlock */
 static spinlock_t debug_lock = { 0 };
 
-/* Current owning CPU */
-/* HACK: This is a quick hack to prevent a core deadlock. Only one core should have the CPU */
-// volatile int current_owning_cpu = -1;
-
 
 /**
  * @brief Function to print debug string

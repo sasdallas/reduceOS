@@ -434,10 +434,8 @@ int ahci_portFinishInitialization(ahci_port_t *port) {
         port->port->sctl = (HBA_PORT_SCTL_DET_DISABLE | HBA_PORT_SCTL_IPM_PARTIAL | HBA_PORT_SCTL_IPM_SLUMBER);
 
         // Wait 20ms (spec says 1ms)
-        LOG_PORT(DEBUG, port, "Waiting...\n");
         clock_sleep(1);
-        LOG_PORT(DEBUG, port, "OK now\n");
-
+        
         // Clear DET
         port->port->sctl = (port->port->sctl & ~HBA_PORT_PXSCTL_DET) | HBA_PORT_SCTL_DET_NONE;
     }
