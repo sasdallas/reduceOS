@@ -121,6 +121,7 @@ void kthread() {
             printf("==== CURRENT PROCESSES\n");
             for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
                 if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
+                // printf("\tCPU%d: Thread %p Process %p\n", i, processor_data[i].current_thread, processor_data[i].current_process);
             }
         
             printf("==== CORE IDLE TIMES\n");
@@ -222,9 +223,7 @@ void kmain() {
         process_t *process = process_create(name, PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
         process->main_thread = thread_create(process, NULL, (uintptr_t)&kthread, THREAD_STATUS_KERNEL | THREAD_STATUS_RUNNING);
         scheduler_insertThread(process->main_thread);
-    }
-
-    
+    }    
 
 #include <kernel/loader/elf_loader.h>
 #ifdef __ARCH_I386__

@@ -111,6 +111,9 @@ __attribute__((noreturn)) void smp_finalizeAP() {
     current_cpu->current_dir = mem_getKernelDirectory(); 
     mem_setPaging(true);
 
+    page_t *pg = mem_getPage(NULL, 0x0, MEM_CREATE);
+    pg->bits.present = 0;
+
     // HACK: We must load the stack here after paging has initialized. Trampoline will load a temporary stack.
     asm volatile ("movl %0, %%esp" :: "m"(_ap_stack_base));
 

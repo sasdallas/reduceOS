@@ -16,6 +16,7 @@
 char *strtok_r(char *str, const char *seps, char **lasts) {
     // First check if we're using lasts instead of str
     if (!str) str = *lasts;
+    if (!str) return NULL;
 
     // Now find the first occurence of seps with strspn
     str += strspn(str, (char*)seps);

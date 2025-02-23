@@ -26,7 +26,7 @@
                 "HEXAHEDRON",
                 "__KERNEL__",
                 "__LIBK",
-                "__ARCH_I386__"
+                "__ARCH_X86_64__"
             ],
             "compilerPath": "/usr/bin/x86_64-elf-gcc",
             "cStandard": "c17",

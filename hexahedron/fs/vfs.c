@@ -347,7 +347,6 @@ tree_node_t *vfs_mount(fs_node_t *node, char *path) {
     char *saveptr;
     char *strtok_path = strdup(path); // strtok_r messes with the string
 
-
     pch = strtok_r(strtok_path, "/", &saveptr);
     while (pch) {
         int found = 0; // Did we find the node?
@@ -372,6 +371,7 @@ tree_node_t *vfs_mount(fs_node_t *node, char *path) {
             parent_node = tree_insert_child(vfs_tree, parent_node, newnode);
         }
 
+        LOG(DEBUG, "strtok_r: %s / %p\n", saveptr, &saveptr);
         pch = strtok_r(NULL, "/", &saveptr);
     } 
 

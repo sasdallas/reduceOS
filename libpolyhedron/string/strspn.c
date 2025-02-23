@@ -16,6 +16,8 @@
     ((A)[(size_t)(B) / (8 * sizeof *(A))] OP (size_t)1<<((size_t)(B)%(8*sizeof *(A))))
 
 size_t strspn(const char *str, const char *c) {
+    if (!str || !c) return 0;
+
     // First check if c is even available
     if (!c[0]) return 0;
 

@@ -42,7 +42,7 @@ typedef struct thread {
     // GENERAL VARIABLES
     struct process *parent;     // Parent process
     unsigned int status;        // Status of this thread
-
+    
     // SCHEDULER TIMES
     time_t preempt_ticks;       // Ticks until the thread is preempted
     time_t total_ticks;         // Total amount of ticks the thread has been running for

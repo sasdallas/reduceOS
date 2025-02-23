@@ -28,6 +28,10 @@ static log_putchar_method_t debug_putchar_method = NULL;
 /* Spinlock */
 static spinlock_t debug_lock = { 0 };
 
+/* Current owning CPU */
+/* HACK: This is a quick hack to prevent a core deadlock. Only one core should have the CPU */
+// volatile int current_owning_cpu = -1;
+
 
 /**
  * @brief Function to print debug string
@@ -58,9 +62,8 @@ static int debug_write(size_t length, char *buffer) {
 int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
     if (!debug_putchar_method) return 0;
 
-    // TEMP: Release the spinlock for now (and possibly remove it) - certain functions like exception handler might not be called
-    // spinlock_release(&debug_lock);
-
+    // Wait for our lock
+    // !!!: This should not be using a lock. System will deadlock.
     spinlock_acquire(&debug_lock);
 
     if (status == NOHEADER) goto _write_format;
@@ -113,7 +116,6 @@ _write_format: ;
     int returnValue = xvasprintf(debug_print, NULL, format, ap);
 
     spinlock_release(&debug_lock);
-
     return returnValue;
 }
 

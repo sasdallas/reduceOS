@@ -68,6 +68,17 @@
     "alloc.h": "c",
     "process.h": "c",
     "registers.h": "c",
-    "hal.h": "c"
+    "hal.h": "c",
+    "debug.h": "c",
+    "term.h": "c",
+    "font.h": "c",
+    "processor_data.h": "c",
+    "json-builder.h": "c",
+    "arch.h": "c",
+    "context.h": "c",
+    "thread.h": "c",
+    "errno.h": "c",
+    "smp.h": "c",
+    "serial.h": "c"
   }
 }

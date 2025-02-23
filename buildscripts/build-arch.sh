@@ -1,4 +1,4 @@
 #!/bin/sh
 
 # EDIT ME TO CHANGE BUILD ARCHITECTURE
-echo x86_64-elf
+echo i686-elf

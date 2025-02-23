@@ -235,7 +235,7 @@ void list_delete_index(list_t *list, size_t index) {
  * @param list The list to pop off
  */
 node_t *list_pop(list_t *list) {
-    if (!list->tail) return NULL;
+    if (!list || !list->tail) return NULL;
     node_t *out = list->tail;
     list_delete(list, out);
     return out;
@@ -246,7 +246,7 @@ node_t *list_pop(list_t *list) {
  * @param list The list to pop left on
  */
 node_t *list_popleft(list_t *list) {
-    if (!list->head) return NULL;
+    if (!list || !list->head) return NULL;
     node_t *out = list->head;
     list_delete(list, out);
     return out;

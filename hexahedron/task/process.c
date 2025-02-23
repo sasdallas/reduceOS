@@ -61,8 +61,6 @@ void process_init() {
  * enter the scheduling loop, and when a new process spawns the core can get it.
  */
 void __attribute__((noreturn)) process_switchNextThread() {
-    // Switch to kernel directory
-    mem_switchDirectory(NULL);
     
     // Get next thread in queue
     thread_t *next_thread = scheduler_get();
@@ -91,11 +89,11 @@ void __attribute__((noreturn)) process_switchNextThread() {
     next_thread->status |= THREAD_STATUS_RUNNING;
 
     // Go!
-    #ifdef __ARCH_I386__
-    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.eip, next_thread->context.esp, next_thread->context.ebp);
-    #else
-    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.rip, next_thread->context.rsp, next_thread->context.rbp);
-    #endif
+    // #ifdef __ARCH_I386__
+    // dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.eip, next_thread->context.esp, next_thread->context.ebp);
+    // #else
+    // dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.rip, next_thread->context.rsp, next_thread->context.rbp);
+    // #endif
 
     arch_load_context(&next_thread->context);
     __builtin_unreachable();
@@ -126,7 +124,6 @@ void process_yield(uint8_t reschedule) {
         scheduler_insertThread(current_cpu->current_thread);
     }
 
-    current_cpu->current_thread = NULL;
 
     // Onward!
     process_switchNextThread();
