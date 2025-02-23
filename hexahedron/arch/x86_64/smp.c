@@ -241,14 +241,8 @@ void smp_disableCores() {
         if (i != current_cpu->cpu_id) {
             lapic_sendNMI(smp_data->lapic_ids[i], 124);
 
-            uint8_t error;
-            do { asm volatile ("pause"); } while (!ap_shutdown_finished && !(error = lapic_readError()));
+            do { asm volatile ("pause"); } while (!ap_shutdown_finished);
 
-            if (error) {
-                LOG(WARN, "APIC error detected while shutting down CPU%i: ESR read as 0x%x\n", i, error);
-                LOG(WARN, "Failed to shutdown SMP cores. Continuing anyway.\n");
-                break;
-            }
 
             ap_shutdown_finished = 0;
         }

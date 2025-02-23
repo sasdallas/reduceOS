@@ -101,7 +101,7 @@ void arch_say_hello(int is_debug) {
  * @param registers Optional registers
  */
 void arch_panic_traceback(int depth, registers_t *regs) {
-    dprintf(NOHEADER, COLOR_CODE_RED_BOLD "\nStack trace:\n");
+    dprintf(NOHEADER, COLOR_CODE_RED_BOLD "\nSTACK TRACE:\n");
 
     stack_frame_t *stk = (stack_frame_t*)(regs ? (void*)regs->ebp : __builtin_frame_address(0));
     uintptr_t ip = (regs ? regs->eip : (uintptr_t)&arch_panic_traceback);
