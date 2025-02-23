@@ -53,8 +53,6 @@ int pit_irqHandler(uintptr_t exception_index, uintptr_t int_number, registers_t 
     if (arch_from_usermode(regs, regs_extended)) {
         // Is it time to switch processes?
         if (scheduler_update(clock_getTickCount()) == 1) {
-            dprintf(DEBUG, "Process is out of timeslice - yielding\n");
-
             // Yes, it is. Manually acknowledge this IRQ and switch to next process
             hal_endInterrupt(PIT_IRQ);
             process_yield(0);   // IMPORTANT: We do not yield and reschedule here, as scheduler_reschedule already took care of that.

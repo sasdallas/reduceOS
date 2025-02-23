@@ -114,6 +114,20 @@ spinlock_t kthread_lock = { 0 };
 
 void kthread() {
     for (;;) {
+        if (current_cpu->current_process->pid == 1) {
+            terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+
+            terminal_setXY(100, 100);
+            printf("==== CURRENT PROCESSES\n");
+            for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+                if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
+            }
+        
+            printf("==== CORE IDLE TIMES\n");
+            for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+                printf("\tCPU%d: %ld cycles\n", i, processor_data[i].idle_process->main_thread->total_ticks);
+            }
+        }
         arch_pause();
         process_yield(1);
     }
@@ -186,6 +200,12 @@ void kmain() {
     }
 
 
+
+    // Unmap 0x0 (fault detector, temporary)
+    page_t *pg = mem_getPage(NULL, 0, MEM_CREATE);
+    mem_allocatePage(pg, MEM_PAGE_NOT_PRESENT | MEM_PAGE_NOALLOC | MEM_PAGE_READONLY);
+
+
     // Initialize process system
     process_init();
 
@@ -194,10 +214,6 @@ void kmain() {
 
     // Spawn init task for this CPU
     current_cpu->current_process = process_spawnInit();
-
-    // Unmap 0x0 (fault detector, temporary)
-    page_t *pg = mem_getPage(NULL, 0, MEM_CREATE);
-    mem_allocatePage(pg, MEM_PAGE_NOT_PRESENT | MEM_PAGE_NOALLOC | MEM_PAGE_READONLY);
 
     // Create some kernel threads
     char name[256] = { 0 };

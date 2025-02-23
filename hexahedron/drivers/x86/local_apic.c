@@ -22,6 +22,8 @@
 #include <kernel/task/process.h>
 #include <kernel/drivers/clock.h>
 
+#include <kernel/drivers/x86/pit.h>
+
 #if defined(__ARCH_I386__)
 #include <kernel/arch/i386/cpu.h>
 #include <kernel/arch/i386/registers.h>
@@ -172,11 +174,11 @@ int lapic_timer_irq(uintptr_t exception_index, uintptr_t irq_number, registers_t
     // Update clock
     clock_update(clock_readTicks());
     
-    // Check to see if we're from usermode
+    // Check to see if we're from usermode - only usermode processes can be rescheduled
     if (arch_from_usermode(registers, extended)) {
         // Is it time to switch processes?
         if (scheduler_update(clock_getTickCount()) == 1) {
-            dprintf(DEBUG, "Process is out of timeslice - yielding\n");
+            LOG(DEBUG, "Process is out of timeslice - yielding (LAPIC)\n");
 
             // Yes, it is. Switch to next process
             process_yield(0);   // IMPORTANT: We do not yield and reschedule here, as scheduler_reschedule already took care of that.
@@ -231,7 +233,9 @@ int lapic_initialize(uintptr_t lapic_address) {
     // Register the interrupt handlers
     hal_registerInterruptHandler(LAPIC_SPUR_INTNO - 32, lapic_irq); // NOTE: This might fail occasionally (BSP will reinitialize APICs for each core)
     hal_registerInterruptHandler(LAPIC_TIMER_IRQ - 32, lapic_timer_irq);
-    hal_unregisterInterruptHandler(0);
+
+    // !!!: Unregister PIT IRQ
+    hal_unregisterInterruptHandler(PIT_IRQ);
 
     // Enable spurious vector register
     lapic_write(LAPIC_REGISTER_SPURINT, LAPIC_SPUR_INTNO);

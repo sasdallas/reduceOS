@@ -79,7 +79,7 @@ int scheduler_insertThread(thread_t *thread) {
     list_append(thread_queue, (void*)thread);
     spinlock_release(&scheduler_lock);
 
-    LOG(INFO, "Inserted thread %p for process '%s' (priority: %d)\n", thread, thread->parent->name, thread->parent->priority);
+    // LOG(INFO, "Inserted thread %p for process '%s' (priority: %d)\n", thread, thread->parent->name, thread->parent->priority);
     return 0;
 }
 
@@ -125,7 +125,7 @@ void scheduler_reschedule() {
 
         // Get the thread's timeslice
         current_cpu->current_thread->preempt_ticks = scheduler_timeslices[current_cpu->current_thread->parent->priority];
-    
+
         LOG(DEBUG, "New thread list:\n");
         foreach(node, thread_queue) {
             thread_t *thr = (thread_t*)node->value;
@@ -140,7 +140,10 @@ void scheduler_reschedule() {
  * @returns A pointer to the next thread
  */
 thread_t *scheduler_get() {
+    // Get lock
     spinlock_acquire(&scheduler_lock);
+
+    // Is there a queue and does it have a head?
     if (!thread_queue || !thread_queue->head) {
         // Release lock
         spinlock_release(&scheduler_lock);
@@ -150,7 +153,7 @@ thread_t *scheduler_get() {
         // We just need to return the kernel idle task's thread.
         if (current_cpu->idle_process == NULL || current_cpu->idle_process->main_thread == NULL) {
             // Huh
-            kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "Tried to switch tasks with no queue and no idle task\n");
+            kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "*** Tried to switch tasks with no queue and no idle task\n");
         }
 
         return current_cpu->idle_process->main_thread;
@@ -159,13 +162,23 @@ thread_t *scheduler_get() {
     // Pop the next thread off the list
     node_t *thread_node = list_popleft(thread_queue);
     
-    if (!thread_node) {
-        kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "No thread node found when trying to get next thread\n");
+    // Did that work?
+    if (!thread_node || !thread_node->value) {
+        LOG(ERR, "Corrupt node %p found in scheduler during next thread grabbing\n", thread_node);
+        kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "*** No thread node found when trying to get next thread\n");
     }
 
+    // Get thread and free node
     thread_t *thread = (thread_t*)(thread_node->value);
     kfree(thread_node);
+
+    // Unlock
     spinlock_release(&scheduler_lock);
+
+    // ??? what is going on
+    if (!thread) {
+        kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "*** Thread corruption detected\n");
+    }
 
     // Return it
     return thread;

@@ -61,19 +61,25 @@ void process_init() {
  * enter the scheduling loop, and when a new process spawns the core can get it.
  */
 void __attribute__((noreturn)) process_switchNextThread() {
+    // Switch to kernel directory
+    mem_switchDirectory(NULL);
+    
     // Get next thread in queue
     thread_t *next_thread = scheduler_get();
-    if (!next_thread) kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "*** No thread was found in the scheduler (or something has been corrupted)\n");
+    if (!next_thread) {
+        // next_thread = current_cpu->idle_process->main_thread;
+        kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "*** No thread was found in the scheduler (or something has been corrupted). Got thread %p.\n", next_thread);
+    }
 
     // Update CPU variables
     current_cpu->current_thread = next_thread;
     current_cpu->current_process = next_thread->parent;
 
-    #ifdef __ARCH_I386__
-    dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.esp);
-    #else
-    dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.rsp);
-    #endif
+    // #ifdef __ARCH_I386__
+    // dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.esp);
+    // #else
+    // dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.rsp);
+    // #endif
 
     // Setup page directory
     mem_switchDirectory(next_thread->dir);
@@ -111,7 +117,6 @@ void process_yield(uint8_t reschedule) {
     if (arch_save_context(&current_cpu->current_thread->context) == 1) {
         // We are back, and were chosen to be executed. Return
         asm volatile ("fxrstor (%0)" :: "r"(current_cpu->current_thread->fp_regs));
-        // dprintf(DEBUG, "Back from task switch\n");
         return;
     }
 
@@ -120,6 +125,8 @@ void process_yield(uint8_t reschedule) {
         // Yes, reschedule thread to back of queue
         scheduler_insertThread(current_cpu->current_thread);
     }
+
+    current_cpu->current_thread = NULL;
 
     // Onward!
     process_switchNextThread();
@@ -182,7 +189,7 @@ static process_t *process_createStructure(char *name, unsigned int flags, unsign
 
     // Create process' kernel stack
     process->kstack = mem_allocate(0, PROCESS_KSTACK_SIZE, MEM_ALLOC_HEAP, MEM_PAGE_KERNEL) + PROCESS_KSTACK_SIZE;
-    dprintf(DEBUG, "Process '%s' has had its kstack %p allocated in page directory %p\n", name, process->kstack, mem_getCurrentDirectory());
+    dprintf(DEBUG, "Process '%s' has had its kstack %p allocated in page directory %p\n", name, process->kstack, current_cpu->current_dir);
     
     return process;
 }
@@ -193,6 +200,9 @@ static process_t *process_createStructure(char *name, unsigned int flags, unsign
 static void kernel_idle() {
     // Pause execution
     arch_pause();
+
+    // For the kidle process, this can serve as total "cycles"
+    current_cpu->current_thread->total_ticks++; 
 
     // Switch to next thread
     process_switchNextThread();
@@ -217,7 +227,7 @@ process_t *process_spawnIdleTask() {
     idle->pid = -1; // Not actually a process
 
     // Create a new thread
-    idle->main_thread = thread_create(idle, mem_clone(NULL), (uintptr_t)&kernel_idle, THREAD_STATUS_KERNEL | THREAD_STATUS_RUNNING);
+    idle->main_thread = thread_create(idle, NULL, (uintptr_t)&kernel_idle, THREAD_STATUS_KERNEL | THREAD_STATUS_RUNNING);
 
     return idle;
 }
