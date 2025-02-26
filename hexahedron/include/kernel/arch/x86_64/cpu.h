@@ -61,6 +61,8 @@
 #define X86_64_MSR_GSBASE               0xC0000101
 #define X86_64_MSR_KERNELGSBASE         0xC0000102
 
+#define IA32_PAT_MSR                    0x277
+
 /**** TYPES ****/
 enum {
     CPUID_FEAT_ECX_SSE3         = 1 << 0,

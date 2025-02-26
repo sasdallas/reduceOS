@@ -228,6 +228,8 @@ _oom:
  * @param chunks The amount of chunks to free
  */
 void pool_freeChunks(pool_t *pool, uintptr_t chunk_start, uintptr_t chunks) {
+    if (!chunks || !chunk_start) return;
+    
     spinlock_acquire(pool->lock);
     if (chunk_start < pool->starting_addr || chunk_start > pool->allocated + pool->starting_addr) {
         goto _bad_chunk;

@@ -28,6 +28,7 @@
 #error "Unsupported architecture for memory management"
 #endif
 
+#include <kernel/mem/regions.h>
 
 
 /**** DEFINITIONS ****/
@@ -47,6 +48,7 @@
 #define MEM_PAGE_NOALLOC            0x40    // Do not allocate the page and instead use what was given
 #define MEM_PAGE_FREE               0x80    // Free the page. Sets it to zero if specified in mem_allocatePage
 #define MEM_PAGE_NO_EXECUTE         0x100   // (x86_64 only) Set the page as non-executable.
+#define MEM_PAGE_WRITE_COMBINE      0x200   // Sets up the page as write-combining if the architecture supports it
 
 // Flags to mem_allocate
 #define MEM_ALLOC_CONTIGUOUS        0x01    // Allocate contiguous blocks of memory, rather than fragmenting PMM blocks
@@ -182,6 +184,12 @@ void mem_freePage(page_t *page);
  * @warning MMIO regions cannot be destroyed.
  */
 uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size);
+
+/**
+ * @brief Unmap an MMIO region
+ * @param virt The virtual address returned by @c mem_mapMMIO
+ */
+void mem_unmapMMIO(uintptr_t virt);
 
 /**
  * @brief Allocate a DMA region from the kernel

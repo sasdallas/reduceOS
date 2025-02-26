@@ -25,6 +25,7 @@
 #include <kernel/mem/mem.h>
 #include <kernel/arch/i386/mem.h>
 #include <kernel/mem/pmm.h>
+#include <kernel/mem/regions.h>
 
 // General kernel includes
 #include <kernel/debug.h>
@@ -574,181 +575,6 @@ void mem_freePage(page_t *page) {
 }
 
 /**
- * @brief Create an MMIO region
- * @param phys The physical address of the MMIO space
- * @param size Size of the requested space (must be aligned)
- * @returns Address to new mapped MMIO region
- * 
- * @warning MMIO regions cannot be destroyed.
- */
-uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
-    uintptr_t offset = 0; // Offset to be added at the end
-    if (phys % PAGE_SIZE) {
-        offset = phys & 0xFFF;
-        phys &= ~(0xFFF);
-        size += offset; // Don't forget to add offset to size!
-    }
-
-    if (mem_mmioRegion + size > MEM_MMIO_REGION + MEM_MMIO_REGION_SIZE) {
-        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space for MMIO allocation\n");
-        __builtin_unreachable();
-    }
-
-    spinlock_acquire(&mmio_lock);
-
-    uintptr_t address = mem_mmioRegion;
-    for (uintptr_t i = 0; i < size; i += PAGE_SIZE) {
-        page_t *page = mem_getPage(NULL, address + i, MEM_CREATE);
-        if (page) {
-            MEM_SET_FRAME(page, (phys + i));
-            mem_allocatePage(page, MEM_PAGE_KERNEL | MEM_PAGE_WRITETHROUGH | MEM_PAGE_NOT_CACHEABLE | MEM_PAGE_NOALLOC);
-        }
-    }
-    
-    mem_mmioRegion += size;
-
-    spinlock_release(&mmio_lock);
-    return address + offset;
-}
-
-/**
- * @brief Allocate a DMA region from the kernel
- * 
- * DMA regions are contiguous blocks that currently cannot be destroyed
- */
-uintptr_t mem_allocateDMA(uintptr_t size) {
-    // Align size
-    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
-
-    // Check if we're going to overexpand
-    if (mem_dmaRegion + size > MEM_DMA_REGION + MEM_DMA_REGION_SIZE) {
-        // We have a problem
-        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space trying to map DMA region of size 0x%x\n", size);
-        __builtin_unreachable();
-    }
-
-    spinlock_acquire(&dma_lock);
-
-    // Allocate contiguous blocks
-    uintptr_t mapped_blocks = pmm_allocateBlocks(size / PMM_BLOCK_SIZE);
-    
-    // Map into memory
-    for (uintptr_t i = 0x0; i <  size; i += PAGE_SIZE) {
-        page_t *pg = mem_getPage(NULL, (i + mem_dmaRegion), MEM_CREATE);
-        if (pg) {
-            mem_allocatePage(pg, MEM_PAGE_KERNEL | MEM_PAGE_NOT_CACHEABLE | MEM_PAGE_NOALLOC);
-            MEM_SET_FRAME(pg, (i + mapped_blocks));
-        }
-    }
-
-    // Update size
-    mem_dmaRegion += size;
-
-    spinlock_release(&dma_lock);
-
-    return mem_dmaRegion - size;
-}
-
-/**
- * @brief Unallocate a DMA region from the kernel
- * 
- * @param base The address returned by @c mem_allocateDMA
- * @param size The size of the base
- */
-void mem_freeDMA(uintptr_t base, uintptr_t size) {
-    if (!base || !size) return;
-
-    // Align size
-    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
-
-    // If this was the last DMA region mapped, we can unmap it
-    if (base == mem_dmaRegion - size) {
-        // Get the lock
-        spinlock_acquire(&dma_lock);
-
-        // Free the pages
-        // TODO: Do we not need to actually free pages? Can't we just hack in support in mem_mapDriver?
-        mem_dmaRegion -= size;
-        for (uintptr_t i = mem_dmaRegion; i < mem_dmaRegion + size; i += PAGE_SIZE) {
-            page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
-            if (pg) mem_freePage(pg);
-        }
-
-        // Release the lock
-        spinlock_release(&dma_lock);
-
-        return;
-    }
-
-    // Else we're out of luck
-    dprintf(WARN, "DMA unmapping is not implemented (tried to unmap region %p - %p)\n", base, base+size);
-}
-
-
-/**
- * @brief Map a driver into memory
- * @param size The size of the driver in memory
- * @returns A pointer to the mapped space
- */
-uintptr_t mem_mapDriver(size_t size) {
-    if (mem_driverRegion + size > MEM_DRIVER_REGION + MEM_DRIVER_REGION_SIZE) {
-        // We have a problem
-        kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Out of space trying to allocate driver of size 0x%x\n", size);
-        __builtin_unreachable();
-    }
-
-    spinlock_acquire(&driver_lock);
-
-    // Align size
-    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
-
-    // Map into memory
-    for (uintptr_t i = mem_driverRegion; i < mem_driverRegion + size; i += PAGE_SIZE) {
-        page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
-        mem_allocatePage(pg, MEM_PAGE_KERNEL);
-    }
-
-    // Update size
-    mem_driverRegion += size;
-
-    spinlock_release(&driver_lock);
-
-    return mem_driverRegion - size;
-}
-
-/**
- * @brief Unmap a driver from memory
- * @param base The base address of the driver in memory
- * @param size The size of the driver in memory
- */
-void mem_unmapDriver(uintptr_t base, size_t size) {
-    // Align size
-    if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
-
-    // If this was the last driver mapped, we can unmap it
-    if (base == mem_driverRegion - size) {
-        // Get the lock
-        spinlock_acquire(&driver_lock);
-
-        // Free the pages
-        // TODO: Do we not need to actually free pages? Can't we just hack in support in mem_mapDriver?
-        mem_driverRegion -= size;
-        for (uintptr_t i = mem_driverRegion; i < mem_driverRegion + size; i += PAGE_SIZE) {
-            page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
-            mem_freePage(pg);
-        }
-
-        // Release the lock
-        spinlock_release(&driver_lock);
-
-        return;
-    }
-
-    // Else we're out of luck
-    dprintf(WARN, "Driver unmapping is not implemented (tried to unmap driver %p - %p)\n", base, base+size);
-}
-
-/**
  * @brief Initialize the memory management subsystem
  * 
  * This function will setup the memory map and prepare tables.
@@ -886,6 +712,10 @@ void mem_init(uintptr_t high_address) {
     size_t refcount_bytes = frame_bytes >> MEM_PAGE_SHIFT;  // One byte per page
     mem_pageReferences = (uint8_t*)mem_sbrk((refcount_bytes & 0xFFF) ? MEM_ALIGN_PAGE(refcount_bytes) : refcount_bytes);
     memset(mem_pageReferences, 0, refcount_bytes);
+
+    // Initialize regions
+    mem_regionsInitialize();
+
 
     dprintf(INFO, "Memory system online and enabled.\n");
 }

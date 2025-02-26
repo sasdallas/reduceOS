@@ -31,6 +31,7 @@ typedef union page {
         uint64_t accessed:1;        // Accessed
         uint64_t available1:1;      // Free bits!
         uint64_t size:1;            // Page size - 4MiB or 4KiB
+                                    // IMPORTANT: This is also the PAT bit for PTEs
         uint64_t global:1;          // Global
         uint64_t available2:3;      // Free bits!
         uint64_t address:28;        // The page data

@@ -58,7 +58,7 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
             phys < parameters->framebuffer->framebuffer_addr + (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
             phys += PAGE_SIZE, virt += PAGE_SIZE) 
     {
-        mem_mapAddress(NULL, phys, virt, MEM_PAGE_KERNEL); // !!!: usermode access?
+        mem_mapAddress(NULL, phys, virt, MEM_PAGE_KERNEL | MEM_PAGE_WRITE_COMBINE); // !!!: usermode access?
     }
 
     driver->videoBuffer = (uint8_t*)MEM_FRAMEBUFFER_REGION;
