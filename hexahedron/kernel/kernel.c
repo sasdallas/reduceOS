@@ -109,29 +109,48 @@ void kernel_loadDrivers() {
     fs_close(conf_file);
 }
 
-#include <kernel/misc/spinlock.h>
-spinlock_t kthread_lock = { 0 };
 
 void kthread() {
     for (;;) {
-        if (current_cpu->current_process->pid == 1) {
-            terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+        // if (current_cpu->current_process->pid == 1) {
+        //     terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
 
-            terminal_setXY(100, 100);
-            printf("==== CURRENT PROCESSES\n");
-            for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
-                if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
-                // printf("\tCPU%d: Thread %p Process %p\n", i, processor_data[i].current_thread, processor_data[i].current_process);
-            }
+        //     terminal_setXY(100, 100);
+        //     printf("==== CURRENT PROCESSES\n");
+        //     for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+        //         if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
+        //         // printf("\tCPU%d: Thread %p Process %p\n", i, processor_data[i].current_thread, processor_data[i].current_process);
+        //     }
         
-            printf("==== CORE IDLE TIMES\n");
-            for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
-                printf("\tCPU%d: %ld cycles\n", i, processor_data[i].idle_process->main_thread->total_ticks);
-            }
-        }
+        //     printf("==== CORE IDLE TIMES\n");
+        //     for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+        //         printf("\tCPU%d: %ld cycles\n", i, processor_data[i].idle_process->main_thread->total_ticks);
+        //     }
+        // }
         arch_pause();
         process_yield(1);
     }
+}
+
+void kthread_update() {
+    for (;;) {
+        terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+
+        terminal_setXY(100, 100);
+        printf("==== CURRENT PROCESSES\n");
+        for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+            if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
+            else printf("\tCPU%d: No thread/no process\n", i);
+        }
+    
+        printf("==== CORE IDLE TIMES\n");
+        for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+            if (processor_data[i].idle_process && processor_data[i].idle_process->main_thread) printf("\tCPU%d: %ld cycles\n", i, processor_data[i].idle_process->main_thread->total_ticks);
+        }
+    }
+
+    arch_pause();
+    process_yield(1);
 }
 
 /**
@@ -210,29 +229,41 @@ void kmain() {
     // Initialize process system
     process_init();
 
-    // Spawn idle task for this CPU
-    current_cpu->idle_process = process_spawnIdleTask();
-
-    // Spawn init task for this CPU
-    current_cpu->current_process = process_spawnInit();
-
-    // Create some kernel threads
     char name[256] = { 0 };
-    for (int i = 1; i <= 3; i++) {
+
+    for (int i = 1; i <= 10; i++) {
         snprintf(name, 256, "kthread%d", i);
         process_t *process = process_create(name, PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
-        process->main_thread = thread_create(process, NULL, (uintptr_t)&kthread, THREAD_STATUS_KERNEL | THREAD_STATUS_RUNNING);
+        process->main_thread = thread_create(process, NULL, (uintptr_t)&kthread, THREAD_FLAG_KERNEL);
         scheduler_insertThread(process->main_thread);
     }    
 
-#include <kernel/loader/elf_loader.h>
-#ifdef __ARCH_I386__
-    fs_node_t *app = kopen("/device/initrd/test_app", O_RDWR);
-#else
-    fs_node_t *app = kopen("/device/initrd/test_app64", O_RDWR);
-#endif
     
-    if (app) {
-        process_execute(app, 0, NULL);
+    // Spawn update process
+    process_t *updproc = process_create("kthread_updater", PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
+    updproc->main_thread = thread_create(updproc, NULL, (uintptr_t)&kthread_update, THREAD_FLAG_KERNEL);
+
+    // Spawn idle task for this CPU
+    current_cpu->idle_process = process_spawnIdleTask();
+
+
+
+    // Spawn init task for this CPU
+    current_cpu->current_process = process_spawnInit();
+    scheduler_insertThread(updproc->main_thread);
+
+    #ifdef __ARCH_I386__
+    fs_node_t *file = kopen("/device/initrd/test_app", O_RDONLY);
+    #else
+    fs_node_t *file = kopen("/device/initrd/test_app64", O_RDONLY);
+    #endif
+
+    if (file) {
+        process_execute(file, 1, NULL);
+    } else {
+        LOG(WARN, "test_app not found, destroying init and switching\n");
+        current_cpu->current_process = NULL;
+        process_switchNextThread();
     }
+
 }

@@ -27,6 +27,11 @@
 #define THREAD_STATUS_RUNNING       0x04
 #define THREAD_STATUS_SLEEPING      0x08
 
+// Thread flags
+#define THREAD_FLAG_DEFAULT         0x00
+#define THREAD_FLAG_KERNEL          0x01
+#define THREAD_FLAG_NO_PREEMPT      0x02    // This only works on threads with THREAD_FLAG_KERNEL
+
 // Stack size of thread
 #define THREAD_STACK_SIZE           4096
 
@@ -42,7 +47,8 @@ typedef struct thread {
     // GENERAL VARIABLES
     struct process *parent;     // Parent process
     unsigned int status;        // Status of this thread
-    
+    unsigned int flags;         // Flags of the thread
+
     // SCHEDULER TIMES
     time_t preempt_ticks;       // Ticks until the thread is preempted
     time_t total_ticks;         // Total amount of ticks the thread has been running for
@@ -63,9 +69,9 @@ typedef struct thread {
  * @param parent The parent process of the thread
  * @param dir Directory to use (for new threads being used as main, mem_clone() this first, else refcount the main thread's directory)
  * @param entrypoint The entrypoint of the thread (you can also set this later)
- * @param status Status of the thread
+ * @param flags Flags of the thread
  * @returns New thread pointer, just save context & add to scheduler queue
  */
-thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoint, int status);
+thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoint, int flags);
 
 #endif

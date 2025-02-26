@@ -224,7 +224,7 @@ process_t *process_spawnIdleTask() {
     idle->pid = -1; // Not actually a process
 
     // Create a new thread
-    idle->main_thread = thread_create(idle, NULL, (uintptr_t)&kernel_idle, THREAD_STATUS_KERNEL | THREAD_STATUS_RUNNING);
+    idle->main_thread = thread_create(idle, NULL, (uintptr_t)&kernel_idle, THREAD_FLAG_KERNEL);
 
     return idle;
 }
@@ -281,7 +281,7 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
 
     // Create a new main thread with a blank entrypoint
     mem_switchDirectory(NULL);
-    current_cpu->current_process->main_thread = thread_create(current_cpu->current_process, mem_clone(NULL), 0x0, THREAD_STATUS_RUNNING);
+    current_cpu->current_process->main_thread = thread_create(current_cpu->current_process, mem_clone(NULL), 0x0, THREAD_FLAG_DEFAULT);
 
     // Switch to directory
     mem_switchDirectory(current_cpu->current_process->main_thread->dir);
