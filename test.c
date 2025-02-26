@@ -5,6 +5,7 @@ void _start() {
 	buf[4] = 'a';
 
 	// Syscall
+	asm volatile ("int $128" :: "a"(12345678));
 
 	for (;;);
 }

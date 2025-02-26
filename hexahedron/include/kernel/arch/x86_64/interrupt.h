@@ -179,7 +179,9 @@ extern void halHypervisorInjectionException(void);
 extern void halVMMCommunicationException(void);
 extern void halSecurityException(void);
 extern void halReserved2Exception(void);
+
 extern void halLocalAPICTimerInterrupt(void);
+extern void halSystemCallInterrupt(void);
 
 extern void halIRQ0(void); // Interrupt number 32
 extern void halIRQ1(void); // Interrupt number 33

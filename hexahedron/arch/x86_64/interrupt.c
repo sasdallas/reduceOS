@@ -15,6 +15,7 @@
 #include <kernel/arch/x86_64/hal.h>
 #include <kernel/arch/x86_64/smp.h>
 #include <kernel/arch/x86_64/arch.h>
+#include <kernel/task/syscall.h>
 #include <kernel/processor_data.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
@@ -304,6 +305,21 @@ void hal_interruptHandler(registers_t *regs, extended_registers_t *regs_extended
     uintptr_t exception_index = regs->int_no;
     uintptr_t int_number = regs->int_no - 32;
 
+    if (exception_index == ARCH_SYSCALL_NUMBER) {
+        // Handle system call
+        syscall_t syscall;
+        syscall.syscall_number = regs->rax;
+        syscall.parameters[0] = regs->rdi;
+        syscall.parameters[1] = regs->rsi;
+        syscall.parameters[2] = regs->rdx;
+        syscall.parameters[3] = regs->r10;
+        syscall.parameters[4] = regs->r8;
+        syscall.parameters[5] = regs->r9;
+
+        regs->rax = syscall_handle(&syscall);
+        return;
+    }
+
     // Call any handler registered
     if (hal_handler_table[int_number] != NULL) {
         int return_value = 1;
@@ -501,6 +517,7 @@ void hal_initializeInterrupts() {
     hal_registerInterruptVector(47, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ15);
 
     hal_registerInterruptVector(123, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halLocalAPICTimerInterrupt);
+    hal_registerInterruptVector(128, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32 | X86_64_IDT_DESC_RING3, 0x08, (uint64_t)&halSystemCallInterrupt);
 
     // Install IDT in BSP
     hal_installIDT();

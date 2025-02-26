@@ -219,3 +219,10 @@ halLocalAPICTimerInterrupt:
     pushq $0x00
     pushq $123
     jmp halCommonIRQHandler
+
+/* ISR 128 */
+.global halSystemCallInterrupt
+halSystemCallInterrupt:
+    pushq $0x00
+    pushq $128
+    jmp halCommonIRQHandler
