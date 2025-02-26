@@ -33,6 +33,9 @@ tree_t *process_tree = NULL;
 /* PID bitmap */
 uint32_t *pid_bitmap = NULL;
 
+/* Task switches */
+volatile int task_switches = 0;
+
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "TASK:PROCESS", __VA_ARGS__)
 
@@ -94,6 +97,8 @@ void __attribute__((noreturn)) process_switchNextThread() {
     #else
     dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.rip, next_thread->context.rsp, next_thread->context.rbp);
     #endif
+
+    task_switches += 1;
 
     arch_load_context(&next_thread->context);
     __builtin_unreachable();

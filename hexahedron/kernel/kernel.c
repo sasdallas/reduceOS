@@ -112,45 +112,27 @@ void kernel_loadDrivers() {
 
 void kthread() {
     for (;;) {
-        // if (current_cpu->current_process->pid == 1) {
-        //     terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+        if (current_cpu->current_process->pid == 1) {
+            terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
 
-        //     terminal_setXY(100, 100);
-        //     printf("==== CURRENT PROCESSES\n");
-        //     for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
-        //         if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
-        //         // printf("\tCPU%d: Thread %p Process %p\n", i, processor_data[i].current_thread, processor_data[i].current_process);
-        //     }
+            terminal_setXY(100, 100);
+            printf("==== CURRENT PROCESSES\n");
+            for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+                if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
+                else printf("\tCPU%d: No thread/no process\n", i);
+            }
+
+            extern volatile int task_switches;
+            printf("==== TASK SWITCHES: %d\n", task_switches);
         
-        //     printf("==== CORE IDLE TIMES\n");
-        //     for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
-        //         printf("\tCPU%d: %ld cycles\n", i, processor_data[i].idle_process->main_thread->total_ticks);
-        //     }
-        // }
+            printf("==== CORE IDLE TIMES\n");
+            for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+                if (processor_data[i].idle_process && processor_data[i].idle_process->main_thread) printf("\tCPU%d: %ld cycles\n", i, processor_data[i].idle_process->main_thread->total_ticks);
+            }
+        }
         arch_pause();
         process_yield(1);
     }
-}
-
-void kthread_update() {
-    for (;;) {
-        terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
-
-        terminal_setXY(100, 100);
-        printf("==== CURRENT PROCESSES\n");
-        for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
-            if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
-            else printf("\tCPU%d: No thread/no process\n", i);
-        }
-    
-        printf("==== CORE IDLE TIMES\n");
-        for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
-            if (processor_data[i].idle_process && processor_data[i].idle_process->main_thread) printf("\tCPU%d: %ld cycles\n", i, processor_data[i].idle_process->main_thread->total_ticks);
-        }
-    }
-
-    arch_pause();
-    process_yield(1);
 }
 
 /**
@@ -231,7 +213,7 @@ void kmain() {
 
     char name[256] = { 0 };
 
-    for (int i = 1; i <= 10; i++) {
+    for (int i = 1; i <= 32; i++) {
         snprintf(name, 256, "kthread%d", i);
         process_t *process = process_create(name, PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
         process->main_thread = thread_create(process, NULL, (uintptr_t)&kthread, THREAD_FLAG_KERNEL);
@@ -239,18 +221,11 @@ void kmain() {
     }    
 
     
-    // Spawn update process
-    process_t *updproc = process_create("kthread_updater", PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
-    updproc->main_thread = thread_create(updproc, NULL, (uintptr_t)&kthread_update, THREAD_FLAG_KERNEL);
-
     // Spawn idle task for this CPU
     current_cpu->idle_process = process_spawnIdleTask();
 
-
-
     // Spawn init task for this CPU
     current_cpu->current_process = process_spawnInit();
-    scheduler_insertThread(updproc->main_thread);
 
     #ifdef __ARCH_I386__
     fs_node_t *file = kopen("/device/initrd/test_app", O_RDONLY);

@@ -15,6 +15,7 @@
 #include <kernel/misc/spinlock.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
+#include <kernel/arch/arch.h>
 #include <stdatomic.h>
 
 /**
@@ -52,11 +53,14 @@ void spinlock_acquire(spinlock_t *spinlock) {
     while (atomic_flag_test_and_set_explicit(&(spinlock->lock), memory_order_acquire)) {
         // TODO: CPU pause
     }
+
+    spinlock->cpu = arch_current_cpu();
 }
 
 /**
  * @brief Release a spinlock
  */
 void spinlock_release(spinlock_t *spinlock) {
+    spinlock->cpu = -1;
     atomic_flag_clear_explicit(&(spinlock->lock), memory_order_release);
 }
