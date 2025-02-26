@@ -21,6 +21,7 @@
 #include <kernel/arch/i386/arch.h>
 #include <kernel/hal.h>
 
+#include <kernel/task/syscall.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 #include <kernel/processor_data.h>
@@ -270,6 +271,22 @@ void hal_exceptionHandler(registers_t *regs, extended_registers_t *regs_extended
  * @brief Common interrupt handler
  */
 void hal_interruptHandler(registers_t *regs, extended_registers_t *regs_extended) {
+    // Is this a system call?
+    if (regs->int_no == ARCH_SYSCALL_NUMBER) {
+        syscall_t syscall;
+        syscall.syscall_number = regs->eax;
+        syscall.parameters[0] = regs->ebx;
+        syscall.parameters[1] = regs->ecx;
+        syscall.parameters[2] = regs->edx;
+        syscall.parameters[3] = regs->esi;
+        syscall.parameters[4] = regs->edi;
+        syscall.parameters[5] = regs->ebp;
+
+        // Handle
+        regs->eax = syscall_handle(&syscall); // ???: Stack-based syscall OK?
+        return;
+    }
+
     // Call any handler registered
     if (hal_handler_table[regs->int_no - 32] != NULL) {
         int return_value = 1;

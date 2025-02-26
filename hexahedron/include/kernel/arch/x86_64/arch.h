@@ -21,6 +21,10 @@
 #include <kernel/arch/arch.h>
 #include <kernel/arch/x86_64/registers.h>
 
+/**** DEFINITIONS ****/
+
+#define ARCH_SYSCALL_NUMBER     128
+
 /**** TYPES ****/
 
 typedef struct _stack_frame {
