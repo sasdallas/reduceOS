@@ -371,7 +371,6 @@ tree_node_t *vfs_mount(fs_node_t *node, char *path) {
             parent_node = tree_insert_child(vfs_tree, parent_node, newnode);
         }
 
-        LOG(DEBUG, "strtok_r: %s / %p\n", saveptr, &saveptr);
         pch = strtok_r(NULL, "/", &saveptr);
     } 
 
