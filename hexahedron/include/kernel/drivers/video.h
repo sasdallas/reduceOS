@@ -38,6 +38,17 @@ struct _video_driver; // Prototype
  */
 typedef void (*updscreen_t)(struct _video_driver *driver, uint8_t *buffer);
 
+/**
+ * @brief Load the driver
+ */
+typedef void (*load_t)(struct _video_driver *driver);
+
+/**
+ * @brief Unload the driver
+ */
+typedef void (*unload_t)(struct _video_driver *driver);
+
+
 typedef struct _video_driver {
     // Driver information
     char            name[64];
@@ -53,6 +64,8 @@ typedef struct _video_driver {
 
     // Functions
     updscreen_t     update;
+    load_t          load;
+    unload_t        unload;
 
     // Fonts and other information will be handled by the font driver
 } video_driver_t;

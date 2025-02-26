@@ -33,6 +33,19 @@ void grubvid_updateScreen(struct _video_driver *driver, uint8_t *buffer) {
 }
 
 /**
+ * @brief Unload function
+ */
+void grubvid_unload(video_driver_t *driver) {
+    // Unmap
+
+    for (uintptr_t i = (uintptr_t)driver->videoBuffer; i < (uintptr_t)driver->videoBuffer + (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
+        i += PAGE_SIZE) 
+    {
+        mem_allocatePage(mem_getPage(NULL, i, MEM_DEFAULT), MEM_PAGE_NOALLOC | MEM_PAGE_NOT_PRESENT);
+    }
+}
+
+/**
  * @brief Initialize the GRUB video driver
  * @param parameters Generic parameters containing the LFB driver.
  * @returns NULL on failure to initialize, else a video driver structure
@@ -52,6 +65,8 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
     driver->allowsGraphics = 1;
 
     driver->update = grubvid_updateScreen;
+    driver->unload = grubvid_unload;
+    driver->load = NULL;
 
     // BEFORE WE DO ANYTHING, WE HAVE TO REMAP THE FRAMEBUFFER TO SPECIFIED ADDRESS
     for (uintptr_t phys = parameters->framebuffer->framebuffer_addr, virt = MEM_FRAMEBUFFER_REGION;

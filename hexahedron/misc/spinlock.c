@@ -25,7 +25,7 @@
  */
 spinlock_t *spinlock_create(char *name) {
     spinlock_t *ret = kmalloc(sizeof(spinlock_t));
-    ret->cpu = 0; // TODO: SMP
+    ret->cpu = 0;
     ret->name = name;
     
     // Because atomics and its consequences have been a disaster for the human race,

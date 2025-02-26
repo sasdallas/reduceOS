@@ -80,7 +80,9 @@ void video_switchDriver(video_driver_t *driver) {
     }
 
     // Set driver
-    current_driver = driver; // TODO: If this interface gets more flushed out, drivers will need a load/unload method.
+    if (current_driver && current_driver->unload) current_driver->unload(current_driver);
+    current_driver = driver;
+    if (driver->load) driver->load(driver);
 }
 
 /**
@@ -128,7 +130,6 @@ void video_plotPixel(int x, int y, color_t color) {
  */
 void video_clearScreen(color_t bg) {
     uint8_t *buffer = video_framebuffer;
-#include <kernel/debug.h>
     for (uint32_t y = 0; y < current_driver->screenHeight; y++) {
         for (uint32_t x = 0; x < current_driver->screenWidth; x++) {
             buffer[x*4] = RGB_B(bg);
