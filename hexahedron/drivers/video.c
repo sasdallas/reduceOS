@@ -82,7 +82,7 @@ void video_switchDriver(video_driver_t *driver) {
     // Set driver
     if (current_driver && current_driver->unload) current_driver->unload(current_driver);
     current_driver = driver;
-    if (driver->load) driver->load(driver);
+    if (current_driver->load) current_driver->load(current_driver);
 }
 
 /**

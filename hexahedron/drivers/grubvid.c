@@ -66,7 +66,6 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
 
     driver->update = grubvid_updateScreen;
     driver->unload = grubvid_unload;
-    driver->load = NULL;
 
     // BEFORE WE DO ANYTHING, WE HAVE TO REMAP THE FRAMEBUFFER TO SPECIFIED ADDRESS
     for (uintptr_t phys = parameters->framebuffer->framebuffer_addr, virt = MEM_FRAMEBUFFER_REGION;
