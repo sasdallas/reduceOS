@@ -89,11 +89,11 @@ void __attribute__((noreturn)) process_switchNextThread() {
     next_thread->status |= THREAD_STATUS_RUNNING;
 
     // Go!
-    // #ifdef __ARCH_I386__
-    // dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.eip, next_thread->context.esp, next_thread->context.ebp);
-    // #else
-    // dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.rip, next_thread->context.rsp, next_thread->context.rbp);
-    // #endif
+    #ifdef __ARCH_I386__
+    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.eip, next_thread->context.esp, next_thread->context.ebp);
+    #else
+    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.rip, next_thread->context.rsp, next_thread->context.rbp);
+    #endif
 
     arch_load_context(&next_thread->context);
     __builtin_unreachable();

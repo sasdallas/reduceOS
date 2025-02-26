@@ -179,10 +179,12 @@ int lapic_timer_irq(uintptr_t exception_index, uintptr_t irq_number, registers_t
         // Is it time to switch processes?
         if (scheduler_update(clock_getTickCount()) == 1) {
             LOG(DEBUG, "Process is out of timeslice - yielding (LAPIC)\n");
+            
+            // End interrupt
+            hal_endInterrupt(irq_number);
 
             // Yes, it is. Switch to next process
-            process_yield(0);   // IMPORTANT: We do not yield and reschedule here, as scheduler_reschedule already took care of that.
-                                // IMPORTANT: Only kernel threads will yield as the scheduler won't run for those (arch_from_usermode is 0), and those don't have timeslices
+            process_yield(1);
         }
     }
 

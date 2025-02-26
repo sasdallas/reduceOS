@@ -120,17 +120,9 @@ void scheduler_reschedule() {
     // If the current thread is still running, we can append it to the back of the queue
     if (current_cpu->current_thread->status & THREAD_STATUS_RUNNING) {
         spinlock_acquire(&scheduler_lock);
-        LOG(DEBUG, "Reschedule thread %p to back of queue (owned by '%s')\n", current_cpu->current_thread, current_cpu->current_thread->parent->name);
-        list_append(thread_queue, (void*)current_cpu->current_thread);
-
         // Get the thread's timeslice
         current_cpu->current_thread->preempt_ticks = scheduler_timeslices[current_cpu->current_thread->parent->priority];
 
-        LOG(DEBUG, "New thread list:\n");
-        foreach(node, thread_queue) {
-            thread_t *thr = (thread_t*)node->value;
-            LOG(DEBUG, "Thread %p - owned by process '%s' (pid %d prio %d)\n", thr, thr->parent->name, thr->parent->pid, thr->parent->priority);
-        }
         spinlock_release(&scheduler_lock);
     }
 }
