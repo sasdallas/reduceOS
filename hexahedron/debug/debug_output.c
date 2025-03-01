@@ -60,7 +60,9 @@ int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
 
     // Wait for our lock
     // !!!: This should not be using a lock. System will deadlock.
-    spinlock_acquire(&debug_lock);
+    if (debug_lock.cpu != arch_current_cpu()) {
+        spinlock_acquire(&debug_lock);
+    }
 
     if (status == NOHEADER) goto _write_format;
 

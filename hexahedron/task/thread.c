@@ -49,7 +49,7 @@ static thread_t *thread_createStructure(process_t *parent, page_t *dir, int stat
 thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoint, int flags) {
     // Create thread
     thread_t *thr = thread_createStructure(parent, dir, THREAD_STATUS_RUNNING, flags);
-    
+
     // Switch directory to directory (as we will be mapping in it)
     mem_switchDirectory(dir);
 

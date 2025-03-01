@@ -167,11 +167,6 @@ thread_t *scheduler_get() {
     // Unlock
     spinlock_release(&scheduler_lock);
 
-    // ??? what is going on
-    if (!thread) {
-        kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "*** Thread corruption detected\n");
-    }
-
     // Return it
     return thread;
 }

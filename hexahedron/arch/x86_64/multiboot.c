@@ -356,7 +356,45 @@ void arch_mark_memory(uintptr_t highest_address, uintptr_t mem_size) {
     }
 
     if (is_mb2) {
-        dprintf(INFO, "Mb2 unimplemented\n");
+        // i love 64-bit mode
+        dprintf(DEBUG, "waiting to remap phys\n");
+        uintptr_t start_search = mem_remapPhys((uintptr_t)stored_bootinfo, 0xDEADBEEF);
+
+        // Find the memory map, we'll parse it first.
+        struct multiboot_tag_mmap *mmap = (struct multiboot_tag_mmap*)multiboot2_find_tag((void*)start_search, MULTIBOOT_TAG_TYPE_MMAP);
+        if (mmap == NULL) {
+            kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "arch", "*** The kernel requires a memory map to startup properly. A memory map was not found in the Multiboot structure.\n");
+            __builtin_unreachable();
+        }
+
+        // Get ptr
+        char *ptr = (char*)mem_remapPhys((uintptr_t)mmap->entries, 0xDEADBEEF);
+
+        // Search memory map
+        uintptr_t highest_address = 0;
+        while ((uintptr_t)ptr < (uintptr_t)mmap + mmap->size) {
+            struct multiboot_mmap_entry *entry = (struct multiboot_mmap_entry*)ptr;
+            if (entry->type == MULTIBOOT_MEMORY_AVAILABLE && entry->len && entry->addr + entry->len - 1 > highest_address) {
+                // Available!
+                dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as available memory\n", entry->addr, entry->addr + entry->len, entry->len / 1024);
+                pmm_initializeRegion((uintptr_t)entry->addr, (uintptr_t)entry->len);
+            } else {
+                // Make sure mmap->addr isn't out of memory - most emulators like to have reserved
+                // areas outside of their actual memory space, which the PMM really does not like.
+
+                // As well as that, QEMU bugs out and forgets about certain DMA regions (see below), so
+                // don't uninitialize anything below 0x10000 
+                if (entry->addr > 0x100000 && entry->addr + entry->len < mem_size) {
+                    dprintf(DEBUG, "Marked memory descriptor %016llX - %016llX (%i KB) as unavailable memory\n", entry->addr, entry->addr + entry->len, entry->len / 1024); 
+                    pmm_deinitializeRegion((uintptr_t)entry->addr, (uintptr_t)entry->len);
+             
+                }
+            }
+
+            dprintf(DEBUG, "%d %016llX\n", entry->type, entry->addr);
+
+            ptr += mmap->entry_size;
+        }
 
     } else {
         // Bootinfo needs to be remapped using memory
@@ -476,6 +514,44 @@ void arch_parse_multiboot1_early(multiboot_t *bootinfo, uintptr_t *mem_size, uin
  * (else it will overwrite its own page tables and crash or something, i didn't do much debugging)
  */
 void arch_parse_multiboot2_early(multiboot_t *bootinfo, uintptr_t *mem_size, uintptr_t *kernel_address) {
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "multiboot");
-    __builtin_unreachable();
+    // Store bootinfo
+    void *updated_bootinfo = (void*)((uint8_t*)bootinfo + 8); // TODO: ugly af
+    stored_bootinfo = updated_bootinfo;
+    is_mb2 = 1;
+
+    // Get mmap
+    struct multiboot_tag_mmap *mmap = (struct multiboot_tag_mmap*)multiboot2_find_tag((void*)stored_bootinfo, MULTIBOOT_TAG_TYPE_MMAP);
+    if (!mmap) {
+        kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "multiboot2", "*** Kernel requires a memory map to boot\n");
+        __builtin_unreachable();
+    }
+
+    char *ptr = (char*)mmap->entries;
+
+    // Get highest possible address
+    uintptr_t highest_address = 0;
+    while ((uintptr_t)ptr < (uintptr_t)mmap + mmap->size) {
+        struct multiboot_mmap_entry *entry = (struct multiboot_mmap_entry*)ptr;
+        if (entry->type == 1 && entry->len && entry->addr + entry->len - 1 > highest_address) {
+            highest_address = entry->addr + entry->len - 1;
+        } 
+
+        ptr += mmap->entry_size;
+    }
+
+    // Do the modules
+    extern uintptr_t __kernel_end;
+    uintptr_t kernel_end_address = (uintptr_t)&__kernel_end;
+    struct multiboot_tag_module *mod_tag = (struct multiboot_tag_module*)multiboot2_find_tag(stored_bootinfo, MULTIBOOT_TAG_TYPE_MODULE);
+    while (mod_tag) {
+        if ((uintptr_t)mod_tag->mod_end > kernel_end_address) kernel_end_address = (uintptr_t)mod_tag->mod_end;
+        mod_tag = (struct multiboot_tag_module*)multiboot2_find_tag((void*)mod_tag, MULTIBOOT_TAG_TYPE_MODULE);
+    }
+
+    // Update variables
+    *mem_size = highest_address;
+    *kernel_address = kernel_end_address;
+
+    dprintf(DEBUG, "Processed OK\n");
+
 }
