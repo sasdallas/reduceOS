@@ -79,6 +79,7 @@
     "thread.h": "c",
     "errno.h": "c",
     "smp.h": "c",
-    "serial.h": "c"
+    "serial.h": "c",
+    "gfx.h": "c"
   }
 }

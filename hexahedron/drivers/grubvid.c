@@ -37,7 +37,6 @@ void grubvid_updateScreen(struct _video_driver *driver, uint8_t *buffer) {
  */
 void grubvid_unload(video_driver_t *driver) {
     // Unmap
-
     for (uintptr_t i = (uintptr_t)driver->videoBuffer; i < (uintptr_t)driver->videoBuffer + (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
         i += PAGE_SIZE) 
     {
@@ -68,6 +67,7 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
     driver->unload = grubvid_unload;
 
     // BEFORE WE DO ANYTHING, WE HAVE TO REMAP THE FRAMEBUFFER TO SPECIFIED ADDRESS
+    LOG(INFO, "size 0x%x pitch 0x%x\n", (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch), driver->screenPitch);
     for (uintptr_t phys = parameters->framebuffer->framebuffer_addr, virt = MEM_FRAMEBUFFER_REGION;
             phys < parameters->framebuffer->framebuffer_addr + (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
             phys += PAGE_SIZE, virt += PAGE_SIZE) 

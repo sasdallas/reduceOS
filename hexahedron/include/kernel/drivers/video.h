@@ -61,6 +61,7 @@ typedef struct _video_driver {
     uint32_t        screenBPP;              // BPP
     uint8_t         *videoBuffer;           // Video buffer
     int             allowsGraphics;         // Whether it allows graphics (WARNING: This may be used. It is best to leave this correct!)
+    void            *dev;                   // Specific to the driver
 
     // Functions
     updscreen_t     update;
