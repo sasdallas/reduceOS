@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <ctype.h>
 
 /* Temporary */
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -141,239 +142,298 @@ static size_t print_hex(unsigned long long value, unsigned int width, int (*call
  * vasprintf()
  */
 size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * fmt, va_list args) {
-	const char * s;
+	if (!fmt || !callback || !args) return 0;
 	size_t written = 0;
-	for (const char *f = fmt; *f; f++) {
+
+	// Start looping through the format string
+	char *f = (char*)fmt;
+	while (*f) {
+		// If it doesn't have a percentage sign, just print the character
 		if (*f != '%') {
 			OUT(*f);
+			f++;
 			continue;
 		}
-		++f;
-		unsigned int arg_width = 0;
-		int align = 1; /* right */
-		int fill_zero = 0;
-		int big = 0;
-		int alt = 0;
-		int always_sign = 0;
-		int precision = -1;
-		while (1) {
-			if (*f == '-') {
-				align = 0;
-				++f;
-			} else if (*f == '#') {
-				alt = 1;
-				++f;
-			} else if (*f == '*') {
-				arg_width = (int)va_arg(args, int);
-				++f;
-			} else if (*f == '0') {
-				fill_zero = 1;
-				++f;
-			} else if (*f == '+') {
-				always_sign = 1;
-				++f;
-			} else if (*f == ' ') {
-				always_sign = 2;
-				++f;
-			} else {
-				break;
+
+		// We found a percentage sign. Skip past it.
+		f++;
+
+		// Real quick - is this another percentage sign? We'll still have a case to catch this on format specifiers, but this will be faster
+		if (*f == '%') {
+			// Yes, just print that and go back
+			OUT(*f);
+			f++;
+			continue;
+		}
+
+		// From now on, the printf argument should be in the form:
+		// %[flags][width][.precision][length][specifier]
+		// For more information, please see: https://cplusplus.com/reference/cstdio/printf/#google_vignette
+
+		#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+
+		// Start parsing flags
+		int justification = 0;		// 0 = right, 1 = left
+		int sign_type = 0;			// 0 = sign only on negative, 1 = sign always, 2 = sign never
+		char padding = ' ';			// Default padding is with spaces
+		int add_special_chars = 0;	// Depends on specifier
+		while (*f) {
+			int finished_reading = 0;
+
+			switch (*f) {
+				case '-':
+					// Left-justify width. This means that we will pad after the value, instead of before. 
+					justification = 1;
+					break;
+
+				case '+':
+					// Always sign
+					sign_type = 1;
+					break;
+
+				case ' ':
+					// Never sign
+					sign_type = 2;
+					break;
+
+				case '0':
+					// Left-pad with zeroes instead of spaces when padding is specified in width.
+					padding = '0';
+					break;
+
+				case '#':
+					// This is a special case. If used with %o or %x it adds a 0/0x - if used with %a/%e/%f/%g it forces decimal points
+					add_special_chars = 1;
+					break;
+
+				default:
+					// Do nothing
+					finished_reading = 1;
+					break;
 			}
+
+			if (finished_reading) break;
+			f++;
 		}
-		while (*f >= '0' && *f <= '9') {
-			arg_width *= 10;
-			arg_width += *f - '0';
-			++f;
+
+		// Width should be read indefinitely as long as the characters are available
+		// TODO:  ... better way?
+		int width = 0;
+
+		// Special case: Width is provided in va_args
+		if (*f == '*') {
+			width = va_arg(args, int);
+			f++;
+		} else  {
+			while (isdigit(*f)) {
+				// Add this to the width
+				width *= 10;
+				width += (int)((*f) - '0');
+				f++;
+ 			}
 		}
+
+		// Do we need to process precision?
+		int precision = -1; // Precision will be auto-updated when we handle
 		if (*f == '.') {
-			++f;
+			// Yes we do!
 			precision = 0;
+			f++;
+
+			// For integer specifiers (d, i, o, u, x) precision specifies the minimum number of digits to be written.
+			// If it shorter than this, it is padded with leading zeroes.
+			// For %a/%e/%f this is the number of digits to printed AFTER the decimal point (default 6)
+			// For %g this is the maximum number of significant digits
+			// For %s this is the maximum number of characters to print
+
+			// If it is '*' grab it from VA arguments
 			if (*f == '*') {
-				precision = (int)va_arg(args, int);
-				++f;
-			} else  {
-				while (*f >= '0' && *f <= '9') {
+				precision = va_arg(args, int);
+				f++;
+			} else {
+				// Keep reading the precision
+				while (isdigit(*f)) {
+					// Add this to the width
 					precision *= 10;
-					precision += *f - '0';
-					++f;
+					precision += (int)((*f) - '0');
+					f++;
 				}
 			}
 		}
-		if (*f == 'l') {
-			big = 1;
-			++f;
-			if (*f == 'l') {
-				big = 2;
-				++f;
-			}
-		}
-		if (*f == 'j') {
-			big = (sizeof(uintmax_t) == sizeof(unsigned long long) ? 2 :
-				   sizeof(uintmax_t) == sizeof(unsigned long) ? 1 : 0);
-			++f;
-		}
-		if (*f == 'z') {
-			big = (sizeof(size_t) == sizeof(unsigned long long) ? 2 :
-				   sizeof(size_t) == sizeof(unsigned long) ? 1 : 0);
-			++f;
-		}
-		if (*f == 't') {
-			big = (sizeof(ptrdiff_t) == sizeof(unsigned long long) ? 2 :
-				   sizeof(ptrdiff_t) == sizeof(unsigned long) ? 1 : 0);
-			++f;
-		}
-		/* fmt[i] == '%' */
+
+		// Length modifies the length of the data type being interpreted by VA arguments.
+		// There's a nice table available at https://cplusplus.com/reference/cstdio/printf/.
+		// Each specifier interprets length differently, so I'll use a value to show that
+		
+		/* Starting from 0, length represents: (none), h, hh, l, ll, j, z, t, L */
+		int length = 0;		// By default, 0 is none
 		switch (*f) {
-			case 's': /* String pointer -> String */
-				{
-					size_t count = 0;
-					if (big) {
-						return written;
-					} else {
-						s = (char *)va_arg(args, char *);
-						if (s == NULL) {
-							s = "(null)";
-						}
-						if (precision >= 0) {
-							while (*s && precision > 0) {
-								OUT(*s++);
-								count++;
-								precision--;
-								if (arg_width && count == arg_width) break;
-							}
-						} else {
-							while (*s) {
-								OUT(*s++);
-								count++;
-								if (arg_width && count == arg_width) break;
-							}
-						}
-					}
-					while (count < arg_width) {
-						OUT(' ');
-						count++;
-					}
+			case 'h':
+				length = 1;
+				f++;
+				if (*f == 'h') {
+					length = 2;
+					f++;
 				}
 				break;
-			case 'c': /* Single character */
-				OUT((char)va_arg(args,int));
-				break;
-			case 'p':
-				alt = 1;
-				if (sizeof(void*) == sizeof(long long)) big = 2;
-				/* fallthrough */
-			case 'X':
-			case 'x': /* Hexadecimal number */
-				{
-					unsigned long long val;
-					if (big == 2) {
-						val = (unsigned long long)va_arg(args, unsigned long long);
-					} else if (big == 1) {
-						val = (unsigned long)va_arg(args, unsigned long);
-					} else {
-						val = (unsigned int)va_arg(args, unsigned int);
-					}
-					written += print_hex(val, arg_width, callback, userData, fill_zero, alt, !(*f & 32), align);
+			case 'l':
+				length = 3;
+				f++;
+				if (*f == 'l') {
+					length = 4;
+					f++;
 				}
 				break;
+			case 'j':
+				length = 5;
+				f++;
+				break;
+			case 'z':
+				length = 6;
+				f++;
+				break;
+			case 't':
+				length = 7;
+				f++;
+				break;
+			case 'L':
+				length = 8;
+				f++;
+				break;
+			default:
+				break;
+		}
+
+		// Now we're on to the format specifier.
+		// TODO: Support for %g, %f
+		switch (*f) {
+			case 'd':
 			case 'i':
-			case 'd': /* Decimal number */
-				{
-					long long val;
-					if (big == 2) {
-						val = (long long)va_arg(args, long long);
-					} else if (big == 1) {
-						val = (long)va_arg(args, long);
-					} else {
-						val = (int)va_arg(args, int);
+				// %d / %i: Signed decimal integer
+				long long dec;
+
+				// Get value
+				if (length == 7) {
+					dec = (ptrdiff_t)(va_arg(args, ptrdiff_t));
+				} else if (length == 6) {
+					dec = (size_t)(va_arg(args, size_t));
+				} else if (length == 5) {
+					dec = (intmax_t)(va_arg(args, intmax_t));
+				} else if (length == 4) {
+					dec = (long long int)(va_arg(args, long long int));
+				} else if (length == 3) {
+					dec = (long int)(va_arg(args, long int));
+				} else {
+					// The remaining specifiers are all promoted to integers regardless
+					dec = (int)(va_arg(args, int));
+				}
+
+				written += print_dec(dec, width, callback, userData, (padding == '0'), !justification, precision);
+				break;
+			
+			case 'p':
+				// %p: Pointer 
+				unsigned long long ptr;
+				if (sizeof(void*) == sizeof(long long)) {
+					ptr = (unsigned long long)(va_arg(args, unsigned long long));
+				} else {
+					ptr = (unsigned int)(va_arg(args, unsigned int));
+				}
+				written += print_hex(ptr, width, callback, userData, (padding == '0'), 1, isupper(*f), !justification);
+				break;
+			
+			case 'x':
+			case 'X':
+				// %x: Hexadecimal format
+				unsigned long long hex;
+				if (length == 7) {
+					hex = (ptrdiff_t)(va_arg(args, ptrdiff_t));
+				} else if (length == 6) {
+					hex = (size_t)(va_arg(args, size_t));
+				} else if (length == 5) {
+					hex = (uintmax_t)(va_arg(args, uintmax_t));
+				} else if (length == 4) {
+					hex = (unsigned long long int)(va_arg(args, unsigned long long int));
+				} else if (length == 3) {
+					hex = (unsigned long int)(va_arg(args, unsigned long int));
+				} else {
+					// The remaining specifiers are all promoted to integers regardless
+					hex = (unsigned int)(va_arg(args, unsigned int));
+				}
+
+				written += print_hex(hex, width, callback, userData, (padding == '0'), add_special_chars, isupper(*f), !justification);
+				break;
+
+			case 'u':
+				// %u: Unsigned
+				unsigned long long uns;
+				if (length == 7) {
+					uns = (ptrdiff_t)(va_arg(args, ptrdiff_t));
+				} else if (length == 6) {
+					uns = (size_t)(va_arg(args, size_t));
+				} else if (length == 5) {
+					uns = (uintmax_t)(va_arg(args, uintmax_t));
+				} else if (length == 4) {
+					uns = (unsigned long long int)(va_arg(args, unsigned long long int));
+				} else if (length == 3) {
+					uns = (unsigned long int)(va_arg(args, unsigned long int));
+				} else {
+					// The remaining specifiers are all promoted to integers regardless
+					uns = (unsigned int)(va_arg(args, unsigned int));
+				}
+
+				written += print_dec(uns, width, callback, userData, (padding == '0'), !justification, precision);
+				break;
+
+			case 's':
+				// %s: String
+				char *str = (char*)(va_arg(args, char*));
+				if (str == NULL) {
+					// Nice try
+					str = "(NULL)";
+				}
+
+				// Padding applies
+				int chars_printed = 0;
+
+				// Does it have precision?
+				if (precision >= 0) {
+					for (int i = 0; i < precision && *str; i++) {
+						OUT(*str);
+						str++;
+						chars_printed++;
 					}
-					if (val < 0) {
-						OUT('-');
-						val = -val;
-					} else if (always_sign) {
-						OUT(always_sign == 2 ? ' ' : '+');
+				} else {
+					while (*str) {
+						OUT(*str);
+						str++;
+						chars_printed++;
 					}
-					written += print_dec(val, arg_width, callback, userData, fill_zero, align, precision);
+				}
+
+				// Does it have width?
+				if (chars_printed < width) {
+					for (int i = chars_printed; i < width; i++) {
+						// Add some padding
+						OUT(padding);
+					}
 				}
 				break;
-			case 'u': /* Unsigned ecimal number */
-				{
-					unsigned long long val;
-					if (big == 2) {
-						val = (unsigned long long)va_arg(args, unsigned long long);
-					} else if (big == 1) {
-						val = (unsigned long)va_arg(args, unsigned long);
-					} else {
-						val = (unsigned int)va_arg(args, unsigned int);
-					}
-					written += print_dec(val, arg_width, callback, userData, fill_zero, align, precision);
-				}
+			
+			case 'c':
+				// %c: Singled character
+				OUT((char)(va_arg(args, int)));
 				break;
-			case 'G':
-			case 'F':
-			case 'g':
-			case 'f':
-				{
-					if (precision == -1) precision = 8; // To 8 decimal points
-					double val = (double)va_arg(args, double);
-					uint64_t asBits;
-					memcpy(&asBits, &val, sizeof(double));
-#define SIGNBIT(d) (d & 0x8000000000000000UL)
 
-					/* Extract exponent */
-					int64_t exponent = (asBits & 0x7ff0000000000000UL) >> 52;
-
-					/* Fraction part */
-					uint64_t fraction = (asBits & 0x000fffffffffffffUL);
-
-					if (exponent == 0x7ff) {
-						if (!fraction) {
-							if (SIGNBIT(asBits)) OUT('-');
-							OUT('i');
-							OUT('n');
-							OUT('f');
-						} else {
-							OUT('n');
-							OUT('a');
-							OUT('n');
-						}
-						break;
-					} else if ((*f == 'g' || *f == 'G') && exponent == 0 && fraction == 0) {
-						if (SIGNBIT(asBits)) OUT('-');
-						OUT('0');
-						break;
-					}
-
-					/* Okay, now we can do some real work... */
-
-					int isNegative = !!SIGNBIT(asBits);
-					if (isNegative) {
-						OUT('-');
-						val = -val;
-					}
-
-					written += print_dec((unsigned long long)val, arg_width, callback, userData, fill_zero, align, 1);
-					OUT('.');
-					for (int j = 0; j < ((precision > -1 && precision < 16) ? precision : 16); ++j) {
-						if ((unsigned long long)(val * 100000.0) % 100000 == 0 && j != 0) break;
-						val = val - (unsigned long long)val;
-						val *= 10.0;
-						double roundy = ((double)(val - (unsigned long long)val) - 0.99999);
-						if (roundy < 0.00001 && roundy > -0.00001 && ((unsigned long long)(val) % 10) != 9) {
-							written += print_dec((unsigned long long)(val) % 10 + 1, 0, callback, userData, 0, 0, 1);
-							break;
-						}
-						written += print_dec((unsigned long long)(val) % 10, 0, callback, userData, 0, 0, 1);
-					}
-				}
-				break;
-			case '%': /* Escape */
-				OUT('%');
-				break;
-			default: /* Nothing at all, just dump it */
+			default:
 				OUT(*f);
 				break;
 		}
+
+		// Next character
+		f++;
 	}
+	
 	return written;
 }
 
