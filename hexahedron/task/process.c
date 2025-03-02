@@ -62,13 +62,13 @@ void process_init() {
  * For CPU cores: This is jumped to immediately after AP initialization, specifically 
  * after the idle task has been created (through process_spawnIdleTask). It will automatically
  * enter the scheduling loop, and when a new process spawns the core can get it.
+ * 
+ * @warning Don't call this unless you know what you're doing. Use @c process_yield
  */
 void __attribute__((noreturn)) process_switchNextThread() {
-    
     // Get next thread in queue
     thread_t *next_thread = scheduler_get();
     if (!next_thread) {
-        // next_thread = current_cpu->idle_process->main_thread;
         kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "*** No thread was found in the scheduler (or something has been corrupted). Got thread %p.\n", next_thread);
     }
 
@@ -76,31 +76,24 @@ void __attribute__((noreturn)) process_switchNextThread() {
     current_cpu->current_thread = next_thread;
     current_cpu->current_process = next_thread->parent;
 
-    // #ifdef __ARCH_I386__
-    // dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.esp);
-    // #else
-    // dprintf(DEBUG, "Prepare to switch to next thread %p (%s) with page directory %p, kernel stack %p, ustack %p\n", next_thread, next_thread->parent->name, next_thread->dir, next_thread->context.rsp);
-    // #endif
-
     // Setup page directory
-    mem_switchDirectory(next_thread->dir);
+    mem_switchDirectory(current_cpu->current_thread->dir);
 
     // On your mark...
-    arch_prepare_switch(next_thread);
+    arch_prepare_switch(current_cpu->current_thread);
 
     // Get set..
-    next_thread->status |= THREAD_STATUS_RUNNING;
-
+    current_cpu->current_thread->status |= THREAD_STATUS_RUNNING;
+    
     // Go!
     #ifdef __ARCH_I386__
-    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.eip, next_thread->context.esp, next_thread->context.ebp);
+    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, next_thread->parent->name, current_cpu->current_thread->context.eip, current_cpu->current_thread->context.esp, current_cpu->current_thread->context.ebp);
     #else
-    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", next_thread, next_thread->parent->name, next_thread->context.rip, next_thread->context.rsp, next_thread->context.rbp);
+    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, current_cpu->current_thread->parent->name, current_cpu->current_thread->context.rip, current_cpu->current_thread->context.rsp, current_cpu->current_thread->context.rbp);
     #endif
 
     task_switches += 1;
-
-    arch_load_context(&next_thread->context);
+    arch_load_context(&current_cpu->current_thread->context);
     __builtin_unreachable();
 }
 
@@ -113,7 +106,14 @@ void __attribute__((noreturn)) process_switchNextThread() {
  * @param reschedule Whether to readd the process back to the queue, meaning it can return whenever and isn't waiting on something
  */
 void process_yield(uint8_t reschedule) {
-    // Thread no longer has any time to execute. Save stuff
+    // Do we even have a thread?
+    if (current_cpu->current_thread == NULL) {
+        // Just switch to next thread
+        process_switchNextThread();
+    }
+
+    // Thread no longer has any time to execute. Save FPU registers
+    // TODO: DESPERATELY move this to context structure.
     asm volatile ("fxsave (%0)" :: "r"(current_cpu->current_thread->fp_regs));
 
     // Equivalent to a setjmp, use arch_save_context() to save our context
@@ -122,16 +122,51 @@ void process_yield(uint8_t reschedule) {
         asm volatile ("fxrstor (%0)" :: "r"(current_cpu->current_thread->fp_regs));
         return;
     }
+    
+    // NOTE: Normally we would call process_switchNextThread but that will cause a critical error. See reschedule part of this function
 
-    // Do they want us to reschedule?
-    if (reschedule) {
-        // Yes, reschedule thread to back of queue
-        scheduler_insertThread(current_cpu->current_thread);
+    // Get current thread
+    thread_t *prev = current_cpu->current_thread;
+
+    // Get next thread in queue
+    thread_t *next_thread = scheduler_get();
+    if (!next_thread) {
+        // next_thread = current_cpu->idle_process->main_thread;
+        kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "*** No thread was found in the scheduler (or something has been corrupted). Got thread %p.\n", next_thread);
     }
 
+    // Update CPU variables
+    current_cpu->current_thread = next_thread;
+    current_cpu->current_process = next_thread->parent;
 
-    // Onward!
-    process_switchNextThread();
+    // Setup page directory
+    // TODO: Test this. Is it possible mem_getCurrentDirectory != mem_getKernelDirectory?
+    if (next_thread->dir || mem_getCurrentDirectory() != mem_getKernelDirectory()) mem_switchDirectory(current_cpu->current_thread->dir);
+
+    // On your mark... (load kstack)
+    arch_prepare_switch(current_cpu->current_thread);
+
+    // Get set.. (set as running - do this differently?)
+    current_cpu->current_thread->status |= THREAD_STATUS_RUNNING;
+    
+    // Go!
+    #ifdef __ARCH_I386__
+    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, next_thread->parent->name, current_cpu->current_thread->context.eip, current_cpu->current_thread->context.esp, current_cpu->current_thread->context.ebp);
+    #else
+    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, current_cpu->current_thread->parent->name, current_cpu->current_thread->context.rip, current_cpu->current_thread->context.rsp, current_cpu->current_thread->context.rbp);
+    #endif
+
+    // Reschedule thread now. This should leave a VERY slim time window for another CPU to pick up the thread
+    if (prev && reschedule) {
+        // !!!: It is possible for a race condition to occur here. It is very unlikely, but possible.
+        // !!!: If another CPU picks this thread up and somehow manages to switch to it faster than we can, it will corrupt the stack and cause hell.
+        // !!!: This is why we can't call process_switchNextThread. Sorry, not sorry.
+        scheduler_insertThread(prev);
+    }
+
+    task_switches += 1;
+    arch_load_context(&current_cpu->current_thread->context);
+    __builtin_unreachable();
 }
 
 /**
