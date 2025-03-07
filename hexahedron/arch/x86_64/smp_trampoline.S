@@ -28,7 +28,6 @@
 _ap_bootstrap_start:
 
 _ap_startup:    /* 0x1000 */
-    xchgw %bx, %bx
     cli
     cld
     ljmp $0, $0x1040

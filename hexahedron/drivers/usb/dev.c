@@ -126,7 +126,11 @@ void usb_destroyDevice(USBController_t *controller, USBDevice_t *dev) {
     }
 
     // Delete and free the device
-    list_delete(controller->devices, list_find(controller->devices, dev));
+    if (controller->devices) {
+        node_t *dev_node = list_find(controller->devices, dev);
+        if (dev_node) list_delete(controller->devices, dev_node);
+    }
+
     kfree(dev);
 }
 

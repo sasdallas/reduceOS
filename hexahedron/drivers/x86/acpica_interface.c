@@ -211,7 +211,7 @@ ACPI_STATUS AcpiWalkCallback(ACPI_HANDLE Object, UINT32 NestingLevel, void *Cont
         LOG(DEBUG, "\t\tAcpiGetObjectInfo returned ACPI_STATUS 0x%x\n", Status);
     }
 
-    *ReturnValue = NULL;
+    
     return AE_OK;
 }
 
