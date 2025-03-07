@@ -32,7 +32,7 @@ unsigned long hashmap_hash(char *key) {
     unsigned long hash = 0;
     int c;
 
-    while ((c = *key++)) {
+    while (key && (c = *key++)) {
         hash = c + (hash << 6) + (hash << 16) - hash;
     }
 

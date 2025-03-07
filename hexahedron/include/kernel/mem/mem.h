@@ -188,8 +188,9 @@ uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size);
 /**
  * @brief Unmap an MMIO region
  * @param virt The virtual address returned by @c mem_mapMMIO
+ * @param size The size requested by @c mem_mapMMIO
  */
-void mem_unmapMMIO(uintptr_t virt);
+void mem_unmapMMIO(uintptr_t virt, uintptr_t size);
 
 /**
  * @brief Allocate a DMA region from the kernel
