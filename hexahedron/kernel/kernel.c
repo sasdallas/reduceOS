@@ -142,6 +142,11 @@ void kthread() {
         iterations++;
         dprintf(DEBUG, "Hi from %s! This is iteration %d\n", current_cpu->current_process->name, iterations);
         arch_pause();
+        
+        if (iterations >= 5) {
+            printf("%s exiting - bye!\n", current_cpu->current_process->name);
+            process_exit(NULL, 1);
+        }
         process_yield(1);
     }
 }

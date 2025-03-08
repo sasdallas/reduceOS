@@ -132,6 +132,12 @@ void scheduler_reschedule() {
  * @returns A pointer to the next thread
  */
 thread_t *scheduler_get() {
+    // Is this core fit to schedule?
+    if (current_cpu->idle_process == NULL || current_cpu->idle_process->main_thread == NULL) {
+        // Huh
+        kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "*** Tried to switch tasks with no queue and no idle task\n");
+    }
+
     // Get lock
     spinlock_acquire(&scheduler_lock);
 
@@ -142,12 +148,7 @@ thread_t *scheduler_get() {
 
 
         // No thread queue. This likely means a core entered the switcher before scheduling initialized, which is fine.
-        // We just need to return the kernel idle task's thread.
-        if (current_cpu->idle_process == NULL || current_cpu->idle_process->main_thread == NULL) {
-            // Huh
-            kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "*** Tried to switch tasks with no queue and no idle task\n");
-        }
-
+        // We just need to return the kernel idle task's thread
         return current_cpu->idle_process->main_thread;
     }
     
@@ -160,8 +161,10 @@ thread_t *scheduler_get() {
     
         // Did that work?
         if (!thread_node || !thread_node->value) {
-            LOG(ERR, "Corrupt node %p found in scheduler during next thread grabbing\n", thread_node);
-            kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "*** No thread node found when trying to get next thread\n");
+            // Normally this would be fatal, but it just in fact means we've cleared our queue of all running processes
+            // This is supposed to be fatal (no init process), but other parts of the code will catch this.
+            // Else, guess it just freezes. Who knows!
+            return current_cpu->idle_process->main_thread;
         }
 
         // Get thread and free node

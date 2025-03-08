@@ -379,19 +379,23 @@ void process_exit(process_t *process, int status_code) {
         }
     }
 
+
     // Destroy thread list
     if (process->thread_list) list_destroy(process->thread_list, false);
 
     LOG(INFO, "Freeing memory for process \"%s\"...\n", process->name);
 
     // Free whatever memory remains
-    tree_remove(process_tree, process->node);
-    kfree(process->node);
+    if (process->node) {
+        tree_remove(process_tree, process->node);
+        kfree(process->node);
+    }
+
     kfree(process->name);
     mem_free(process->kstack - PROCESS_KSTACK_SIZE, PROCESS_KSTACK_SIZE, MEM_DEFAULT); // !!!: This needs to be replaced
     kfree(process);
 
     // To the next process we go
-    if (is_current_process) process_yield(1);
+    if (is_current_process) process_yield(1);   // Yield will reschedule us, scheduler will catch and destroy us.
     process_switchNextThread();
 }
