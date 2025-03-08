@@ -47,7 +47,7 @@ void pit_setTimerPhase(long hz) {
  * @brief Sleep function
  */
 void pit_sleep(uint64_t ms) {
-    // !!!: Hacked in method
+    // !!!: Hacked in method. Doesn't work on some emulators
     ms = ms / 10;
     uint64_t target_ticks = pit_ticks + ms;
     while (target_ticks > pit_ticks) {

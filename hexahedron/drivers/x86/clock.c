@@ -198,7 +198,24 @@ static void clock_setBoottime(uint64_t new_boottime) {
  * @brief Sleep function
  */
 void clock_sleepMilliseconds(uint64_t ms) {
-    pit_sleep(ms);
+    // !!!: Probably inaccurate and wasteful, but PIT doesn't play well
+    struct timeval t;
+    clock_gettimeofday(&t, NULL);
+
+    unsigned long target_seconds, target_subseconds;
+    clock_relative(ms / 1000, ms & 999, &target_seconds, &target_subseconds);
+
+    target_seconds += boottime; // !!!: Hack
+
+    while (clock_gettimeofday(&t, NULL) == 0) {
+        if (t.tv_sec > (time_t)target_seconds) {
+            return;
+        } else if (t.tv_sec == (time_t)target_seconds) {
+            if (t.tv_usec > (suseconds_t)target_subseconds) {
+                return;
+            }
+        }
+    }
 }
 
 /**
@@ -210,7 +227,6 @@ void clock_initialize() {
 
     uintptr_t end_lo, end_hi;
     uint32_t start_lo, start_hi;
-
 
     /*
     * I can't even begin to pretend I wrote this code. 
