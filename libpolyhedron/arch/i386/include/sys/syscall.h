@@ -18,7 +18,7 @@ _Begin_C_Header
 #define _SYS_SYSCALL_H
 
 /* System call instruction */
-#define SYSCALL_INSTRUCTION "int $128";
+#define SYSCALL_INSTRUCTION "int $128"
 #define SYSCALL_CLOBBERS    "memory"
 
 /* System call definitions */

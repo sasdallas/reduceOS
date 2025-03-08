@@ -17,6 +17,7 @@
 /**** INCLUDES ****/
 #include <stdint.h>
 #include <sys/types.h>
+#include <stddef.h>
 
 /**** DEFINITIONS ****/
 
@@ -52,5 +53,7 @@ void syscall_handle(syscall_t *syscall);
 /* System calls */
 void sys_exit(int status);
 int sys_open(const char *pathname, int flags, mode_t mode);
+ssize_t sys_read(int fd, void *buffer, size_t count);
+ssize_t sys_write(int fd, const void *buffer, size_t count);
 
 #endif

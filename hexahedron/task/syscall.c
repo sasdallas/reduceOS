@@ -26,6 +26,8 @@ static syscall_func_t syscall_table[] = {
     [SYS_EXIT]          = (syscall_func_t)(uintptr_t)sys_exit,
     // TODO: SYS_GETEUID
     [SYS_OPEN]          = (syscall_func_t)(uintptr_t)sys_open,
+    [SYS_READ]          = (syscall_func_t)(uintptr_t)sys_read,
+    [SYS_WRITE]         = (syscall_func_t)(uintptr_t)sys_write
 };
 
 /* Unimplemented system call */
@@ -71,4 +73,26 @@ void sys_exit(int status) {
 int sys_open(const char *pathname, int flags, mode_t mode) {
     printf("sys_open %s flags %d mode %d\n", pathname, flags, mode);
     return -EACCES;
+}
+
+/**
+ * @brief Read system calll
+ */
+ssize_t sys_read(int fd, void *buffer, size_t count) {
+    printf("sys_read fd %d buffer %p count %d\n", fd, buffer, count);
+    return 0;
+}
+
+/**
+ * @brief Write system calll
+ */
+ssize_t sys_write(int fd, const void *buffer, size_t count) {
+    if (fd == 1) {
+        // stdout
+        printf("%s", buffer);
+        return count;
+    }
+
+    printf("sys_write fd %d buffer %p count %d\n", fd, buffer, count);
+    return 0;
 }
