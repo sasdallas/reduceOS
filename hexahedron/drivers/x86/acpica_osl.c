@@ -35,6 +35,7 @@
 #include <kernel/mem/mem.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/misc/spinlock.h>
+#include <kernel/drivers/clock.h>
 #include <kernel/misc/semaphore.h>
 #include <kernel/drivers/pci.h>
 
@@ -144,9 +145,9 @@ ACPI_STATUS AcpiOsExecute(ACPI_EXECUTE_TYPE Type, ACPI_OSD_EXEC_CALLBACK Functio
     return AE_OK;
 }
 
+
 void AcpiOsSleep(UINT64 Milliseconds) {
-    // TODO: We can implement this
-    FUNC_UNIMPLEMENTED("AcpiOsSleep");
+    return clock_sleep( Milliseconds );
 }
 
 void AcpiOsStall(UINT32 Microseconds) {
