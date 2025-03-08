@@ -28,7 +28,7 @@ const char *__kernel_build_time = __TIME__;
 
 // Versioning information
 const int __kernel_version_major = 1;
-const int __kernel_version_minor = 1;
+const int __kernel_version_minor = 2;
 const int __kernel_version_lower = 0;
 
 // Codename

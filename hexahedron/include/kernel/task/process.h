@@ -128,4 +128,11 @@ process_t *process_create(char *name, int flags, int priority);
  */
 int process_execute(fs_node_t *file, int argc, char **argv);
 
+/**
+ * @brief Exiting from a process
+ * @param process The process to exit from, or NULL for current process
+ * @param status_code The status code
+ */
+void process_exit(process_t *process, int status_code);
+
 #endif

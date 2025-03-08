@@ -170,12 +170,20 @@ thread_t *scheduler_get() {
         // Now free the node
         kfree(thread_node);
 
-        if (thread->status & THREAD_STATUS_STOPPING || thread->parent->flags & PROCESS_STOPPED) {
+        if (thread->status & THREAD_STATUS_STOPPING) {
             // Update status to be STOPPED
             LOG(INFO, "Thread %p was caught in the scheduler and has been shutdown\n");
             __sync_or_and_fetch(&thread->status, THREAD_STATUS_STOPPED);
+            thread_destroy(thread);
+            continue;
         }
-    } while ((thread->status & THREAD_STATUS_STOPPED) || (thread->parent->flags & PROCESS_STOPPED));
+
+        if (thread->status & THREAD_STATUS_STOPPED) {
+            kernel_panic_extended(SCHEDULER_ERROR, "scheduler", "*** Thread %p is corrupt and should not have been owned by the scheduler.\n", thread);
+        }
+
+        break;
+    } while (1);
     
 
     // Unlock

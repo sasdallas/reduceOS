@@ -31,7 +31,7 @@ static syscall_func_t syscall_table[] = {
 };
 
 /* Unimplemented system call */
-#define SYSCALL_UNIMPLEMENTED(syscall) kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "syscall", "*** The function \"%s\" is unimplemented\n")
+#define SYSCALL_UNIMPLEMENTED(syscall) kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "syscall", "*** The system call \"%s\" is unimplemented\n", syscall)
 
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "TASK:SYSCALL", __VA_ARGS__)
@@ -64,7 +64,8 @@ void syscall_handle(syscall_t *syscall) {
  * @brief Exit system call
  */
 void sys_exit(int status) {
-    SYSCALL_UNIMPLEMENTED("SYS_EXIT");
+    printf("sys_exit %d\n", status);
+    process_exit(NULL, status);
 }
 
 /**

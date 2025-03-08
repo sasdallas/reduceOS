@@ -75,4 +75,10 @@ typedef struct thread {
  */
 thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoint, int flags);
 
+/**
+ * @brief Destroys a thread. ONLY CALL ONCE THE THREAD IS FULLY READY TO BE DESTROYED
+ * @param thr The thread to destroy
+ */
+int thread_destroy(thread_t *thr);
+
 #endif

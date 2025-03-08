@@ -83,14 +83,14 @@ void __attribute__((noreturn)) process_switchNextThread() {
     arch_prepare_switch(current_cpu->current_thread);
 
     // Get set..
-    current_cpu->current_thread->status |= THREAD_STATUS_RUNNING;
+    __sync_or_and_fetch(&current_cpu->current_thread->status, THREAD_STATUS_RUNNING);
     
     // Go!
-    #ifdef __ARCH_I386__
-    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, next_thread->parent->name, current_cpu->current_thread->context.eip, current_cpu->current_thread->context.esp, current_cpu->current_thread->context.ebp);
-    #else
-    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, current_cpu->current_thread->parent->name, current_cpu->current_thread->context.rip, current_cpu->current_thread->context.rsp, current_cpu->current_thread->context.rbp);
-    #endif
+    // #ifdef __ARCH_I386__
+    // dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, next_thread->parent->name, current_cpu->current_thread->context.eip, current_cpu->current_thread->context.esp, current_cpu->current_thread->context.ebp);
+    // #else
+    // dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, current_cpu->current_thread->parent->name, current_cpu->current_thread->context.rip, current_cpu->current_thread->context.rsp, current_cpu->current_thread->context.rbp);
+    // #endif
 
     task_switches += 1;
     arch_load_context(&current_cpu->current_thread->context);
@@ -146,8 +146,8 @@ void process_yield(uint8_t reschedule) {
     // On your mark... (load kstack)
     arch_prepare_switch(current_cpu->current_thread);
 
-    // Get set.. (set as running - do this differently?)
-    current_cpu->current_thread->status |= THREAD_STATUS_RUNNING;
+    // Get set..
+    __sync_or_and_fetch(&current_cpu->current_thread->status, THREAD_STATUS_RUNNING);
     
     // Go!
     #ifdef __ARCH_I386__
@@ -351,3 +351,47 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
 
     return 0;
 } 
+
+/**
+ * @brief Exiting from a process
+ * @param process The process to exit from, or NULL for current process
+ * @param status_code The status code
+ */
+void process_exit(process_t *process, int status_code) {
+    if (!process) process = current_cpu->current_process;
+    if (!process) kernel_panic_extended(KERNEL_BAD_ARGUMENT_ERROR, "process", "*** Cannot exit from non-existant process\n");
+    
+    int is_current_process = (process == current_cpu->current_process);
+
+    // The scheduler itself ignores the process state, so mark it as stopped
+    // __sync_or_and_fetch(&process->flags, PROCESS_STOPPED);
+    process->flags |= PROCESS_STOPPED;
+
+    // Now we need to mark all threads of this process as stopping. This will ensure that memory is fully separate
+    if (process->main_thread) __sync_or_and_fetch(&process->main_thread->status, THREAD_STATUS_STOPPING);
+    
+    if (process->thread_list && process->thread_list->length) {
+        foreach(thread_node, process->thread_list) {
+            if (thread_node->value) {
+                thread_t *thr = (thread_t*)thread_node->value;
+                __sync_or_and_fetch(&thr->status, THREAD_STATUS_STOPPING);
+            }
+        }
+    }
+
+    // Destroy thread list
+    if (process->thread_list) list_destroy(process->thread_list, false);
+
+    LOG(INFO, "Freeing memory for process \"%s\"...\n", process->name);
+
+    // Free whatever memory remains
+    tree_remove(process_tree, process->node);
+    kfree(process->node);
+    kfree(process->name);
+    mem_free(process->kstack - PROCESS_KSTACK_SIZE, PROCESS_KSTACK_SIZE, MEM_DEFAULT); // !!!: This needs to be replaced
+    kfree(process);
+
+    // To the next process we go
+    if (is_current_process) process_yield(1);
+    process_switchNextThread();
+}

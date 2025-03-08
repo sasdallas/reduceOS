@@ -15,7 +15,11 @@
 #include <kernel/mem/alloc.h>
 #include <kernel/mem/mem.h>
 #include <kernel/drivers/clock.h>
+#include <kernel/debug.h>
 #include <string.h>
+
+/* Log method */
+#define LOG(status, ...) dprintf_module(status, "TASK:THREAD", __VA_ARGS__)
 
 /**
  * @brief Create a new thread (internal)
@@ -73,3 +77,15 @@ thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoin
     return thr;
 }
 
+/**
+ * @brief Destroys a thread. ONLY CALL ONCE THE THREAD IS FULLY READY TO BE DESTROYED
+ * @param thr The thread to destroy
+ */
+int thread_destroy(thread_t *thr) {
+    if (!thr) return 1;
+
+    // TODO: Free memory
+    LOG(INFO, "Thread %p has exited successfully\n", thr);
+
+    return 0;
+}
