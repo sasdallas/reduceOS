@@ -100,4 +100,8 @@
 #define EWOULDBLOCK EAGAIN	/* Operation would block */
 #define ERESTARTSYS 512     /* Restart system call*/
 
+#ifndef __LIBK
+extern int errno;
+#endif
+
 #endif
