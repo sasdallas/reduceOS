@@ -226,3 +226,101 @@ halSystemCallInterrupt:
     pushq $0x00
     pushq $128
     jmp halCommonIRQHandler
+
+/* System call entrypoint (for SYSCALL instruction) */
+.global halSyscallEntrypoint
+.extern hal_syscallHandler
+halSyscallEntrypoint:
+    swapgs                          // CS isn't pushed, this only happens from usermode
+
+    /* Fix stacks. Stolen from Toaru */
+    mov %rsp, %gs:0x30
+    mov %gs:0x28, %rsp
+
+    /* Now we need to make a struct regs layout ourselves */
+    pushq $0x23                     // SS
+    pushq %gs:0x30                  // RSP
+    push %r11                       // AMD: "SYSCALL" stores EFLAGS in R11
+    pushq $0x1b                     // CS
+    push %rcx                       // AMD: "SYSCALL" stores RIP in RCX
+
+    // This is really stupid because we can't really touch RCX/R11 so we have to restore them
+    pushq $0                        // err_code
+    pushq $128                      // int_no
+
+    push %rax                       // RAX
+    push %rbx                       // RBX
+    pushq $0                        // Don't bother pushing RCX
+    push %rdx                       // RDX
+    push %rsi                       // RSI
+    push %rdi                       // RDI
+    push %rbp                       // RBP
+    
+    push %r15                       // R15
+    push %r14                       // R14
+    push %r13                       // R13
+    push %r12                       // R12
+    pushq $0                        // Don't bother pushing R11
+    push %r10                       // R10
+    push %r9                        // R9
+    push %r8                        // R8
+
+    movw %ds, %ax
+    pushw %ax
+
+    /* This is pushing extended extended registers */
+    
+    /* Toss the stack to below the idtr (uint16 + uint64 = 10 bytes * 2 = 20 bytes) */
+    sub $20, %rsp
+    sgdt (%rsp)
+    sidt 10(%rsp)
+
+    movq %cr4, %rax
+    pushq %rax
+    movq %cr3, %rax
+    pushq %rax
+    movq %cr2, %rax
+    pushq %rax
+    movq %cr0, %rax
+    pushq %rax
+
+    leaq 52(%rsp), %rax             // Load address of registers_t
+
+    movq %rax, %rdi                 // registers_t
+    movq %rsp, %rsi                 // extended_registers_t
+    call hal_syscallHandler 
+    
+    
+    /* Skip over extended registers */
+    add $52, %rsp
+
+    /* Start popping registers */
+    popw %ax
+
+    pop %r8
+    pop %r9
+    pop %r10
+    add $8, %rsp
+    pop %r12
+    pop %r13
+    pop %r14
+    pop %r15
+
+    pop %rbp
+    pop %rdi
+    pop %rsi
+    pop %rdx
+    add $8, %rsp
+    pop %rbx
+    pop %rax
+
+    /* Get RIP and restore stack/efl */
+    add $16, %rsp
+    pop %rcx
+    add $8, %rsp  
+    pop %r11
+    pop %rsp
+
+    /* Go! */
+    swapgs
+    sysretq 

@@ -25,6 +25,7 @@
 #include <kernel/arch/x86_64/cpu.h>
 #include <kernel/arch/x86_64/smp.h>
 #include <kernel/arch/x86_64/mem.h>
+#include <kernel/arch/x86_64/interrupt.h>
 
 // General
 #include <kernel/kernel.h>
@@ -212,6 +213,26 @@ void arch_set_gsbase(uintptr_t base) {
 }
 
 /**
+ * @brief Set the SYSCALL handler
+ */
+void arch_initialize_syscall_handler() {
+    // First we need to enable usage of SYSCALL/SYSRET
+    uint32_t efer_lo, efer_hi;
+    cpu_getMSR(X86_64_MSR_EFER, &efer_lo, &efer_hi);
+    efer_lo |= 1;
+    cpu_setMSR(X86_64_MSR_EFER, efer_lo, efer_hi);
+
+    // Now we need to configure STAR (segment bases)
+    cpu_setMSR(X86_64_MSR_STAR, 0x00, ((0x1B) << 16) | 0x08);
+
+    // Set bases in LSTAR
+    cpu_setMSR(X86_64_MSR_LSTAR, ((uintptr_t)&halSyscallEntrypoint & 0xFFFFFFFF), ((uintptr_t)&halSyscallEntrypoint >> 32));
+
+    // Configure SFMASK to clear direction flag, IF, and TF
+    cpu_setMSR(X86_64_MSR_SFMASK, 0x700, 0);
+}
+
+/**
  * @brief Main architecture function
  */
 void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
@@ -223,6 +244,9 @@ void arch_main(multiboot_t *bootinfo, uint32_t multiboot_magic, void *esp) {
 
     // Initialize the hardware abstraction layer
     hal_init(HAL_STAGE_1);
+
+    // Syscall handler
+    arch_initialize_syscall_handler();
 
     // Align kernel address
     highest_kernel_address += PAGE_SIZE;

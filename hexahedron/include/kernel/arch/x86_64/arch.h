@@ -97,4 +97,9 @@ void arch_panic_traceback(int depth, registers_t *regs);
  */
 void arch_set_gsbase(uintptr_t base);
 
+/**
+ * @brief Set the SYSCALL handler
+ */
+void arch_initialize_syscall_handler();
+
 #endif

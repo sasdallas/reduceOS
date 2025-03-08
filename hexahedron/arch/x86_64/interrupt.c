@@ -34,6 +34,7 @@ x86_64_gdt_t gdt[MAX_CPUS] __attribute__((used)) = {{
             {0xFFFF, 0x0000, 0x00, 0x92, 0xAF, 0x00},       // 64-bit kernel-mode data segment
             {0xFFFF, 0x0000, 0x00, 0xFA, 0xAF, 0x00},       // 64-bit user-mode code segment
             {0xFFFF, 0x0000, 0x00, 0xF2, 0xAF, 0x00},       // 64-bit user-mode data segment
+            {0xFFFF, 0x0000, 0x00, 0xFA, 0xAF, 0x00},       // (another) 64-bit user-mode code segment for SYSCALL instruction
             {0x0067, 0x0000, 0x00, 0xE9, 0x00, 0x00},       // 64-bit TSS
         },
         {0x00000000, 0x00000000}                            // Additional TSS data
@@ -106,10 +107,10 @@ static void hal_setupGDTCoreData(int core) {
 
     // Configure the TSS entry
     uintptr_t tss = (uintptr_t)&gdt[core].tss;
-    gdt[core].table.entries[5].limit = sizeof(gdt[core].tss);
-    gdt[core].table.entries[5].base_lo = (tss & 0xFFFF);
-    gdt[core].table.entries[5].base_mid = (tss >> 16) & 0xFF;
-    gdt[core].table.entries[5].base_hi = (tss >> 24) & 0xFF;
+    gdt[core].table.entries[6].limit = sizeof(gdt[core].tss);
+    gdt[core].table.entries[6].base_lo = (tss & 0xFFFF);
+    gdt[core].table.entries[6].base_mid = (tss >> 16) & 0xFF;
+    gdt[core].table.entries[6].base_hi = (tss >> 24) & 0xFF;
     gdt[core].table.tss_extra.base_higher = (tss >> 32) & 0xFFFFFFFFF;
 }
 
@@ -119,6 +120,7 @@ static void hal_setupGDTCoreData(int core) {
  */
 void hal_loadKernelStack(uintptr_t stack) {
     gdt[smp_getCurrentCPU()].tss.rsp[0] = stack;
+    current_cpu->kstack = stack;
 }
 
 /**
@@ -139,7 +141,7 @@ void hal_gdtInitCore(int core, uintptr_t rsp) {
         "movw %%ax, %%ds\n"
         "movw %%ax, %%es\n"
         "movw %%ax, %%ss\n"
-        "movw $0x28, %%ax\n" // 0x28 = 6th entry in the GDT (TSS)
+        "movw $0x30, %%ax\n" // 0x30 = 7th entry in the GDT (TSS)
         "ltr %%ax\n"
         :: "m"(gdt[core].gdtr) : "rax"
     ); 
@@ -163,7 +165,7 @@ void hal_gdtInit() {
         "movw %%ax, %%ds\n"
         "movw %%ax, %%es\n"
         "movw %%ax, %%ss\n"
-        "movw $0x28, %%ax\n" // 0x28 = 6th entry in the GDT (TSS)
+        "movw $0x30, %%ax\n" // 0x30 = 7th entry in the GDT (TSS)
         "ltr %%ax\n"
         :: "m"(gdt[0].gdtr) : "rax"
     ); 
@@ -297,6 +299,13 @@ void hal_exceptionHandler(registers_t *regs, extended_registers_t *regs_extended
     for (;;);
 }
 
+
+/**
+ * @brief System call handler
+ */
+void hal_syscallHandler(registers_t *regs, extended_registers_t *regs_extended) {
+    dprintf(DEBUG, "Syscall @ RIP %p\n", regs->rip);
+}
 
 /**
  * @brief Common interrupt handler

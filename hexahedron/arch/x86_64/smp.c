@@ -81,6 +81,7 @@ __attribute__((noreturn)) void smp_finalizeAP() {
     
     // Set GSbase
     arch_set_gsbase((uintptr_t)&processor_data[smp_getCurrentCPU()]);
+    arch_initialize_syscall_handler();
 
     // We want all cores to have a consistent GDT
     hal_gdtInitCore(smp_getCurrentCPU(), _ap_stack_base);
@@ -189,6 +190,9 @@ int smp_init(smp_info_t *info) {
         }
     }
 
+    // Collect AP info for CPU0
+    smp_collectAPInfo(0);
+    
     // Finished! Unmap bootstrap code
     memcpy((void*)bootstrap_page_remap, (void*)temp_frame_remap, PAGE_SIZE);
     mem_unmapPhys(temp_frame_remap, PAGE_SIZE);

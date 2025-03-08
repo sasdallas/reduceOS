@@ -45,6 +45,13 @@ typedef struct _processor {
                                         // TODO: Maybe use thread instead of storing pointer to process structure
 
 #if defined(__ARCH_X86_64__) || defined(__ARCH_I386__)
+
+    // Another hack sourced from Toaru
+#ifdef __ARCH_X86_64__
+    uintptr_t kstack;                   // (0x40) Kernel-mode stack loaded in TSS
+    uintptr_t ustack;                   // (0x48) Usermode stack, saved in SYSCALL entrypoint    
+#endif
+
     int lapic_id;
 
     /* CPU basic information */
@@ -53,6 +60,7 @@ typedef struct _processor {
     int cpu_model_number;
     int cpu_family;
 #endif
+    
 
 } processor_t;
 
