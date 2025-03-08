@@ -129,6 +129,11 @@
 #define EHCI_PACKET_OUT                 0x00
 #define EHCI_PACKET_SETUP               0x02
 
+/* Legacy support */
+#define USBLEGSUP                       0x00        // USBLEGSUP
+#define USBLEGSUP_HC_BIOS               0x10000     // BIOS Owned Semaphore
+#define USBLEGSUP_HC_OS                 0x1000000   // OS Owned Semaphore
+
 /**** TYPES ****/
 
 /**
@@ -324,7 +329,8 @@ typedef struct ehci {
     pool_t *td_pool;            // TD pool
 
     // Queue heads
-    list_t *qh_list;            // List of queue heads
+    list_t *periodic_list;      // List of periodic queue heads
+    list_t *async_list;         // List of asyncronous queue heads
 } ehci_t;
 
 /**** MACROS ****/

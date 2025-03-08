@@ -3,8 +3,10 @@
  * @brief Enhanced Host Controller Interface driver
  * 
  * @note This driver is shoddy and needs some work.
- * @todo Destruction of QH/TDs
- * 
+ * @todo Support for VBox and Bochs
+ * @todo Refine USBLEGSUP code
+ * @todo Put CONTROL transfers in asyncronous
+ *
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -189,8 +191,11 @@ ehci_td_t *ehci_createTD(ehci_t *hc, int speed, uint32_t toggle, uint32_t type, 
     
     // Data buffer. Note that for buffer #0 offsets can be used
     td->buffer[0] = (uint32_t)(uintptr_t)data;
+
+#ifdef __ARCH_X86_64__
     td->ext_buffer[0] = (uint32_t)((uintptr_t)data >> 32);
-    
+#endif    
+
     // Configure other buffers
     uintptr_t data_aligned = (uintptr_t)data & ~0xFFF;
 
@@ -198,12 +203,88 @@ ehci_td_t *ehci_createTD(ehci_t *hc, int speed, uint32_t toggle, uint32_t type, 
         // Go up a page and setup buffers
         data_aligned += 0x1000;
         td->buffer[i] = (uint32_t)(uintptr_t)data;
+#ifdef __ARCH_X86_64__
         td->ext_buffer[i] = (uint32_t)((uintptr_t)data >> 32);
+#endif
     }
 
     // Done!
     // LOG(DEBUG, "[TD:SETUP] New TD created at %p/%p - type 0x%x speed %i toggle 0x%x\n", td, LINK(td) << 5, type, speed, toggle);
     return td;
+}
+
+/**
+ * @brief Destroy, unlink, and free a queue head. This frees all TDs as well
+ * @param controller The controller
+ * @param qh The queue head
+ */
+void ehci_destroyQH(USBController_t *controller, ehci_qh_t *qh) {
+    ehci_t *hc = HC(controller);
+
+    // We need to first unlink the queue head from the chain
+    spinlock_acquire(&ehci_lock);
+    node_t *node = list_find(hc->periodic_list, (void*)qh);
+    
+    if (!node) {
+        // Check asyncronous
+        node = list_find(hc->async_list, (void*)qh);
+    }
+
+    if (node) {
+        // Unlink
+        if (node->prev && node->prev->value) {
+            ehci_qh_t *qh_prev = (ehci_qh_t*)node->prev->value;
+
+            // Do we need to process the next queue head?
+            if (!qh->qhlp.terminate) {
+                // The list doesn't terminate, we have to link our next queue heads
+                if (!node->next || !node->next->value) {
+                    LOG(ERR, "Queue head does not terminate but the list does not contain a next queue head!\n");
+                }
+                ehci_qh_t *qh_next = (ehci_qh_t*)node->next->value;
+                QH_LINK_QH(qh_prev, qh_next);
+            } else {
+                QH_LINK_TERM(qh_prev);
+                qh_prev->qhlp.qhlp = 0;
+            }
+
+            // Delete from list
+            if (node->owner == (void*)hc->async_list) {
+                list_delete(hc->async_list, node);
+            } else {
+                list_delete(hc->periodic_list, node);
+            }
+
+            kfree(node);
+        } else {
+            // This means they tried to remove hc->async_qh or the base periodic QH
+            // Not allowed - this means we'd have to update hc->frame_list or rewrite ASYNCLISTADDR
+            LOG(WARN, "Possible attempted removal of root asyncronous/periodic QH. This is not supported - cannot restructure chain\n");
+            return;
+        }
+    } else {
+        LOG(WARN, "Tried to destroy queue head that is not apart of HC list\n");
+    }
+
+    // Zero out the td fields
+    qh->td_next.terminate = 1;
+    qh->td_next.lp = 0;
+
+    // Each TD is allocated to a pool
+    foreach(td_node, qh->td_list) {
+        if (td_node->value) {
+            ehci_td_t *td = (ehci_td_t*)td_node->value;
+            // LOG(DEBUG, "[TD:FREE] TD at %p destroyed\n", td);
+            pool_freeChunk(hc->td_pool, (uintptr_t)td);
+        }
+    }
+
+    list_destroy(qh->td_list, false);
+
+    // Free the queue head
+    // LOG(DEBUG, "[QH:FREE] QH at %p destroyed\n", qh);
+    pool_freeChunk(hc->qh_pool, (uintptr_t)qh);
+    spinlock_release(&ehci_lock);
 }
 
 /**
@@ -258,10 +339,11 @@ int ehci_probe(USBController_t *controller) {
         uint32_t port_addr = EHCI_REG_PORTSC + (port*sizeof(uint32_t));
 
         // Reset the port
-        LOG(DEBUG, "EHCI resetting port 0x%x\n", hc->op_base + port_addr);
         ehci_writePort(hc, port_addr, EHCI_PORTSC_RESET);
         clock_sleep(100);
         ehci_clearPort(hc, port_addr, EHCI_PORTSC_RESET);
+
+        LOG(DEBUG, "EHCI resetting port 0x%x (status: %08x)\n", hc->op_base + port_addr, EHCI_OP_READ32(EHCI_REG_PORTSC + (port*4)));
 
         int port_enabled = 0;
         
@@ -419,15 +501,18 @@ int ehci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
 
     // Insert it into the chain
     spinlock_acquire(&ehci_lock);
-    ehci_qh_t *current = (ehci_qh_t*)hc->qh_list->head->value;
+    ehci_qh_t *current = (ehci_qh_t*)hc->periodic_list->head->value;
     QH_LINK_QH(current, qh);
-    list_append(hc->qh_list, (void*)qh);
+    list_append(hc->periodic_list, (void*)qh);
     spinlock_release(&ehci_lock);
 
     // Wait for transfer to finish
     while (transfer->status == USB_TRANSFER_IN_PROGRESS) {
         ehci_waitForQH(controller, qh);
     }
+
+    // Destroy queue head
+    ehci_destroyQH(controller, qh);
 
     return transfer->status;
 }
@@ -526,15 +611,15 @@ int driver_init(int argc, char **argv) {
     hc->qh_pool = pool_create("ehci qh pool", sizeof(ehci_qh_t), 512 * sizeof(ehci_qh_t), 0, POOL_DMA);
     hc->td_pool = pool_create("ehci qtd pool", sizeof(ehci_td_t), 512 * sizeof(ehci_td_t), 0, POOL_DMA);
 
-    // Create the queue head list
-    hc->qh_list = list_create("ehci qh list");
-    
+    // Create the queue head lists
+    hc->periodic_list = list_create("ehci periodic qh list");
+    hc->async_list = list_create("ehci async qh list");
+
     // Setup the periodic list
     ehci_qh_t *qh = ehci_allocateQH(hc);
-    list_append(hc->qh_list, (void*)qh);
+    list_append(hc->periodic_list, (void*)qh);
     QH_LINK_TERM(qh);
     qh->td_next.terminate = 1;
-    // qh->td_next_alt.terminate = 1;
     
     // The QH that we just created will serve as the periodic base
     // Depending on the transfer, a queue head can be added to the periodic queue (best for interrupt transfers) or the async queue (best for control transfers)
@@ -556,7 +641,7 @@ int driver_init(int argc, char **argv) {
     qh->td_current = 1;
     QH_LINK_TERM(hc->qh_async);
     hc->qh_async->td_next.terminate = 1;
-    // hc->qh_async->td_next_alt.terminate = 1;
+    list_append(hc->async_list, (void*)hc->qh_async);
 
     // Register the interrupt handler
     uint8_t irq = pci_getInterrupt(PCI_BUS(ehci_device), PCI_SLOT(ehci_device), PCI_FUNCTION(ehci_device));
@@ -572,7 +657,54 @@ int driver_init(int argc, char **argv) {
     hal_registerInterruptHandlerContext(irq, ehci_irq, (void*)hc);
 
 
-    // Now configure the EHCI controller
+    // We need to take over the controller. Read EECP
+    uint32_t eecp = (EHCI_CAP_READ32(EHCI_REG_HCCPARAMS) & EHCI_HCCPARAMS_EECP) >> EHCI_HCCPARAMS_EECP_SHIFT;
+    if (eecp >= 0x40) {
+        uint32_t legsup = pci_readConfigOffset(PCI_BUS(ehci_device), PCI_SLOT(ehci_device), PCI_FUNCTION(ehci_device), eecp + USBLEGSUP, 4);
+
+        if (legsup != PCI_NONE && legsup & USBLEGSUP_HC_BIOS) {
+            LOG(INFO, "Legacy support indicates BIOS still owns EHCI controller - taking\n");
+
+            pci_writeConfigOffset(PCI_BUS(ehci_device), PCI_SLOT(ehci_device), PCI_FUNCTION(ehci_device), eecp + USBLEGSUP, legsup | USBLEGSUP_HC_OS);
+            
+            
+            int timeout = 2000;
+            while (timeout) {
+                uint32_t legsup = pci_readConfigOffset(PCI_BUS(ehci_device), PCI_SLOT(ehci_device), PCI_FUNCTION(ehci_device), eecp + USBLEGSUP, 4);
+                if (!(legsup & USBLEGSUP_HC_BIOS) && (legsup & USBLEGSUP_HC_OS)) {
+                    LOG(INFO, "EHCI controller owned\n");
+                    break;
+                }
+
+                clock_sleep(10);
+                timeout -= 10;
+            }
+
+            if (timeout <= 0) {
+                LOG(ERR, "Failed to take ownership of EHCI controller. This could be a bug in the kernel. Trying to continue anyways.\n");
+            }
+        }
+    }
+    
+    // Now reset the EHCI controller
+    if (EHCI_OP_READ32(EHCI_REG_USBCMD) & EHCI_USBCMD_RS) {
+        // Clear R/S bit as HCRESET cannot be set when running
+        LOG(INFO, "Disabling R/S, USBCMD = %08x\n", EHCI_OP_READ32(EHCI_REG_USBCMD));
+        EHCI_OP_WRITE32(EHCI_REG_USBCMD, (EHCI_OP_READ32(EHCI_REG_USBCMD) & ~(EHCI_USBCMD_RS)));
+    }
+
+    // TODO: Make sure HCHalted is set in USBSTS
+
+    LOG(INFO, "Reset host controller now (USBCMD = %08x)\n", EHCI_OP_READ32(EHCI_REG_USBCMD));
+    EHCI_OP_WRITE32(EHCI_REG_USBCMD, EHCI_USBCMD_HCRESET);
+    while (EHCI_OP_READ32(EHCI_REG_USBCMD) & EHCI_USBCMD_HCRESET) {
+        asm ("pause");
+    }
+    LOG(INFO, "Reset host controller success\n");
+
+
+
+    // Start the EHCI controller
     // See section 4.1 of the EHCI specification for further details
 
     // Program the CTRLDSSEGMENT with our segment
@@ -588,9 +720,19 @@ int driver_init(int argc, char **argv) {
 
     // Write USBCMD to have an ITC of 8, enable periodic/async scheduling, and run
     EHCI_OP_WRITE32(EHCI_REG_USBCMD, ((8 << EHCI_USBCMD_ITC_SHIFT) | EHCI_USBCMD_PSE | EHCI_USBCMD_ASE | EHCI_USBCMD_RS));
-    EHCI_OP_WRITE32(EHCI_REG_CONFIGFLAG, 1);
 
-    LOG(DEBUG, "sizeof TD: %d QH: %d\n", sizeof(ehci_td_t), sizeof(ehci_qh_t));
+    // Wait for controller to spinup
+    LOG(DEBUG, "Waiting for controller to start...\n");
+    while (EHCI_OP_READ32(EHCI_REG_USBSTS) & EHCI_USBSTS_HCHALTED) {
+        asm volatile ("pause");
+    }
+
+    // Set CF
+    EHCI_OP_WRITE32(EHCI_REG_CONFIGFLAG, 1);
+    clock_sleep(200);
+
+    uint16_t hci_version = EHCI_CAP_READ16(EHCI_REG_HCIVERSION);
+    LOG(INFO, "EHCI controller online - interface version %d.%d\n", (hci_version >> 8), (hci_version >> 4) & 0xF);
 
     // Create controller structure
     USBController_t *controller = usb_createController((void*)hc, NULL); // TODO: No polling method
