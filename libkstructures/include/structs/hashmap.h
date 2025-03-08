@@ -18,6 +18,11 @@
 #include <stdint.h>
 #include <structs/list.h>
 
+/**** DEFINITIONS ****/
+
+#define HASHMAP_PTR         0   // All keys in the hashmap are pointers and can be hashed
+#define HASHMAP_INT         1   // All keys in the hashmap are integers and cannot be hashed
+
 /**** TYPES ****/
 
 // Node used in hashmap
@@ -29,6 +34,7 @@ typedef struct _hashmap_node {
 
 // Hashmap
 typedef struct _hashmap {
+    int type;                   // Type (HASHMAP_PTR or HASHMAP_INT)
     char *name;                 // Optional name
     size_t size;                // Size of the hashmap
     hashmap_node_t **entries;   // List of nodes in the hashmap (sourced from old reduceOS hashmap impl.)
@@ -43,6 +49,14 @@ typedef struct _hashmap {
  * @param size The amount of entries in the hashmap.
  */
 hashmap_t *hashmap_create(char *name, size_t size);
+
+/**
+ * @brief Create a new integer hashmap
+ * @param name Optional name parameter. This is for your bookkeeping.
+ * @param size The amount of entries in the hashmap.
+ * @note An integer hashmap means that no keys in the hashmap will ever be touched in memory
+ */
+hashmap_t *hashmap_create_int(char *name, size_t size);
 
 /**
  * @brief Set value in hashmap

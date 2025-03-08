@@ -23,6 +23,11 @@
 #include <kernel/mem/alloc.h>
 #include <string.h>
 
+/* TODO: More hashmap types */
+#define HASHMAP_COMPARE(a, b) ((hashmap->type == HASHMAP_INT) ? (a == b) : (!strncmp(a, b, 256)))
+#define HASHMAP_COPY(a) ((hashmap->type == HASHMAP_INT) ? a : strdup(a))
+#define HASHMAP_HASH(a) ((hashmap->type == HASHMAP_INT) ? (unsigned long)a : hashmap_hash(a))
+#define HASHMAP_FREE(a) ((hashmap->type == HASHMAP_INT) ? 0 : kfree(a))
 
 /**
  * @brief SDBM hashing function for storing entries
@@ -47,6 +52,7 @@ unsigned long hashmap_hash(char *key) {
 hashmap_t *hashmap_create(char *name, size_t size) {
     hashmap_t *map = kmalloc(sizeof(hashmap_t));
     map->name = name;
+    map->type = HASHMAP_PTR;
     map->size = size;
     map->entries = kmalloc(sizeof(hashmap_node_t*) * size); // Every entry is allocated separately. We're instead allocating pointers.
     memset(map->entries, 0, sizeof(hashmap_node_t*) * size);
@@ -54,6 +60,22 @@ hashmap_t *hashmap_create(char *name, size_t size) {
     return map;
 }
 
+/**
+ * @brief Create a new integer hashmap
+ * @param name Optional name parameter. This is for your bookkeeping.
+ * @param size The amount of entries in the hashmap.
+ * @note An integer hashmap means that no keys in the hashmap will ever be touched in memory
+ */
+hashmap_t *hashmap_create_int(char *name, size_t size) {
+    hashmap_t *map = kmalloc(sizeof(hashmap_t));
+    map->name = name;
+    map->type = HASHMAP_INT;
+    map->size = size;
+    map->entries = kmalloc(sizeof(hashmap_node_t*) * size); // Every entry is allocated separately. We're instead allocating pointers.
+    memset(map->entries, 0, sizeof(hashmap_node_t*) * size);
+
+    return map;
+}
 
 /**
  * @brief Set value in hashmap
@@ -62,15 +84,17 @@ hashmap_t *hashmap_create(char *name, size_t size) {
  * @param value The value to set
  */
 void hashmap_set(hashmap_t *hashmap, void *key, void *value) {
+    if (!hashmap) return;
+
     // Hash the key and get the entry
-    unsigned long hash = hashmap_hash((char*)key) % hashmap->size;
+    unsigned long hash = (HASHMAP_HASH(key)) % hashmap->size;
     hashmap_node_t *entry = hashmap->entries[hash];
 
     // Check if it's NULL - if it is allocate.
     if (entry == NULL) {
         // Allocate a new node
         hashmap_node_t *node = kmalloc(sizeof(hashmap_node_t));
-        node->key = strdup(key);
+        node->key = HASHMAP_COPY(key); // !!!: desperate refining
         node->value = value;
         node->next = NULL;
         hashmap->entries[hash] = node;
@@ -80,7 +104,7 @@ void hashmap_set(hashmap_t *hashmap, void *key, void *value) {
         hashmap_node_t *last_node = NULL;
         do {
             // Check if the current entry's key is the same
-            if (!strcmp(entry->key, key)) {
+            if (HASHMAP_COMPARE(entry->key, key)) {
                 // This is an entry with the same key. Set the new value.
                 entry->value = value;
                 return;
@@ -93,7 +117,7 @@ void hashmap_set(hashmap_t *hashmap, void *key, void *value) {
 
         // Done, we came to the last entry in the chain. Tack this one on.
         hashmap_node_t *node = kmalloc(sizeof(hashmap_node_t));
-        node->key = strdup(key);
+        node->key = HASHMAP_COPY(key);
         node->value = value;
         node->next = NULL;
         last_node->next = node;
@@ -108,12 +132,12 @@ void hashmap_set(hashmap_t *hashmap, void *key, void *value) {
  */
 void *hashmap_get(hashmap_t *hashmap, void *key) {
     // Find the start of the chain.
-    unsigned long hash = hashmap_hash((char*)key) % hashmap->size;
+    unsigned long hash = HASHMAP_HASH(key) % hashmap->size;
     hashmap_node_t *entry = hashmap->entries[hash];
 
     while (entry != NULL) {
         // Find the entry we need
-        if (!strcmp(entry->key, key)) {
+        if (HASHMAP_COMPARE(entry->key, key)) {
             // Found it!
             return entry->value;
         }
@@ -133,28 +157,28 @@ void *hashmap_get(hashmap_t *hashmap, void *key) {
  */
 void *hashmap_remove(hashmap_t *hashmap, void *key) {
     // Find the start of the chain.
-    unsigned long hash = hashmap_hash((char*)key) % hashmap->size;
+    unsigned long hash = HASHMAP_HASH(key) % hashmap->size;
     hashmap_node_t *entry = hashmap->entries[hash];
 
     if (entry) {
-        if (!strcmp(entry->key, key)) {
+        if (HASHMAP_COMPARE(entry->key, key)) {
             // This is the node at the start of the chain. Remove it and use the one in front of it.
             hashmap->entries[hash] = entry->next;
             void *output = entry->value; // Return value
-            kfree(entry->key);
+            HASHMAP_FREE(entry->key);
             kfree(entry);
             return output;
         } else {
             // Now we have to iterate through each one, find the one before it and patch the chain.
             hashmap_node_t *last_node = NULL;
             do {
-                if (!strcmp(entry->key, key)) {
+                if (HASHMAP_COMPARE(entry->key, key)) {
                     // Found the entry. Patch the chain first.
                     last_node->next = entry->next;
                     
                     // Free values
                     void *output = entry->value;
-                    kfree(entry->key);
+                    HASHMAP_FREE(entry->key);
                     kfree(entry);
                     return output;
                 } else {
@@ -178,12 +202,12 @@ int hashmap_has(hashmap_t *hashmap, void *key) {
     // NOTE: We can't just call hashmap_get because the value could be NULL.
 
     // Find the start of the chain.
-    unsigned long hash = hashmap_hash((char*)key) % hashmap->size;
+    unsigned long hash = HASHMAP_HASH(key) % hashmap->size;
     hashmap_node_t *entry = hashmap->entries[hash];
 
     while (entry != NULL) {
         // Find the entry we need
-        if (!strcmp(entry->key, key)) {
+        if (HASHMAP_COMPARE(entry->key, key)) {
             // Found it!
             return 1;
         }
@@ -239,7 +263,7 @@ void hashmap_free(hashmap_t *hashmap) {
             node = node->next;
 
             // Now free it.
-            kfree(temp->key);
+            HASHMAP_FREE(temp->key);
             kfree(temp);
         }
     }
