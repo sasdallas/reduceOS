@@ -224,8 +224,6 @@ void kmain() {
     page_t *pg = mem_getPage(NULL, 0, MEM_CREATE);
     mem_allocatePage(pg, MEM_PAGE_NOT_PRESENT | MEM_PAGE_NOALLOC | MEM_PAGE_READONLY);
 
-    // Working on other things
-    for (;;);
 
     // Initialize process system
     process_init();

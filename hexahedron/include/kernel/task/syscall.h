@@ -16,10 +16,11 @@
 
 /**** INCLUDES ****/
 #include <stdint.h>
+#include <sys/types.h>
 
 /**** DEFINITIONS ****/
 
-#define SYSCALL_MAX_PARAMETERS      6
+#define SYSCALL_MAX_PARAMETERS      6       // !!!: AT THE CURRENT TIME, ONLY 5 ARE SUPPORTED
 
 /**** TYPES ****/
 
@@ -28,18 +29,28 @@
  */
 typedef struct syscall {
     int syscall_number;
-    uint32_t parameters[SYSCALL_MAX_PARAMETERS];
+    long parameters[SYSCALL_MAX_PARAMETERS];
+    long return_value;
 } syscall_t;
+
+/**
+ * @brief System call function
+ * 
+ * @warning We're treading in unknown waters here - overloading functions
+ */
+typedef long (*syscall_func_t)(long, long, long, long, long);
 
 /**** FUNCTIONS ****/
 
 /**
  * @brief Handle a system call
  * @param syscall The system call to handle
- * @returns Value
+ * @returns Nothing, but updates @c syscall->return_value
  */
-int syscall_handle(syscall_t *syscall);
+void syscall_handle(syscall_t *syscall);
 
-
+/* System calls */
+void sys_exit(int status);
+int sys_open(const char *pathname, int flags, mode_t mode);
 
 #endif

@@ -283,7 +283,9 @@ void hal_interruptHandler(registers_t *regs, extended_registers_t *regs_extended
         syscall.parameters[5] = regs->ebp;
 
         // Handle
-        regs->eax = syscall_handle(&syscall); // ???: Stack-based syscall OK?
+        syscall_handle(&syscall); // ???: Stack-based syscall OK?
+
+        regs->eax = syscall.return_value;
         return;
     }
 

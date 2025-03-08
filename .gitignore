@@ -4,3 +4,5 @@ ser_output.txt
 ser_output2.txt
 .gdb_history
 *.img
+drivers/test
+drivers/test/*
