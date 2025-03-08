@@ -60,7 +60,7 @@ typedef int (*symlink_t)(struct fs_node*, char *, char *);
 // Inode structure
 typedef struct fs_node {
     char name[256];         // Node name (max of 256)
-    mode_t mask;     // Permissions mask
+    mode_t mask;            // Permissions mask
     uid_t uid;              // User ID
     gid_t gid;              // Group ID
 

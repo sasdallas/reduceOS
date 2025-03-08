@@ -34,6 +34,7 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/fs/tarfs.h>
 #include <kernel/fs/ramdev.h>
+#include <kernel/fs/null.h>
 
 // Drivers
 #include <kernel/drivers/font.h>
@@ -113,31 +114,31 @@ void kernel_loadDrivers() {
 void kthread() {
     int iterations = 0;
     for (;;) {
-        if (current_cpu->current_process->pid == 1) {
-            terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+        // if (current_cpu->current_process->pid == 1) {
+        //     terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
 
-            #include <kernel/drivers/clock.h>
+        //     #include <kernel/drivers/clock.h>
             
             
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
-            if (!tv_start.tv_sec) tv_start = tv;
+        //     struct timeval tv;
+        //     gettimeofday(&tv, NULL);
+        //     if (!tv_start.tv_sec) tv_start = tv;
 
-            terminal_setXY(100, 100);
-            printf("==== CURRENT PROCESSES\n");
-            for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
-                if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
-                else printf("\tCPU%d: No thread/no process\n", i);
-            }
+        //     terminal_setXY(100, 100);
+        //     printf("==== CURRENT PROCESSES\n");
+        //     for (unsigned i = 0; i < arch_get_generic_parameters()->cpu_count; i++) {
+        //         if (processor_data[i].current_process && processor_data[i].current_thread) printf("\tCPU%d: Process \"%s\" (%ld ticks so far)\n", i, processor_data[i].current_process->name, processor_data[i].current_thread->total_ticks);
+        //         else printf("\tCPU%d: No thread/no process\n", i);
+        //     }
 
-            extern volatile int task_switches;
-            if ((tv.tv_sec - tv_start.tv_sec)) {
-                printf("==== TASK SWITCHES: %d (%d switches per second)\n", task_switches, task_switches / (tv.tv_sec - tv_start.tv_sec));
-            } else {
-                printf("==== TASK SWITCHES: %d (give it a second, scheduler is waking up)\n", task_switches);
-            }
-            printf("==== WE HAVE NOT CRASHED FOR %d SECONDS\n", tv.tv_sec - tv_start.tv_sec);
-        }
+        //     extern volatile int task_switches;
+        //     if ((tv.tv_sec - tv_start.tv_sec)) {
+        //         printf("==== TASK SWITCHES: %d (%d switches per second)\n", task_switches, task_switches / (tv.tv_sec - tv_start.tv_sec));
+        //     } else {
+        //         printf("==== TASK SWITCHES: %d (give it a second, scheduler is waking up)\n", task_switches);
+        //     }
+        //     printf("==== WE HAVE NOT CRASHED FOR %d SECONDS\n", tv.tv_sec - tv_start.tv_sec);
+        // }
         iterations++;
         dprintf(DEBUG, "Hi from %s! This is iteration %d\n", current_cpu->current_process->name, iterations);
         arch_pause();
@@ -165,6 +166,9 @@ void kmain() {
 
     // Startup the builtin filesystem drivers    
     tarfs_init();
+    nulldev_init();
+    zerodev_init();
+    vfs_dump();
 
     // Now we need to mount the initial ramdisk
     kernel_mountRamdisk(parameters);
@@ -188,7 +192,6 @@ void kmain() {
 
     // At this point in time if the user wants to view debugging output not on the serial console, they
     // can. Look for kernel boot argument "--debug=console"
-
     if (kargs_has("--debug") && !strcmp(kargs_get("--debug"), "console")) {
         debug_setOutput(terminal_print);
     }
@@ -209,10 +212,10 @@ void kmain() {
     // Load drivers
     if (!kargs_has("--no-load-drivers")) {
         kernel_loadDrivers();
-        printf(COLOR_CODE_GREEN     "Successfully loaded all drivers from ramdisk\n");
+        printf(COLOR_CODE_GREEN     "Successfully loaded all drivers from ramdisk\n" COLOR_CODE_RESET);
     } else {
         LOG(WARN, "Not loading any drivers, found argument \"--no-load-drivers\".\n");
-        printf(COLOR_CODE_YELLOW    "Refusing to load drivers because of kernel argument \"--no-load-drivers\" - careful!\n");
+        printf(COLOR_CODE_YELLOW    "Refusing to load drivers because of kernel argument \"--no-load-drivers\" - careful!\n" COLOR_CODE_RESET);
     }
 
 
@@ -221,6 +224,8 @@ void kmain() {
     page_t *pg = mem_getPage(NULL, 0, MEM_CREATE);
     mem_allocatePage(pg, MEM_PAGE_NOT_PRESENT | MEM_PAGE_NOALLOC | MEM_PAGE_READONLY);
 
+    // Working on other things
+    for (;;);
 
     // Initialize process system
     process_init();
