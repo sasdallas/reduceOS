@@ -9,29 +9,37 @@ OUT_OBJ_LIBK = $(OUT_OBJ)/libk
 
 # SOURCE DIRECTORIES
 SOURCE_DIRECTORIES = stdlib stdio string time
+LIBC_SOURCE_DIRECTORIES = $(SOURCE_DIRECTORIES) errno unistd
+LIBK_SOURCE_DIRECTORIES = $(SOURCE_DIRECTORIES)
 
 # Include the architecture Make configuration to allow it to add to DIRECTORIES
 include arch/$(BUILD_ARCH)/make.config
 
 # Construct our output directories
-OUTPUT_DIRECTORIES_LIBC = $(addprefix $(OUT_OBJ_LIBC)/,$(SOURCE_DIRECTORIES))
-OUTPUT_DIRECTORIES_LIBK = $(addprefix $(OUT_OBJ_LIBK)/,$(SOURCE_DIRECTORIES))
+OUTPUT_DIRECTORIES_LIBC = $(addprefix $(OUT_OBJ_LIBC)/,$(LIBC_SOURCE_DIRECTORIES))
+OUTPUT_DIRECTORIES_LIBK = $(addprefix $(OUT_OBJ_LIBK)/,$(LIBK_SOURCE_DIRECTORIES))
 
 # Construct a basic list of C sources
-C_SOURCES = $(shell find $(SOURCE_DIRECTORIES) -name "*.c")
+LIBC_C_SOURCES = $(shell find $(LIBC_SOURCE_DIRECTORIES) -name "*.c")
+LIBK_C_SOURCES = $(shell find $(LIBK_SOURCE_DIRECTORIES) -name "*.c")
 
+LIBC_ASM_SOURCES = $(shell find $(LIBC_SOURCE_DIRECTORIES) -name "*.S")
+LIBK_ASM_SOURCES = $(shell find $(LIBK_SOURCE_DIRECTORIES) -name "*.S")
 
-LIBC_C_SOURCES = $(C_SOURCES)
-LIBK_C_SOURCES = $(C_SOURCES)
-
-LIBC_C_OBJECTS = $(patsubst %.c, $(OUT_OBJ_LIBC)/%.o, $(LIBC_C_SOURCES))
+LIBC_C_OBJECTS = $(patsubst %.c, $(OUT_OBJ_LIBC)/%.o, $(LIBC_C_SOURCES)) $(patsubst %.S, $(OUT_OBJ_LIBC)/%.o, $(LIBC_ASM_SOURCES))
 LIBK_C_OBJECTS = $(patsubst %.c, $(OUT_OBJ_LIBK)/%.o, $(LIBK_C_SOURCES))
 
 
 $(OUT_OBJ_LIBC)/%.o: %.c Makefile
 	$(CC) $(LIBC_CFLAGS) -c $< -o $@
 
+$(OUT_OBJ_LIBC)/%.o: %.S Makefile
+	$(CC) $(LIBC_CFLAGS) -c $< -o $@
+
 $(OUT_OBJ_LIBK)/%.o: %.c Makefile
+	$(CC) $(LIBK_CFLAGS) -c $< -o $@
+
+$(OUT_OBJ_LIBK)/%.o: %.S Makefile
 	$(CC) $(LIBK_CFLAGS) -c $< -o $@
 
 # Build target for libk (TODO: bad naming convention)
@@ -68,6 +76,7 @@ PRINT_HEADER:
 install-headers:
 	@-mkdir -pv $(DESTDIR)$(INCLUDE_DIRECTORY)
 	@-cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDE_DIRECTORY)/
+	@-cp -R --preserve=timestamps $(ARCH_INCLUDE_DIRECTORY)/. $(DESTDIR)$(INCLUDE_DIRECTORY)/
 
 install: PRINT_HEADER CREATE_BUILD_DIRECTORIES $(DESTDIR)$(LIB_DIRECTORY)/libkpolyhedron.a $(DESTDIR)$(LIB_DIRECTORY)/libpolyhedron.a
 
