@@ -26,6 +26,7 @@
 #define THREAD_STATUS_STOPPED       0x02
 #define THREAD_STATUS_RUNNING       0x04
 #define THREAD_STATUS_SLEEPING      0x08
+#define THREAD_STATUS_STOPPING      0x10
 
 // Thread flags
 #define THREAD_FLAG_DEFAULT         0x00

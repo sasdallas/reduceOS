@@ -151,18 +151,32 @@ thread_t *scheduler_get() {
         return current_cpu->idle_process->main_thread;
     }
     
-    // Pop the next thread off the list
-    node_t *thread_node = list_popleft(thread_queue);
-    
-    // Did that work?
-    if (!thread_node || !thread_node->value) {
-        LOG(ERR, "Corrupt node %p found in scheduler during next thread grabbing\n", thread_node);
-        kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "*** No thread node found when trying to get next thread\n");
-    }
+    node_t *thread_node;
+    thread_t *thread;
 
-    // Get thread and free node
-    thread_t *thread = (thread_t*)(thread_node->value);
-    kfree(thread_node);
+    do {
+        // Pop the next thread off the list
+        thread_node = list_popleft(thread_queue);
+    
+        // Did that work?
+        if (!thread_node || !thread_node->value) {
+            LOG(ERR, "Corrupt node %p found in scheduler during next thread grabbing\n", thread_node);
+            kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "scheduler", "*** No thread node found when trying to get next thread\n");
+        }
+
+        // Get thread and free node
+        thread = (thread_t*)(thread_node->value);
+
+        // Now free the node
+        kfree(thread_node);
+
+        if (thread->status & THREAD_STATUS_STOPPING || thread->parent->flags & PROCESS_STOPPED) {
+            // Update status to be STOPPED
+            LOG(INFO, "Thread %p was caught in the scheduler and has been shutdown\n");
+            __sync_or_and_fetch(&thread->status, THREAD_STATUS_STOPPED);
+        }
+    } while ((thread->status & THREAD_STATUS_STOPPED) || (thread->parent->flags & PROCESS_STOPPED));
+    
 
     // Unlock
     spinlock_release(&scheduler_lock);
