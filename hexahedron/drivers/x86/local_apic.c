@@ -236,8 +236,8 @@ int lapic_initialize(uintptr_t lapic_address) {
     hal_registerInterruptHandler(LAPIC_SPUR_INTNO - 32, lapic_irq); // NOTE: This might fail occasionally (BSP will reinitialize APICs for each core)
     hal_registerInterruptHandler(LAPIC_TIMER_IRQ - 32, lapic_timer_irq);
 
-    // !!!: Unregister PIT IRQ
-    hal_unregisterInterruptHandler(PIT_IRQ);
+    // Disable PIT from updating
+    pit_setState(0);
 
     // Enable spurious vector register
     lapic_write(LAPIC_REGISTER_SPURINT, LAPIC_SPUR_INTNO);

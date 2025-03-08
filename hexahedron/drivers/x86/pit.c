@@ -28,7 +28,8 @@
 #include <kernel/debug.h>
 
 
-static uint64_t pit_ticks = 0; // TODO: Make clock_update conform better so we can remove this variable.
+static volatile uint64_t pit_ticks = 0; // TODO: Make clock_update conform better so we can remove this variable.
+static int pit_update = 1;
 
 /**
  * @brief Change the PIT timer phase.
@@ -43,11 +44,34 @@ void pit_setTimerPhase(long hz) {
 }
 
 /**
+ * @brief Sleep function
+ */
+void pit_sleep(uint64_t ms) {
+    // !!!: Hacked in method
+    ms = ms / 10;
+    uint64_t target_ticks = pit_ticks + ms;
+    while (target_ticks > pit_ticks) {
+        asm volatile ("pause");
+    }
+}
+
+/**
+ * @brief Change the PIT state. 
+ * 
+ * This is used when the LAPIC timer is initialized, to allow the PIT to still operate as a timer without scheduling
+ */
+void pit_setState(int enabled) {
+    pit_update = enabled;
+}
+
+/**
  * @brief IRQ handler
  */
 int pit_irqHandler(uintptr_t exception_index, uintptr_t int_number, registers_t *regs, extended_registers_t *regs_extended) {
     pit_ticks++;
     clock_update(clock_readTicks());
+
+    if (!pit_update) return 0; // Done
 
     // Check to see if we're from usermode
     if (arch_from_usermode(regs, regs_extended)) {

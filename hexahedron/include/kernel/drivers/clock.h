@@ -26,6 +26,7 @@ typedef uint64_t (*get_timer_t)(void);
 typedef uint64_t (*get_timer_raw_t)(void);
 typedef void (*get_tick_counts_t)(uint64_t, uint64_t*, uint64_t*); // This should take in current ticks, and output ticks and subticks via subdivision.
 typedef void (*set_boottime_t)(uint64_t);
+typedef void (*sleep_t)(uint64_t);
 
 // Clock device vtable
 typedef struct _clock_device_t {
@@ -36,6 +37,8 @@ typedef struct _clock_device_t {
     
     set_boottime_t set_boottime;        // Sets the architecture boot-time.
                                         // TODO: Also kill this with fire!
+
+    sleep_t sleep;                      // Sleep function (takes in ms)
 
     uint64_t boot_time; // Boot time of architecture
 } clock_device_t;

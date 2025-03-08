@@ -46,5 +46,17 @@ void pit_setTimerPhase(long hz);
  */
 void pit_initialize();
 
+/**
+ * @brief Sleep function
+ */
+void pit_sleep(uint64_t ms);
+
+/**
+ * @brief Change the PIT state. 
+ * 
+ * This is used when the LAPIC timer is initialized, to allow the PIT to still operate as a timer without scheduling
+ */
+void pit_setState(int enabled);
+
 
 #endif

@@ -15,10 +15,11 @@
 #if defined(__ARCH_I386__)
 #include <kernel/arch/i386/hal.h>
 #elif defined(__ARCH_X86_64__)
-#include <kernel/arch/i386/hal.h>
+#include <kernel/arch/x86_64/hal.h>
 #endif
 
 #include <kernel/drivers/x86/clock.h>
+#include <kernel/drivers/x86/pit.h>
 #include <kernel/drivers/clock.h>
 #include <kernel/debug.h>
 
@@ -194,6 +195,13 @@ static void clock_setBoottime(uint64_t new_boottime) {
 }
 
 /**
+ * @brief Sleep function
+ */
+void clock_sleepMilliseconds(uint64_t ms) {
+    pit_sleep(ms);
+}
+
+/**
  * @brief Initialize the CMOS-based clock driver.
  */
 void clock_initialize() {
@@ -293,6 +301,7 @@ void clock_initialize() {
     device.get_timer_raw = clock_readTSC;
     device.get_tick_counts = clock_getTickCounts;
     device.set_boottime = clock_setBoottime;
+    device.sleep = clock_sleepMilliseconds;
 
     clock_setDevice(device);
 }

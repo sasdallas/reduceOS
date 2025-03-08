@@ -67,13 +67,12 @@ uint64_t clock_getTickCount() {
  */
 void clock_sleep(size_t delay) {
     // !!!: hacked in
-    if (!clock_device.get_timer) {
+    if (!clock_device.sleep) {
         LOG(ERR, "clock_sleep called before clock initialized\n");
         return;
     }
 
-    uint64_t ticks = clock_device.get_timer();
-    while (clock_device.get_timer() < ticks + delay);
+    clock_device.sleep(delay);
 }
 
 /**
