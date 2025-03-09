@@ -209,7 +209,7 @@ void debugger_packetLoop() {
                 json_builder_free(packet);
                 return;
 
-            case PACKET_TYPE_READMEM:
+            case PACKET_TYPE_READMEM: ;
                 json_value *addr_val = debugger_getPacketField(data, "addr");
                 json_value *length_val = debugger_getPacketField(data, "length");
 
@@ -248,11 +248,11 @@ void debugger_packetLoop() {
                 json_builder_free(resp_data);
                 break;
             
-            case PACKET_TYPE_WRITEMEM:
+            case PACKET_TYPE_WRITEMEM: ;
                 UNIMPLEMENTED("PACKET_TYPE_WRITEMEM");
                 __builtin_unreachable();
             
-            case PACKET_TYPE_BP_UPDATE:
+            case PACKET_TYPE_BP_UPDATE: ;
                 json_value *address = debugger_getPacketField(data, "address");
                 json_value *operation = debugger_getPacketField(data, "operation");
 

@@ -254,7 +254,7 @@ char *vfs_canonicalizePath(char *cwd, char *addition) {
     }
 
 
-_canonicalize:
+_canonicalize: ;
     // At this point canonicalize_path holds a raw path to parse.
     // Something like: /home/blah/../other_directory/gk
     // We'll pull a trick from old coding and parse it into a list, iterate each element and go.
@@ -578,7 +578,7 @@ fs_node_t *kopen(const char *path, unsigned int flags) {
         return NULL;
     }
 
-_finish_node:
+_finish_node: ;
     // Always clone the node to prevent mucking around with datastructures.
     fs_node_t *retnode = kmalloc(sizeof(fs_node_t));
     memcpy(retnode, node, sizeof(fs_node_t));

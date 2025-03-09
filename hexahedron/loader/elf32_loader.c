@@ -117,7 +117,7 @@ uintptr_t elf_getSymbolAddress(Elf32_Ehdr *ehdr, int table, uintptr_t idx, int f
 
     // Let's check what we need to do with the symbol
     switch (symbol->st_shndx) {
-        case SHN_UNDEF:
+        case SHN_UNDEF: ;
             // This means that we need to lookup the value (ext. symbol).
             Elf32_Shdr *strtab = ELF_SECTION(ehdr, symtab->sh_link);
             char *name = (char*)ehdr + strtab->sh_offset + symbol->st_name;
@@ -145,7 +145,7 @@ uintptr_t elf_getSymbolAddress(Elf32_Ehdr *ehdr, int table, uintptr_t idx, int f
             // Absolute symbol
             return symbol->st_value;
         
-        default:
+        default: ;
             // Internally defined symbol
             Elf32_Shdr *target = ELF_SECTION(ehdr, symbol->st_shndx);
             return (uintptr_t)ehdr + symbol->st_value + target->sh_offset;
@@ -183,7 +183,7 @@ static uintptr_t elf_relocateSymbol(Elf32_Ehdr *ehdr, Elf32_Rel *rel, Elf32_Shdr
             // No relocation
             break;
         
-        case R_386_32:
+        case R_386_32: 
             // Symbol + Offset
             *ref = RELOCATE_386_32(symval, *ref);
             break;

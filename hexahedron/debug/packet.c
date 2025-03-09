@@ -128,7 +128,7 @@ static debug_packet_t *debugger_receivePacketInternal(size_t timeout_ms) {
     json_string[length] = 0;
 
     // Parse!
-    debug_packet_t *packet; 
+    debug_packet_t *packet = NULL; 
     char *error = debugger_parseJSON(json_string, &packet);
 
     if (packet == NULL) {

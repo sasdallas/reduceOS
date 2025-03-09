@@ -431,7 +431,7 @@ UINT64 AcpiOsGetTimer() {
 ACPI_STATUS AcpiOsSignal(UINT32 Function, void *Info) {
     /* It might send other stuff but we need to catch fatal signals */
     switch (Function) {
-        case ACPI_SIGNAL_FATAL:
+        case ACPI_SIGNAL_FATAL: ;
             ACPI_SIGNAL_FATAL_INFO *error_info = Info;
             kernel_panic_extended(ACPI_SYSTEM_ERROR, "ACPICA", "*** ACPI AML error: Fatal error detected. Type: 0x%x Code: 0x%x Argument: 0x%x", 
                     error_info->Type,

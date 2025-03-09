@@ -156,7 +156,7 @@ generic_parameters_t *arch_parse_multiboot2(multiboot_t *bootinfo) {
         last_module->next = module;
     }
 
-_done_modules:
+_done_modules: ;
 
     // Let's get the framebuffer
     struct multiboot_tag_framebuffer *fb_tag = (struct multiboot_tag_framebuffer*)multiboot2_find_tag(updated_bootinfo, MULTIBOOT_TAG_TYPE_FRAMEBUFFER);

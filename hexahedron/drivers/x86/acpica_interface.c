@@ -125,7 +125,7 @@ smp_info_t *ACPICA_GetSMPInfo() {
         Subtable = (ACPI_SUBTABLE_HEADER*)StartPointer;
     
         switch (Subtable->Type) {
-            case ACPI_MADT_TYPE_LOCAL_APIC:
+            case ACPI_MADT_TYPE_LOCAL_APIC: ;
                 ACPI_MADT_LOCAL_APIC *LocalApic = (ACPI_MADT_LOCAL_APIC*)Subtable;
                 LOG(DEBUG, "LOCAL APIC - ID 0x%x FLAGS 0x%x PROCESSOR ID 0x%x\n", LocalApic->Id, LocalApic->LapicFlags, LocalApic->ProcessorId);
                 
@@ -141,7 +141,7 @@ smp_info_t *ACPICA_GetSMPInfo() {
                 cpu_count++;
                 break;
 
-            case ACPI_MADT_TYPE_IO_APIC:
+            case ACPI_MADT_TYPE_IO_APIC: ;
                 ACPI_MADT_IO_APIC *IoApic = (ACPI_MADT_IO_APIC*)Subtable;
                 LOG(DEBUG, "I/O APIC - ADDR 0x%x GLOBAL IRQ 0x%x ID 0x%x\n", IoApic->Address, IoApic->GlobalIrqBase, IoApic->Id);
                 
@@ -154,7 +154,7 @@ smp_info_t *ACPICA_GetSMPInfo() {
                 smp_info->ioapic_count++;
                 break;
 
-            case ACPI_MADT_TYPE_INTERRUPT_OVERRIDE:
+            case ACPI_MADT_TYPE_INTERRUPT_OVERRIDE: ;
                 ACPI_MADT_INTERRUPT_OVERRIDE *IntOverride = (ACPI_MADT_INTERRUPT_OVERRIDE*)Subtable;
                 LOG(DEBUG, "INTERRUPT OVERRIDE - SRCIRQ 0x%x BUS 0x%x GLOBAL IRQ 0x%x INTI FLAGS 0x%x\n", IntOverride->SourceIrq, IntOverride->Bus, IntOverride->GlobalIrq, IntOverride->IntiFlags);
                 
@@ -171,7 +171,7 @@ smp_info_t *ACPICA_GetSMPInfo() {
 
                 break;
 
-            case ACPI_MADT_TYPE_LOCAL_APIC_NMI:
+            case ACPI_MADT_TYPE_LOCAL_APIC_NMI: ;
                 ACPI_MADT_LOCAL_APIC_NMI *LocalApicNmi = (ACPI_MADT_LOCAL_APIC_NMI*)Subtable;
                 LOG(DEBUG, "LOCAL APIC NMI - INTI FLAGS 0x%x LINT 0x%x PROCESSOR ID 0x%x\n", LocalApicNmi->IntiFlags, LocalApicNmi->Lint, LocalApicNmi->ProcessorId);
                 break;

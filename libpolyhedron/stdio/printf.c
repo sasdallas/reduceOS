@@ -308,7 +308,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 		// TODO: Support for %g, %f
 		switch (*f) {
 			case 'd':
-			case 'i':
+			case 'i': ;
 				// %d / %i: Signed decimal integer
 				long long dec;
 
@@ -331,7 +331,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				written += print_dec(dec, width, callback, userData, (padding == '0'), !justification, precision);
 				break;
 			
-			case 'p':
+			case 'p': ;
 				// %p: Pointer 
 				unsigned long long ptr;
 				if (sizeof(void*) == sizeof(long long)) {
@@ -343,7 +343,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				break;
 			
 			case 'x':
-			case 'X':
+			case 'X': ;
 				// %x: Hexadecimal format
 				unsigned long long hex;
 				if (length == 7) {
@@ -364,7 +364,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				written += print_hex(hex, width, callback, userData, (padding == '0'), add_special_chars, isupper(*f), !justification);
 				break;
 
-			case 'u':
+			case 'u': ;
 				// %u: Unsigned
 				unsigned long long uns;
 				if (length == 7) {
@@ -385,7 +385,7 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				written += print_dec(uns, width, callback, userData, (padding == '0'), !justification, precision);
 				break;
 
-			case 's':
+			case 's': ;
 				// %s: String
 				char *str = (char*)(va_arg(args, char*));
 				if (str == NULL) {
@@ -420,12 +420,12 @@ size_t xvasprintf(int (*callback)(void *, char), void * userData, const char * f
 				}
 				break;
 			
-			case 'c':
+			case 'c': ;
 				// %c: Singled character
 				OUT((char)(va_arg(args, int)));
 				break;
 
-			default:
+			default: ;
 				OUT(*f);
 				break;
 		}

@@ -247,7 +247,7 @@ struct dirent *tarfs_readdir(fs_node_t *node, unsigned long index) {
             fileidx++;
         }
 
-_next:
+_next: ;
         // Go to the next one, get the filesize and increment.
         // Remember that GNU devs sometimes get high, so this is encoded in octal.
         uint64_t filesize = strtoull(header->size, NULL, 8);

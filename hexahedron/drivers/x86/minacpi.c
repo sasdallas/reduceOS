@@ -178,7 +178,7 @@ smp_info_t *minacpi_parseMADT() {
         entry = (acpi_madt_entry_t*)start_pointer;
         
         switch (entry->type) {
-            case MADT_LOCAL_APIC:
+            case MADT_LOCAL_APIC: ;
                 // We found a CPU!
                 acpi_madt_lapic_t *lapic = (acpi_madt_lapic_t*)entry;
                 LOG(DEBUG, "LOCAL APIC - ID 0x%x FLAGS 0x%x PROCESSOR ID 0x%x\n", lapic->apic_id, lapic->flags, lapic->processor_id);
@@ -194,7 +194,7 @@ smp_info_t *minacpi_parseMADT() {
                 info->processor_count++;
                 cpu_count++;
                 break;
-            case MADT_IO_APIC:
+            case MADT_IO_APIC: ;
                 acpi_madt_io_apic_entry_t *ioapic = (acpi_madt_io_apic_entry_t*)entry;
                 LOG(DEBUG, "I/O APIC - ADDR %p GLOBAL IRQ 0x%x ID 0x%x\n", ioapic->ioapic_address, ioapic->global_irq_base, ioapic->ioapic_id);
 
@@ -207,7 +207,7 @@ smp_info_t *minacpi_parseMADT() {
                 info->ioapic_count++;
                 break;
             
-            case MADT_IO_APIC_INT_OVERRIDE:
+            case MADT_IO_APIC_INT_OVERRIDE: ;
                 acpi_madt_io_apic_override_t *override = (acpi_madt_io_apic_override_t*)entry;
                 LOG(DEBUG, "INTERRUPT OVERRIDE - SRCIRQ 0x%x BUS 0%x GLOBAL IRQ 0x%x INTI FLAGS 0x%x\n", override->irq_source, override->bus_source, override->gsi, override->flags);
 
@@ -223,7 +223,7 @@ smp_info_t *minacpi_parseMADT() {
 
                 break;
 
-            case MADT_LOCAL_APIC_NMI:
+            case MADT_LOCAL_APIC_NMI: ;
                 acpi_madt_lapic_nmi_t *nmi = (acpi_madt_lapic_nmi_t*)entry;
                 LOG(DEBUG, "LOCAL APIC NMI - INTI FLAGS 0x%x LINT 0x%x PROCESSOR ID 0x%x\n", nmi->flags, nmi->lint, nmi->processor_id);
                 
