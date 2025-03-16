@@ -34,6 +34,8 @@ static int net_wireless_index = 0;
  * @param type Type of the NIC
  * @param driver Driver-defined field in the NIC. Can be a structure of your choosing
  * @returns A filesystem node, setup methods and go
+ * 
+ * @note Please remember to setup your NIC's IP address fields
  */
 fs_node_t *nic_create(char *name, uint8_t *mac, int type, void *driver) {
     if (!name || !mac) return NULL;

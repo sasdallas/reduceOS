@@ -38,11 +38,16 @@
  */
 typedef struct nic {
     char name[128];                     // Name of the NIC
-    uint8_t mac[6];                     // MAC address of the NIC
-    fs_node_t *parent_node;             // Parent node of the NIC
     int type;                           // Type of the NIC
 
+    uint8_t mac[6];                     // MAC address of the NIC
+    fs_node_t *parent_node;             // Parent node of the NIC
     void *driver;                       // Driver-defined field
+
+    // TODO: Move this to another structure, perhaps
+    uint32_t ipv4_address;              // IPv4 address
+    uint32_t ipv4_subnet;               // IPv4 subnet
+    uint32_t ipv4_gateway;              // IPv4 gateway
 } nic_t;
 
 /**** MACROS ****/
@@ -57,6 +62,8 @@ typedef struct nic {
  * @param type Type of the NIC
  * @param driver Driver-defined field in the NIC. Can be a structure of your choosing
  * @returns A filesystem node, setup methods and go
+ * 
+ * @note Please remember to setup your NIC's IP address fields
  */
 fs_node_t *nic_create(char *name, uint8_t *mac, int type, void *driver);
 
