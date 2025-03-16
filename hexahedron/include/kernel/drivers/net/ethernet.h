@@ -20,6 +20,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+/**** DEFINITIONS ****/
+
+/* Ethernet broadcast MAC */
+#define ETHERNET_BROADCAST_MAC  (uint8_t[]){0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+
 /**** TYPES ****/
 
 /**
@@ -39,6 +44,12 @@ typedef struct ethernet_packet {
  * @param size The size of the packet
  */
 typedef int (*ethertype_handler_t)(void *frame, fs_node_t *nic_node, size_t size);
+
+/**** MACROS ****/
+
+/* MAC address format */
+#define MAC(mac) mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]
+#define MAC_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
 
 /**** FUNCTIONS ****/
 
