@@ -33,10 +33,9 @@ int atoi(const char *str) {
 
     // Now convert!
     int value = 0;
-    int base = 1;
     while (isdigit(*ptr)) {
-        value += (base * (*ptr - '0'));
-        base *= 10;
+        value *= 10;
+        value += ((*ptr - '0'));
         ptr++;
     }
 
