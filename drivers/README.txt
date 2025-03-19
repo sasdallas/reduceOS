@@ -35,9 +35,19 @@ TL;DR:  If you make a driver in a new subdirectory (e.g. audio/randomsoundcard),
 
 Driver environments refers to the environment of the kernel when the driver is loaded.
 This matters because the kernel does not have to load the drivers at the same time. Instead,
-it can do what I call a "preload", where the bootloader (Polyaniline) passes loaded drivers as Multiboot modules.
+it can do what I call a "preload", where the bootloader (Polyaniline) passes fully loaded drivers (ELF parsed) as Multiboot modules.
 
 The kernel can load these Multiboot modules really early in the boot process, but that means that the drivers do not
-have all of their fancy devices loaded, just the bare minimum.
+have all of their fancy devices (USB, networking, etc.), just the bare minimum.
 
 Exact specifications are to do. For now, always bet on NORMAL.
+It is unsure whether this will be removed.
+
+===== IV. Constraints
+
+Constraints are a feature that allows you to make sure drivers are loaded in the order needed.
+For example, EHCI should load before its companion controller (UHCI/OHCI) so it can take all the high-speed ports
+and let the companion controller have the others.
+
+To specify that you need a driver to load before another driver, use LOAD_BEFORE with a comma-separated list of drivers to load before.
+Be warned the build process will fail if you specify an invalid constraint.

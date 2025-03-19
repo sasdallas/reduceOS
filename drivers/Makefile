@@ -10,6 +10,9 @@ MODDIR_TARGETS_INSTALL := $(patsubst %, install-%, $(MODDIRS_RAW))
 MODDIR_TARGETS_CLEAN := $(patsubst %, clean-%, $(MODDIRS_RAW))
 MODDIRS := $(subst $e-,/,$(MODDIRS_RAW)) # such weird naming...
 
+# GNU Make does not exit on a $(shell ...) failure
+# Better have Make >4.2!
+$(if $(filter-out 0,$(.SHELLSTATUS)),$(error Failed to get driver list - nonzero exit code))
 
 all: TARGET_DISABLED
 
