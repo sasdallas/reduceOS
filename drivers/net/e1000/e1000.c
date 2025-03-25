@@ -312,7 +312,7 @@ int e1000_irq(void *context) {
     // Does the NIC have anything to say?
     uint32_t icr = E1000_RECVCMD(E1000_REG_ICR);
     if (icr) {
-        uint32_t status = E1000_RECVCMD(E1000_REG_STATUS)
+        uint32_t status = E1000_RECVCMD(E1000_REG_STATUS);
         LOG(INFO, "IRQ detected - ICR: %08x STATUS: %08x\n", icr, status); 
         E1000_SENDCMD(E1000_REG_ICR, status);
     }

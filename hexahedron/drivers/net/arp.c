@@ -165,7 +165,7 @@ int arp_search(fs_node_t *nic, in_addr_t address) {
         }
 
         if (timeout <= 0) {
-            LOG_NIC(WARN, nic, " ARP: Timed out, address not found");
+            LOG_NIC(WARN, nic, " ARP: Timed out, address not found\n");
             return 1; // Error :(
         }
     }
@@ -205,6 +205,18 @@ static void arp_reply(arp_packet_t *packet, fs_node_t *nic_node) {
 }
 
 /**
+ * @brief   Hack stolen from ToaruOS. @c inet_ntoa seems to not like being called, so while I work on that this is a TEMPORARY solution
+ *          Sorry :(
+ */
+static void ip_ntoa(const uint32_t src_addr, char * out) {
+	snprintf(out, 16, "%d.%d.%d.%d",
+		(src_addr & 0xFF000000) >> 24,
+		(src_addr & 0xFF0000) >> 16,
+		(src_addr & 0xFF00) >> 8,
+		(src_addr & 0xFF));
+}
+
+/**
  * @brief Handle ARP packet
  */
 int arp_handle_packet(void *frame, fs_node_t *nic_node, size_t size) {
@@ -218,10 +230,13 @@ int arp_handle_packet(void *frame, fs_node_t *nic_node, size_t size) {
         // Check the operation requested
         if (ntohs(packet->oper) == ARP_OPERATION_REQUEST) {
             // They're looking for someone. Who?
-            struct in_addr tpa = { .s_addr = packet->tpa };
-            struct in_addr spa = { .s_addr = packet->spa };
+			char tpa[17];
+			ip_ntoa(ntohl(packet->tpa), tpa);
 
-            LOG_NIC(DEBUG, nic_node, " ARP: Request from " MAC_FMT " (IP: %s) for IP %s\n", MAC(packet->sha), inet_ntoa(spa), inet_ntoa(tpa));
+            char spa[17];
+            ip_ntoa(ntohl(packet->spa), spa);
+
+            LOG_NIC(DEBUG, nic_node, " ARP: Request from " MAC_FMT " (IP %s) for IP %s\n", spa, MAC(packet->sha), tpa);
 
             // Cache them
             arp_add_entry((in_addr_t)packet->spa, packet->sha, ARP_TYPE_ETHERNET, nic_node);
@@ -229,16 +244,19 @@ int arp_handle_packet(void *frame, fs_node_t *nic_node, size_t size) {
             // Ok, are they looking for us?
             if (nic->ipv4_address && packet->tpa == nic->ipv4_address) {
                 // Yes, they are. Construct a response packet and send it back
-            LOG_NIC(DEBUG, nic_node, " ARP: Request from " MAC_FMT " (IP: %s) with us (" MAC_FMT ", IP %s)\n", MAC(packet->sha), inet_ntoa(spa), MAC(nic->mac), inet_ntoa((struct in_addr){ .s_addr = nic->ipv4_address } ));
+                LOG_NIC(DEBUG, nic_node, " ARP: Request from " MAC_FMT " (IP: %s) with us (" MAC_FMT ", IP %s)\n", MAC(packet->sha), spa, MAC(nic->mac), inet_ntoa((struct in_addr){ .s_addr = nic->ipv4_address } ));
                 arp_reply(packet, nic_node);
             }
         } else {
-            struct in_addr spa = { .s_addr = packet->spa };
-            LOG_NIC(DEBUG, nic_node, " ARP: Response from " MAC_FMT " to show they are IP %s\n", MAC(packet->sha), inet_ntoa(spa));
+            char spa[17];
+            ip_ntoa(ntohl(packet->spa), spa);
+            LOG_NIC(DEBUG, nic_node, " ARP: Response from " MAC_FMT " to show they are IP %s\n", MAC(packet->sha), spa);
 
             // Cache!
             arp_add_entry((in_addr_t)packet->spa, packet->sha, ARP_TYPE_ETHERNET, nic_node);
         }
+    } else {
+        LOG_NIC(DEBUG, nic_node, " ARP: Invalid protocol type %04x\n", ntohs(packet->ptype));
     }
 
     return 0;
