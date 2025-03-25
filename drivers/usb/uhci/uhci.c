@@ -32,23 +32,6 @@
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "DRIVER:UHCI", __VA_ARGS__)
 
-/* Lock */
-static spinlock_t uhci_lock = { 0 };
-
-/**
- * @brief UHCI controller find method
- * @param data Pointer to a uint32_t that will store the PCI_ADDR()
- */
-int uhci_find(uint8_t bus, uint8_t slot, uint8_t function, uint16_t vendor_id, uint16_t device_id, void *data) {
-    // We know this device is of type 0x0C03, but it's only UHCI if the interface is 0x00
-    if (pci_readConfigOffset(bus, slot, function, PCI_PROGIF_OFFSET, 1) == 0x00) {
-        *((uint32_t*)data) = PCI_ADDR(bus, slot, function, 0x0);
-        return 1; // Found it
-    }
-
-    return 0;
-}
-
 /**
  * @brief Create a queue head
  * @param hc The host controller
@@ -139,7 +122,7 @@ void uhci_destroyQH(USBController_t *controller, uhci_qh_t *qh) {
     uhci_t *hc = HC(controller);
 
     // First we need to unlink the queue head from the chain
-    spinlock_acquire(&uhci_lock);
+    spinlock_acquire(&hc->lock);
     node_t *node = list_find(hc->qh_list, (void*)qh);
     if (node) {
         uhci_qh_t *qh_prev = (uhci_qh_t*)node->prev->value;
@@ -176,7 +159,7 @@ void uhci_destroyQH(USBController_t *controller, uhci_qh_t *qh) {
     pool_freeChunk(hc->qh_pool, (uintptr_t)qh);
     // LOG(DEBUG, "[QH] QH at %p destroyed\n", qh);
 
-    spinlock_release(&uhci_lock);
+    spinlock_release(&hc->lock);
 }
 
 
@@ -383,11 +366,11 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     TD_LINK_TERM(td_status);
 
     // Insert it into the chain
-    spinlock_acquire(&uhci_lock);
+    spinlock_acquire(&hc->lock);
     uhci_qh_t *current = (uhci_qh_t*)hc->qh_list->tail->value;
     QH_LINK_QH(current, qh);
     list_append(hc->qh_list, (void*)qh);
-    spinlock_release(&uhci_lock);
+    spinlock_release(&hc->lock);
 
     // Wait for the transfer to finish
     while (transfer->status == USB_TRANSFER_IN_PROGRESS) {
@@ -402,29 +385,22 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
 
 
 
-
-
 /**
- * @brief UHCI initialize method
+ * @brief UHCI initialize controller
  */
-int uhci_init(int argc, char **argv) {
-    // Scan and find the UHCI PCI device
-    uint32_t uhci_pci = 0xFFFFFFFF;
-    if (pci_scan(uhci_find, (void*)(&uhci_pci), 0x0C03) == 0) {
-        LOG(INFO, "No UHCI controller found\n");
-        return 0;
-    }
+void uhci_initController(uint32_t uhci_pci) {
+    LOG(DEBUG, "Initializing UHCI controller on bus %d slot %d function %d\n", PCI_BUS(uhci_pci), PCI_SLOT(uhci_pci), PCI_FUNCTION(uhci_pci));
 
     // Now read in the PCI bar
     pci_bar_t *bar = pci_readBAR(PCI_BUS(uhci_pci), PCI_SLOT(uhci_pci), PCI_FUNCTION(uhci_pci), 4);
     if (!bar) {
         LOG(ERR, "UHCI controller does not have BAR4 - false positive?\n");
-        return -1;
+        return;
     }
 
     if (!(bar->type == PCI_BAR_IO_SPACE)) {
         LOG(ERR, "UHCI controller BAR4 is not I/O space - bug in PCI driver?\n");
-        return -1;
+        return;
     }
 
     // Construct a host controller
@@ -444,7 +420,7 @@ int uhci_init(int argc, char **argv) {
         LOG(ERR, "You are missing the 16-byte alignment required for TDs/QHs\n");
         LOG(ERR, "Please modify the uhci.h header file to add an extra DWORD as your architecture is 64-bit\n");
         LOG(ERR, "Require a 16-byte alignment but QH = %d and TD = %d\n", sizeof(uhci_qh_t), sizeof(uhci_td_t));
-        return 1;
+        return;
     } 
 
     
@@ -495,7 +471,28 @@ int uhci_init(int argc, char **argv) {
 
     // Register the controller
     usb_registerController(controller);
+}
 
+/**
+ * @brief UHCI controller find method
+ */
+int uhci_find(uint8_t bus, uint8_t slot, uint8_t function, uint16_t vendor_id, uint16_t device_id, void *data) {
+    // We know this device is of type 0x0C03, but it's only UHCI if the interface is 0x00
+    if (pci_readConfigOffset(bus, slot, function, PCI_PROGIF_OFFSET, 1) == 0x00) {
+        uhci_initController(PCI_ADDR(bus, slot, function, 0));
+    }
+
+    return 0;
+}
+
+
+
+/**
+ * @brief UHCI initialize method
+ */
+int uhci_init(int argc, char **argv) {
+    // Scan and find the UHCI PCI device
+    pci_scan(uhci_find, NULL, 0x0C03);
     return 0;
 }
 

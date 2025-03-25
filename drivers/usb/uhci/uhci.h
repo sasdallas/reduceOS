@@ -221,6 +221,7 @@ typedef struct uhci_qh {
 typedef struct uhci {
     uint32_t io_addr;                   // I/O base address
     uhci_flp_t *frame_list;             // Frame list (should be 4KB aligned)
+    spinlock_t lock;
 
     // Pools
     pool_t *qh_pool;                    // 16-byte aligned queue head pool (DMA)
