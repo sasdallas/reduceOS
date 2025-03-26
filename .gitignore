@@ -1,5 +1,5 @@
 .vscode/
-out/img/**
+out/
 *.vfd
 *.tags
 *.img
