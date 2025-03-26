@@ -10,6 +10,5 @@ serial_out.txt
 cppreduceOS.code-workspace
 source/newlib/newlib-build/**
 obj/**
-source/doomgeneric/build/**
-source/doomgeneric/doomgeneric
 source/sysroot
+source/initial_ramdisk/rootdir/**
