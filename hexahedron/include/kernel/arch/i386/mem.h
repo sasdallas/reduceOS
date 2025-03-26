@@ -93,32 +93,37 @@ typedef union page {
 // 0xA0000000 - 0xB0000000: Driver memory space.
 // 0xB0000000 - 0xC0000000: Physical memory cache
 // 0xC0000000 - 0xF0000000: Physical memory mapping region. Basically one big pool.
-// 0xFD000000 - 0xFFFFFFFF: Framebuffer for the kernel. It can be unmapped for later usage if needed.
+// 0xFFC00000 - 0xFFFFF000: Recursive paging location
 
 #define MEM_DMA_REGION                  (uintptr_t)0x70000000
+#define MEM_USERMODE_STACK_REGION       (uintptr_t)0x80000000
 #define MEM_MMIO_REGION                 (uintptr_t)0x90000000
 #define MEM_DRIVER_REGION               (uintptr_t)0xA0000000
 #define MEM_PHYSMEM_CACHE_REGION        (uintptr_t)0xB0000000
-#define MEM_PHYSMEM_CACHE_SIZE          (uintptr_t)0x10000000
 #define MEM_PHYSMEM_MAP_REGION          (uintptr_t)0xC0000000
-#define MEM_PHYSMEM_MAP_SIZE            (uintptr_t)0x20000000
-#define MEM_FRAMEBUFFER_REGION          (uintptr_t)0xFD000000
+// #define MEM_FRAMEBUFFER_REGION          (uintptr_t)0xFD000000
+#define MEM_RECURSIVE_PAGING_REGION     (uintptr_t)0xFFC00000
 
+#define MEM_USERMODE_STACK_SIZE         (uintptr_t)0x10000000
 #define MEM_DMA_REGION_SIZE             (uintptr_t)0x10000000 
 #define MEM_MMIO_REGION_SIZE            (uintptr_t)0x10000000
 #define MEM_DRIVER_REGION_SIZE          (uintptr_t)0x10000000 // !!!: This region is bad - we should have much more space for drivers (but i386 is so damn limited)
-
+#define MEM_PHYSMEM_MAP_SIZE            (uintptr_t)0x20000000
+#define MEM_PHYSMEM_CACHE_SIZE          (uintptr_t)0x10000000
 
 
 /**** MACROS ****/
 
 #define MEM_PAGE_SHIFT  12
+#define MEM_RECURSIVE_PAGING_ENTRY      1023 
 
 #define MEM_ALIGN_PAGE(addr) ((addr + PAGE_SIZE) & ~0xFFF) // Align an address to the nearest page
 #define MEM_ALIGN_PAGE_DESTRUCTIVE(addr) (addr & ~0xFFF) // Align an address to the nearest page, discarding any bits
 #define MEM_PAGEDIR_INDEX(x) (((x) >> (MEM_PAGE_SHIFT + 10)) & 0x3FF)
 #define MEM_PAGETBL_INDEX(x) (((x) >> MEM_PAGE_SHIFT) & 0x3FF)
 #define MEM_VIRTUAL_TO_PHYS(addr) (*addr & ~0xFFF) // Returns the physical frame address of a page.
+
+#define MEM_PAGE_TABLE(pt_index) ((uintptr_t)(MEM_RECURSIVE_PAGING_REGION | (pt_index << MEM_PAGE_SHIFT)))    // Gets a virtual address for a page
 
 #define MEM_SET_FRAME(page, frame) (page->bits.address = ((uintptr_t)frame >> MEM_PAGE_SHIFT))      // Set the frame of a page. Used because of our weird union thing.
 #define MEM_GET_FRAME(page) (page->bits.address << MEM_PAGE_SHIFT)                                  // Get the frame of a page. Used because of our weird union thing.

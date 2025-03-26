@@ -305,6 +305,8 @@ page_t *mem_clone(page_t *dir) {
         page_t *src_pde = &dir[pde];
         if (!(src_pde->bits.present)) continue; // PDE isn't present
 
+        if (pde == MEM_RECURSIVE_PAGING_ENTRY) continue;
+
         // Construct a new table and add it to our output
         uintptr_t dest_pt_block = pmm_allocateBlock();
         page_t *dest_pt = (page_t*)mem_remapPhys(dest_pt_block, PMM_BLOCK_SIZE);
@@ -339,7 +341,11 @@ page_t *mem_clone(page_t *dir) {
         mem_unmapPhys((uintptr_t)src_pt, PMM_BLOCK_SIZE);
         mem_unmapPhys((uintptr_t)dest_pt, PMM_BLOCK_SIZE);
     }
-    
+
+    // Remember to recurse!
+    dest[MEM_RECURSIVE_PAGING_ENTRY].bits.present = 1;
+    dest[MEM_RECURSIVE_PAGING_ENTRY].bits.rw = 1;
+    MEM_SET_FRAME((&dest[MEM_RECURSIVE_PAGING_ENTRY]), mem_getPhysicalAddress(NULL, (uintptr_t)dest));
 
     return dest;
 }
@@ -447,10 +453,10 @@ uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
     }
 
     // Remember to remap any frames to that identity map area.
-    page_t *table = (page_t*)(mem_remapPhys(MEM_GET_FRAME(pde), PMM_BLOCK_SIZE)); 
+    page_t *table = (page_t*)((dir) ? (mem_remapPhys(MEM_GET_FRAME(pde), PMM_BLOCK_SIZE)) : (MEM_PAGE_TABLE(MEM_PAGEDIR_INDEX(addr)))); 
     page_t *pte = &(table[MEM_PAGETBL_INDEX(addr)]);
     
-    mem_unmapPhys((uintptr_t)table, PMM_BLOCK_SIZE);
+    if (dir) mem_unmapPhys((uintptr_t)table, PMM_BLOCK_SIZE);
 
     return MEM_GET_FRAME(pte) + offset;
 }
@@ -473,6 +479,8 @@ void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt, int flags) {
     mem_allocatePage(page, MEM_PAGE_NOALLOC | flags);
     MEM_SET_FRAME(page, phys);
 }
+
+
 
 
 /**
@@ -501,23 +509,34 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
 
         // Allocate a new PDE and zero it
         uintptr_t block = pmm_allocateBlock();
-        uintptr_t block_remap = mem_remapPhys(block, PMM_BLOCK_SIZE);
-        memset((void*)block_remap, 0, PMM_BLOCK_SIZE);
         
         // Setup the bits in the directory index
         pde->bits.present = 1;
         pde->bits.rw = 1;
         pde->bits.usermode = 1; // !!!: Not upholding security 
         MEM_SET_FRAME(pde, block);
-        
-        mem_unmapPhys(block_remap, PMM_BLOCK_SIZE);
+
+        // If the user specified to use current page directory, we don't need to map it. Just use recursive paging.
+        if (dir) {
+            uintptr_t block_remap = mem_remapPhys(block, PMM_BLOCK_SIZE);
+            memset((void*)block_remap, 0, PMM_BLOCK_SIZE);
+            mem_unmapPhys(block_remap, PMM_BLOCK_SIZE);
+        } else {
+            // Use faster recursive paging!
+            memset((void*)MEM_PAGE_TABLE(MEM_PAGEDIR_INDEX(addr)), 0, sizeof(page_t) * 1024);
+        }
     }
 
     // Calculate the table index (complex bc MEM_GET_FRAME is for pointers, and I'm lazy)
-    page_t *table = (page_t*)mem_remapPhys((uintptr_t)(directory[MEM_PAGEDIR_INDEX(addr)].bits.address << MEM_PAGE_SHIFT), PMM_BLOCK_SIZE);
+    page_t *table;
+    if (dir) {
+        table = (page_t*)mem_remapPhys((uintptr_t)(directory[MEM_PAGEDIR_INDEX(addr)].bits.address << MEM_PAGE_SHIFT), PMM_BLOCK_SIZE);
+    } else {
+        table = (page_t*)MEM_PAGE_TABLE(MEM_PAGEDIR_INDEX(addr));
+    }
 
     page_t *ret = &(table[MEM_PAGETBL_INDEX(addr)]);
-    mem_unmapPhys((uintptr_t)table, PMM_BLOCK_SIZE);
+    if (dir) mem_unmapPhys((uintptr_t)table, PMM_BLOCK_SIZE);
 
     // Return the page
     return ret;
@@ -686,6 +705,11 @@ void mem_init(uintptr_t high_address) {
 
         if (pages_mapped == (int)kernel_pages) break;
     }
+
+    // Setup recursive paging
+    page_directory[1023].bits.present = 1;
+    page_directory[1023].bits.rw = 1;
+    MEM_SET_FRAME((&page_directory[1023]), page_directory);
 
     // All done mapping for now. The memory map should look something like this:
     // 0x00000000 - 0x00400000 is kernel code (-RW)

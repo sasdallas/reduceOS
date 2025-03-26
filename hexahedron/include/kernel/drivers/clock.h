@@ -68,11 +68,16 @@ int clock_settimeofday(struct timeval *t, void *z);
 
 /**
  * @brief Relative time
+ * @param seconds Seconds in the future
+ * @param subseconds Subseconds in the future
+ * @param out_seconds Absolute seconds in the future
+ * @param out_subseconds Absolute subseconds in the future
  */
 void clock_relative(unsigned long seconds, unsigned long subseconds, unsigned long *out_seconds, unsigned long *out_subseconds);
 
 /**
  * @brief Update method. This should be called to by the architecture-based clock driver.
+ * @param ticks Current amount of ticks returned by @c clock_getTickCount
  */
 void clock_update(uint64_t ticks);
 
