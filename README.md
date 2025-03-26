@@ -1,15 +1,16 @@
-# reduceOS
+# reduceOS - reduce32 branch
 
-## IMPORTANT
-A third rewrite of the kernel is in progress - you can view it at [this link](https://github.com/sasdallas/Hexahedron)\
-In the meantime, make sure to treat every piece of code in the reduceOS kernel with some heavy grains of salt. It won't compile on newer
-GCC versions, is full of junky and unused code, and is some of my worst work ever
+## IMPORTANT NOTICE ABOUT THIS BRANCH
 
-**This codebase is to be deprecated and abandoned** - please do not use any of the code for your own codebase as it will save you so much time.
+This branch is to be deprecated and abandoned. This is the last build of what I call reducedKernel,
+which was once the kernel of reduceOS.
 
+Hexahedron has replaced this kernel and the rest of reduceOS has been upgraded to no longer support it.
 
+Most of the code in here is deprecated and abandoned, and most of it does NOT work.\
+I wouldn't waste my time trying to get any of the code here to work, but it is here for completion. 
 
-
+## ORIGINAL README CONTENT
 
 [![CodeFactor](https://www.codefactor.io/repository/github/sasdallas/reduceos/badge/rewrite)](https://www.codefactor.io/repository/github/sasdallas/reduceos/overview/rewrite)
 
