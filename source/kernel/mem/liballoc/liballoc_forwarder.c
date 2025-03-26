@@ -8,7 +8,6 @@
 #include <kernel/mem.h> // Main header file
 #include <kernel/serial.h>
 #include <kernel/liballoc.h>
-#include <kernel/debug.h>
 
 #pragma GCC diagnostic ignored "-Wunused-value"
 

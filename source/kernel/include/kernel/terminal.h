@@ -13,7 +13,6 @@
 #include <kernel/graphics.h> // Utility functions
 #include <kernel/serial.h> // Serial logging
 #include <kernel/vesa.h> // VESA VBE
-#include <kernel/vga.h> // VGA functions
 
 
 // Variable declarations

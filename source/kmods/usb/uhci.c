@@ -2,7 +2,7 @@
  * @file source/kmods/usb/uhci.c
  * @brief UHCI (Universal Host Controller Interface) section of the USB driver.
  * 
- * 
+ * @todo THIS DOES NOT WORK. THIS WAS A PROTOTYPE THAT I PUSHED. MOST OF EVERYTHING IS BROKEN. DO NOT USE!!!!!!!!!!!!
  * @todo Remove useless parts of data structures
  * 
  * @copyright
@@ -131,8 +131,8 @@ static uhci_td_t *uhci_createTD(uhci_td_t *prev,
 
     // If a previous TD was specified, update its link and tdNext
     if (prev != NULL) {
-        prev->link_ptr = (uint32_t)td | UHCI_TD_PTR_DEPTH;
-        prev->tdNext = td;
+        prev->link_ptr = (uint32_t)mem_getPhysicalAddress(NULL, (uintptr_t)td) | UHCI_TD_PTR_DEPTH;
+        prev->tdNext = (uint32_t)td;
     }                     
 
     td->link_ptr = UHCI_TD_PTR_TERM;
@@ -314,9 +314,9 @@ void uhci_control(USBDevice_t *dev, USBTransfer_t *t) {
     // Initialize a queue head
     uhci_queue_head_t *qh = kmalloc(sizeof(uhci_queue_head_t));
     qh->qh_link = list_create();
-    qh->td_head = head;
+    qh->td_head = (uint32_t)head;
     qh->transfer = t;
-    qh->element_link_ptr = head;
+    qh->element_link_ptr = mem_getPhysicalAddress(NULL, (uintptr_t)head);
 
     // Schedule it
     // This is weird, but let me explain:
@@ -331,7 +331,7 @@ void uhci_control(USBDevice_t *dev, USBTransfer_t *t) {
 
     uhci_queue_head_t *last_qh = (uhci_queue_head_t*)last_node->value;
     qh->head_link_ptr = UHCI_TD_PTR_TERM;
-    last_qh->head_link_ptr = ((uint32_t)qh) | UHCI_TD_PTR_QH;
+    last_qh->head_link_ptr = ((uint32_t)mem_getPhysicalAddress(NULL, (uintptr_t)qh)) | UHCI_TD_PTR_QH;
 
     list_insert(hc->qh_async, qh);
 
@@ -384,11 +384,11 @@ void uhci_interface(USBDevice_t *dev, USBTransfer_t *transfer) {
     // Create a new queue head
     uhci_queue_head_t *qh = kmalloc(sizeof(uhci_queue_head_t));
     qh->qh_link = list_create();
-    qh->element_link_ptr = td;
-    qh->head_link_ptr = td;
-    qh->td_head = td;
+    qh->element_link_ptr = (uint32_t)td;
+    qh->head_link_ptr = (uint32_t)td;
+    qh->td_head = (uint32_t)td;
     qh->transfer = transfer;
-    qh->element_link_ptr = td;
+    qh->element_link_ptr = (uint32_t)td;
     
     // Schedule the queue
     node_t *last_node;
@@ -494,6 +494,6 @@ void uhci_init(uint32_t device) {
     // Register the controller
     USBController_t *uhci_controller = kmalloc(sizeof(USBController_t));
     uhci_controller->hc = (void*)c;
-    uhci_controller->poll = (poll_t*)uhci_poll;
+    uhci_controller->poll = (poll_t)uhci_poll;
     usb_addController(uhci_controller);
 }

@@ -17,7 +17,6 @@
 #include <kernel/terminal.h>
 #include <kernel/process.h>
 #include <kernel/signal.h>
-#include <kernel/debug.h>
 #include <kernel/module.h>
 #include <libk_reduced/stdio.h>
 
@@ -29,106 +28,6 @@ extern uint32_t bss_end;
 extern multiboot_info *globalInfo;
 extern char ch;
 extern uint32_t end;
-
-// This function will dump physical memory to disk
-void panic_dumpPMM() {
-    // Do not dump PMM if we're using a RELEASE build.
-    if (!strcmp(__kernel_configuration, "RELEASE")) {
-        printf("\nThis is a RELEASE build of reduceOS - therefore, to retain the security of your disks, memory dumps have been disabled.\n");
-        return;
-    }
-
-    // This function is annoying, not gonna use it fn
-    printf("\nCannot dump physical memory - it doesn't work.\n");
-    return;
-
-
-    // BUG: We can't dump memory unless the system has around 512MB of RAM, else EXT2 driver hits an OOM.
-    // I'm not entirely sure whether this is because the system is scuffed and not designed for this, or what.
-    // But, if I'm being honest, I don't care.
-    // This whole dumpPMM function is pretty much COMPLETELY scuffed because if the EXT2 driver crashes (due to an OOM or even a divbyzero bye bye data)
-    // Therefore, RELEASE configurations of reduceOS have this turned off.
-    if (pmm_getPhysicalMemorySize() < 510000) {
-        printf("\nCannot dump physical memory: Your system does not have enough RAM to write the data correctly.\n");
-        printf("If this is an emulator such as QEMU, you can dump the contents of RAM using the inbuilt debugger.\n");
-        return;
-    }
-
-    // Check if we have a way to dump memory to drive.
-    if (strcmp(fs_root->name, "initrd") && fs_root->create != NULL) {
-        // We are not mounted to initial ramdisk, try to dump.
-        printf("\nA filesystem driver of name '%s' is mounted to root.\n", fs_root->name);
-        
-        // Check if it's our stable EXT2 driver. If not, prompt the user
-        // (shouldn't be possible)
-        if (strcmp(fs_root->name, "EXT2 driver")) {
-            printf("WARNING: A non-ext2 driver was mounted to root.\nThis should not be possible but it is likely the code was not updated.\n");
-            printf("Physical memory dumping disabled.\n"); // amazing solution
-            return;
-        }
-
-        printf("Creating dump file...");
-
-        // Create the dump file using timestamps.
-        char buffer[1024];
-        time_t rawtime;
-
-        time(&rawtime);
-
-        sprintf(buffer, "crashdump-%i.log", rawtime);
-
-        fs_root->create(fs_root, buffer, 0);
-        fsNode_t *dumpfile = fs_root->finddir(fs_root, buffer);
-        
-        // Let's dump memory to it
-        printf("DONE\n");
-
-        int memory = pmm_getPhysicalMemorySize() * 1024;
-        int pages = memory / PAGE_SIZE;
-        if (pages > 200) pages = 200;   // Limit else EXT2 driver will crash due to OOM, which is touchy in this environment 
-        int pages_per_loop = pages / 10;
-
-        printf("Physical memory dump started (%i pages total, . = %i pages).\n", pages, pages_per_loop);
-        printf("Cancellation is not possible.\n"); // yeahhh keyboard driver sucks
-
-        uint8_t pbuffer[PAGE_SIZE];
-        uint32_t addr = (uint32_t)&text_start; // Better dumps
-        for (int i = 0; i < pages; i += pages_per_loop) {
-            
-            pagedirectory_t *pageDirectory = vmm_getCurrentDirectory();
-            pde_t *entry = &pageDirectory->entries[MEM_PAGEDIR_INDEX((uint32_t)addr)];
-            if (!entry) {
-                printf("Error when trying to dump page %i (get page table error)\n", i);
-                break;
-            }
-
-            if ((*entry & PTE_PRESENT) != PTE_PRESENT) {
-                // Skip me
-                serialPrintf("dumpPMM: Skipping page %i\n", i);
-                continue;
-            }
-            
-            // Let's dump this entry. We'll have to iterate through all pages per dot
-            for (int j = 0; j < pages_per_loop; j++) {
-                memset(pbuffer, 0, PAGE_SIZE);
-                memcpy(pbuffer, (void*)addr, PAGE_SIZE);
-                dumpfile->write(dumpfile, (i+j)*PAGE_SIZE, PAGE_SIZE, pbuffer);
-                addr += PAGE_SIZE;
-            }
-
-            serialPrintf("dumpPMM: %i%% completed.\n", (i != 0 ? ((i / pages) * 100) : (0)));
-
-            printf(".");
-        }
-
-        dumpfile->close(dumpfile);
-        printf("\nDump finished.\n");
-
-    } else {
-        printf("\nCannot dump physical memory to initial ramdisk.\n");
-    }
-
-}
 
 // This function performes a stack trace to get the callers of panic.
 #pragma GCC diagnostic ignored "-Wuninitialized" // Stack frame is technically uninitialized as NULL but stk itself is never used, only EBP
@@ -366,12 +265,6 @@ void panic(char *caller, char *code, char *reason) {
     reg->eip = read_eip();
     panic_stackTrace(7, reg);
 
-    // Dump memory
-    serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
-    panic_dumpPMM();
-    serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");
-
-
     printf("\nThe system has been halted. Attach debugger now to view context.\n");
 
     asm volatile ("hlt");
@@ -417,12 +310,6 @@ void panicReg(char *caller, char *code, char *reason, registers_t *reg) {
 
     // Perform stack trace
     panic_stackTrace(7, reg);
-
-
-    // Dump memory
-    serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
-    panic_dumpPMM();
-    serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");
 
     printf("\nThe system has been halted. Attach debugger now to view context.\n");
 
@@ -507,12 +394,6 @@ void pageFault(registers_t *reg) {
     printf("eax=0x%x, ebx=0x%x, ecx=0x%x, edx=0x%x\n", reg->eax, reg->ebx, reg->ecx, reg->edx);
     printf("edi=0x%x, esi=0x%x, ebp=0x%x, esp=0x%x\n", reg->edi, reg->esi, reg->ebp, reg->esp);
     printf("eip=0x%x, cs=0x%x, ss=0x%x, eflags=0x%x, useresp=0x%x\n", reg->eip, reg->cs, reg->ss, reg->eflags, reg->useresp);
-
-    
-    // Dump physical memory first
-    serialPrintf("\n==== DEBUG INFORMATION FROM PMM DUMP ====\n");
-    panic_dumpPMM();
-    serialPrintf("\n==== END DEBUG INFORMATION OF PMM DUMP ====\n");
 
     // Perform stack trace (note: this might hang) 
     panic_stackTrace(7, reg);

@@ -115,7 +115,8 @@ int init(int argc, char *argv[]) {
     return 0;
 }
 
-void deinit() {
+int deinit() {
+    return 0;
 }
 
 

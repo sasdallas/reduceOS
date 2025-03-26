@@ -14,7 +14,6 @@
 #include <kernel/terminal.h>
 #include <kernel/floppy.h>
 #include <kernel/ext2.h>
-#include <kernel/bitmap.h>
 #include <kernel/vfs.h>
 #include <kernel/keyboard.h>
 #include <kernel/ide_ata.h>
@@ -1097,135 +1096,6 @@ int ext2_tests() {
     return 0;
 }
 
-int bitmap_test() {
-    if (!ext2_root) {
-        printf("\tEXT2 driver is not running\n");
-        return -1;
-    }
-
-    printf("\tLocating \"test.bmp\"...");
-    fsNode_t *d = ext2_root->finddir(ext2_root, "badapple");
-    if (!d) { printf("FAIL\n"); return -1; }
-    fsNode_t *image = d->finddir(d, "74.bmp");
-    if (!image) { printf("FAIL\n"); return -1; }
-    printf("OK\n");
-
-    printf("\tLoading bitmap...");
-    
-    bitmap_t *bmp = bitmap_loadBitmap(image);
-    if (bmp == NULL) {
-        printf("FAIL (bmp is NULL)\n");
-        return -1;
-    } 
-
-    printf("OK\n");
-
-
-    printf("\tDisplaying bitmap...");
-    displayBitmap(bmp, 0, 0);
-    sleep(2000);
-
-    kfree(bmp);
-
-    return 0;
-}
-
-int badapple_test() {
-    // broken :(
-    printf("Broken, sorry.\n");
-    return -1;
-
-    printf("\tTo run this test, please attach an EXT2 disk to the system.\n");
-    printf("\tThe frames should be in a folder called badapple, and be numbered 0-whatever.\n");
-    printf("\tNOTE: ALL FRAMES MUST BE BITMAPS, AND START FROM 1. NO ZERO INDEX.\n");
-    printf("\tThe test will start in 2 seconds...\n");
-    sleep(2000);
-
-    if (!ext2_root) {
-        printf("\tEXT2 driver is not running.\n");
-        return -1;
-    }
-
-    // Find the bad apple directory
-    printf("\tLoading directory...");
-    fsNode_t *dir = ext2_finddir(ext2_root, "badapple");
-    if (!dir) {
-        printf("\tFAILED\n");
-        return -1;
-    } else {
-        printf("OK\n");
-    }
-
-    serialPrintf("bad_apple: Loaded directory\n");
-    
-
-    // Let's do this. First, we need to allocate 2 bitmaps for our frame data to be stored in.
-    bitmap_t *fb1;
-    bitmap_t *fb2;
-    int currentFrame = 1;
-
-    // Now, let's get into a while loop and start displaying frames
-    while (true) {
-        // The way this will work is we'll start the loop by displaying whatever's in fb2
-        if (currentFrame > 1) {
-            serialPrintf("Displaying next frame...\n");
-            displayBitmap(fb2, 0, 0);
-            kfree(fb1->buffer);
-            kfree(fb2->buffer);
-            currentFrame++;
-        }        
-
-        // First, we need to get the names of the frames.
-        char *fn1 = kmalloc(8); // 4 bytes for '.bmp', 4 bytes for the numbers
-        memset(fn1, 0, 8);
-        itoa((void*)currentFrame, fn1, 10);
-        strcpy(fn1 + strlen(fn1), ".bmp");
-        
-        currentFrame++;
-
-        char *fn2 = kmalloc(8); // 4 bytes for '.bmp', 4 bytes for the numbers
-        memset(fn2, 0, 8);
-        itoa((void*)currentFrame, fn2, 10);
-        strcpy(fn2 + strlen(fn2), ".bmp");
-
-
-        serialPrintf("Reading frame '%s'...\n", fn1);
-
-        // Now, we can read in the frames
-        fsNode_t *f1 = dir->finddir(dir, fn1);
-        if (!f1) {
-            kfree(fb1);
-            kfree(fb2);
-            kfree(fn1);
-            kfree(fn2);
-            return 0;
-        }
-
-        bool breakAfterDisplayOne = false;
-        fsNode_t *f2 = dir->finddir(dir, fn2);
-        if (!f2) {
-            breakAfterDisplayOne = true;
-        }
-
-        fb1 = bitmap_loadBitmap(f1);
-        if (!breakAfterDisplayOne) fb2 = bitmap_loadBitmap(f2);
-
-        serialPrintf("fb1 loaded to 0x%x buf 0x%x fb2 loaded to 0x%x buf 0x%x\n", fb1,fb1->buffer, fb2, fb2->buffer);
-        // NOTE: The system could bug out if an invalid bitmap is passed
-        displayBitmap(fb1, 0, 0);
-        serialPrintf("Displayed\n");
-
-        if (breakAfterDisplayOne) break; // We have no more bitmaps left to display
-
-
-        kfree(fn1);
-        kfree(fn2);
-
-        // Time ourselves
-        // while (pitGetTickCount() - tickCount < 1000);
-    }
-    return 0;
-}
 
 int cpu_tests() {
     cpuInfo_t cpu = getCPUProcessorData();
@@ -1281,7 +1151,7 @@ _fail:
 int test(int argc, char *args[]) {
     if (argc != 2) {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, bitmap, badapple, cpu, mem\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, cpu, mem\n");
         return 0;
     } 
 
@@ -1321,16 +1191,6 @@ int test(int argc, char *args[]) {
 
         if (ext2_tests() == 0) printf("=== TESTS COMPLETED ===\n");
         else printf("=== TESTS FAILED ===\n");
-    } else if (!strcmp(args[1], "bitmap")) {
-        printf("=== TESTING BITMAPS ===\n");
-
-        if (bitmap_test() == 0) printf("=== TESTS COMPLETED ===\n");
-        else printf("=== TESTS FAILED ===\n"); 
-    } else if (!strcmp(args[1], "bad_apple")) {
-        printf("=== bad apple!!! ===\n");
-
-        if (badapple_test() == 0) printf("finished\n");
-        else printf("=== TESTS FAILED ===\n");
     } else if (!strcmp(args[1], "cpu")) {
         printf("=== TESTING PROCESSOR ===\n");
 
@@ -1348,7 +1208,7 @@ int test(int argc, char *args[]) {
         else printf("=== TESTS FAILED ===\n");
     } else {
         printf("Usage: test <module>\n");
-        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, bitmap, badapple, cpu, mem\n");
+        printf("Available modules: pmm, liballoc, bios32, floppy, ide, fat, tree, vfs, ext2, cpu, mem\n");
     }
 
     return 0;

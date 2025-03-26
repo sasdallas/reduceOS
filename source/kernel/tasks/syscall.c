@@ -9,7 +9,6 @@
 #include <kernel/signal.h>
 #include <kernel/syscall.h> // Main header file
 #include <kernel/vfs.h>
-#include <kernel/debug.h>
 #include <libk_reduced/errno.h>
 #include <libk_reduced/fcntl.h>
 #include <libk_reduced/signal.h>
@@ -52,7 +51,6 @@ void syscallHandler(registers_t* regs) {
 
     uint32_t syscallNumber = regs->eax;
 
-    heavy_dprintf("handle syscall START - num %i...\n", syscallNumber);
     serialPrintf("[syscall] Received %i\n", syscallNumber);
 
     // Check if system call number is valid.
@@ -77,7 +75,6 @@ void syscallHandler(registers_t* regs) {
 
     serialPrintf("[syscall] Finished handling. Return value: %i\n", returnValue);
 
-    heavy_dprintf("handle syscall STOP - ret %i...\n", returnValue);
 
     // Set EAX to the return value
     asm volatile("mov %0, %%eax" ::"r"(returnValue));
@@ -103,14 +100,7 @@ int syscall_validatePointer(void* ptr, const char* syscall) {
             serialPrintf("*** %s: Current process (%s, pid %i) attempted to access memory not accessible to it.\n",
                          syscall, currentProcess->name, currentProcess->id);
             serialPrintf("*** The attempted access violation happened at 0x%x\n", ptr);
-
-            panic_dumpPMM();
-            /*
-            registers_t* reg = (registers_t*)((uint8_t*)&end);
-            asm volatile("mov %%ebp, %0" ::"r"(reg->ebp));
-            reg->eip = NULL; // TODO: Use read_eip()?
-            panic_stackTrace(7, reg);
-            */
+            
 
             asm volatile("hlt");
             for (;;);

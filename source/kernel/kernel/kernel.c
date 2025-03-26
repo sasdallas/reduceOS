@@ -371,7 +371,6 @@ void useCommands() {
     registerCommand("create", (command*)create);
     registerCommand("mkdir", (command*)mkdir);
     registerCommand("pwd", (command*)pwd);
-    registerCommand("bitmap", (command*)show_bitmap);
     registerCommand("edit", (command*)edit);
     registerCommand("rm", (command*)rm);
 

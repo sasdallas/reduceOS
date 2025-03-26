@@ -82,8 +82,8 @@ int usb_init() {
 /**
  * @brief Deinitialize the USB module
  */
-void usb_deinit() {
-
+int usb_deinit() {
+    return 0;
 }
 
 struct Metadata data = {

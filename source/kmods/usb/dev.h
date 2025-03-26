@@ -36,6 +36,7 @@ typedef struct USBTransfer {
 
 
 struct USBDevice; // Prototype
+struct USBController;
 
 typedef void (*hc_control_t)(struct USBDevice *dev, USBTransfer_t *transfer);
 typedef void (*hc_interface_t)(struct USBDevice *dev, USBTransfer_t *transfer);

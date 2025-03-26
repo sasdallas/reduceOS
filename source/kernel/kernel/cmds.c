@@ -19,7 +19,6 @@
 #include <kernel/module.h>
 #include <kernel/process.h>
 #include <kernel/ide_ata.h>
-#include <kernel/bitmap.h>
 #include <kernel/floppy.h>
 #include <kernel/pci.h>
 #include <kernel/keyboard.h>
@@ -741,26 +740,6 @@ int pwd(int argc, char *args[]) {
     return 0;
 }
 
-int show_bitmap(int argc, char *args[]) {
-    // This command will just show a bitmap the user requests.
-    if (argc != 2) {
-        printf("Usage: bitmap <filename>\n");
-        return -1;
-    }
-
-    printf("Loading bitmap '%s'...\n", args[1]);
-    fsNode_t *bitmap_file = open_file(args[1], 0);
-    if (bitmap_file) {
-        bitmap_t *bmp = bitmap_loadBitmap(bitmap_file);
-        displayBitmap(bmp, 0, 0);
-        kfree(bmp->imageBytes);
-        kfree(bmp);
-    } else {
-        printf("File not found\n");
-    }
-
-    return 0;
-}
 
 
 
