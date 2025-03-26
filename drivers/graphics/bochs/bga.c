@@ -123,7 +123,7 @@ int driver_init(int argc, char **argv) {
     driver->screenWidth = VBE_DISPI_MAX_XRES;
     driver->screenHeight = VBE_DISPI_MAX_YRES;
     driver->screenPitch = driver->screenWidth * 4;
-    driver->videoBuffer = (uint8_t*)MEM_FRAMEBUFFER_REGION;
+    driver->videoBuffer = (uint8_t*)0xDEADBEEF;
     
     // Register methods
     driver->update = bga_update;
@@ -133,12 +133,16 @@ int driver_init(int argc, char **argv) {
     video_switchDriver(driver);
 
     // Map it in
-    for (uintptr_t phys = fb_physical, virt = MEM_FRAMEBUFFER_REGION;
-        phys < fb_physical + (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
+    size_t fbsize = (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
+    uintptr_t region = mem_allocate(0, fbsize, MEM_ALLOC_HEAP, MEM_PAGE_KERNEL | MEM_PAGE_WRITE_COMBINE | MEM_PAGE_NOALLOC);
+    for (uintptr_t phys = fb_physical, virt = region;
+        phys < fb_physical + fbsize;
         phys += PAGE_SIZE, virt += PAGE_SIZE) 
     {
         mem_mapAddress(NULL, phys, virt, MEM_PAGE_KERNEL | MEM_PAGE_WRITE_COMBINE); // !!!: usermode access?
     }
+
+    driver->videoBuffer = (uint8_t*)region;
 
     // Clear terminal screen
     terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);

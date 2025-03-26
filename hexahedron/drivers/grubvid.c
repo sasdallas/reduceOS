@@ -67,15 +67,16 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
     driver->unload = grubvid_unload;
 
     // BEFORE WE DO ANYTHING, WE HAVE TO REMAP THE FRAMEBUFFER TO SPECIFIED ADDRESS
-    LOG(INFO, "size 0x%x pitch 0x%x\n", (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch), driver->screenPitch);
-    for (uintptr_t phys = parameters->framebuffer->framebuffer_addr, virt = MEM_FRAMEBUFFER_REGION;
-            phys < parameters->framebuffer->framebuffer_addr + (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
+    size_t fbsize = (driver->screenWidth * 4) + (driver->screenHeight * driver->screenPitch);
+    uintptr_t region = mem_allocate(0, fbsize, MEM_ALLOC_HEAP, MEM_PAGE_NOALLOC | MEM_PAGE_KERNEL | MEM_PAGE_WRITE_COMBINE);
+    for (uintptr_t phys = parameters->framebuffer->framebuffer_addr, virt = region;
+            phys < parameters->framebuffer->framebuffer_addr + fbsize;
             phys += PAGE_SIZE, virt += PAGE_SIZE) 
     {
         mem_mapAddress(NULL, phys, virt, MEM_PAGE_KERNEL | MEM_PAGE_WRITE_COMBINE); // !!!: usermode access?
     }
 
-    driver->videoBuffer = (uint8_t*)MEM_FRAMEBUFFER_REGION;
+    driver->videoBuffer = (uint8_t*)region;
 
     return driver;
 }
