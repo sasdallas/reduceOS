@@ -38,6 +38,8 @@
 
 // Drivers
 #include <kernel/drivers/font.h>
+#include <kernel/drivers/net/loopback.h>
+#include <kernel/drivers/net/arp.h>
 
 // Graphics
 #include <kernel/gfx/term.h>
@@ -143,10 +145,7 @@ void kthread() {
         dprintf(DEBUG, "Hi from %s! This is iteration %d\n", current_cpu->current_process->name, iterations);
         arch_pause();
         
-        if (iterations >= 5) {
-            printf("%s exiting - bye!\n", current_cpu->current_process->name);
-            process_exit(NULL, 1);
-        }
+        
         process_yield(1);
     }
 }
@@ -174,6 +173,12 @@ void kmain() {
     nulldev_init();
     zerodev_init();
     vfs_dump();
+
+    // Networking
+    arp_init();
+
+    // Setup loopback interface
+    loopback_install();
 
     // Now we need to mount the initial ramdisk
     kernel_mountRamdisk(parameters);
@@ -214,6 +219,14 @@ void kmain() {
     LOG(INFO, "Loaded %i symbols from symbol map\n", symbols);
     printf("Loaded kernel symbol map from initial ramdisk successfully\n");
 
+
+    // Unmap 0x0 (fault detector, temporary)
+    page_t *pg = mem_getPage(NULL, 0, MEM_CREATE);
+    mem_allocatePage(pg, MEM_PAGE_NOT_PRESENT | MEM_PAGE_NOALLOC | MEM_PAGE_READONLY);
+
+    // Before we load drivers, initialize the process system. This will let drivers create their own kernel threads
+    process_init();
+
     // Load drivers
     if (!kargs_has("--no-load-drivers")) {
         kernel_loadDrivers();
@@ -223,15 +236,8 @@ void kmain() {
         printf(COLOR_CODE_YELLOW    "Refusing to load drivers because of kernel argument \"--no-load-drivers\" - careful!\n" COLOR_CODE_RESET);
     }
 
-
-
-    // Unmap 0x0 (fault detector, temporary)
-    page_t *pg = mem_getPage(NULL, 0, MEM_CREATE);
-    mem_allocatePage(pg, MEM_PAGE_NOT_PRESENT | MEM_PAGE_NOALLOC | MEM_PAGE_READONLY);
-
-
-    // Initialize process system
-    process_init();
+    // loop
+    for (;;);
 
     char name[256] = { 0 };
 
