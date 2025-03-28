@@ -57,7 +57,7 @@ page_t mem_kernelPML[3][512] __attribute__((aligned(PAGE_SIZE))) = {0};
 // Low base PDPT/PD/PT (identity mapping space for kernel/other stuff)
 page_t mem_lowBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0}; 
 page_t mem_lowBasePD[512] __attribute__((aligned(PAGE_SIZE))) = {0};
-page_t mem_lowBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
+page_t mem_lowBasePT[512*12] __attribute__((aligned(PAGE_SIZE))) = {0};
 
 // High base PDPT/PD/PT (identity mapping space for anything)
 // NOTE: This is not my implementation of high base mapping (see ToaruOS)
@@ -205,10 +205,10 @@ page_t *mem_clone(page_t *dir) {
     // Create a new VAS
     page_t *dest = mem_createVAS();
 
-    // Copy top half
+    // Copy top half. This contains the kernel's important regions, including the heap
     memcpy(&dest[256], &dir[256], 256 * sizeof(page_t));
 
-    // Copy PDPTs 
+    // Copy low PDPTs 
     for (size_t pdpt = 0; pdpt < 256; pdpt++) {
         if (!(dir[pdpt].bits.present)) continue;
         page_t *pdpt_srcentry = &dir[pdpt]; // terrible naming lol
@@ -561,10 +561,13 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
         }
     }
 
+
     // Now, map the kernel.
     // Calculate the amount of pages for the kernel to fit in
+    // Do note: the kernel isn't actually this big, rather the lazy Multiboot system simply puts the end address right after all data structures. Probably need to imlement reclaiming.
     uintptr_t kernel_end_aligned = MEM_ALIGN_PAGE(kernel_addr);
     size_t kernel_pages = (kernel_end_aligned >> MEM_PAGE_SHIFT);
+    dprintf(DEBUG, "Hexahedron is using %dKB of RAM in memory\n", kernel_pages * 4);
 
     // How many of those pages can fit into PTs?
     // !!!: Weird math
@@ -583,12 +586,10 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     }
     
     // This one I'll probably have to come back and fix
-    if (kernel_pts > 3) {
+    if (kernel_pts > 12) {
         kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem", "*** Hexahedron is too big - >3 low base PTs have not been implemented (requires %i PTs)\n", kernel_pts);
         __builtin_unreachable();
     }
-
-    dprintf(DEBUG, "Kernel will use %i pages (0x%x)\n", kernel_pages, kernel_pages*PAGE_SIZE);
 
     // Setup hierarchy (note: we don't setup the PML4 map just yet, that would be really bad.)
     mem_lowBasePDPT[0].bits.address = ((uintptr_t)&mem_lowBasePD >> MEM_PAGE_SHIFT);
