@@ -318,6 +318,8 @@ static int ahci_readIdentificationSpace(ahci_port_t *port, ata_ident_t *ident) {
     fis->fis_type = FIS_TYPE_REG_H2D;
     fis->command = (port->type == AHCI_DEVICE_SATAPI) ? ATA_CMD_IDENTIFY_PACKET : ATA_CMD_IDENTIFY;
     fis->c = 1; // Specify that this FIS is a command
+    fis->control = 0x08;
+    
 
     // Wait for device to not be busy
     int timeout = TIMEOUT(!(port->port->tfd & (ATA_SR_BSY | ATA_SR_DRQ)), 1000000);
@@ -333,6 +335,7 @@ static int ahci_readIdentificationSpace(ahci_port_t *port, ata_ident_t *ident) {
     int transfer = ahci_portWaitTransfer(port, 10000000, free_command_header);
     if (transfer != AHCI_SUCCESS) {
         LOG_PORT(ERR, port, "Failed to read drive identification space\n");
+        LOG_PORT(DEBUG, port, "header->prdtl: %04x\n", header->prdtl);
         ahci_dumpPortState(port);
         return AHCI_ERROR;
     }
@@ -508,7 +511,7 @@ ahci_port_t *ahci_portInitialize(ahci_t *ahci, int port_number) {
  * @returns AHCI_SUCCESS on device found, AHCI_NO_DEVICE on device not found, AHCI_ERROR on error
  */
 int ahci_portFinishInitialization(ahci_port_t *port) {
-    LOG_PORT(INFO, port, "Finishing port initialization\n");
+    LOG_PORT(DEBUG, port, "Finishing port initialization\n");
 
     if (ahci_portEnable(port) != AHCI_SUCCESS) {
         LOG_PORT(ERR, port, "Failed to enable port.\n");
