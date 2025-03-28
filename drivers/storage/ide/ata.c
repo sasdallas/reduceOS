@@ -678,11 +678,11 @@ void atapi_device_init(ide_device_t *device) {
 
     strncpy(device->serial, device->ident.serial, 20);
     device->serial[20] = 0; // Null terminate
-    *(strchr(device->serial, ' ')) = 0;
+    *(strchrnul(device->serial, ' ')) = 0;
 
     strncpy(device->firmware, device->ident.firmware, 8);
     device->firmware[8] = 0; // Null terminate
-    *(strchr(device->firmware, ' ')) = 0;
+    *(strchrnul(device->firmware, ' ')) = 0;
 
     // Print out summary
     LOG_DEVICE(INFO, device, "Model %s - serial %s firmware %s\n", device->model, device->serial, device->firmware);
