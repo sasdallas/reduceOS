@@ -74,14 +74,19 @@ int e1000_detectEEPROM(e1000_t *nic) {
  * @param addr EEPROM address
  */
 uint32_t e1000_readEEPROM(e1000_t *nic, uint8_t addr) {
-    // TODO: Timeout protection
     E1000_SENDCMD(E1000_REG_EEPROM, (1) | ((uint32_t)addr << 8));
-    while (1) {
+
+    int timeout = 1000;
+    while (timeout) {
         uint32_t tmp = E1000_RECVCMD(E1000_REG_EEPROM);
         if (tmp & (1 << 4)) {
             // Done!
             return ((uint16_t)((tmp >> 16) & 0xFFFF));
         }
+
+        // Don't waste too much time
+        clock_sleep(50);
+        timeout -= 50;
     }
     
 
