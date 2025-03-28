@@ -98,6 +98,7 @@ arch_load_context:
     jmpl *20(%ecx)
 
 /* Enter kernel thread */
+.global arch_enter_kthread
 arch_enter_kthread:
     /* Pop kthread pointer and jump to it */
     popl %esi

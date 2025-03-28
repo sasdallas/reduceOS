@@ -152,6 +152,7 @@ int mem_decrementPageReference(page_t *page) {
  */
 int mem_switchDirectory(page_t *pagedir) {
     if (!pagedir) pagedir = mem_getKernelDirectory();
+    if (current_cpu->current_dir == pagedir) return 0; // No need to waste time
 
     // !!!: Weird check, I'm really tired and want to fix this.
     // !!!: If something wants to load a pagedir from the physmem map, because it's 2MB paging,

@@ -120,6 +120,7 @@ arch_load_context:
     jmpq *64(%rdi)
 
 /* Enter kernel thread */
+.global arch_enter_kthread
 arch_enter_kthread:
     /* Pop function */
     popq %rsi

@@ -59,9 +59,9 @@ __attribute__((noreturn)) void arch_load_context(struct arch_context *context);
 
 /**** MACROS ****/
 
-#define IP(context) (context->rip)
-#define SP(context) (context->rsp)
-#define BP(context) (context->rbp)
+#define IP(context) (context.rip)
+#define SP(context) (context.rsp)
+#define BP(context) (context.rbp)
 
 
 #endif

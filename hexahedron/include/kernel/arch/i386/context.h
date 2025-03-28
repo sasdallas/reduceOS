@@ -55,8 +55,8 @@ __attribute__((noreturn)) void arch_load_context(struct arch_context *context);
 
 /**** MACROS ****/
 
-#define IP(context) (context->eip)
-#define SP(context) (context->esp)
-#define BP(context) (context->ebp)
+#define IP(context) (context.eip)
+#define SP(context) (context.esp)
+#define BP(context) (context.ebp)
 
 #endif

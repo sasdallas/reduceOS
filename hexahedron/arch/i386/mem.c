@@ -137,6 +137,7 @@ page_t *mem_getKernelDirectory() {
  */
 int mem_switchDirectory(page_t *pagedir) {
     if (!pagedir) pagedir = mem_getKernelDirectory();
+    if (current_cpu->current_dir == pagedir) return 0; // No need to waste time
 
 
     // Try to figure out what physical address we should use
