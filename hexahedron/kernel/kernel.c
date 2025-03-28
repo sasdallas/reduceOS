@@ -40,6 +40,8 @@
 #include <kernel/drivers/font.h>
 #include <kernel/drivers/net/loopback.h>
 #include <kernel/drivers/net/arp.h>
+#include <kernel/drivers/net/ipv4.h>
+#include <kernel/drivers/net/icmp.h>
 
 // Graphics
 #include <kernel/gfx/term.h>
@@ -113,6 +115,10 @@ void kernel_loadDrivers() {
 }
 
 
+struct timeval tv_start;
+
+int tx = 0, ty = 0;
+
 void kthread() {
     int iterations = 0;
     for (;;) {
@@ -173,6 +179,8 @@ void kmain() {
 
     // Networking
     arp_init();
+    ipv4_init();
+    icmp_init();
 
     // Setup loopback interface
     loopback_install();
@@ -235,7 +243,7 @@ void kmain() {
 
     char name[256] = { 0 };
 
-    for (int i = 1; i <= 32; i++) {
+    for (int i = 1; i <= 24; i++) {
         snprintf(name, 256, "kthread%d", i);
         process_t *process = process_create(name, PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
         process->main_thread = thread_create(process, NULL, (uintptr_t)&kthread, THREAD_FLAG_KERNEL);
