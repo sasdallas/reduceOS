@@ -22,6 +22,8 @@
 
 #include <kernel/task/thread.h>
 #include <kernel/task/scheduler.h>
+#include <kernel/task/sleep.h>
+
 #include <kernel/processor_data.h>
 #include <kernel/fs/vfs.h>
 #include <structs/tree.h>
@@ -34,6 +36,12 @@
 #define PROCESS_KSTACK_SIZE         8192    // Kernel stack size
 
 /**** TYPES ****/
+
+/**
+ * @brief Kernel thread function
+ * @param data User-specified data
+ */
+typedef void (*kthread_t)(void *data);
 
 /**
  * @brief The main process type
@@ -58,6 +66,7 @@ typedef struct process {
 
     // OTHER
     uintptr_t kstack;       // Kernel stack (see PROCESS_KSTACK_SIZE)
+    page_t *dir;            // Page directory
 } process_t;
 
 /**** FUNCTIONS ****/
@@ -118,6 +127,17 @@ process_t *process_spawnInit();
  * @param priority The priority of the process 
  */
 process_t *process_create(char *name, int flags, int priority);
+
+/**
+ * @brief Create a kernel process with a single thread
+ * @param name The name of the kernel process
+ * @param flags The flags of the kernel process
+ * @param priority Process priority
+ * @param entrypoint The entrypoint of the kernel process
+ * @param data User-specified data
+ * @returns Process structure
+ */
+process_t *process_createKernel(char *name, unsigned int flags, unsigned int priority, kthread_t entrypoint, void *data);
 
 /**
  * @brief Execute a new ELF binary for the current process (execve)

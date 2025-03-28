@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <kernel/arch/arch.h>
 #include <kernel/mem/mem.h>
+#include <kernel/task/sleep.h>
 
 /**** DEFINITIONS ****/
 
@@ -55,6 +56,9 @@ typedef struct thread {
     time_t total_ticks;         // Total amount of ticks the thread has been running for
     time_t start_ticks;         // Starting ticks
 
+    // BLOCKING VARIABLES
+    thread_sleep_t *sleep;      // Sleep structure
+
     // THREAD VARIABLES
     arch_context_t context;     // Thread context (defined by architecture)
     uint8_t fp_regs[512] __attribute__((aligned(16))); // FPU registers (TEMPORARY - should be moved into arch_context?)
@@ -63,12 +67,19 @@ typedef struct thread {
     uintptr_t stack;            // Thread stack (kernel will load parent->kstack in TSS)
 } thread_t;
 
+
+/**** MACROS ****/
+
+/* Push something onto a thread's stack */
+#define THREAD_PUSH_STACK(stack, type, value) stack -= sizeof(type); \
+                                                *((volatile type*)stack) = value
+
 /**** FUNCTIONS ****/
 
 /**
  * @brief Create a new thread
  * @param parent The parent process of the thread
- * @param dir Directory to use (for new threads being used as main, mem_clone() this first, else refcount the main thread's directory)
+ * @param dir Directory to use (process' directory)
  * @param entrypoint The entrypoint of the thread (you can also set this later)
  * @param flags Flags of the thread
  * @returns New thread pointer, just save context & add to scheduler queue

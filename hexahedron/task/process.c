@@ -228,7 +228,39 @@ static process_t *process_createStructure(char *name, unsigned int flags, unsign
     process->kstack = mem_allocate(0, PROCESS_KSTACK_SIZE, MEM_ALLOC_HEAP, MEM_PAGE_KERNEL) + PROCESS_KSTACK_SIZE;
     dprintf(DEBUG, "Process '%s' has had its kstack %p allocated in page directory %p\n", name, process->kstack, current_cpu->current_dir);
     
+    // Make directory
+    process->dir = (flags & PROCESS_KERNEL) ? NULL : mem_clone(NULL);
+
+#ifdef __ARCH_I386__
+    // !!!: very dirty hack
+    // !!!: resets pages in process->kstack to be global, meaning they won't be invalidated when the TLB flushes (mem_switchDirectory)
+    // !!!: this is bad. kernel allocations should be global in all directories.
+    for (uintptr_t i = (process->kstack - PROCESS_KSTACK_SIZE); i < process->kstack; i += PAGE_SIZE) {
+        page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
+        if (pg) pg->bits.global = 1;
+    }
+#endif
+
     return process;
+}
+
+/**
+ * @brief Create a kernel process with a single thread
+ * @param name The name of the kernel process
+ * @param flags The flags of the kernel process
+ * @param priority Process priority
+ * @param entrypoint The entrypoint of the kernel process
+ * @param data User-specified data
+ * @returns Process structure
+ */
+process_t *process_createKernel(char *name, unsigned int flags, unsigned int priority, kthread_t entrypoint, void *data){
+    process_t *proc = process_create(name, flags, priority);
+    proc->main_thread = thread_create(proc, proc->dir, (uintptr_t)&arch_enter_kthread, THREAD_FLAG_KERNEL);
+
+    THREAD_PUSH_STACK(SP(proc->main_thread->context), void*, data);
+    THREAD_PUSH_STACK(SP(proc->main_thread->context), kthread_t, entrypoint);
+
+    return proc;
 }
 
 /**
@@ -317,14 +349,20 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
     }
 
     // Destroy previous threads
-    // TODO
+    if (current_cpu->current_process->main_thread) __sync_or_and_fetch(&current_cpu->current_process->main_thread->status, THREAD_STATUS_STOPPING);
+    if (current_cpu->current_process->thread_list) {
+        foreach(thread_node, current_cpu->current_process->thread_list) {
+            thread_t *thr = (thread_t*)thread_node->value;
+            if (thr) __sync_or_and_fetch(&thr->status, THREAD_STATUS_STOPPING);
+        }
+    }
 
     // Create a new main thread with a blank entrypoint
     mem_switchDirectory(NULL);
-    current_cpu->current_process->main_thread = thread_create(current_cpu->current_process, mem_clone(NULL), 0x0, THREAD_FLAG_DEFAULT);
+    current_cpu->current_process->main_thread = thread_create(current_cpu->current_process, current_cpu->current_process->dir, 0x0, THREAD_FLAG_DEFAULT);
 
     // Switch to directory
-    mem_switchDirectory(current_cpu->current_process->main_thread->dir);
+    mem_switchDirectory(current_cpu->current_process->dir);
 
     // Load file into memory
     // TODO: This runs check twice (redundant)
@@ -392,7 +430,7 @@ void process_exit(process_t *process, int status_code) {
     }
 
     kfree(process->name);
-    mem_free(process->kstack - PROCESS_KSTACK_SIZE, PROCESS_KSTACK_SIZE, MEM_DEFAULT); // !!!: This needs to be replaced
+    // mem_free(process->kstack - PROCESS_KSTACK_SIZE, PROCESS_KSTACK_SIZE, MEM_DEFAULT); // !!!: This needs to be replaced
     kfree(process);
 
     // To the next process we go

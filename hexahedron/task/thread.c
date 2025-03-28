@@ -45,7 +45,7 @@ static thread_t *thread_createStructure(process_t *parent, page_t *dir, int stat
 /**
  * @brief Create a new thread
  * @param parent The parent process of the thread
- * @param dir Directory to use (for new threads being used as main, mem_clone() this first, else refcount the main thread's directory)
+ * @param dir Directory to use (process' directory)
  * @param entrypoint The entrypoint of the thread (you can also set this later)
  * @param flags Flags of the thread
  * @returns New thread pointer, just save context & add to scheduler queue
