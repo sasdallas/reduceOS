@@ -73,12 +73,14 @@ int pit_irqHandler(uintptr_t exception_index, uintptr_t int_number, registers_t 
 
     if (!pit_update) return 0; // Done
 
-    // Check to see if we're from usermode
-    if (arch_from_usermode(regs, regs_extended)) {
+    // Only if the process is running do we preempt
+    if (current_cpu->current_thread && current_cpu->current_process != current_cpu->idle_process && current_cpu->current_thread->status & THREAD_STATUS_RUNNING && !(current_cpu->current_thread->flags & THREAD_FLAG_NO_PREEMPT)) {
         // Is it time to switch processes?
         if (scheduler_update(clock_getTickCount()) == 1) {
-            // Yes, it is. Manually acknowledge this IRQ and switch to next process
-            hal_endInterrupt(PIT_IRQ);
+            // End interrupt
+            hal_endInterrupt(int_number);
+
+            // Yes, it is. Switch to next process
             process_yield(1);
         }
     }

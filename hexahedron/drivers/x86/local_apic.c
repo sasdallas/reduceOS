@@ -174,8 +174,8 @@ int lapic_timer_irq(uintptr_t exception_index, uintptr_t irq_number, registers_t
     // Update clock
     clock_update(clock_readTicks());
     
-    // Check to see if we're from usermode - only usermode processes can be rescheduled
-    if (arch_from_usermode(registers, extended)) {
+    // Only if the process is running do we preempt
+    if (current_cpu->current_thread && current_cpu->current_process != current_cpu->idle_process && current_cpu->current_thread->status & THREAD_STATUS_RUNNING && !(current_cpu->current_thread->flags & THREAD_FLAG_NO_PREEMPT)) {
         // Is it time to switch processes?
         if (scheduler_update(clock_getTickCount()) == 1) {
             LOG(DEBUG, "Process is out of timeslice - yielding (LAPIC)\n");

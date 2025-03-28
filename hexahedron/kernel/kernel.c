@@ -144,9 +144,6 @@ void kthread() {
         iterations++;
         dprintf(DEBUG, "Hi from %s! This is iteration %d\n", current_cpu->current_process->name, iterations);
         arch_pause();
-        
-        
-        process_yield(1);
     }
 }
 
@@ -235,9 +232,6 @@ void kmain() {
         LOG(WARN, "Not loading any drivers, found argument \"--no-load-drivers\".\n");
         printf(COLOR_CODE_YELLOW    "Refusing to load drivers because of kernel argument \"--no-load-drivers\" - careful!\n" COLOR_CODE_RESET);
     }
-
-    // loop
-    for (;;);
 
     char name[256] = { 0 };
 
