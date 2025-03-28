@@ -115,13 +115,13 @@ void mem_freeDMA(uintptr_t base, uintptr_t size) {
  * 
  * @warning MMIO regions cannot be destroyed.
  */
-uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size) {
+uintptr_t mem_mapMMIO(uintptr_t phys, size_t size) {
     if (!size || !phys) return 0x0;
     if (!mmio_pool) {
         LOG(WARN, "Function 0x%x attempted to allocate %d bytes from MMIO buffer but regions are not ready\n", __builtin_return_address(0), size);
         return 0x0;
     }
-    
+
     // Align size
     if (size % PAGE_SIZE != 0) size = MEM_ALIGN_PAGE(size);
 

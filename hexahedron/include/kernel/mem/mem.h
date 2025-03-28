@@ -183,7 +183,7 @@ void mem_freePage(page_t *page);
  * 
  * @warning MMIO regions cannot be destroyed.
  */
-uintptr_t mem_mapMMIO(uintptr_t phys, uintptr_t size);
+uintptr_t mem_mapMMIO(uintptr_t phys, size_t size);
 
 /**
  * @brief Unmap an MMIO region
