@@ -18,6 +18,7 @@
 #include <kernel/drivers/net/nic.h>
 #include <kernel/drivers/clock.h>
 #include <kernel/loader/driver.h>
+#include <kernel/task/process.h>
 #include <kernel/drivers/pci.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/mem/mem.h>
@@ -267,8 +268,57 @@ void e1000_setLinkUp(e1000_t *nic) {
 /**
  * @brief Receiver process for E1000
  */
-static void e1000_receiverThread() {
-    // TODO
+static void e1000_receiverThread(void *data) {
+    e1000_t *nic = (e1000_t*)data;
+
+    // If Rx descriptors have been updated then the head will be different
+    int head = E1000_RECVCMD(E1000_REG_RXDESCHEAD);
+
+    for (;;) {
+        if (head == nic->rx_current) {
+            // Same as before.. Try reading it one more time
+            head = E1000_RECVCMD(E1000_REG_RXDESCHEAD);
+        }
+
+        if (head != nic->rx_current) {
+            // Sweet, we have packets.
+            while (nic->rx_descs[nic->rx_current].status & 0x01) {
+                // Let ethernet take care of this
+                if (!(nic->rx_descs[nic->rx_current].errors & 0x97)) {
+                    // Handle this packet
+                    ethernet_handle((ethernet_packet_t*)nic->rx_virt[nic->rx_current], nic->nic, nic->rx_descs[nic->rx_current].length);
+                } else {
+                    LOG(WARN, "Packet has error bits set: 0x%x\n", nic->rx_descs[nic->rx_current].errors);
+                }
+
+                // Reset status
+                nic->rx_descs[nic->rx_current].status = 0;
+
+                // rollover
+                nic->rx_current++;
+                if (nic->rx_current >= E1000_NUM_RX_DESC) {
+                    nic->rx_current = 0;
+                }
+
+                // Are we at the end?
+                if (nic->rx_current == head) {
+                    // Try again..
+                    head = E1000_RECVCMD(E1000_REG_RXDESCHEAD);
+                    if (nic->rx_current == head) {
+                        // Yes, break out
+                        break;   
+                    }
+                }
+
+                // Update tail
+                E1000_SENDCMD(E1000_REG_RXDESCTAIL, nic->rx_current);
+
+                // Clear STATUS
+                uint32_t status = E1000_RECVCMD(E1000_REG_STATUS);
+                LOG(DEBUG, "status = %08x\n", status);
+            }
+        }
+    }
 }
 
 /**
@@ -306,6 +356,8 @@ static ssize_t e1000_write(fs_node_t *node, off_t offset, size_t size, uint8_t *
     spinlock_release(nic->lock);
     return size;
 }
+
+
 /**
  * @brief E1000 IRQ handler
  * @param context The NIC
@@ -334,6 +386,7 @@ void e1000_init(uint32_t device, uint16_t type) {
     // First, we should enable PCI I/O space and MMIO space access
     uint16_t cmd = pci_readConfigOffset(PCI_BUS(device), PCI_SLOT(device), PCI_FUNCTION(device), PCI_COMMAND_OFFSET, 2);
     cmd |= PCI_COMMAND_IO_SPACE | PCI_COMMAND_MEMORY_SPACE | PCI_COMMAND_BUS_MASTER;
+
     cmd &= ~(PCI_COMMAND_INTERRUPT_DISABLE);
     pci_writeConfigOffset(PCI_BUS(device), PCI_SLOT(device), PCI_FUNCTION(device), PCI_COMMAND_OFFSET, cmd);
 
@@ -360,8 +413,11 @@ void e1000_init(uint32_t device, uint16_t type) {
     }
 
     // Map the MMIO space in
-    uintptr_t size = bar->size;
-    nic->mmio = mem_mapMMIO(bar->address, size);
+    // Convert if needed
+    uintptr_t address = (uint32_t)bar->address; // !!!: GLITCH IN PCI??? THIS HAS BAD BITS SET IN VMWARE
+    size_t size = (size_t)(uint32_t)bar->size;
+    LOG(DEBUG, "MMIO map: size 0x%016llX addr 0x%016llX bar type %d\n", size, address, bar->type);
+    nic->mmio = mem_mapMMIO(address, size);
     kfree(bar);
 
     // Detect an EEPROM
@@ -420,6 +476,9 @@ void e1000_init(uint32_t device, uint16_t type) {
     char name[128];
     snprintf(name, 128, "enp%ds%d", PCI_BUS(device), PCI_SLOT(device));
     nic_register(nic->nic, name);
+
+    process_t *e1000_proc = process_createKernel("e1000_receiver", PROCESS_KERNEL, PRIORITY_MED, e1000_receiverThread, (void*)nic);
+    scheduler_insertThread(e1000_proc->main_thread);
 
     // All done
     return;
