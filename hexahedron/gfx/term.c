@@ -13,7 +13,9 @@
 
 #include <kernel/gfx/term.h>
 #include <kernel/debug.h>
+#include <kernel/gfx/gfx.h>
 #include <stddef.h>
+#include <string.h>
 
 /* GCC */
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
@@ -75,9 +77,33 @@ void terminal_clear(color_t fg, color_t bg) {
     terminal_bg = bg;
 
     video_clearScreen(terminal_bg);
+    gfx_drawLogo(COLOR_WHITE);
 
     terminal_x = 0;
     terminal_y = 0;
+}
+
+
+/**
+ * @brief Scroll the terminal
+ */
+void terminal_scroll() {
+    // Get pointer to video memory
+    uint8_t *vmem = video_getFramebuffer();
+
+    // Get driver
+    video_driver_t *driver = video_getDriver();
+
+    gfx_drawLogo(COLOR_BLACK); // Black out logo
+
+    memmove(vmem, vmem + sizeof(uint32_t) * driver->screenWidth * font_getHeight(), (driver->screenHeight - font_getHeight()) * driver->screenWidth * 4);
+    memset(vmem + sizeof(uint32_t) * (driver->screenHeight - font_getHeight()) * driver->screenWidth, 0, driver->screenWidth * font_getHeight() * 4);
+
+    gfx_drawLogo(COLOR_WHITE);  // Redraw logo
+
+    terminal_y--;   
+
+    video_updateScreen();
 }
 
 /**
@@ -240,7 +266,7 @@ int terminal_putchar(int c) {
 
     // Clear the screen if the height is too big
     if (terminal_y >= terminal_height) {
-        terminal_clear(terminal_fg, terminal_bg); // No scrolling yet
+        terminal_scroll();
     }
 
     return 0;
