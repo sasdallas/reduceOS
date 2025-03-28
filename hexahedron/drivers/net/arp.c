@@ -32,7 +32,7 @@ hashmap_t *arp_map = NULL;
 spinlock_t arp_lock = { 0 };
 
 /* Log method */
-#define LOG(status, ...) dprintf_module(status, "NETWORK:ARP", __VA_ARGS__)
+#define LOG(status, ...) dprintf_module(status, "NETWORK:ARP ", __VA_ARGS__)
 
 /* Log NIC */
 #define LOG_NIC(status, nn, ...) LOG(status, "[NIC:%s] ", NIC(nn)->name); dprintf(NOHEADER, __VA_ARGS__)
@@ -151,7 +151,7 @@ int arp_search(fs_node_t *nic, in_addr_t address) {
     if (arp_request(nic, address)) return 1;
 
     // TODO: Process blocking
-    if (current_cpu->current_process) kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "arp", "*** Cannot block yet\n");
+    // if (current_cpu->current_process) kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "arp", "*** Cannot block yet\n");
 
     // Sleep
     clock_sleep(500);
@@ -205,15 +205,15 @@ static void arp_reply(arp_packet_t *packet, fs_node_t *nic_node) {
 }
 
 /**
- * @brief   Hack stolen from ToaruOS. @c inet_ntoa seems to not like being called, so while I work on that this is a TEMPORARY solution
- *          Sorry :(
+ * @brief inet_ntoa that doesn't use a stack variable
  */
-static void ip_ntoa(const uint32_t src_addr, char * out) {
-	snprintf(out, 16, "%d.%d.%d.%d",
-		(src_addr & 0xFF000000) >> 24,
-		(src_addr & 0xFF0000) >> 16,
-		(src_addr & 0xFF00) >> 8,
-		(src_addr & 0xFF));
+static void __inet_ntoa(const uint32_t src_addr, char * out) {
+    uint32_t in_fixed = ntohl(src_addr);
+    snprintf(out, 17, "%d.%d.%d.%d",
+        (in_fixed >> 24) & 0xFF,
+        (in_fixed >> 16) & 0xFF,
+        (in_fixed >> 8) & 0xFF,
+        (in_fixed >> 0) & 0xFF);
 }
 
 /**
@@ -230,13 +230,11 @@ int arp_handle_packet(void *frame, fs_node_t *nic_node, size_t size) {
         // Check the operation requested
         if (ntohs(packet->oper) == ARP_OPERATION_REQUEST) {
             // They're looking for someone. Who?
-			char tpa[17];
-			ip_ntoa(ntohl(packet->tpa), tpa);
+            char *spa = inet_ntoa((struct in_addr){.s_addr = packet->spa});
+            LOG_NIC(DEBUG, nic_node, " ARP: Request from " MAC_FMT " (IP %s) ", MAC(packet->sha), spa);
 
-            char spa[17];
-            ip_ntoa(ntohl(packet->spa), spa);
-
-            LOG_NIC(DEBUG, nic_node, " ARP: Request from " MAC_FMT " (IP %s) for IP %s\n", spa, MAC(packet->sha), tpa);
+            char *tpa = inet_ntoa((struct in_addr){.s_addr = packet->tpa});
+            LOG(NOHEADER, "for IP %s\n", tpa);
 
             // Cache them
             arp_add_entry((in_addr_t)packet->spa, packet->sha, ARP_TYPE_ETHERNET, nic_node);
@@ -249,7 +247,7 @@ int arp_handle_packet(void *frame, fs_node_t *nic_node, size_t size) {
             }
         } else {
             char spa[17];
-            ip_ntoa(ntohl(packet->spa), spa);
+            __inet_ntoa(packet->spa, spa);
             LOG_NIC(DEBUG, nic_node, " ARP: Response from " MAC_FMT " to show they are IP %s\n", MAC(packet->sha), spa);
 
             // Cache!
