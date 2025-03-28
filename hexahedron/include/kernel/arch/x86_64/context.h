@@ -57,4 +57,11 @@ __attribute__((returns_twice)) int arch_save_context(struct arch_context *contex
  */
 __attribute__((noreturn)) void arch_load_context(struct arch_context *context);
 
+/**** MACROS ****/
+
+#define IP(context) (context->rip)
+#define SP(context) (context->rsp)
+#define BP(context) (context->rbp)
+
+
 #endif
