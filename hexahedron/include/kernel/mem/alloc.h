@@ -39,23 +39,10 @@ typedef struct _allocator_info {
     char        name[128];          // lmao imagine allocating memory in an allocator
     uint32_t    version_major;      // Major version of allocator
     uint32_t    version_minor;      // Minor version of allocator
-    int         support_profile;    // Whether the allocator does actually support profiling or not.
-                                    // Profiling is more detailed in alloc_startProfiling
     int         support_valloc;     // Whether the allocator supports valloc().
 
     // TODO: More flags will be added
 } allocator_info_t;
-
-/* Profiling information */
-typedef struct _profile_info {
-    time_t      time_start, time_end;   // Starting and ending profiling times
-    uint32_t    bytes_allocated;        // Total amount of bytes allocated
-    // TODO: There's gotta be a way to do bytes_freed.. right?
-    int         requests;               // How many requests were made to the allocator in total.
-
-    uint32_t    least_bytes_allocated;  // Least amount of bytes allocated
-    uint32_t    most_bytes_allocated;   // Most amount of bytes allocated   
-} profile_info_t;
 
 /**** FUNCTIONS ****/
 
@@ -143,39 +130,5 @@ void kfree(void *ptr);
  * @brief valloc?
  */
 int alloc_canHasValloc();
-
-/**
- * @brief Start profiling the memory system.
- * 
- * This will initialize the memory system in such a way that every call to malloc/realloc/calloc/whatever
- * will be logged, and their results will be analyzed.
- * 
- * This is a performance checking function, used to compare different allocators or
- * alternatively to find memory leaks.
- * 
- * @note To retrieve data, call alloc_stopProfiling.
- * 
- * @param force_begin_profiling If another CPU has already started the profiling process,
- *                              this will try to acquire the spinlock and halt the CPU until the
- *                              current process is finished.
- * 
- * @warning You can hang the system if not careful with this.
- *          Use this sparingly.
- * 
- * @returns 0 on successful profiling start
- *          -EINPROGRESS if it was already started and @c force_begin_profiling was not specified.
- */
-int alloc_startProfiling(int force_begin_profiling);
-
-/**
- * @brief Stop profiling the memory system.
- * 
- * @see alloc_startProfiling for an explanation on the profiling system.
- * 
- * @returns Either a pointer to the @c profile_info_t structure or NULL.
- */
-profile_info_t *alloc_stopProfiling();
-
-
 
 #endif

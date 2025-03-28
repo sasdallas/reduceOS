@@ -206,9 +206,13 @@ page_t *mem_clone(page_t *dir) {
     page_t *dest = mem_createVAS();
 
     // Copy top half. This contains the kernel's important regions, including the heap
+    // !!!: THIS IS A PROBLEM ZONE. The heap contains PDPTs/PDs/PTs that are premapped but not enough! With an infinitely
+    // !!!: expanding heap we create issues where once we run out of a PDPT the heap won't update in other PMLs. Page fault
+    // !!!: handlers can take care of this and remap PDPTs but for things like kernel stacks it might be better to map them as global
+    // !!!: (avoiding flushing them in TLB)
     memcpy(&dest[256], &dir[256], 256 * sizeof(page_t));
 
-    // Copy low PDPTs 
+    // Copy low PDPTs (i.e. usermode code location and kernel code)
     for (size_t pdpt = 0; pdpt < 256; pdpt++) {
         if (!(dir[pdpt].bits.present)) continue;
         page_t *pdpt_srcentry = &dir[pdpt]; // terrible naming lol

@@ -31,9 +31,6 @@
 /* Internal copy of the allocator's data */
 static allocator_info_t *alloc_info = NULL; // !!!: What if a bad allocator changes this after giving it to us? 
 
-/* Current profiling data */
-static profile_info_t *profile_data = NULL;
-
 
 /** FORWARDER FUNCTIONS **/
 
@@ -44,14 +41,6 @@ static profile_info_t *profile_data = NULL;
  * @returns A pointer. It will crash otherwise.
  */
 __attribute__((malloc)) void *kmalloc(size_t size) {
-    // Profile data
-    if (profile_data != NULL) {
-        profile_data->requests++;
-        profile_data->bytes_allocated += size;
-        if (size > profile_data->most_bytes_allocated) profile_data->most_bytes_allocated = size;
-        if (size < profile_data->least_bytes_allocated) profile_data->least_bytes_allocated = size;
-    }
-
     void *ptr = alloc_malloc(size);
     return ptr;
 }
@@ -64,15 +53,6 @@ __attribute__((malloc)) void *kmalloc(size_t size) {
  * @returns A pointer. It will crash otherwise.
  */
 __attribute__((malloc)) void *krealloc(void *ptr, size_t size) {
-    // Profile data
-    if (profile_data != NULL) {
-        profile_data->requests++;
-        profile_data->bytes_allocated += size;
-        if (size > profile_data->most_bytes_allocated) profile_data->most_bytes_allocated = size;
-        if (size < profile_data->least_bytes_allocated) profile_data->least_bytes_allocated = size;
-    }
-
-
     void *ret_ptr = alloc_realloc(ptr, size);
     return ret_ptr;
 }
@@ -85,13 +65,6 @@ __attribute__((malloc)) void *krealloc(void *ptr, size_t size) {
  * @returns A pointer. It will crash otherwise.
  */
 __attribute__((malloc)) void *kcalloc(size_t elements, size_t size) {
-    // Profile data
-    if (profile_data != NULL) {
-        profile_data->requests++;
-        profile_data->bytes_allocated += elements * size;
-        if (elements * size > profile_data->most_bytes_allocated) profile_data->most_bytes_allocated = elements * size;
-        if (elements * size < profile_data->least_bytes_allocated) profile_data->least_bytes_allocated = elements * size;
-    }
     void *ptr = alloc_calloc(elements, size);
     return ptr;
 }
@@ -105,14 +78,6 @@ __attribute__((malloc)) void *kcalloc(size_t elements, size_t size) {
  */
 __attribute__((malloc)) void *kvalloc(size_t size) {
     if (alloc_canHasValloc()) {
-        // Profile data
-        if (profile_data != NULL) {
-            profile_data->requests++;
-            profile_data->bytes_allocated += size;
-            if (size > profile_data->most_bytes_allocated) profile_data->most_bytes_allocated = size;
-            if (size < profile_data->least_bytes_allocated) profile_data->least_bytes_allocated = size;
-        }
-
         void *ptr = alloc_valloc(size);
         return ptr;
     } else {
@@ -126,10 +91,6 @@ __attribute__((malloc)) void *kvalloc(size_t size) {
  * @param ptr A pointer to the previous memory
  */
 void kfree(void *ptr) {
-    if (profile_data != NULL) {
-        profile_data->requests++;
-    }
-    
     alloc_free(ptr);
 }
 
@@ -145,81 +106,4 @@ int alloc_canHasValloc() {
     }
 
     return alloc_info->support_valloc;
-}
-
-
-/**
- * @brief Start profiling the memory system.
- * 
- * This will initialize the memory system in such a way that every call to malloc/realloc/calloc/whatever
- * will be logged, and their results will be analyzed.
- * 
- * This is a performance checking function, used to compare different allocators or
- * alternatively to find memory leaks.
- * 
- * @note To retrieve data, call alloc_stopProfiling.
- * 
- * @param force_begin_profiling If another CPU has already started the profiling process,
- *                              this will try to acquire the spinlock and halt the CPU until the
- *                              current process is finished.
- * 
- * @warning You can hang the system if not careful with this.
- *          Use this sparingly.
- * 
- * @returns 0 on successful profiling start
- *          -EINPROGRESS if it was already started and @c force_begin_profiling was not specified.
- *          -ENOTSUP if the allocator does not support it
- */
-int alloc_startProfiling(int force_begin_profiling) {
-    // Check that it's even supported
-    if (!((alloc_getInfo())->support_profile)) {
-        dprintf(WARN, "Attempted to profile memory system, but it is unsupported.");
-        return -ENOTSUP;
-    }
-
-    if (profile_data != NULL) {
-        // Okay... did they want to force?
-        if (force_begin_profiling) {
-            dprintf(WARN, "No spinlock support added in allocator management system!\n");
-            return -ENOTSUP;
-        } else {
-            return -EINPROGRESS;
-        }
-    }
-
-    // Ready to go!
-    profile_data = kmalloc(sizeof(profile_info_t));
-    memset((void*)profile_data, 0, sizeof(profile_info_t));
-
-    profile_data->time_start = now();
-    profile_data->least_bytes_allocated = UINT32_MAX;
-
-    return 0; // Started.
-}
-
-/**
- * @brief Stop profiling the memory system.
- * 
- * @see alloc_startProfiling for an explanation on the profiling system.
- * 
- * @returns Either a pointer to the @c profile_info_t structure or NULL.
- */
-profile_info_t *alloc_stopProfiling() {
-    if (!profile_data) {
-        // No profiling was ever started
-        return NULL;
-    } 
-
-    // Terminate the profiling system.
-    // First, set the end time.
-    profile_data->time_end = now();
-
-    // Save the pointer and clear it. Responsibility for freeing is on the caller.
-    profile_info_t *ptr = profile_data;
-    profile_data = NULL;
-
-    // Return
-    // TODO: Release spinlock
-
-    return ptr;
 }

@@ -261,9 +261,8 @@ __attribute__((noreturn)) void arch_main(multiboot_t *bootinfo, uint32_t multibo
     mem_init(highest_kernel_address);
     
     allocator_info_t *info = alloc_getInfo();
-    dprintf(INFO, "Allocator information: %s version %i.%i (valloc %s, profiling %s)\n", info->name, info->version_major, info->version_minor,
-                                            info->support_valloc ? "supported" : "not supported",
-                                            info->support_profile ? "supported" : "not supported");
+    dprintf(INFO, "Allocator information: %s version %i.%i (valloc %s)\n", info->name, info->version_major, info->version_minor,
+                                            info->support_valloc ? "supported" : "not supported");
 
     // Initialize arguments system
     kargs_init(parameters->kernel_cmdline);
