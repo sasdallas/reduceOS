@@ -147,7 +147,7 @@ typedef struct ehci_td {
             uint32_t lp:27;             // Link pointer - points to the next TD
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } link;
 
     union {
@@ -157,7 +157,7 @@ typedef struct ehci_td {
             uint32_t lp:27;             // Link pointer - points to the next TD
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } alt_link;
 
     union {
@@ -180,7 +180,7 @@ typedef struct ehci_td {
             uint32_t toggle:1;          // Data toggle
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } token;
 
     volatile uint32_t buffer[5];        // Buffer pages (NOTE: 0xFFF is reserved in everything except page #0)
@@ -202,7 +202,7 @@ typedef struct ehci_qh {
             uint32_t qhlp:27;           // Queue head link pointer
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } qhlp;
 
     // Endpoint characteristics
@@ -219,7 +219,7 @@ typedef struct ehci_qh {
             uint32_t rl:4;              // NAK count reload 
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } ch; 
 
     // Endpoint capabilities
@@ -232,12 +232,21 @@ typedef struct ehci_qh {
             uint32_t mult:2;            // High-bandwidth pipe multiplier
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } cap;
 
     
-    volatile uint32_t td_current;       // Current TD pointer
-    
+    // Current td pointer
+    union {
+        struct {
+            uint32_t terminate:1;       // Terminate
+            uint32_t nakcnt:3;          // NAK count
+            uint32_t lp:28;             // Link pointer
+        };
+
+        volatile uint32_t raw;
+    } td_current;
+
     // Next td pointer
     union {
         struct {
@@ -246,7 +255,7 @@ typedef struct ehci_qh {
             uint32_t lp:28;             // Link ointer
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } td_next;
 
     // Alternate next td pointer
@@ -257,7 +266,7 @@ typedef struct ehci_qh {
             uint32_t lp:28;             // Link pointer
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } td_next_alt;
 
     // Token
@@ -281,7 +290,7 @@ typedef struct ehci_qh {
             uint32_t toggle:1;          // Data toggle
         };
 
-        uint32_t raw;
+        volatile uint32_t raw;
     } token;
 
     volatile uint32_t buffer[5];        // Buffer pages (NOTE: 0xFFF is reserved in everything except page #0)
@@ -310,7 +319,7 @@ typedef union ehci_flp {
         uint32_t lp:27;                 // Link pointer
     };
 
-    uint32_t raw;
+    volatile uint32_t raw;
 } ehci_flp_t;
 
 /**

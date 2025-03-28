@@ -84,7 +84,7 @@ static ehci_qh_t *ehci_allocateQH(ehci_t *hc) {
     qh->td_list = list_create("td list");   // TODO: This shouldnt be here
     qh->token.active = 1;
 
-    // LOG(DEBUG, "[QH:ALLOC] New QH created at %p/%p\n", qh, mem_getPhysicalAddress(NULL, (uintptr_t)qh));
+    LOG(DEBUG, "[QH:ALLOC] New QH created at %p/%p\n", qh, mem_getPhysicalAddress(NULL, (uintptr_t)qh));
     return qh;
 }
 
@@ -103,7 +103,7 @@ static ehci_td_t *ehci_allocateTD(ehci_t *hc) {
 
     memset(td, 0, sizeof(ehci_td_t));
 
-    // LOG(DEBUG, "[TD:ALLOC] New TD created at %p/%p\n", td, mem_getPhysicalAddress(NULL, (uintptr_t)td));
+    LOG(DEBUG, "[TD:ALLOC] New TD created at %p/%p\n", td, mem_getPhysicalAddress(NULL, (uintptr_t)td));
     return td;
 }
 
@@ -157,8 +157,11 @@ static ehci_qh_t *ehci_createQH(ehci_t *hc, USBTransfer_t *transfer, uint32_t po
     qh->ch.dtc = 1;
     qh->ch.endpt = endpt;
 
+    // We NEVER use td_current
+    qh->td_current.terminate = 1;
+
     // Done!
-    // LOG(DEBUG, "[QH:SETUP] QH %p - transfer %p port 0x%x hubaddr 0x%x type %d speed %d devaddr 0x%x endpt 0x%x\n", qh, transfer, port, hub_addr, transfer_type, speed, address, endpt);
+    LOG(DEBUG, "[QH:SETUP] QH %p - transfer %p port 0x%x hubaddr 0x%x type %d speed %d devaddr 0x%x endpt 0x%x\n", qh, transfer, port, hub_addr, transfer_type, speed, address, endpt);
     return qh;
 
 }
@@ -209,7 +212,7 @@ ehci_td_t *ehci_createTD(ehci_t *hc, int speed, uint32_t toggle, uint32_t type, 
     }
 
     // Done!
-    // LOG(DEBUG, "[TD:SETUP] New TD created at %p/%p - type 0x%x speed %i toggle 0x%x\n", td, LINK(td) << 5, type, speed, toggle);
+    LOG(DEBUG, "[TD:SETUP] New TD created at %p/%p - type 0x%x speed %i toggle 0x%x\n", td, LINK(td) << 5, type, speed, toggle);
     return td;
 }
 
@@ -274,7 +277,7 @@ void ehci_destroyQH(USBController_t *controller, ehci_qh_t *qh) {
     foreach(td_node, qh->td_list) {
         if (td_node->value) {
             ehci_td_t *td = (ehci_td_t*)td_node->value;
-            // LOG(DEBUG, "[TD:FREE] TD at %p destroyed\n", td);
+            LOG(DEBUG, "[TD:FREE] TD at %p destroyed\n", td);
             pool_freeChunk(hc->td_pool, (uintptr_t)td);
         }
     }
@@ -282,7 +285,7 @@ void ehci_destroyQH(USBController_t *controller, ehci_qh_t *qh) {
     list_destroy(qh->td_list, false);
 
     // Free the queue head
-    // LOG(DEBUG, "[QH:FREE] QH at %p destroyed\n", qh);
+    LOG(DEBUG, "[QH:FREE] QH at %p destroyed\n", qh);
     pool_freeChunk(hc->qh_pool, (uintptr_t)qh);
     spinlock_release(&ehci_lock);
 }
@@ -346,6 +349,7 @@ int ehci_probe(USBController_t *controller) {
         LOG(DEBUG, "EHCI resetting port 0x%x (status: %08x)\n", hc->op_base + port_addr, EHCI_OP_READ32(EHCI_REG_PORTSC + (port*4)));
 
         int port_enabled = 0;
+        int port_connected = 0; // Full speed devices will connect but won't enable
         
         // Now we can wait ~200ms for port to enable (it's required to wait at elast 100ms) while checking the status
         uint16_t status;
@@ -358,10 +362,22 @@ int ehci_probe(USBController_t *controller) {
                 break; // No connection
             }
 
+            port_connected = 1;
+
             if (status & (EHCI_PORTSC_CONNECT_CHANGE | EHCI_PORTSC_ENABLE_CHANGE)) {
                 // Acknowledge change in status
                 ehci_clearPort(hc, port_addr, (EHCI_PORTSC_CONNECT_CHANGE | EHCI_PORTSC_ENABLE_CHANGE));
                 continue;
+            }
+
+            // Low speed device?
+            if (status & EHCI_PORTSC_LS) {
+                // Yep - release this to the companion controller
+                LOG(DEBUG, "Releasing low-speed device to companion controller.\n");
+                ehci_writePort(hc, port_addr, EHCI_PORTSC_OWNER);
+                port_connected = 0;
+                port_enabled = 0;
+                break;
             }
 
             // Has the port completed its enabling process?
@@ -374,15 +390,16 @@ int ehci_probe(USBController_t *controller) {
             ehci_writePort(hc, port_addr, EHCI_PORTSC_ENABLE);
         }
 
-        if (port_enabled) {
+        if (port_enabled && port_connected) {
             // The port was successfully enabled
             initialized_ports++;
             LOG(DEBUG, "Found an EHCI device connected to port %i\n", port);
         
-            
-            USBDevice_t *dev = usb_createDevice(controller, port, (status & EHCI_PORTSC_LS) ? USB_LOW_SPEED : USB_FULL_SPEED, ehci_control);
-            dev->mps = 8; // TODO: Bochs says to make this equal the mps corresponding to the speed of the device
+            // Create a device (since we give up all the full/low speed devices they are always high)
+            USBDevice_t *dev = usb_createDevice(controller, port, USB_HIGH_SPEED, ehci_control);
+            dev->mps = 64; // Bochs says to make this equal the mps corresponding to the speed of the device
 
+            // Initialize the device
             if (usb_initializeDevice(dev)) {
                 LOG(ERR, "Failed to initialize EHCI device\n");
                 
@@ -390,6 +407,10 @@ int ehci_probe(USBController_t *controller) {
                 initialized_ports--;
                 break;
             }
+        } else if (port_connected) {
+            // This is probably a full speed device. Let's give these to the companion controller.
+            LOG(DEBUG, "Full-speed device connected - releasing to companion controller\n");
+            EHCI_OP_WRITE32(port_addr, EHCI_OP_READ32(port_addr) | EHCI_PORTSC_OWNER); 
         }
     }
 
@@ -417,6 +438,7 @@ void ehci_waitForQH(USBController_t *controller, ehci_qh_t *qh) {
 
     // Did we make it to the end?
     if (qh->td_next.terminate) {
+        LOG(INFO, "Successfully completed transfer\n");
         if (!qh->token.active) {
             if (qh->token.data_buffer) {
                 LOG(ERR, "EHCI controller detected a data buffer error\n");
@@ -431,12 +453,14 @@ void ehci_waitForQH(USBController_t *controller, ehci_qh_t *qh) {
             }
 
             if (qh->token.miss) {
-                LOG(ERR, "EHCI controller detectede a missed microframe\n");
+                LOG(ERR, "EHCI controller detected a missed microframe\n");
             }
 
             transfer->status = USB_TRANSFER_SUCCESS;
         }
     }
+
+    LOG(DEBUG, "Waiting for QH %p/%p - td_next %08x\n", qh, mem_getPhysicalAddress(NULL, (uintptr_t)qh), qh->td_next.raw);
 
     if (transfer->status != USB_TRANSFER_IN_PROGRESS) {
         // Clear transfer from queue
@@ -444,6 +468,8 @@ void ehci_waitForQH(USBController_t *controller, ehci_qh_t *qh) {
         
         // TODO: Update toggle state?
         // TODO: Destroy QH
+
+        ehci_destroyQH(controller, qh);
     }
 }
 
@@ -470,13 +496,16 @@ int ehci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     // Create the SETUP transfer descriptor
     ehci_td_t *td_setup = ehci_createTD(hc, dev->speed, toggle, EHCI_PACKET_SETUP, 8, (void*)mem_getPhysicalAddress(NULL, (uintptr_t)transfer->req));
     QH_LINK_TD(qh, td_setup);
-    qh->td_next_alt.terminate = 0;
-    qh->td_next_alt.lp = LINK2(td_setup);
+
+    qh->td_next_alt.raw = 1;
+    qh->td_next.terminate = 0;
+    qh->td_next.lp = LINK2(td_setup);
 
     // Now create the DATA descriptors. These need to be limited to dev->mps but not padded.
     uint8_t *buffer = (uint8_t*)transfer->data;
     uint8_t *buffer_end = (uint8_t*)((uintptr_t)transfer->data + (uintptr_t)transfer->length);
     ehci_td_t *last = td_setup;
+    ehci_td_t *first = NULL;
 
     while (buffer < buffer_end) {
         uint32_t transaction_size = buffer_end - buffer;
@@ -488,7 +517,7 @@ int ehci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
         toggle ^= 1;
         ehci_td_t *td = ehci_createTD(hc, dev->speed, toggle, (transfer->req->bmRequestType & USB_RT_D2H) ? EHCI_PACKET_IN : EHCI_PACKET_OUT,
                                         transaction_size, (void*)mem_getPhysicalAddress(NULL, (uintptr_t)buffer));
-        
+        if (!first) first = td;
         TD_LINK_TD(qh, last, td);
         buffer += transaction_size;
         last = td;
@@ -499,12 +528,19 @@ int ehci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     TD_LINK_TD(qh, last, td_status);
     TD_LINK_TERM(td_status);
 
-    // Insert it into the chain
+    qh->td_current.raw = 0;
+    qh->td_next_alt.raw = 0;
+
+    // Insert it into the asyncronous chain
     spinlock_acquire(&ehci_lock);
-    ehci_qh_t *current = (ehci_qh_t*)hc->periodic_list->head->value;
+    ehci_qh_t *current = (ehci_qh_t*)hc->async_list->head->value;
+    
+    LOG(DEBUG, "[QH:CONTROL] Link to QH %p/%p\n", current, LINK2(current) << 4);
     QH_LINK_QH(current, qh);
-    list_append(hc->periodic_list, (void*)qh);
+    list_append(hc->async_list, (void*)qh);
     spinlock_release(&ehci_lock);
+
+    LOG(DEBUG, "[QH:CONTROL] Control transfer setup - QH with TDs %08x, %08x, %08x (c,n,a)\n", qh->td_current.raw, qh->td_next.raw, qh->td_next_alt.raw);
 
     // Wait for transfer to finish
     while (transfer->status == USB_TRANSFER_IN_PROGRESS) {
@@ -547,6 +583,7 @@ int ehci_irq(void *context) {
         LOG(ERR, "EHCI IRQ: Host system error\n");
     }
 
+    LOG(DEBUG, "STATUS = %08x\n", status);
     EHCI_OP_WRITE32(EHCI_REG_USBSTS, status);
 
     return 0;
@@ -637,10 +674,12 @@ int driver_init(int argc, char **argv) {
     hc->frame_list[1023].terminate = 1;
 
     // Allocate the asyncronous QH
-    hc->qh_async = ehci_allocateQH(hc);
-    qh->td_current = 1;
-    QH_LINK_TERM(hc->qh_async);
-    hc->qh_async->td_next.terminate = 1;
+    hc->qh_async = ehci_allocateQH(hc); 
+    hc->qh_async->td_current.terminate = 1; // This is never used
+    hc->qh_async->td_next.terminate = 1;    // No TD
+    hc->qh_async->ch.h = 1;                 // Head of asyncronous list
+    QH_LINK_TERM(hc->qh_async);             // Terminate the QH
+
     list_append(hc->async_list, (void*)hc->qh_async);
 
     // Register the interrupt handler
@@ -656,7 +695,6 @@ int driver_init(int argc, char **argv) {
     // Register IRQ handler
     hal_registerInterruptHandlerContext(irq, ehci_irq, (void*)hc);
 
-
     // We need to take over the controller. Read EECP
     uint32_t eecp = (EHCI_CAP_READ32(EHCI_REG_HCCPARAMS) & EHCI_HCCPARAMS_EECP) >> EHCI_HCCPARAMS_EECP_SHIFT;
     if (eecp >= 0x40) {
@@ -667,7 +705,7 @@ int driver_init(int argc, char **argv) {
 
             pci_writeConfigOffset(PCI_BUS(ehci_device), PCI_SLOT(ehci_device), PCI_FUNCTION(ehci_device), eecp + USBLEGSUP, legsup | USBLEGSUP_HC_OS);
             
-            
+            // !!! please kill me
             int timeout = 2000;
             while (timeout) {
                 uint32_t legsup = pci_readConfigOffset(PCI_BUS(ehci_device), PCI_SLOT(ehci_device), PCI_FUNCTION(ehci_device), eecp + USBLEGSUP, 4);
@@ -697,12 +735,14 @@ int driver_init(int argc, char **argv) {
 
     LOG(INFO, "Reset host controller now (USBCMD = %08x)\n", EHCI_OP_READ32(EHCI_REG_USBCMD));
     EHCI_OP_WRITE32(EHCI_REG_USBCMD, EHCI_USBCMD_HCRESET);
-    while (EHCI_OP_READ32(EHCI_REG_USBCMD) & EHCI_USBCMD_HCRESET) {
-        asm ("pause");
+    while (1) {
+        // while (EHCI_OP_READ32(EHCI_REG_USBCMD) & HCRESET) gets optimized or something by GCC, for some weird reason.
+        uint32_t usbcmd = EHCI_OP_READ32(EHCI_REG_USBCMD);
+        if (!(usbcmd & EHCI_USBCMD_HCRESET)) break;
+        clock_sleep(5);
+        LOG(DEBUG, "Host controller has not finished resetting - USBCMD = %08x\n", usbcmd);
     }
     LOG(INFO, "Reset host controller success\n");
-
-
 
     // Start the EHCI controller
     // See section 4.1 of the EHCI specification for further details
@@ -723,8 +763,15 @@ int driver_init(int argc, char **argv) {
 
     // Wait for controller to spinup
     LOG(DEBUG, "Waiting for controller to start...\n");
-    while (EHCI_OP_READ32(EHCI_REG_USBSTS) & EHCI_USBSTS_HCHALTED) {
-        asm volatile ("pause");
+    while (1) {
+        // <ditto>
+        asm ("" ::: "memory"); 
+        uint32_t usbsts = EHCI_OP_READ32(EHCI_REG_USBSTS);
+        asm ("" ::: "memory");
+        
+        if (!(usbsts & EHCI_USBSTS_HCHALTED)) break;
+        clock_sleep(5);
+        
     }
 
     // Set CF
@@ -743,7 +790,6 @@ int driver_init(int argc, char **argv) {
 
     // Register the controller
     usb_registerController(controller);
-
 
     return 0;
 }
