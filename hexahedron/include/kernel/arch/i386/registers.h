@@ -51,4 +51,10 @@ typedef struct _extended_registers {
 } __attribute__((packed)) extended_registers_t;
 
 
+/**** MACROS ****/
+
+#define IP(regs) (regs->eip)
+#define SP(regs) (regs->esp)
+#define BP(regs) (regs->ebp)
+
 #endif
