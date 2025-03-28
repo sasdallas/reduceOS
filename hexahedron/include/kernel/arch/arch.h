@@ -114,6 +114,15 @@ extern __attribute__((returns_twice)) int arch_save_context(struct arch_context 
 extern __attribute__((noreturn)) void arch_load_context(struct arch_context *context);
 
 /**
+ * @brief Enter kernel thread
+ * 
+ * Pop these from the stack in this order:
+ * 1. kthread pointer
+ * 2. data value
+ */
+extern void arch_enter_kthread();
+
+/**
  * @brief Say hi!
  * @param is_debug Print to dprintf or printf
  */

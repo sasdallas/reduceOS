@@ -97,4 +97,8 @@ arch_load_context:
     movl $1, %eax
     jmpl *20(%ecx)
 
-
+/* Enter kernel thread */
+arch_enter_kthread:
+    /* Pop kthread pointer and jump to it */
+    popl %esi
+    jmpl *%esi

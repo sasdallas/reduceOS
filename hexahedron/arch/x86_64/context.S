@@ -118,3 +118,14 @@ arch_load_context:
 
     /* Jump to RIP */
     jmpq *64(%rdi)
+
+/* Enter kernel thread */
+arch_enter_kthread:
+    /* Pop function */
+    popq %rsi
+
+    /* Pop data into RDI */
+    popq %rdi
+
+    /* Jump */
+    jmpq *%rsi
