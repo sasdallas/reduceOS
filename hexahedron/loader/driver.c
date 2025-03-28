@@ -159,10 +159,12 @@ int driver_load(fs_node_t *driver_file, int priority, int environment, char *fil
     loaded_driver->metadata = kmalloc(sizeof(driver_metadata_t));
     memcpy(loaded_driver->metadata, metadata, sizeof(driver_metadata_t));
 
-extern uintptr_t mem_driverRegion;  // !!!: BAD!!!!
-                                    // !!!: Because ELF loading also has to map some other things (like SHT_NOBITS sections) in driver space, we do this.
 
-    ssize_t driver_loaded_size = (ssize_t)(mem_driverRegion - driver_load_address);
+    // !!!: VERY VERY VERY VERY VERY BAD!!!!!!!!!! DO NOT ALLOCATE JUST TO SEE WHERE IT PUTS IT
+    uintptr_t driver_end = mem_mapDriver(0x1000);
+    mem_unmapDriver(driver_end, 0x1000);
+
+    ssize_t driver_loaded_size = (ssize_t)(driver_end - driver_load_address);
 
     // Copy other variables
     loaded_driver->filename = strdup(file);
