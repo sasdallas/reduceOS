@@ -29,7 +29,7 @@
 hashmap_t *ethertype_handler_map = NULL;
 
 /* Log method */
-#define LOG(status, ...) dprintf_module(status, "NETWORK:ETH", __VA_ARGS__)
+#define LOG(status, ...) dprintf_module(status, "NETWORK:ETH ", __VA_ARGS__)
 
 /* Log NIC */
 #define LOG_NIC(status, nn, ...) LOG(status, "[NIC:%s] ", NIC(nn)->name); dprintf(NOHEADER, __VA_ARGS__)
@@ -83,8 +83,6 @@ void ethernet_handle(ethernet_packet_t *packet, fs_node_t *nic_node, size_t size
             if (handler(packet->payload, nic_node, size - sizeof(ethernet_packet_t))) {
                 LOG_NIC(ERR, nic_node, "ETH: Failed to handle packet.\n");
             }
-        } else {
-            LOG(ERR, "No handler for packet of type %04x\n", ntohs(packet->ethertype));
         }
     }
 }
