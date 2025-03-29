@@ -21,6 +21,7 @@ _Begin_C_Header
 /**** INCLUDES ****/
 #include <stdint.h>
 #include <stddef.h>
+#include <sys/uio.h>
 
 /**** DEFINITIONS ****/
 
@@ -65,6 +66,18 @@ typedef struct sockaddr {
     sa_family_t     sa_family;      // Address family
     char            sa_data[];      // Socket address  
 };
+
+typedef struct msghdr {
+    void            *msg_name;          // Optional address
+    socklen_t       msg_namelen;        // Size of address
+    struct iovec    *msg_iov;           // Scatter/gather array
+    int             msg_iovlen;         // Members in @c msg_iov
+    void            *msg_control;       // Ancillary data
+    socklen_t       msg_controllen;     // Ancillary data buffer length
+    int             msg_flags;          // Flags on received message
+};
+
+
 
 
 #endif
