@@ -144,9 +144,9 @@ int driver_init(int argc, char **argv) {
 
     driver->videoBuffer = (uint8_t*)region;
 
-    // Clear terminal screen
-    terminal_clear(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
-    
+    // Reinitialize terminal
+    terminal_init(TERMINAL_DEFAULT_FG, TERMINAL_DEFAULT_BG);
+
     // Cleanup and say hi!
     arch_say_hello(0);
     printf(COLOR_CODE_GREEN "Bochs BGA display adapter initialized\n" COLOR_CODE_RESET);
