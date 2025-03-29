@@ -563,8 +563,9 @@ fs_node_t *kopen(const char *path, unsigned int flags) {
     pch = strtok_r(path_offset, "/", &save);
 
     while (pch) {
+        if (!node) break;
         node = kopen_relative(node, pch, flags);
-        
+
         if (node && node->flags == VFS_FILE) {
             // TODO: What if the user has a REALLY weird filesystem?
             break;
