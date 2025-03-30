@@ -56,6 +56,11 @@
 #define MEM_ALLOC_HEAP              0x04    // Allocate from the heap
 #define MEM_ALLOC_CRITICAL          0x08    // This allocation is critical, on failure terminate kernel
 
+// Flags to mem_validate
+#define PTR_USER                    0x01    // Usermode or kernel pointer (STRICT: Only usermode pointer)
+#define PTR_READONLY                0x02    // Read-only or read-write pointer (STRICT: Only read-only)
+#define PTR_STRICT                  0x04    // Strict pointer validation
+
 /**** FUNCTIONS ****/
 
 /**
@@ -259,5 +264,13 @@ uintptr_t mem_allocate(uintptr_t start, size_t size, uintptr_t flags, uintptr_t 
  * @note Most flags do not affect @c mem_free
  */
 void mem_free(uintptr_t start, size_t size, uintptr_t flags);
+
+/**
+ * @brief Validate a specific pointer in memory
+ * @param ptr The pointer you wish to validate
+ * @param flags The flags the pointer must meet - by default, kernel mode and R/W (see PTR_...)
+ * @returns 1 on a valid pointer
+ */
+int mem_validate(void *ptr, unsigned int flags);
 
 #endif

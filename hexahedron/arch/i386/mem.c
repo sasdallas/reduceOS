@@ -789,7 +789,7 @@ uintptr_t mem_sbrk(int b) {
  * @param page_flags Flags to use for @c mem_allocatePage (e.g. MEM_PAGE_KERNEL)
  * @returns Pointer to the new region of memory or 0x0 on failure
  * 
- * @note This is a newer addition to the memory subsystem. It may seem like it doesn't fit in.
+ * @note This is a newer addition to the memory subsystem. It may seem like it doesn't fit in. It probably doesn't. Memory rewrite is on the todo list
  */
 uintptr_t mem_allocate(uintptr_t start, size_t size, uintptr_t flags, uintptr_t page_flags) {
     if (!size) return start;
@@ -909,4 +909,28 @@ void mem_free(uintptr_t start, size_t size, uintptr_t flags) {
         mem_kernelHeap -= size;
         spinlock_release(&heap_lock);
     }
+}
+
+/**
+ * @brief Validate a specific pointer in memory
+ * @param ptr The pointer you wish to validate
+ * @param flags The flags the pointer must meet - by default, kernel mode and R/W (see PTR_...)
+ * @returns 1 on a valid pointer
+ */
+int mem_validate(void *ptr, unsigned int flags) {
+    // Get page of pointer
+    page_t *pg = mem_getPage(NULL, (uintptr_t)ptr, MEM_DEFAULT);
+    if (!pg) return 0;
+
+    // Validate flags
+    int valid = 1;
+    if (flags & PTR_STRICT) {
+        if (flags & PTR_USER && !(pg->bits.usermode)) valid = 0;
+        if (flags & PTR_READONLY && pg->bits.rw) valid = 0;
+    } else {
+        if (pg->bits.usermode && !(flags & PTR_USER)) valid = 0;
+        if (!(pg->bits.rw) && !(flags & PTR_READONLY)) valid = 0;
+    }
+
+    return valid;
 }

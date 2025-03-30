@@ -894,3 +894,27 @@ void mem_free(uintptr_t start, size_t size, uintptr_t flags) {
         spinlock_release(&heap_lock);
     }
 }
+
+/**
+ * @brief Validate a specific pointer in memory
+ * @param ptr The pointer you wish to validate
+ * @param flags The flags the pointer must meet - by default, kernel mode and R/W (see PTR_...)
+ * @returns 1 on a valid pointer
+ */
+int mem_validate(void *ptr, unsigned int flags) {
+    // Get page of pointer
+    page_t *pg = mem_getPage(NULL, (uintptr_t)ptr, MEM_DEFAULT);
+    if (!pg) return 0;
+
+    // Validate flags
+    int valid = 1;
+    if (flags & PTR_STRICT) {
+        if (flags & PTR_USER && !(pg->bits.usermode)) valid = 0;
+        if (flags & PTR_READONLY && pg->bits.rw) valid = 0;
+    } else {
+        if (pg->bits.usermode && !(flags & PTR_USER)) valid = 0;
+        if (!(pg->bits.rw) && !(flags & PTR_READONLY)) valid = 0;
+    }
+
+    return valid;
+}

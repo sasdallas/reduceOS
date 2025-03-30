@@ -66,7 +66,8 @@ typedef struct process {
 
     // MEMORY REGIONS
     uintptr_t heap;         // Heap of the process. Positioned after the ELF binary
-
+    uintptr_t heap_base;    // Base location of the heap
+    
     // OTHER
     uintptr_t kstack;       // Kernel stack (see PROCESS_KSTACK_SIZE)
     page_t *dir;            // Page directory

@@ -376,7 +376,8 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
     }
 
     // Setup heap location
-    current_cpu->current_process->heap = elf_getHeapLocation(elf_binary);
+    current_cpu->current_process->heap_base = elf_getHeapLocation(elf_binary);
+    current_cpu->current_process->heap = current_cpu->current_process->heap_base;
 
     // Get the entrypoint
     uintptr_t process_entrypoint = elf_getEntrypoint(elf_binary);
