@@ -78,6 +78,7 @@ typedef union page {
 /**** MACROS ****/
 
 #define MEM_ALIGN_PAGE(addr) ((addr + PAGE_SIZE) & ~0xFFF) // Align an address to the nearest page
+#define MEM_ALIGN_PAGE_DESTRUCTIVE(addr) (addr & ~0xFFF) // Align an address to the nearest page, discarding any bits
 
 #define MEM_PML4_INDEX(x) ((x >> (MEM_PAGE_SHIFT + 27)) & 0x1FF)
 #define MEM_PDPT_INDEX(x) ((x >> (MEM_PAGE_SHIFT + 18)) & 0x1FF)
