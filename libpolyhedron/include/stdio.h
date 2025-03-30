@@ -31,9 +31,45 @@ typedef int (*xvas_callback)(void *, char);
 
 /**** DEFINITIONS ****/
 
+/* stdin/stdout/stderr file descriptors */
+#define STDIN_FILE_DESCRIPTOR       0
+#define STDOUT_FILE_DESCRIPTOR      1
+#define STDERR_FILE_DESCRIPTOR      2
+
+/* libc configuration option */
+#define READ_BUFFER_SIZE        8192
+#define WRITE_BUFFER_SIZE       8192
+
+/* Seek settings */
 #define SEEK_SET 0
 #define SEEK_CUR 1
 #define SEEK_END 2
+
+/* EOF */
+#define EOF (-1)
+
+
+/**** TYPES ****/
+
+/* No, this doesn't match GLIBC's version */
+typedef struct _iobuf {
+    int fd;                 // File descriptor number
+
+    char *rbuf;             // Read buffer
+    size_t rbufsz;          // Read buffer size 
+    int eof;                // End of file
+
+
+    char *wbuf;             // File write buffer
+    size_t wbuflen;         // Length of buffer contents
+    size_t wbufsz;          // Total buffer size
+} FILE;
+
+
+/* External files */
+extern FILE *stdin;
+extern FILE *stdout;
+extern FILE *stderr;
 
 /**** FUNCTIONS ****/
 
@@ -44,8 +80,15 @@ int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 int snprintf(char * str, size_t size, const char * format, ...);
 int sprintf(char * str, const char * format, ...);
 size_t xvasprintf(xvas_callback callback, void * userData, const char * fmt, va_list args);
+int vfprintf(FILE *f, const char *fmt, va_list ap);
+int vprintf(const char *fmt, va_list ap);
+int fprintf(FILE *f, const char *fmt, ...);
 
 
+int fputc(int c, FILE *f);
+int fputs(const char *s, FILE *f);
+int fflush(FILE *f);
+size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *f);
 
 #endif
 
