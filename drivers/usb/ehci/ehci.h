@@ -378,5 +378,9 @@ typedef struct ehci {
  */
 int ehci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *transfer);
 
+/**
+ * @brief EHCI interrupt transfer method
+ */
+int ehci_interrupt(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *transfer);
 
 #endif

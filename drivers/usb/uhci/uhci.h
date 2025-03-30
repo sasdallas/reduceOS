@@ -271,5 +271,9 @@ typedef struct uhci {
  */
 int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *transfer);
 
+/**
+ * @brief UHCI interrupt transfer method
+ */
+int uhci_interrupt(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *transfer);
 
 #endif

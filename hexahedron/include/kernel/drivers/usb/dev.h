@@ -99,6 +99,15 @@ typedef struct USBTransfer {
  */
 typedef int (*hc_control_t)(struct USBController *controller, struct USBDevice *dev, USBTransfer_t *transfer);
 
+/**
+ * @brief Host controller transfer method for an INTERRUPT transfer
+ * @param controller The controller
+ * @param dev The device
+ * @param transfer The transfer
+ * @returns USB_TRANSFER status code
+ */
+typedef int (*hc_interrupt_t)(struct USBController *controller, struct USBDevice *dev, USBTransfer_t *transfer);
+
 
 /**
  * @brief Main USB device structure
@@ -128,6 +137,7 @@ typedef struct USBDevice {
 
     // Host controller methods
     hc_control_t    control;                // Control transfer request
+    hc_interrupt_t  interrupt;              // Interrupt transfer request
 } USBDevice_t;
 
 /**** FUNCTIONS ****/

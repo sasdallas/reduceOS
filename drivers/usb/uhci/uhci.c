@@ -252,8 +252,8 @@ int uhci_probe(USBController_t *controller) {
             LOG(DEBUG, "Found a UHCI device connected to port %i\n", port);
 
             // Now, we need to initialize the device connected to the port
-            USBDevice_t *dev = usb_createDevice(controller, port, (status & UHCI_PORT_LSDA) ? USB_LOW_SPEED : USB_FULL_SPEED, uhci_control);
-            dev->mps = 8; // TODO: Bochs says to make this equal the mps corresponding to the speed of the device
+            USBDevice_t *dev = usb_createDevice(controller, port, (status & UHCI_PORT_LSDA) ? USB_LOW_SPEED : USB_FULL_SPEED, uhci_control, uhci_interrupt);
+            dev->mps = (dev->speed == USB_LOW_SPEED) ? 8 : 64;
  
             if (usb_initializeDevice(dev)) {
                 LOG(ERR, "Failed to initialize UHCI device\n");
@@ -383,7 +383,12 @@ int uhci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     return transfer->status;
 }
 
-
+/**
+ * @brief UHCI interrupt transfer method
+ */
+int uhci_interrupt(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *transfer) {
+    return USB_TRANSFER_FAILED;
+}
 
 /**
  * @brief UHCI initialize controller

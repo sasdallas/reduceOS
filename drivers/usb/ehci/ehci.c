@@ -396,8 +396,8 @@ int ehci_probe(USBController_t *controller) {
             LOG(DEBUG, "Found an EHCI device connected to port %i\n", port);
         
             // Create a device (since we give up all the full/low speed devices they are always high)
-            USBDevice_t *dev = usb_createDevice(controller, port, USB_HIGH_SPEED, ehci_control);
-            dev->mps = 64; // Bochs says to make this equal the mps corresponding to the speed of the device
+            USBDevice_t *dev = usb_createDevice(controller, port, USB_HIGH_SPEED, ehci_control, ehci_interrupt);
+            dev->mps = 64; // TODO: Bochs says to make this equal the mps corresponding to the speed of the device
 
             // Initialize the device
             if (usb_initializeDevice(dev)) {
@@ -551,6 +551,13 @@ int ehci_control(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *t
     ehci_destroyQH(controller, qh);
 
     return transfer->status;
+}
+
+/**
+ * @brief EHCI interrupt transfer method
+ */
+int ehci_interrupt(USBController_t *controller, USBDevice_t *dev, USBTransfer_t *transfer) {
+    return USB_TRANSFER_FAILED;
 }
 
 /**
