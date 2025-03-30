@@ -36,10 +36,4 @@ void free( void *ptr ) {
     return kfree(ptr);
 }
 
-#elif defined(__LIBC)
-
-// lol no
-
-#else
-#error "Define __LIBK or __LIBC"
 #endif
