@@ -27,6 +27,8 @@ _Begin_C_Header
 #define SYS_READ        3
 #define SYS_WRITE       4
 #define SYS_CLOSE       5
+#define SYS_STAT        6
+#define SYS_BRK         7
 
 /* Syscall macros */
 #define DEFINE_SYSCALL0(name, num) \

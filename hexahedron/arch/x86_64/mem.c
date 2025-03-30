@@ -536,7 +536,7 @@ int mem_pageFault(uintptr_t exception_index, registers_t *regs, extended_registe
         // TODO: Perform CoW
 
         // Was this an exception because we didn't map their heap?
-        if (regs_extended->cr2 > current_cpu->current_process->heap_base && regs_extended->cr2 < current_cpu->current_process->heap) {
+        if (regs_extended->cr2 >= current_cpu->current_process->heap_base && regs_extended->cr2 < current_cpu->current_process->heap) {
             // Yes, it was, handle appropriately by mapping this page
             mem_allocatePage(mem_getPage(NULL, regs_extended->cr2, MEM_CREATE), MEM_DEFAULT);
             return 0;
@@ -797,6 +797,9 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
 
     // Initialize regions
     mem_regionsInitialize();
+
+    // Register page fault
+    hal_registerExceptionHandler(14, mem_pageFault);
 
     dprintf(INFO, "Memory management initialized\n");
 }

@@ -24,17 +24,35 @@
 /* System call table */
 static syscall_func_t syscall_table[] = {
     [SYS_EXIT]          = (syscall_func_t)(uintptr_t)sys_exit,
-    // TODO: SYS_GETEUID
     [SYS_OPEN]          = (syscall_func_t)(uintptr_t)sys_open,
     [SYS_READ]          = (syscall_func_t)(uintptr_t)sys_read,
-    [SYS_WRITE]         = (syscall_func_t)(uintptr_t)sys_write
+    [SYS_WRITE]         = (syscall_func_t)(uintptr_t)sys_write,
+    [SYS_CLOSE]         = (syscall_func_t)(uintptr_t)sys_close,
+    [SYS_BRK]           = (syscall_func_t)(uintptr_t)sys_brk
 };
 
 /* Unimplemented system call */
 #define SYSCALL_UNIMPLEMENTED(syscall) kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "syscall", "*** The system call \"%s\" is unimplemented\n", syscall)
 
+/* Pointer validation */
+#define SYSCALL_VALIDATE_PTR(ptr) (mem_validate((void*)ptr, PTR_USER | PTR_STRICT))
+
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "TASK:SYSCALL", __VA_ARGS__)
+
+
+/**
+ * @brief Pointer validation failed
+ * @param ptr The pointer that failed to validate
+ */
+void syscall_pointerValidateFailed(void *ptr) {
+    kernel_panic_prepare(KERNEL_BAD_ARGUMENT_ERROR);
+
+    printf("*** Process \"%s\" tried to access an invalid pointer (%p)\n", current_cpu->current_process->name, ptr);
+    dprintf(NOHEADER, COLOR_CODE_RED_BOLD "*** Process \"%s\" tried to access an invalid pointer (%p)\n\n" COLOR_CODE_RESET, current_cpu->current_process->name, ptr);
+
+    kernel_panic_finalize();
+}
 
 
 /**
@@ -96,4 +114,43 @@ ssize_t sys_write(int fd, const void *buffer, size_t count) {
 
     printf("sys_write fd %d buffer %p count %d\n", fd, buffer, count);
     return 0;
+}
+
+/**
+ * @brief Close system call
+ */
+int sys_close(int fd) {
+    printf("sys_close fd %d\n", fd);
+    return 0;
+}
+
+/**
+ * @brief Change data segment size
+ */
+void *sys_brk(void *addr) {
+    printf("sys_brk addr %p\n", addr);
+
+    // Validate pointer is in range
+    if ((uintptr_t)addr < current_cpu->current_process->heap_base) {
+        // brk() syscall should return current program heap location on error
+        return (void*)current_cpu->current_process->heap;
+    }
+
+    // TODO: Validate resource limit
+
+    // If the user wants to shrink the heap, then do it
+    if ((uintptr_t)addr < current_cpu->current_process->heap) {
+        size_t free_size = current_cpu->current_process->heap - (uintptr_t)addr;
+        mem_free((uintptr_t)addr, free_size, MEM_DEFAULT);
+        current_cpu->current_process->heap = (uintptr_t)addr;
+        return addr;
+    }
+
+
+    // Else, "handle"
+    current_cpu->current_process->heap = (uintptr_t)addr;   // Sure.. you can totally have this memory ;)
+                                                            // (page fault handler will map this on a critical failure)
+
+
+    return addr;
 }
