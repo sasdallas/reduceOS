@@ -369,12 +369,20 @@ int elf_loadExecutable(Elf64_Ehdr *ehdr) {
                 // !!!: Presume that if we're being called, the page directory in use is the one assigned to the executable
                 LOG(DEBUG, "PHDR #%d - OFFSET 0x%x VADDR %p PADDR %p FILESIZE %d MEMSIZE %d\n", i, phdr->p_offset, phdr->p_vaddr, phdr->p_paddr, phdr->p_filesz, phdr->p_memsz);
                 
-                for (uintptr_t i = 0; i < MEM_ALIGN_PAGE(phdr->p_filesz); i += PAGE_SIZE) {
+                for (uintptr_t i = 0; i < phdr->p_memsz; i += PAGE_SIZE) {
                     page_t *pg = mem_getPage(NULL, i + phdr->p_vaddr, MEM_CREATE);
-                    if (pg) mem_allocatePage(pg, MEM_DEFAULT);
+                    if (pg) {
+                        mem_allocatePage(pg, MEM_DEFAULT);
+                    }
                 }
 
                 memcpy((void*)phdr->p_vaddr, (void*)((uintptr_t)ehdr + phdr->p_offset), phdr->p_filesz);
+
+                // Zero remainder
+                if (phdr->p_memsz > phdr->p_filesz) {
+                    memset((void*)phdr->p_vaddr + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
+                }
+
                 break;
             default:
                 LOG(ERR, "Failed to load PHDR #%d - unimplemented type 0x%x\n", i, phdr->p_type);
@@ -583,8 +591,7 @@ int elf_cleanup(uintptr_t elf_address) {
                 case PT_LOAD:
                     // We have to unload and unmap it from memory
                     // !!!: Presume that if we're being called, the page directory in use is the one assigned to the executable
-                    
-                    for (uintptr_t i = 0; i < MEM_ALIGN_PAGE(phdr->p_filesz); i += PAGE_SIZE) {
+                    for (uintptr_t i = 0; i < MEM_ALIGN_PAGE(phdr->p_memsz); i += PAGE_SIZE) {
                         page_t *pg = mem_getPage(NULL, i + phdr->p_vaddr, MEM_CREATE);
                         if (pg) mem_freePage(pg);
                     }
