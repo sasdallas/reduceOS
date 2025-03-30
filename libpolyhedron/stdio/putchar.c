@@ -18,5 +18,5 @@
  * @brief Put character function
  */
 int putchar(int ch) {
-    return ch;
+    return fputc(ch, stdout);
 }

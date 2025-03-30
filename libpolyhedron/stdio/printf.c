@@ -490,21 +490,26 @@ int sprintf(char * str, const char * format, ...) {
 	return out;
 }
 
-static int cb_printf(void * user, char c) {
 #ifdef __LIBK
+static int cb_printf(void * user, char c) {
 	// Terminal printing!
 	// TODO: Replace with changeable thing?
 	extern int terminal_print(void *user, char c);
 	return terminal_print(user, c);
-#endif
-
 	return 0;
 }
+#endif
 
 int printf(const char * fmt, ...) {
-    va_list args;
+ 	va_list args;
 	va_start(args, fmt);
-	int out = xvasprintf(cb_printf, NULL, fmt, args);
+
+#ifdef __LIBK
+	int out = xvasprintf(cb_printf, (void*)NULL, fmt, args);
+#else
+	int out = vprintf(fmt, args);
+#endif	
+
 	va_end(args);
 	return out;
 }
