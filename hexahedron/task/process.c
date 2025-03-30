@@ -375,6 +375,9 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
         return -EINVAL;
     }
 
+    // Setup heap location
+    current_cpu->current_process->heap = elf_getHeapLocation(elf_binary);
+
     // Get the entrypoint
     uintptr_t process_entrypoint = elf_getEntrypoint(elf_binary);
     arch_initialize_context(current_cpu->current_process->main_thread, process_entrypoint, current_cpu->current_process->main_thread->stack);

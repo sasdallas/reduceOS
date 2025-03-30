@@ -83,4 +83,11 @@ uintptr_t elf_load(fs_node_t *node, int flags);
  */
 int elf_cleanup(uintptr_t elf_address);
 
+/**
+ * @brief Get the end of an ELF binary (for heap locations)
+ * @param elf_address Address given by @c elf_load
+ * @returns Pointer to heap placement location (aligned)
+ */
+uintptr_t elf_getHeapLocation(uintptr_t elf_address);
+
 #endif

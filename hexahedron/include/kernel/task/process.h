@@ -64,6 +64,9 @@ typedef struct process {
     thread_t *main_thread;  // Main thread in the process  - whatever the ELF entrypoint was
     list_t  *thread_list;   // List of threads for the process
 
+    // MEMORY REGIONS
+    uintptr_t heap;         // Heap of the process. Positioned after the ELF binary
+
     // OTHER
     uintptr_t kstack;       // Kernel stack (see PROCESS_KSTACK_SIZE)
     page_t *dir;            // Page directory

@@ -600,4 +600,48 @@ int elf_cleanup(uintptr_t elf_address) {
     return 0;
 }
 
+
+/**
+ * @brief Get the end of an ELF binary (for heap locations)
+ * @param elf_address Address given by @c elf_load
+ * @returns Pointer to heap placement location (aligned)
+ */
+uintptr_t elf_getHeapLocation(uintptr_t elf_address) {
+    if (!elf_address) return 0x0;
+    
+    // Cast ehdr to fbuf - routines can now access sections by adding to ehdr
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr*)elf_address;
+
+    // Check to make sure the ELF file is supported
+    if (!elf_checkSupported(ehdr)) {
+        return 0x0;
+    }
+
+    // Now we should handle based on the type
+    if (ehdr->e_type == ET_REL) {
+        // Relocatable
+        LOG(ERR, "Heap locations for relocatable files are not implemented\n");
+        return 0x0;
+    } else if (ehdr->e_type == ET_EXEC) {
+        // Executable
+        uintptr_t heap_base = 0x0;
+        
+        // Iterate through PHDRs
+        for (uintptr_t i = 0; i < ehdr->e_phnum; i++) {
+            Elf64_Phdr *phdr = ELF_PHDR(ehdr, i);
+            if (phdr->p_vaddr + phdr->p_memsz > heap_base) heap_base = phdr->p_vaddr + phdr->p_memsz;
+        }
+
+        // Align
+        heap_base = MEM_ALIGN_PAGE(heap_base);
+        return heap_base;
+    } else {
+        // ???
+        LOG(ERR, "Unknown ELF file type: %d\n", ehdr->e_type);
+        return 0x0;
+    }
+
+    return 0x0;
+}
+
 #endif
