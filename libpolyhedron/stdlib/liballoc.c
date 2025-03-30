@@ -44,7 +44,7 @@ extern int liballoc_unlock() {
  * \return A pointer to the allocated memory.
  */
 extern void* liballoc_alloc(size_t sz) {
-    return sbrk((sz + 0xFFF) & ~0xFFF);
+    return sbrk((sz * 4096)); // TODO: Don't hardcode page size
 }
 
 /** This frees previously allocated memory. The void* parameter passed
@@ -113,6 +113,8 @@ extern int liballoc_free(void*,size_t) {
 
 #define LIBALLOC_MAGIC	0xc001c0de
 #define LIBALLOC_DEAD	0xdeaddead
+
+#define DEBUG
 
 #if defined DEBUG || defined INFO
 #include <stdio.h>
@@ -344,7 +346,6 @@ void *PREFIX(malloc)(size_t req_size)
 		#ifdef DEBUG
 		printf( "liballoc: initialization of liballoc " VERSION "\n" );
 		#endif
-		atexit( liballoc_dump );
 		FLUSH();
 		#endif
 			
