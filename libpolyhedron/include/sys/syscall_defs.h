@@ -37,11 +37,11 @@ _Begin_C_Header
 /**** FUNCTIONS ****/
 
 DECLARE_SYSCALL1(exit, int);
-// TODO: geteuid
 DECLARE_SYSCALL3(open, const char*, int, int);
 DECLARE_SYSCALL3(read, int, void*, size_t);
 DECLARE_SYSCALL3(write, int, const void*, size_t);
 DECLARE_SYSCALL1(close, int);
+DECLARE_SYSCALL1(brk, void*);
 
 
 #endif
