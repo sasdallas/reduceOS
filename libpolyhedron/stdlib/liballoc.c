@@ -22,7 +22,7 @@
  * \return 0 if the lock was acquired successfully. Anything else is
  * failure.
  */
-extern int liballoc_lock() {
+int liballoc_lock() {
     return 0; // TODO
 }
 
@@ -32,7 +32,7 @@ extern int liballoc_lock() {
  *
  * \return 0 if the lock was successfully released.
  */
-extern int liballoc_unlock() {
+int liballoc_unlock() {
     return 0; // TODO
 }
 
@@ -43,7 +43,7 @@ extern int liballoc_unlock() {
  * \return NULL if the pages were not allocated.
  * \return A pointer to the allocated memory.
  */
-extern void* liballoc_alloc(size_t sz) {
+void* liballoc_alloc(size_t sz) {
     return sbrk((sz * 4096)); // TODO: Don't hardcode page size
 }
 
@@ -55,7 +55,7 @@ extern void* liballoc_alloc(size_t sz) {
  *
  * \return 0 if the memory was successfully freed.
  */
-extern int liballoc_free(void*,size_t) {
+int liballoc_free(void *addr, size_t sz) {
     return 0; // TODO
 }
 
