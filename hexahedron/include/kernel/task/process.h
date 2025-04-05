@@ -28,6 +28,9 @@
 #include <kernel/fs/vfs.h>
 #include <structs/tree.h>
 
+#include <kernel/arch/arch.h>
+
+
 /**** DEFINITIONS ****/
 
 #define PROCESS_MAX_PIDS            32768                                       // Maximum amount of PIDs. The kernel uses a bitmap to keep track of these
@@ -48,29 +51,30 @@ typedef void (*kthread_t)(void *data);
  */
 typedef struct process {
     // GENERAL INFORMATION
-    pid_t pid;              // Process ID
-    char *name;             // Name of the process
-    uid_t uid;              // User ID of the process
-    gid_t gid;              // Group ID of the process
+    pid_t pid;                  // Process ID
+    char *name;                 // Name of the process
+    uid_t uid;                  // User ID of the process
+    gid_t gid;                  // Group ID of the process
 
     // SCHEDULER INFORMATION
-    unsigned int flags;     // Scheduler flags (running/stopped/started) - these can also be used by other parts of code
-    unsigned int priority;  // Scheduler priority, see scheduler.h
+    unsigned int flags;         // Scheduler flags (running/stopped/started) - these can also be used by other parts of code
+    unsigned int priority;      // Scheduler priority, see scheduler.h
     
     // QUEUE INFORMATION
-    tree_node_t *node;      // Node in the process tree
+    tree_node_t *node;          // Node in the process tree
 
     // THREADS
-    thread_t *main_thread;  // Main thread in the process  - whatever the ELF entrypoint was
-    list_t  *thread_list;   // List of threads for the process
+    thread_t *main_thread;      // Main thread in the process  - whatever the ELF entrypoint was
+    list_t  *thread_list;       // List of threads for the process
 
     // MEMORY REGIONS
-    uintptr_t heap;         // Heap of the process. Positioned after the ELF binary
-    uintptr_t heap_base;    // Base location of the heap
-    
+    uintptr_t heap;             // Heap of the process. Positioned after the ELF binary
+    uintptr_t heap_base;        // Base location of the heap
+
     // OTHER
-    uintptr_t kstack;       // Kernel stack (see PROCESS_KSTACK_SIZE)
-    page_t *dir;            // Page directory
+    uintptr_t kstack;           // Kernel stack (see PROCESS_KSTACK_SIZE)
+    page_t *dir;                // Page directory
+    struct _registers *regs;    // Dirty hack. See process_fork
 } process_t;
 
 /**** FUNCTIONS ****/
@@ -126,11 +130,12 @@ process_t *process_spawnInit();
 
 /**
  * @brief Create a new process
+ * @param parent Parent process, or NULL if not needed
  * @param name The name of the process
  * @param flags The flags of the process
  * @param priority The priority of the process 
  */
-process_t *process_create(char *name, int flags, int priority);
+process_t *process_create(process_t *parent, char *name, int flags, int priority);
 
 /**
  * @brief Create a kernel process with a single thread
@@ -158,5 +163,11 @@ int process_execute(fs_node_t *file, int argc, char **argv);
  * @param status_code The status code
  */
 void process_exit(process_t *process, int status_code);
+
+/**
+ * @brief Fork the current process
+ * @returns Depends on what you are. Only call this from system call context.
+ */
+pid_t process_fork();
 
 #endif

@@ -28,7 +28,8 @@ static syscall_func_t syscall_table[] = {
     [SYS_READ]          = (syscall_func_t)(uintptr_t)sys_read,
     [SYS_WRITE]         = (syscall_func_t)(uintptr_t)sys_write,
     [SYS_CLOSE]         = (syscall_func_t)(uintptr_t)sys_close,
-    [SYS_BRK]           = (syscall_func_t)(uintptr_t)sys_brk
+    [SYS_BRK]           = (syscall_func_t)(uintptr_t)sys_brk,
+    [SYS_FORK]          = (syscall_func_t)(uintptr_t)sys_fork,
 };
 
 /* Unimplemented system call */
@@ -106,8 +107,14 @@ ssize_t sys_read(int fd, void *buffer, size_t count) {
  * @brief Write system calll
  */
 ssize_t sys_write(int fd, const void *buffer, size_t count) {
-    if (fd == 1) {
-        // stdout
+    if (SYSCALL_VALIDATE_PTR(buffer) == 0) {
+        syscall_pointerValidateFailed((void*)buffer);
+    }
+
+    // stdout?
+    if (fd == STDOUT_FILE_DESCRIPTOR) {
+        char *buf = (char*)buffer;
+        buf[count] = 0;
         printf("%s", buffer);
         return count;
     }
@@ -153,4 +160,11 @@ void *sys_brk(void *addr) {
 
 
     return addr;
+}
+
+/**
+ * @brief Fork system call
+ */
+pid_t sys_fork() {
+    return process_fork();
 }

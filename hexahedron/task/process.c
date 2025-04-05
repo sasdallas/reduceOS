@@ -209,11 +209,12 @@ void process_freePID(pid_t pid) {
 
 /**
  * @brief Internal method to create a new process
+ * @param parent The parent of the process
  * @param name The name of the process (will be strdup'd)
  * @param flags The flags to use for the process
  * @param priority The priority of the process
  */
-static process_t *process_createStructure(char *name, unsigned int flags, unsigned int priority) {
+static process_t *process_createStructure(process_t *parent, char *name, unsigned int flags, unsigned int priority) {
     process_t *process = kmalloc(sizeof(process_t));
     memset(process, 0, sizeof(process_t));
 
@@ -229,7 +230,16 @@ static process_t *process_createStructure(char *name, unsigned int flags, unsign
     dprintf(DEBUG, "Process '%s' has had its kstack %p allocated in page directory %p\n", name, process->kstack, current_cpu->current_dir);
     
     // Make directory
-    process->dir = (flags & PROCESS_KERNEL) ? NULL : mem_clone(NULL);
+    if (process->flags & PROCESS_KERNEL) {
+        // Reuse kernel directory
+        process->dir = NULL;
+    } else if (parent) {
+        // Clone parent directory
+        process->dir = mem_clone(parent->dir);
+    } else {
+        // Clone kernel
+        process->dir = mem_clone(NULL);
+    }
 
 #ifdef __ARCH_I386__
     // !!!: very dirty hack
@@ -254,7 +264,7 @@ static process_t *process_createStructure(char *name, unsigned int flags, unsign
  * @returns Process structure
  */
 process_t *process_createKernel(char *name, unsigned int flags, unsigned int priority, kthread_t entrypoint, void *data){
-    process_t *proc = process_create(name, flags, priority);
+    process_t *proc = process_create(NULL, name, flags, priority);
     proc->main_thread = thread_create(proc, proc->dir, (uintptr_t)&arch_enter_kthread, THREAD_FLAG_KERNEL);
 
     THREAD_PUSH_STACK(SP(proc->main_thread->context), void*, data);
@@ -289,7 +299,7 @@ static void kernel_idle() {
  */
 process_t *process_spawnIdleTask() {
     // Create new process
-    process_t *idle = process_createStructure("idle", PROCESS_KERNEL | PROCESS_STARTED | PROCESS_RUNNING, PRIORITY_LOW);
+    process_t *idle = process_createStructure(NULL, "idle", PROCESS_KERNEL | PROCESS_STARTED | PROCESS_RUNNING, PRIORITY_LOW);
     
     // !!!: Hack
     process_freePID(idle->pid);
@@ -310,7 +320,7 @@ process_t *process_spawnIdleTask() {
  */
 process_t *process_spawnInit() {
     // Create a new process
-    process_t *init = process_createStructure("init", PROCESS_STARTED | PROCESS_RUNNING, PRIORITY_HIGH);
+    process_t *init = process_createStructure(NULL, "init", PROCESS_STARTED | PROCESS_RUNNING, PRIORITY_HIGH);
 
     // Set as parent node (all processes stem from this one)
     tree_set_parent(process_tree, (void*)init);
@@ -322,12 +332,13 @@ process_t *process_spawnInit() {
 
 /**
  * @brief Create a new process
+ * @param parent Parent process, or NULL if not needed
  * @param name The name of the process
  * @param flags The flags of the process
  * @param priority The priority of the process 
  */
-process_t *process_create(char *name, int flags, int priority) {
-    return process_createStructure(name, flags, priority);
+process_t *process_create(process_t *parent, char *name, int flags, int priority) {
+    return process_createStructure(parent, name, flags, priority);
 }
 
 /**
@@ -436,8 +447,52 @@ void process_exit(process_t *process, int status_code) {
     kfree(process->name);
     // mem_free(process->kstack - PROCESS_KSTACK_SIZE, PROCESS_KSTACK_SIZE, MEM_DEFAULT); // !!!: This needs to be replaced
     kfree(process);
-
     // To the next process we go
     if (is_current_process) process_yield(1);   // Yield will reschedule us, scheduler will catch and destroy us.
     process_switchNextThread();
 }
+
+/**
+ * @brief Fork the current process
+ * @returns Depends on what you are. Only call this from system call context.
+ */
+pid_t process_fork() {
+    // First we create our child process
+    process_t *parent = current_cpu->current_process;   
+    process_t *child = process_create(parent, "child", parent->flags, parent->priority);
+
+    // Create a new child process thread
+    child->main_thread = thread_create(child, child->dir, (uintptr_t)NULL, THREAD_FLAG_DEFAULT);
+
+    // HACK:    This is one of the grossest hacks in my opinion. This trick is yet another one stolen from ToaruOS.
+    //          I would love to call arch_save_context() for the child thread and just return but unfortunately since we're still in
+    //          execution context for the current thread it would overwrite the stack and cause problems.
+    //          There's definitely a good way to fix this but I'm really tired right now so I'm gonna use this
+    
+    // Configure context of child thread
+    IP(child->main_thread->context) = (uintptr_t)&arch_restore_context;
+    SP(child->main_thread->context) = child->kstack;
+    BP(child->main_thread->context) = SP(child->main_thread->context);
+    
+    // Push the registers onto the stack
+    struct _registers r;
+    memcpy(&r, current_cpu->current_process->regs, sizeof(struct _registers));
+    
+    // Configure the system call return value
+#ifdef __ARCH_I386__
+    r.eax = 0;
+#elif defined(__ARCH_X86_64__)
+    r.rax = 0;
+#else
+    #error "Please handle this hacky garbage."
+#endif
+
+    THREAD_PUSH_STACK(SP(child->main_thread->context), struct _registers, r);
+
+
+    // Insert new thread
+    scheduler_insertThread(child->main_thread);
+
+    return child->pid;
+}
+
