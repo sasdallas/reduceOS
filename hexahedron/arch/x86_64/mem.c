@@ -98,6 +98,16 @@ uintptr_t mem_getKernelHeap() {
 
 
 /**
+ * @brief Invalidate a page in the TLB
+ * @param addr The address of the page 
+ * @warning This function is only to be used when removing P-V mappings. Just free the page if it's identity.
+ */
+static inline void mem_invalidatePage(uintptr_t addr) {
+    asm volatile ("invlpg (%0)" :: "r"(addr) : "memory");
+    smp_tlbShootdown(addr);
+} 
+
+/**
  * @brief Increment a page refcount
  * @param page The page to increment reference counts of
  * @returns The number of reference counts or 0 if maximum is reached
@@ -190,15 +200,118 @@ page_t *mem_createVAS() {
 
 // TODO: Destroy VAS function?
 
+
+/**
+ * @brief Handle a copy on write
+ * @param page The page to handle CoW on
+ * @param address Address for TLB shootdown if required
+ */
+static void mem_copyOnWrite(page_t *page, uintptr_t address) {
+    if (!page || !page->bits.cow) {
+        dprintf(ERR, "Cannot do copy-on-write for a page not pending copy-on-write\n");
+        return;
+    }
+
+    // Is this the last reference to the page?
+    if (mem_decrementPageReference(page) == 0) {
+        // Yes. We can just mark the page as writable
+        page->bits.rw = 1;
+        page->bits.cow = 0;
+        mem_invalidatePage(address);
+        return;
+    }
+
+    dprintf(DEBUG, "Performing CoW\n");
+    uintptr_t src_frame = mem_remapPhys(MEM_GET_FRAME(page), PAGE_SIZE);
+    uintptr_t dest_frame_block = pmm_allocateBlock();
+    uintptr_t dest_frame = mem_remapPhys(dest_frame_block, PAGE_SIZE);
+    memcpy((void*)dest_frame, (void*)src_frame, PAGE_SIZE);
+
+    // Setup bits
+    MEM_SET_FRAME(page, dest_frame_block);
+    page->bits.cow = 0; // Not CoW
+    page->bits.rw = 1;
+
+    mem_unmapPhys(dest_frame, PAGE_SIZE);
+    mem_unmapPhys(src_frame, PAGE_SIZE);
+    return;
+
+}
+
+/**
+ * @brief Maybe copy a usermode page. 
+ * 
+ * Does CoW if more than @c UINT8_MAX processes reference the page.
+ * 
+ * @param src_page The source page
+ * @param dest_page The destination page
+ * @param address Address for TLB shootdown
+ */
+static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t address) {
+
+    // When a page needs to be shared during a clone, it is automatically CoW'd and has
+    // its reference counts initialized. Reference counts for a page are ONLY created when
+    // the page is being marked as CoW and R/O
+
+    // Is the source page writable or read only?
+    if (src_page->bits.rw) {
+        // Writable. That means the page is fresh and has no references.
+        // Just make sure though
+        if (mem_pageReferences[src_page->bits.address]) {
+            // What? If a page has references it should be using CoW.
+            kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "CoW", "*** Source page frame %p already has references. Corrupted references bitmap?\n", MEM_GET_FRAME(src_page));
+            __builtin_unreachable();
+        }
+
+        // Initialize references
+        mem_pageReferences[src_page->bits.address] = 2;
+
+        // Mark the source and destination page as R/O and set them both to have a CoW pending
+        // Writes will trigger a page fault which the handler with detect and auto handle CoW
+        src_page->bits.rw = 0;
+        src_page->bits.cow = 1;
+
+        // Raw copy the rest of the bits
+        dest_page->data = src_page->data;
+        dest_page->bits.cow = 1;
+
+        // All done
+        // TODO: Shootdown the page
+        mem_invalidatePage(address);
+        return;
+    }
+
+    // It's not writable and probably already has pending CoW
+    // Can we add a new reference?
+    if (mem_incrementPageReference(src_page) == 0) {
+        // No. There are too many reference counts and we should copy the page.
+        // This is gross..
+        uintptr_t src_frame = mem_remapPhys(MEM_GET_FRAME(src_page), PAGE_SIZE);
+        uintptr_t dest_frame_block = pmm_allocateBlock();
+        uintptr_t dest_frame = mem_remapPhys(dest_frame_block, PAGE_SIZE);
+        memcpy((void*)dest_frame, (void*)src_frame, PAGE_SIZE);
+
+        // Setup bits
+        dest_page->data = src_page->data;
+        MEM_SET_FRAME(dest_page, dest_frame_block);
+        dest_page->bits.cow = 0; // Not CoW
+        dest_page->bits.rw = 1;
+
+        mem_unmapPhys(dest_frame, PAGE_SIZE);
+        mem_unmapPhys(src_frame, PAGE_SIZE);
+        return;
+    }
+
+    // Yes, we can. Raw copy and return
+    dest_page->data = src_page->data;
+}
+
 /**
  * @brief Clone a page directory.
  * 
  * This is a full PROPER page directory clone.
  * This function does it properly and clones the page directory, its tables, and their respective entries fully.
  * It also has the option to do CoW on usermode pages
- * 
- * @ref https://github.com/klange/toaruos/blob/master/kernel/arch/x86_64/mmu.c
- * 
  * 
  * @param dir The source page directory. Keep as NULL to clone the current page directory.
  * @returns The page directory on success
@@ -282,8 +395,8 @@ page_t *mem_clone(page_t *dir) {
 
                     if (page_src->bits.usermode) {
                         uintptr_t address = ((pdpt << (9 * 3 + 12)) | (pd << (9*2 + 12)) | (pt << (9 + 12)) | (page << MEM_PAGE_SHIFT));
-                        dprintf(DEBUG, "Usermode page at address %016llX - stall\n", address);
-                        for (;;);
+                        dprintf(DEBUG, "Usermode page at address %016llX - CoW\n", address);
+                        mem_copyUserPage(page_src, page_dest, address);
                     } else {
                         // Raw copy
                         page_dest->data = page_src->data;
@@ -531,9 +644,15 @@ uintptr_t mem_getPhysicalAddress(page_t *dir, uintptr_t virtaddr) {
  */
 int mem_pageFault(uintptr_t exception_index, registers_t *regs, extended_registers_t *regs_extended) {
     // Check if this was a usermode page fault
-    if (regs->err_code & (1 << 2)) {
+    if (regs->cs != 0x08) {
         // Yes, it was
-        // TODO: Perform CoW
+        page_t *pg = mem_getPage(NULL, regs_extended->cr2, MEM_DEFAULT);
+        if (pg) {
+            if (pg->bits.cow) {
+                mem_copyOnWrite(pg, regs_extended->cr2);
+                return 0;
+            }
+        }
 
         // Was this an exception because we didn't map their heap?
         if (regs_extended->cr2 >= current_cpu->current_process->heap_base && regs_extended->cr2 < current_cpu->current_process->heap) {
@@ -542,6 +661,7 @@ int mem_pageFault(uintptr_t exception_index, registers_t *regs, extended_registe
             return 0;
         }
 
+        // TODO: This code can probably bug out - to be extensively tested
         printf(COLOR_CODE_RED "Process \"%s\" encountered a page fault at address %p and will be shutdown\n" COLOR_CODE_RESET, current_cpu->current_process->name, regs_extended->cr2);
         dprintf(ERR, "Process \"%s\" encountered page fault at %p with no valid resolution. Shutdown\n", current_cpu->current_process->name, regs_extended->cr2);
         process_exit(current_cpu->current_process, 1);
@@ -777,11 +897,9 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
 
     // Make space for reference counts in kernel heap
     // Reference counts will be initialized when a user PTE is copied.
-    size_t refcount_bytes = frame_bytes >> MEM_PAGE_SHIFT;  // One byte per page
+    size_t refcount_bytes = frame_bytes;  // One byte per page
     mem_pageReferences = (uint8_t*)mem_sbrk((refcount_bytes & 0xFFF) ? MEM_ALIGN_PAGE(refcount_bytes) : refcount_bytes);
     memset(mem_pageReferences, 0, refcount_bytes);
-
-    dprintf(DEBUG, "Setting up PAT\n");
 
     // Setup the PAT
     // TODO: Write a better interface for the PAT

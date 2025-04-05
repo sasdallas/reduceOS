@@ -240,7 +240,7 @@ static void mem_copyUserPage(page_t *src, page_t *dest) {
         // It is, initialize reference counts for the page's frame
         if (mem_pageReferences[src->bits.address]) {
             // There's already references??
-            kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "mem_copyonwrite", "*** Source page already has references\n");
+            kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "CoW", "*** Source page already has references\n");
             __builtin_unreachable();
         }
 
