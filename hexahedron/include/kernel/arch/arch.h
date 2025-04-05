@@ -29,8 +29,10 @@
 
 #if defined(__ARCH_I386__)
 #include <kernel/arch/i386/context.h>
+#include <kernel/arch/i386/registers.h>
 #elif defined(__ARCH_X86_64__)
 #include <kernel/arch/x86_64/context.h>
+#include <kernel/arch/x86_64/registers.h>
 #else
 #error "Please define your context"
 #endif
@@ -121,6 +123,13 @@ extern __attribute__((noreturn)) void arch_load_context(struct arch_context *con
  * 2. data value
  */
 extern void arch_enter_kthread();
+
+/**
+ * @brief Restore context from @c registers_t structure
+ * 
+ * The registers at the time of system call are pushed onto the stack. Pop them in your usual order
+ */
+extern void arch_restore_context();
 
 /**
  * @brief Say hi!

@@ -130,3 +130,33 @@ arch_enter_kthread:
 
     /* Jump */
     jmpq *%rsi
+
+/* Restore context from stack */
+.global arch_restore_context
+arch_restore_context:
+    popw %ax
+
+
+    popq %r8
+    popq %r9
+    popq %r10
+    popq %r11
+    popq %r12
+    popq %r13
+    popq %r14
+    popq %r15
+
+    popq %rbp
+    popq %rdi
+    popq %rsi
+    popq %rdx
+    popq %rcx
+    popq %rbx 
+    popq %rax
+
+    // Skip over error code and int no
+    add $16, %rsp
+
+    /* swapgs and return */
+    swapgs
+    iretq
