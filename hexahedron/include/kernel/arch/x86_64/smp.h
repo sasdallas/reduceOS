@@ -92,4 +92,11 @@ void smp_disableCores();
  */
 void smp_acknowledgeCoreShutdown();
 
+/**
+ * @brief Perform a TLB shootdown on a specific page
+ * @param address The address to perform the TLB shootdown on
+ */
+void smp_tlbShootdown(uintptr_t address);
+
+
 #endif

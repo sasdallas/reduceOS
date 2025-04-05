@@ -220,6 +220,21 @@ halLocalAPICTimerInterrupt:
     pushq $123
     jmp halCommonIRQHandler
 
+/* ISR 124 */
+.global halTLBShootdownInterrupt
+halTLBShootdownInterrupt:
+    // Try to acknowledge EOI in APIC
+    pushq %rcx
+    mov (lapic_base)(%rip), %rcx    // RIP-relative addressing
+    add $0xB0, %rcx                 // lapic_base + 0xB0 = EOI register
+    movl $0, (%rcx)
+    popq %rcx
+
+    // Now process
+    pushq $0x00
+    pushq $124
+    jmp halCommonIRQHandler
+
 /* ISR 128 */
 .global halSystemCallInterrupt
 halSystemCallInterrupt:

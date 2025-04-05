@@ -19,6 +19,7 @@
 #include <kernel/processor_data.h>
 #include <kernel/drivers/x86/local_apic.h>
 #include <kernel/drivers/x86/clock.h>
+#include <kernel/misc/spinlock.h>
 
 #include <kernel/mem/pmm.h>
 #include <kernel/mem/mem.h>
@@ -56,8 +57,24 @@ static int ap_startup_finished = 0;
 /* AP shutdown flag. This will change when the AP finishes shutting down. */
 static int ap_shutdown_finished = 0;
 
+/* TLB shootdown */
+static uintptr_t tlb_shootdown_address = 0x0;
+
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "SMP", __VA_ARGS__)
+
+/**
+ * @brief Handle a TLB shootdown
+ */
+int smp_handleTLBShootdown(uintptr_t exception_index, uintptr_t interrupt_number, registers_t *regs, extended_registers_t *extended) {
+    if (tlb_shootdown_address) {
+        asm ("invlpg (%0)" :: "r"(tlb_shootdown_address));
+    }
+
+    tlb_shootdown_address = 0;
+
+    return 0;
+}
 
 /**
  * @brief Collect AP information to store in processor_data
@@ -199,6 +216,8 @@ int smp_init(smp_info_t *info) {
     mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
     pmm_freeBlock(temp_frame);
 
+    hal_registerInterruptHandler(124 - 32, smp_handleTLBShootdown);
+
     processor_count = smp_data->processor_count;
     LOG(INFO, "SMP initialization completed successfully - %i CPUs available to system\n", processor_count);
 
@@ -242,13 +261,33 @@ void smp_disableCores() {
     LOG(INFO, "Disabling cores - please wait...\n");
 
     for (int i = 0; i < smp_data->processor_count; i++) {
-        if (i != current_cpu->cpu_id) {
-            lapic_sendNMI(smp_data->lapic_ids[i], 124);
+        if (smp_data->lapic_ids[i] != smp_getCurrentCPU()) {
+            lapic_sendNMI(smp_data->lapic_ids[i], 0); // The interrupt vector here doesnt matter as an NMI is sent regardless
 
-            do { asm volatile ("pause"); } while (!ap_shutdown_finished);
+            // do { asm volatile ("pause"); } while (!ap_shutdown_finished);
 
 
             ap_shutdown_finished = 0;
         }
     }
 }
+
+/**
+ * @brief Perform a TLB shootdown on a specific page
+ * @param address The address to perform the TLB shootdown on
+ */
+void smp_tlbShootdown(uintptr_t address) {
+    if (!address || !smp_data) return; // no.
+    if (processor_count < 2) return; // No CPUs
+
+    // Send an IPI for the TLB shootdown vector
+    // TODO: Make this vector changeable
+    for (int i = 0; i < smp_data->processor_count; i++) {
+        if (smp_data->lapic_ids[i] != smp_getCurrentCPU()) {
+            tlb_shootdown_address = address;
+            lapic_sendIPI(smp_data->lapic_ids[i], 124, LAPIC_ICR_DESTINATION_PHYSICAL | LAPIC_ICR_INITDEASSERT | LAPIC_ICR_EDGE | LAPIC_ICR_DESTINATION_DEFAULT);
+            do { asm volatile ("pause"); } while (tlb_shootdown_address);
+        }
+    }
+}
+
