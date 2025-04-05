@@ -54,15 +54,17 @@ thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoin
     // Create thread
     thread_t *thr = thread_createStructure(parent, dir, THREAD_STATUS_RUNNING, flags);
 
+    page_t *prev_dir = current_cpu->current_dir;
+
     // Switch directory to directory (as we will be mapping in it)
     mem_switchDirectory(dir);
 
     if (!(flags & THREAD_FLAG_KERNEL)) {
         // Allocate usermode stack 
-        // !!!: VERY BAD, ONLY USED FOR TEMPORARY TESTING
-        thr->stack = mem_allocate(0, THREAD_STACK_SIZE*2, MEM_ALLOC_HEAP, MEM_DEFAULT) + THREAD_STACK_SIZE;
-        mem_allocatePage(mem_getPage(dir, thr->stack - THREAD_STACK_SIZE, MEM_CREATE), MEM_PAGE_NOALLOC); // Reallocates pages as usermode
-        mem_allocatePage(mem_getPage(dir, thr->stack, MEM_CREATE), MEM_PAGE_NOALLOC); // Reallocates pages as usermode
+        // !!!: This will need a lot of work done for when supporting multiple threads is ready
+        // !!!: We need to have a system where multiple threads can share this memory region
+        thr->stack = MEM_USERMODE_STACK_REGION + THREAD_STACK_SIZE;
+        mem_allocate(thr->stack - THREAD_STACK_SIZE, THREAD_STACK_SIZE, MEM_DEFAULT, MEM_DEFAULT);
     } else {
         // Don't bother, use the parent's kernel stack
         thr->stack = parent->kstack; 
@@ -71,8 +73,8 @@ thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoin
     // Initialize thread context
     arch_initialize_context(thr, entrypoint, thr->stack);
 
-    // Switch back out of the directory back to kernel
-    mem_switchDirectory(NULL);
+    // Switch back out of the directory back to previous directory
+    mem_switchDirectory(prev_dir);
 
     return thr;
 }
