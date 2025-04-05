@@ -32,8 +32,8 @@ FILE _stdout = {
     .rbuf = NULL,
     .rbufsz = 0,
     .wbuf = stdout_buf,
-    .wbuflen = WRITE_BUFFER_SIZE,
-    .wbufsz = 0,
+    .wbuflen = 0,
+    .wbufsz = WRITE_BUFFER_SIZE,
     .eof = 0,
 };
 
