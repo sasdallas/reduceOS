@@ -20,6 +20,7 @@ _Begin_C_Header
 /**** INCLUDES ****/
 #include <sys/syscall.h>
 #include <sys/syscall_defs.h>
+#include <sys/types.h>
 #include <stdint.h>
 #include <fcntl.h>
 #include <stddef.h>
@@ -35,6 +36,7 @@ ssize_t write(int fd, const void *buf, size_t count);
 int close(int fd);
 int brk(void *addr);
 void *sbrk(intptr_t increment);
+pid_t fork();
 
 #endif
 

@@ -42,6 +42,7 @@ DECLARE_SYSCALL3(read, int, void*, size_t);
 DECLARE_SYSCALL3(write, int, const void*, size_t);
 DECLARE_SYSCALL1(close, int);
 DECLARE_SYSCALL1(brk, void*);
+DECLARE_SYSCALL0(fork);
 
 
 #endif
