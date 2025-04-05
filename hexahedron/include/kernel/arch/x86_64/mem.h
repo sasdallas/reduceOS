@@ -57,13 +57,15 @@ typedef union page {
 // IMPORTANT: THIS IS THE HEXAHEDRON MEMORY MAP CONFIGURED FOR I386
 // 0x0000000000000000 - 0x0000000000200000: Kernel code - this can be expanded a decent amount.
 // 0x00000000A0000000 - 0x00000000F0000000: DMA region (in low memory)
+// 0x0000600000000000 - 0x0000700000000000: Usermode stack. Only a small amount of this is mapped to start with
 // 0x0000800000000000 - 0x0000800000400000: Framebuffer memory (todo: this can probably be relocated).  
 // 0xFFFFFF0000000000 - 0xFFFFFF0000010000: Heap memory 
 // 0xFFFFFF8000000000 - 0xFFFFFF9000000000: High base region for identity mapping
 // 0xFFFFFFF000000000 - 0xFFFFFFF100000000: MMIO region
 // 0xFFFFFFFF00000000 - 0xFFFFFFFF80000000: Driver memory space
 
-#define MEM_DMA_REGION              (uintptr_t)0x00000000A0000000 
+#define MEM_DMA_REGION              (uintptr_t)0x00000000A0000000
+#define MEM_USERMODE_STACK_REGION   (uintptr_t)0x0000060000000000 
 #define MEM_FRAMEBUFFER_REGION      (uintptr_t)0x0000080000000000
 #define MEM_HEAP_REGION             (uintptr_t)0xFFFFFF0000000000
 #define MEM_PHYSMEM_MAP_REGION      (uintptr_t)0xFFFFFF8000000000 // !!!: PHYSMEM_MAP is close to kernel heap
@@ -71,6 +73,7 @@ typedef union page {
 #define MEM_DRIVER_REGION           (uintptr_t)0xFFFFFFFF00000000
 
 #define MEM_MMIO_REGION_SIZE        (uintptr_t)0x0000000100000000
+#define MEM_USERMODE_STACK_SIZE     (uintptr_t)0x0000010000000000 
 #define MEM_DMA_REGION_SIZE         (uintptr_t)0x0000000050000000
 #define MEM_PHYSMEM_MAP_SIZE        (uintptr_t)0x0000001000000000
 #define MEM_DRIVER_REGION_SIZE      (uintptr_t)0x0000000080000000

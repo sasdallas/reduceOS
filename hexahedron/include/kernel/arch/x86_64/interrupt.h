@@ -181,6 +181,7 @@ extern void halSecurityException(void);
 extern void halReserved2Exception(void);
 
 extern void halLocalAPICTimerInterrupt(void);
+extern void halTLBShootdownInterrupt(void);
 extern void halSystemCallInterrupt(void);
 extern void halSyscallEntrypoint(void);
 
