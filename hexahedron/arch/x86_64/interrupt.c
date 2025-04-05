@@ -228,6 +228,7 @@ void hal_exceptionHandler(registers_t *regs, extended_registers_t *regs_extended
         return;
     }
 
+
     // NMIs are fired as of now only for a core shutdown. If we receive one, just halt.
     if (exception_index == 2) {
         smp_acknowledgeCoreShutdown();
@@ -313,6 +314,9 @@ void hal_syscallHandler(registers_t *regs, extended_registers_t *regs_extended) 
     syscall.parameters[3] = regs->r10;
     syscall.parameters[4] = regs->r8;
     syscall.parameters[5] = regs->r9;
+
+    // HACK
+    current_cpu->current_process->regs = regs;
 
     syscall_handle(&syscall);
     regs->rax = syscall.return_value;
@@ -538,6 +542,7 @@ void hal_initializeInterrupts() {
     hal_registerInterruptVector(47, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halIRQ15);
 
     hal_registerInterruptVector(123, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halLocalAPICTimerInterrupt);
+    hal_registerInterruptVector(124, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32, 0x08, (uint64_t)&halTLBShootdownInterrupt);
     hal_registerInterruptVector(128, X86_64_IDT_DESC_PRESENT | X86_64_IDT_DESC_BIT32 | X86_64_IDT_DESC_RING3, 0x08, (uint64_t)&halSystemCallInterrupt);
 
     // Install IDT in BSP
