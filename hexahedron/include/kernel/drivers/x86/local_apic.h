@@ -69,7 +69,7 @@
 #define LAPIC_ICR_DESTINATION       0x00800 // (11) The destination mode. See ICR (destination)
 #define LAPIC_ICR_SENDING           0x01000 // (12) Delivery status
 #define LAPIC_ICR_INITDEASSERT      0x04000 // (15) Set for INIT level deassert
-#define LAPIC_ICR_DESTINATIONTYPE   0x60000 // (18-19) Destination type. Stick with 0.
+#define LAPIC_ICR_DESTINATIONTYPE   0x60000 // (18-19) Destination type
 
 // Interrupt command register (high)
 // The ICR is made of two registers, actually - the one at 0x300 (all of this other stuff pertains to that)
@@ -91,6 +91,13 @@
 // Interrupt command register (destination)
 #define LAPIC_ICR_DESTINATION_PHYSICAL  0
 #define LAPIC_ICR_DESTINATION_LOGICAL   1
+
+// Interrupt command register (destination type)
+// NOTE: OSDev wiki recommends only using LAPIC_ICR_DESTINATION_DEFAULT
+#define LAPIC_ICR_DESTINATION_DEFAULT       0x0         // Uses the target local APIC ID in the high ICR
+#define LAPIC_ICR_DESTINATION_SELF          0x40000     // Send to self
+#define LAPIC_ICR_DESTINATION_ALL           0x80000     // Send to all CPUs
+#define LAPIC_ICR_DESTINATION_EXCLUDE_SELF  0xC0000     // Send to all processors except self
 
 // Error codes for local APIC (see section 12.5.3 of Intel manuals)
 #define LAPIC_SEND_CKSUM_ERROR          0x01
@@ -163,5 +170,13 @@ uint8_t lapic_getID();
  * @returns Error code
  */
 uint8_t lapic_readError();
+
+/**
+ * @brief Send an IPI to a processor
+ * @param lapic_id The ID of the APIC to send to
+ * @param irq_no The IRQ vector to send
+ * @param flags The flags to use
+ */
+void lapic_sendIPI(uint8_t lapic_id, uint8_t irq_no, uint32_t flags);
 
 #endif
