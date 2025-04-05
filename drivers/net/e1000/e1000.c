@@ -318,6 +318,8 @@ static void e1000_receiverThread(void *data) {
                 LOG(DEBUG, "status = %08x\n", status);
             }
         }
+
+        arch_pause();
     }
 }
 
