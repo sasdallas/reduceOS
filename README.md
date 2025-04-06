@@ -1,8 +1,22 @@
-# Hexahedron
-Hexahedron is a modern replacement for the reduceOS kernel.
+# reduceOS
 
-## What is this?
-A replacement for the reduceOS kernel, developed to follow standards better and have higher code quality.
+A memory-focused, lightweight operating system written in C and Assembly.
+
+## What is reduceOS?
+
+reduceOS is a project with the goal of creating a fully functional OS (including usermode components) with as little requirements as possible.
+
+Currently, the project is moving away from kernel mode stages and towards usermode.
+
+## Features
+- Advanced driver system with a well-documented kernel API
+- Strong support for x86_64 mode
+- USB support for UHCI/EHCI controllers
+- AHCI/IDE support
+- Networking stack with E1000 network card driver
+- Priority-based round-robin scheduler with a well-tested API
+- Custom C library with support for many functions
+- Full ACPI support with the ACPICA library
 
 ## Project structure
 - `base`: Contains the base filesystem. Files in `base/initrd` go in the initial ramdisk and files in `base/sysroot` go in sysroot.
@@ -15,23 +29,20 @@ A replacement for the reduceOS kernel, developed to follow standards better and 
 - `libkstructures`: Contains misc. kernel structures, like lists/hashmaps/parsers/whatever
 
 ## Building
-First, gather the prerequisites. See the section on External Components.
+To build reduceOS, you will need a cross compiler for your target architecture.\
+Other packages required: `grub-common`, `xorriso`, `qemu-system`
 
-Run `make all` to perform a build.
-
-To change the build configuration, edit `buildscripts/config.sh` and `conf/build/<architecture>.mk`.
+Edit `buildscripts/build-arch.sh` to change the target build architecture. \
+Running `make all` will build an ISO in `build-output/reduceOS.iso`
 
 ## External components
 Certain external components are available in `external`. Here is a list of them and their versions:
 - ACPICA UNIX* (Intel License): Version 20240927 [available here](https://www.intel.com/content/www/us/en/developer/topic-technology/open/acpica/download.html)
 
-## Keeping track of potential issues
-- Relocatable code is not implemented in x86_64
-- GRUB might error out on Multiboot2 if the relocatable max address is too low
-- USB device structure uses a lot of memory (it stores all configurations, interfaces, and endpoints but this is probably a terrible idea - implement getter functions instead?)
-- Some legacy code/unused functions in the USB stack (or other areas) may have been left
-
 ## Licensing
 
-Hexahedron and reduceOS are released under the terms of the BSD 3-clause license (available in LICENSE).\
-All files unless specified fall under this license.
+Hexahedron, libpolyhedron, and all other components of reduceOS fall under the terms of the BSD 3-clause license (available in LICENSE).\
+All files, unless specified, fall under this license.
+
+If at any point a licensing change should occur, any files created after the commit changing the license will fall under the new license.\
+Note, however, that any files created before the commit must remain under the terms of the previous license.
