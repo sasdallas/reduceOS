@@ -157,7 +157,8 @@ void process_yield(uint8_t reschedule) {
     #endif
 
     // Reschedule thread now. This should leave a VERY slim time window for another CPU to pick up the thread
-    if (prev && reschedule) {
+    // NOTE: You're supposed to not reschedule after putting a thread to sleep but just in case they're trying to disallow it.
+    if (prev && reschedule && !(prev->status & THREAD_STATUS_SLEEPING)) {
         // !!!: It is possible for a race condition to occur here. It is very unlikely, but possible.
         // !!!: If another CPU picks this thread up and somehow manages to switch to it faster than we can, it will corrupt the stack and cause hell.
         // !!!: This is why we can't call process_switchNextThread. Sorry, not sorry.

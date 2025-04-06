@@ -54,9 +54,8 @@ thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoin
     // Create thread
     thread_t *thr = thread_createStructure(parent, dir, THREAD_STATUS_RUNNING, flags);
 
-    page_t *prev_dir = current_cpu->current_dir;
-
     // Switch directory to directory (as we will be mapping in it)
+    page_t *prev_dir = current_cpu->current_dir;
     mem_switchDirectory(dir);
 
     if (!(flags & THREAD_FLAG_KERNEL)) {
