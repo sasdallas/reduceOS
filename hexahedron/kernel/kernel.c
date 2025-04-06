@@ -149,7 +149,10 @@ void kthread() {
         // }
         iterations++;
         dprintf(DEBUG, "Hi from %s! This is iteration %d\n", current_cpu->current_process->name, iterations);
-        arch_pause();
+        printf("%s\n", current_cpu->current_process->name);
+
+        sleep_untilTime(current_cpu->current_thread, 3, 0);
+        process_yield(0);
     }
 }
 
@@ -231,6 +234,7 @@ void kmain() {
 
     // Before we load drivers, initialize the process system. This will let drivers create their own kernel threads
     process_init();
+    sleep_init();
 
     // Load drivers
     if (!kargs_has("--no-load-drivers")) {
@@ -243,9 +247,9 @@ void kmain() {
 
     char name[256] = { 0 };
 
-    for (int i = 1; i <= 24; i++) {
+    for (int i = 1; i <= 2; i++) {
         snprintf(name, 256, "kthread%d", i);
-        process_t *process = process_create(name, PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
+        process_t *process = process_create(NULL, name, PROCESS_STARTED | PROCESS_KERNEL, PRIORITY_MED);
         process->main_thread = thread_create(process, NULL, (uintptr_t)&kthread, THREAD_FLAG_KERNEL);
         scheduler_insertThread(process->main_thread);
     }    

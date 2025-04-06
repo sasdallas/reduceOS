@@ -26,6 +26,7 @@
 #include <kernel/multiboot.h>
 #include <kernel/multiboot2.h>
 #include <kernel/mem/pmm.h>
+#include <kernel/mem/mem.h>
 
 extern uintptr_t arch_allocate_structure(size_t bytes);
 extern uintptr_t arch_relocate_structure(uintptr_t structure_ptr, size_t size);
@@ -259,6 +260,12 @@ generic_parameters_t *arch_parse_multiboot1(multiboot_t *bootinfo) {
         // Relocate the module's contents
         mod_descriptor->mod_start = arch_relocate_structure((uintptr_t)module->mod_start, (uintptr_t)module->mod_end - (uintptr_t)module->mod_start);
         mod_descriptor->mod_end = mod_descriptor->mod_start + (module->mod_end - module->mod_start);
+
+        // Check size of module
+        if ((module->mod_end - module->mod_start) > PMM_BLOCK_SIZE) {
+            // Reinitialize the region. Modules are also identity mapped so free those pages
+            mem_free(module->mod_start, module->mod_end - module->mod_start, MEM_DEFAULT);
+        }
 
         // Null-terminate cmdline
         mod_descriptor->cmdline[strlen(mod_descriptor->cmdline) - 1] = 0;
