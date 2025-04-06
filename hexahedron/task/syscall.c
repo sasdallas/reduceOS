@@ -91,16 +91,69 @@ void sys_exit(int status) {
  * @brief Open system call
  */
 int sys_open(const char *pathname, int flags, mode_t mode) {
+    // Validate pointer
+    if (SYSCALL_VALIDATE_PTR(pathname) == 0) {
+        syscall_pointerValidateFailed((void*)pathname);
+    }
+
+    // Try and get it open
+    fs_node_t *node = kopen(pathname, flags);
+
+    // Did we find the node and they DIDN'T want us to create it?
+    if (node && (flags & O_CREAT) && (flags & O_EXCL)) {
+        fs_close(node);
+        return -EEXIST;
+    }
+
+    // Did we find it and did they want to create it?
+    if (!node && (flags & O_CREAT)) {
+        // Yes... uh, what?
+        // I guess this means that kopen ignored the flag, so assume EROFS?
+        LOG(WARN, "Failed to create \"%s\" - assuming read-only file system\n", pathname);
+        return -EROFS;
+    }
+
+    // Did they want a directory?
+    if (node && !(node->flags & VFS_DIRECTORY) && (flags & O_DIRECTORY)) {
+        fs_close(node);
+        return -ENOTDIR;
+    }
+
+    // Did we find it and they want it?
+    if (!node) {
+        return -ENOENT;
+    }
+
+    // Create the file descriptor and return
+    fd_t *fd = fd_add(current_cpu->current_process, node);
+    
+    // Are they trying to append? If so modify length to be equal to node length
+    if (flags & O_APPEND) {
+        fd->offset = node->length;
+    }
+
     printf("sys_open %s flags %d mode %d\n", pathname, flags, mode);
-    return -EACCES;
+    return fd->fd_number;
 }
 
 /**
  * @brief Read system calll
  */
 ssize_t sys_read(int fd, void *buffer, size_t count) {
+    if (SYSCALL_VALIDATE_PTR(buffer) == 0) {
+        syscall_pointerValidateFailed((void*)buffer);
+    }
+
+    if (!FD_VALIDATE(current_cpu->current_process, fd)) {
+        return -EBADF;
+    }
+
+    fd_t *proc_fd = FD(current_cpu->current_process, fd);
+    ssize_t i = fs_read(proc_fd->node, proc_fd->offset, count, (uint8_t*)buffer);
+    proc_fd->offset += i;
+
     printf("sys_read fd %d buffer %p count %d\n", fd, buffer, count);
-    return 0;
+    return i;
 }
 
 /**
@@ -119,8 +172,16 @@ ssize_t sys_write(int fd, const void *buffer, size_t count) {
         return count;
     }
 
+    if (!FD_VALIDATE(current_cpu->current_process, fd)) {
+        return -EBADF;
+    }
+
+    fd_t *proc_fd = FD(current_cpu->current_process, fd);
+    ssize_t i = fs_write(proc_fd->node, proc_fd->offset, count, (uint8_t*)buffer);
+    proc_fd->offset += i;
+
     printf("sys_write fd %d buffer %p count %d\n", fd, buffer, count);
-    return 0;
+    return i;
 }
 
 /**

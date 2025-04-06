@@ -242,10 +242,26 @@ static process_t *process_createStructure(process_t *parent, char *name, unsigne
         process->dir = mem_clone(NULL);
     }
 
+
+    // Create file descriptor table
+    if (parent) {
+        // Reference parent table
+        // TODO: Maybe use some sort of process flag that forces recreation of a new fd table?
+        process->fd_table = parent->fd_table;
+        process->fd_table->references++;
+    } else {
+        process->fd_table = kmalloc(sizeof(fd_table_t));
+        memset(process->fd_table, 0, sizeof(fd_table_t));
+        process->fd_table->total = PROCESS_FD_BASE_AMOUNT;
+        process->fd_table->references = 1;
+        process->fd_table->fds = kmalloc(sizeof(fd_t*) * PROCESS_FD_BASE_AMOUNT);
+        memset(process->fd_table->fds, 0, sizeof(fd_t*) * PROCESS_FD_BASE_AMOUNT);
+    }
+
 #ifdef __ARCH_I386__
     // !!!: very dirty hack
     // !!!: resets pages in process->kstack to be global, meaning they won't be invalidated when the TLB flushes (mem_switchDirectory)
-    // !!!: this is bad. kernel allocations should be global in all directories.
+    // !!!: this is bad. kernel allocations should be global in all directories. they are in i386, but stacks cant be handled by its current system.
     for (uintptr_t i = (process->kstack - PROCESS_KSTACK_SIZE); i < process->kstack; i += PAGE_SIZE) {
         page_t *pg = mem_getPage(NULL, i, MEM_CREATE);
         if (pg) pg->bits.global = 1;

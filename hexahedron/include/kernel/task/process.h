@@ -23,6 +23,7 @@
 #include <kernel/task/thread.h>
 #include <kernel/task/scheduler.h>
 #include <kernel/task/sleep.h>
+#include <kernel/task/fd.h>
 
 #include <kernel/processor_data.h>
 #include <kernel/fs/vfs.h>
@@ -66,6 +67,9 @@ typedef struct process {
     // THREADS
     thread_t *main_thread;      // Main thread in the process  - whatever the ELF entrypoint was
     list_t  *thread_list;       // List of threads for the process
+
+    // FILE INFORMATION
+    fd_table_t *fd_table;       // File descriptor table
 
     // MEMORY REGIONS
     uintptr_t heap;             // Heap of the process. Positioned after the ELF binary
