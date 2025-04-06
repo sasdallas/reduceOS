@@ -16,13 +16,14 @@
         {
             "name": "osdev-x86_64",
             "includePath": [
-                "/home/samuel/Desktop/Hexahedron/**",
-                "/home/samuel/Desktop/Hexahedron/libkstructures/include/**",
-                "/home/samuel/Desktop/Hexahedron/libpolyhedron/include/**",
-                "/home/samuel/Desktop/Hexahedron/hexahedron/include/**",
-                "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**"
+                "/home/samuel/Desktop/reduceOS/**",
+                "/home/samuel/Desktop/reduceOS/libkstructures/include/**",
+                "/home/samuel/Desktop/reduceOS/libpolyhedron/include/**",
+                "/home/samuel/Desktop/reduceOS/hexahedron/include/**",
+                "/home/samuel/Desktop/reduceOS/build-output/sysroot/usr/include/**"
             ],
             "defines": [
+                "REDUCEOS",
                 "HEXAHEDRON",
                 "__KERNEL__",
                 "__LIBK",
@@ -41,9 +42,9 @@
             "mergeConfigurations": false,
             "browse": {
                 "path": [
-                    "/home/samuel/Desktop/Hexahedron/**",
-                    "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**",
-                    "/home/samuel/Desktop/Hexahedron"
+                    "/home/samuel/Desktop/reduceOS/**",
+                    "/home/samuel/Desktop/reduceOS/build-output/sysroot/usr/include/**",
+                    "/home/samuel/Desktop/reduceOS"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }
@@ -51,11 +52,11 @@
         {
             "name": "osdev-i386",
             "includePath": [
-                "/home/samuel/Desktop/Hexahedron/**",
-                "/home/samuel/Desktop/Hexahedron/libkstructures/include/",
-                "/home/samuel/Desktop/Hexahedron/libpolyhedron/include/",
-                "/home/samuel/Desktop/Hexahedron/hexahedron/include/",
-                "/home/samuel/Desktop/Hexahedron/build-output/sysroot/usr/include/**",
+                "/home/samuel/Desktop/reduceOS/**",
+                "/home/samuel/Desktop/reduceOS/libkstructures/include/",
+                "/home/samuel/Desktop/reduceOS/libpolyhedron/include/",
+                "/home/samuel/Desktop/reduceOS/hexahedron/include/",
+                "/home/samuel/Desktop/reduceOS/build-output/sysroot/usr/include/**",
                 "${workspaceFolder}/hexahedron/include"
             ],
             "defines": [

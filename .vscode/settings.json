@@ -80,6 +80,26 @@
     "errno.h": "c",
     "smp.h": "c",
     "serial.h": "c",
-    "gfx.h": "c"
-  }
+    "gfx.h": "c",
+    "usb.h": "c",
+    "syscall.h": "c",
+    "cheader.h": "c",
+    "ethernet.h": "c",
+    "stdint.h": "c",
+    "hashmap.h": "c",
+    "driver.h": "c",
+    "arp.h": "c",
+    "nic.h": "c",
+    "ipv4.h": "c",
+    "vfs.h": "c",
+    "panic.h": "c",
+    "unistd.h": "c",
+    "types.h": "c",
+    "stdio.h": "c",
+    "clock.h": "c",
+    "sleep.h": "c",
+    "spinlock.h": "c",
+    "fd.h": "c"
+  },
+  "makefile.configureOnOpen": false
 }

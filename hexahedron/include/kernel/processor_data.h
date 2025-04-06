@@ -75,7 +75,7 @@ extern int processor_count;
  * x86_64: We use the GSbase to get it
  */
 
-#if defined(__ARCH_I386__)
+#if defined(__ARCH_I386__) || defined(__INTELLISENSE__)
 
 #define current_cpu ((processor_t*)&(processor_data[arch_current_cpu()]))
 
