@@ -178,6 +178,7 @@ void kmain() {
     tarfs_init();
     nulldev_init();
     zerodev_init();
+    debug_mountNode();
     vfs_dump();
 
     // Networking

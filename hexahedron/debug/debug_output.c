@@ -25,9 +25,27 @@
 /* TODO: This should be replaced with a VFS node */
 static log_putchar_method_t debug_putchar_method = NULL; 
 
+static fs_node_t debug_node = {
+    .name = "kconsole",
+    .flags = VFS_CHARDEVICE,
+    .write = debug_write
+};
+
 /* Spinlock */
 static spinlock_t debug_lock = { 0 };
 
+
+/**
+ * @brief Write to buffer
+ * @todo Use storage buffer like stdio?
+ */
+static int debug_write_buffer(size_t length, char *buffer) {
+    for (size_t i = 0; i < length; i++) {
+        debug_print(NULL, buffer[i]);
+    }
+
+    return 0;
+}
 
 /**
  * @brief Function to print debug string
@@ -42,15 +60,16 @@ int debug_print(void *user, char ch) {
 }
 
 /**
- * @brief Write directly to debug_print
+ * @brief Write function for debug console node
+ * @param node The node
+ * @param offset The offset
+ * @param size The size of how much to write
+ * @param buffer The buffer
  */
-static int debug_write(size_t length, char *buffer) {
-    for (size_t i = 0; i < length; i++) {
-        debug_print(NULL, buffer[i]);
-    }
-
-    return 0;
+ssize_t debug_write(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
+    return debug_write_buffer(size, (char*)buffer);
 }
+
 
 /**
  * @brief dprintf that accepts va_args instead
@@ -108,7 +127,7 @@ int dprintf_va(char *module, DEBUG_LOG_TYPE status, char *format, va_list ap) {
         }
     }
 
-    debug_write(header_length, header);
+    debug_write_buffer(header_length, header);
 
 _write_format: ;
     int returnValue = xvasprintf(debug_print, NULL, format, ap);
@@ -143,4 +162,11 @@ void debug_setOutput(log_putchar_method_t logMethod) {
  */
 log_putchar_method_t debug_getOutput() {
     return debug_putchar_method;
+}
+
+/**
+ * @brief Mount the debug node onto the VFS
+ */
+void debug_mountNode() {
+    vfs_mount(&debug_node, DEBUG_CONSOLE_PATH);
 }

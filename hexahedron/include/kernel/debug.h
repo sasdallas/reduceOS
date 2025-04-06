@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <kernel/fs/vfs.h>
 
 /**** TYPES ****/
 typedef int (*log_putchar_method_t)(void *user, char ch); // Put character method used by logger
@@ -49,6 +50,7 @@ typedef enum {
 #define COLOR_CODE_GREEN        "\033[0;32m"
 #define COLOR_CODE_GREEN_BOLD   "\033[1;32m"
 
+#define DEBUG_CONSOLE_PATH      "/device/kconsole"
 
 
 /**** FUNCTIONS ****/
@@ -102,6 +104,20 @@ log_putchar_method_t debug_getOutput();
  * @brief Function to print debug string
  */
 int debug_print(void *user, char ch);
+
+/**
+ * @brief Write function for debug console node
+ * @param node The node
+ * @param offset The offset
+ * @param size The size of how much to write
+ * @param buffer The buffer
+ */
+ssize_t debug_write(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer);
+
+/**
+ * @brief Mount the debug node onto the VFS
+ */
+void debug_mountNode();
 
 
 #endif
