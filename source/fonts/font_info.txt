@@ -1,5 +1,0 @@
-Font information for reduceOS:
-
-(I'm sorry I named one font.psf)
-
-1. font.psf - UbuntuMono-B-8x16.psf
