@@ -135,6 +135,25 @@ void clock_relative(unsigned long seconds, unsigned long subseconds, unsigned lo
 }
 
 /**
+ * @brief Get the current seconds/subseconds according to the clock device
+ * @param out_seconds Output variable for seconds
+ * @param out_subseconds Output variable for subseconds
+ */
+void clock_getCurrentTime(unsigned long *out_seconds, unsigned long *out_subseconds) {
+    uint64_t ticks = clock_device.get_timer();
+    uint64_t timer_ticks, timer_subticks;
+    if (clock_device.get_tick_counts) {
+        clock_device.get_tick_counts(ticks, &timer_ticks, &timer_subticks);
+    } else {
+        LOG(ERR, "clock_getCurrentTime called before clock initialized");
+        return;
+    }
+
+    *out_seconds = timer_ticks;
+    *out_subseconds = timer_subticks;
+}
+
+/**
  * @brief Register an update callback
  * @returns -EINVAL on too many full, else it returns the index.
  */

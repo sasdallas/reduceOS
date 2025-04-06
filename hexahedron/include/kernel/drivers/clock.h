@@ -126,4 +126,11 @@ int clock_isReady();
  */
 void clock_sleep(size_t delay);
 
+/**
+ * @brief Get the current seconds/subseconds according to the clock device
+ * @param out_seconds Output variable for seconds
+ * @param out_subseconds Output variable for subseconds
+ */
+void clock_getCurrentTime(unsigned long *out_seconds, unsigned long *out_subseconds);
+
 #endif
