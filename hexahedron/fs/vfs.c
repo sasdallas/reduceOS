@@ -2,8 +2,6 @@
  * @file hexahedron/fs/vfs.c
  * @brief Virtual filesystem handler
  * 
- * @todo refcounts implemented
- * 
  * @warning Some code in here can be pretty messy.
  * 
  * @copyright
@@ -53,6 +51,10 @@ spinlock_t *vfs_lock;
 void fs_open(fs_node_t *node, unsigned int flags) {
     if (!node) return;
 
+    // TODO: Locking?
+    node->refcount++;
+    
+
     if (node->open) {
         return node->open(node, flags);
     }
@@ -65,12 +67,18 @@ void fs_open(fs_node_t *node, unsigned int flags) {
 void fs_close(fs_node_t *node) {
     if (!node) return;
 
-    if (node->close) {
-        node->close(node);
-    }
+    // First, decrement the reference counter
+    node->refcount--;
 
-    // Free the node
-    kfree(node);
+    // Did we underflow?
+    if (node->refcount < 0) return; // ???
+
+    // Anyone still using this node?
+    if (node->refcount == 0) {
+        // Nope. It's free memory.
+        if (node->close) node->close(node);
+        kfree(node);
+    }
 }
 
 /**
@@ -156,7 +164,22 @@ int fs_mkdir(char *path, mode_t mode) { return -ENOTSUP; }
  */
 int fs_unlink(char *name) { return -ENOTSUP; }
 
+/**
+ * @brief I/O control file
+ * @param node The node to ioctl
+ * @param request The ioctl request to use
+ * @param argp Arguments to ioctl call
+ * @returns Error code
+ */
+int fs_ioctl(fs_node_t *node, unsigned long request, char *argp) {
+    if (!node) return -EINVAL;
 
+    if (node->ioctl) {
+        return node->ioctl(node, request, argp);
+    } else {
+        return -ENOTSUP;
+    }
+}
 
 /**** VFS TREE FUNCTIONS ****/
 

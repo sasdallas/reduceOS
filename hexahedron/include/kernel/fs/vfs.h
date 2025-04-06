@@ -178,6 +178,22 @@ fs_node_t *fs_finddir(fs_node_t *node, char *path);
 int fs_mkdir(char *path, mode_t mode);
 
 /**
+ * @brief Unlink file
+ * @param name The name of the file to unlink
+ * @returns Error code
+ */
+int fs_unlink(char *name);
+
+/**
+ * @brief I/O control file
+ * @param node The node to ioctl
+ * @param request The ioctl request to use
+ * @param argp Arguments to ioctl call
+ * @returns Error code
+ */
+int fs_ioctl(fs_node_t *node, unsigned long request, char *argp);
+
+/**
  * @brief Initialize the virtual filesystem with no root node.
  */
 void vfs_init();
