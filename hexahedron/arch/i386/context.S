@@ -103,3 +103,22 @@ arch_enter_kthread:
     /* Pop kthread pointer and jump to it */
     popl %esi
     jmpl *%esi
+
+/* Restore context */
+.global arch_restore_context
+arch_restore_context:
+    /* Restore segments */
+    popw %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+
+    /* Restore main registers */
+    popa
+
+    /* Skip over the err code and interrupt number */
+    addl $8, %esp
+
+    /* Return */
+    iret
