@@ -14,4 +14,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: iso
-          path: build-output/hexahedron.iso
+          path: /opt/reduceOS/build-output/hexahedron.iso
