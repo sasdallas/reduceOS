@@ -32,6 +32,7 @@ int min(int a, int b);
 int max(int a, int b);
 
 int atoi(const char*);
+double atof(const char *nptr);
 unsigned long long int strtoull(const char*, char**, int);
 unsigned long int strtoul(const char*, char**, int);
 long int strtol(const char*, char**, int);

@@ -40,6 +40,10 @@ typedef long suseconds_t;
 
 typedef long ssize_t;
 
+typedef unsigned short nlink_t;
+
+typedef unsigned long blkcnt_t;
+typedef unsigned long blksize_t;
 
 #endif
 
