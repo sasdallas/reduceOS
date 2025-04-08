@@ -549,6 +549,7 @@ typedef struct ahci_cmd_table
 } ahci_cmd_table_t;
 
 
+
 /**
  * @brief ATA identification space
  * 
@@ -581,7 +582,7 @@ typedef struct ata_ident {
     uint16_t obsolete11[11];   	// Contain nothing really useful
 	uint32_t sector_size;		// Logical sector size
 	uint16_t obsolete12[136];	// Nothing really useful
-} __attribute__((packed)) ata_ident_t;
+} __attribute__((packed)) __attribute__((aligned(8))) ata_ident_t;
 
 
 // Prototype
