@@ -50,7 +50,7 @@ typedef struct ata_ident {
     uint16_t obsolete9[16];     // Contain nothing really useful
     uint64_t sectors_lba48;     // LBA48 maximum sectors, AND by 0000FFFFFFFFFFFF for validity
     uint16_t obsolete10[152];   // Contain nothing really useful
-} __attribute__((packed)) ata_ident_t;
+} __attribute__((packed)) __attribute__((aligned(1))) ata_ident_t;
 
 /**
  * @brief IDE channel
