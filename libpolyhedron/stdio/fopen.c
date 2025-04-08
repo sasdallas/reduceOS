@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+#include <stdlib.h>
 
 #ifndef __LIBK
 
@@ -27,23 +29,23 @@ FILE *fopen(const char *pathname, const char *mode) {
     // a+       Open for reading and appending
 
     int flags = 0;      // Flags
-    mode_t mode = 0; // Mode
+    mode_t mode_arg = 0; // Mode
 
     char *p = (char*)mode;
     switch (*p) {
         case 'r':
             flags |= O_RDONLY;
-            mode = 0644;    // Default mask
+            mode_arg = 0644;    // Default mask
             break;
         
         case 'w':
             flags |= O_WRONLY | O_CREAT | O_TRUNC;
-            mode = 0666;    // Write-only mask
+            mode_arg = 0666;    // Write-only mask
             break;
         
         case 'a':
             flags |= O_APPEND | O_WRONLY | O_CREAT;
-            mode = 0644;    // Default mask
+            mode_arg = 0644;    // Default mask
             break;
         
         default:
@@ -57,7 +59,7 @@ FILE *fopen(const char *pathname, const char *mode) {
     }
 
     // Okay we're good now. Ty to open the file
-    int fd = open(pathname, flags, mode);
+    int fd = open(pathname, flags, mode_arg);
     if (fd == -1) {
         // Error, don't bother. open() should set an errno
         return NULL;
