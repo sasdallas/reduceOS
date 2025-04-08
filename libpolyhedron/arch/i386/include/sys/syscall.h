@@ -29,6 +29,7 @@ _Begin_C_Header
 #define SYS_CLOSE       5
 #define SYS_STAT        6
 #define SYS_BRK         7
+#define SYS_FORK        8
 
 /* Syscall macros */
 #define DEFINE_SYSCALL0(name, num) \

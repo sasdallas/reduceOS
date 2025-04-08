@@ -62,7 +62,7 @@ void syscall_pointerValidateFailed(void *ptr) {
  * @returns Nothing, but updates @c syscall->return_value
  */
 void syscall_handle(syscall_t *syscall) {
-    LOG(INFO, "Received system call %d\n", syscall->syscall_number);
+    // LOG(INFO, "Received system call %d\n", syscall->syscall_number);
 
     // Is the system call within bounds?
     if (syscall->syscall_number < 0 || syscall->syscall_number >= (int)(sizeof(syscall_table) / sizeof(*syscall_table))) {
@@ -83,7 +83,7 @@ void syscall_handle(syscall_t *syscall) {
  * @brief Exit system call
  */
 void sys_exit(int status) {
-    printf("sys_exit %d\n", status);
+    LOG(DEBUG, "sys_exit %d\n", status);
     process_exit(NULL, status);
 }
 
@@ -132,7 +132,7 @@ int sys_open(const char *pathname, int flags, mode_t mode) {
         fd->offset = node->length;
     }
 
-    printf("sys_open %s flags %d mode %d\n", pathname, flags, mode);
+    LOG(DEBUG, "sys_open %s flags %d mode %d\n", pathname, flags, mode);
     return fd->fd_number;
 }
 
@@ -152,7 +152,7 @@ ssize_t sys_read(int fd, void *buffer, size_t count) {
     ssize_t i = fs_read(proc_fd->node, proc_fd->offset, count, (uint8_t*)buffer);
     proc_fd->offset += i;
 
-    printf("sys_read fd %d buffer %p count %d\n", fd, buffer, count);
+    LOG(DEBUG, "sys_read fd %d buffer %p count %d\n", fd, buffer, count);
     return i;
 }
 
@@ -180,7 +180,7 @@ ssize_t sys_write(int fd, const void *buffer, size_t count) {
     ssize_t i = fs_write(proc_fd->node, proc_fd->offset, count, (uint8_t*)buffer);
     proc_fd->offset += i;
 
-    printf("sys_write fd %d buffer %p count %d\n", fd, buffer, count);
+    LOG(DEBUG, "sys_write fd %d buffer %p count %d\n", fd, buffer, count);
     return i;
 }
 
@@ -188,7 +188,7 @@ ssize_t sys_write(int fd, const void *buffer, size_t count) {
  * @brief Close system call
  */
 int sys_close(int fd) {
-    printf("sys_close fd %d\n", fd);
+    LOG(DEBUG, "sys_close fd %d\n", fd);
     return 0;
 }
 
@@ -196,7 +196,7 @@ int sys_close(int fd) {
  * @brief Change data segment size
  */
 void *sys_brk(void *addr) {
-    printf("sys_brk addr %p\n", addr);
+    LOG(DEBUG, "sys_brk addr %p\n", addr);
 
     // Validate pointer is in range
     if ((uintptr_t)addr < current_cpu->current_process->heap_base) {
