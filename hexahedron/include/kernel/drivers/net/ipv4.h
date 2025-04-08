@@ -54,7 +54,7 @@ typedef struct ipv4_packet {
     uint32_t src_addr;              // Source IPv4 address
     uint32_t dest_addr;             // Destination address
 	uint8_t  payload[];
-} __attribute__((packed)) ipv4_packet_t;
+} __attribute__((packed)) __attribute__((aligned(2))) ipv4_packet_t;
 
 /**
  * @brief IPv4 protocol handler
