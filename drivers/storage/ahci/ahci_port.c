@@ -308,7 +308,7 @@ static int ahci_readIdentificationSpace(ahci_port_t *port, ata_ident_t *ident) {
 
     // Setup header
     header->cfl = sizeof(ahci_fis_h2d_t) / sizeof(uint32_t);
-    header->prdtl = ahci_portFillPRDT(port, header, (uintptr_t*)ident, sizeof(ata_ident_t));
+    header->prdtl = ahci_portFillPRDT(port, header, (uintptr_t*)(void*)ident, sizeof(ata_ident_t));
     header->w = 0;
     header->a = 0;
     header->p = 1;
@@ -371,7 +371,7 @@ int ahci_readCapacity(ahci_port_t *port, uint32_t *lba, uint32_t *block_size) {
 
     // Setup header
     header->cfl = sizeof(ahci_fis_h2d_t) / sizeof(uint32_t);
-    header->prdtl = ahci_portFillPRDT(port, header, (uintptr_t*)capacity, 8);
+    header->prdtl = ahci_portFillPRDT(port, header, (uintptr_t*)(void*)capacity, 8);
     header->w = 0;
     header->a = 1;
     header->p = 1;
