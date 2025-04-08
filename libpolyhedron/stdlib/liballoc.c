@@ -114,7 +114,8 @@ int liballoc_free(void *addr, size_t sz) {
 #define LIBALLOC_MAGIC	0xc001c0de
 #define LIBALLOC_DEAD	0xdeaddead
 
-#define DEBUG
+// Uncomment to enable debug. Just make sure that STDOUT's buffer isn't malloc()'d
+// #define DEBUG
 
 #if defined DEBUG || defined INFO
 #include <stdio.h>
