@@ -37,6 +37,13 @@ int close(int fd);
 int brk(void *addr);
 void *sbrk(intptr_t increment);
 pid_t fork();
+off_t lseek(int fd, off_t offset, int whence);
+
+/* STUBS */
+int mkdir(const char *pathname, mode_t mode);
+int remove(const char *pathname);
+int rename(const char *oldpath, const char *newpath);
+int system(const char *command);
 
 #endif
 

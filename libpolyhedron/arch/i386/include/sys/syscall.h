@@ -30,6 +30,7 @@ _Begin_C_Header
 #define SYS_STAT        6
 #define SYS_BRK         7
 #define SYS_FORK        8
+#define SYS_LSEEK       9
 
 /* Syscall macros */
 #define DEFINE_SYSCALL0(name, num) \
