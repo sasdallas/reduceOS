@@ -58,5 +58,6 @@ ssize_t sys_write(int fd, const void *buffer, size_t count);
 int sys_close(int fd);
 void *sys_brk(void *addr);
 pid_t sys_fork();
+off_t sys_lseek(int fd, off_t offset, int whence);
 
 #endif

@@ -30,6 +30,7 @@ static syscall_func_t syscall_table[] = {
     [SYS_CLOSE]         = (syscall_func_t)(uintptr_t)sys_close,
     [SYS_BRK]           = (syscall_func_t)(uintptr_t)sys_brk,
     [SYS_FORK]          = (syscall_func_t)(uintptr_t)sys_fork,
+    [SYS_LSEEK]         = (syscall_func_t)(uintptr_t)sys_lseek
 };
 
 /* Unimplemented system call */
@@ -228,4 +229,31 @@ void *sys_brk(void *addr) {
  */
 pid_t sys_fork() {
     return process_fork();
+}
+
+/**
+ * @brief lseek system call
+ */
+off_t sys_lseek(int fd, off_t offset, int whence) {
+    LOG(DEBUG, "sys_lseek %d %d %d\n", fd, offset, whence);
+
+    if (!FD_VALIDATE(current_cpu->current_process, fd)) {
+        return -EBADF;
+    }
+
+    // Handle whence
+    if (whence == SEEK_SET) {
+        FD(current_cpu->current_process, fd)->offset = offset;
+    } else if (whence == SEEK_CUR) {
+        FD(current_cpu->current_process, fd)->offset += offset;
+    } else if (whence == SEEK_END) {
+        // TODO: This is the problem area (offset > node length)
+        FD(current_cpu->current_process, fd)->offset = FD(current_cpu->current_process, fd)->node->length + offset;
+    } else {
+        return -EINVAL;
+    }
+
+
+    // TODO: What if offset > file size? We don't have proper safeguards...
+    return FD(current_cpu->current_process, fd)->offset;
 }
