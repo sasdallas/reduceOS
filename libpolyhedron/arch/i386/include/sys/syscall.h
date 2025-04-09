@@ -22,15 +22,18 @@ _Begin_C_Header
 #define SYSCALL_CLOBBERS    "memory"
 
 /* System call definitions */
-#define SYS_EXIT        0
-#define SYS_OPEN        2
-#define SYS_READ        3
-#define SYS_WRITE       4
-#define SYS_CLOSE       5
-#define SYS_STAT        6
-#define SYS_BRK         7
-#define SYS_FORK        8
-#define SYS_LSEEK       9
+#define SYS_EXIT            0
+#define SYS_OPEN            2
+#define SYS_READ            3
+#define SYS_WRITE           4
+#define SYS_CLOSE           5
+#define SYS_STAT            6
+#define SYS_BRK             7
+#define SYS_FORK            8
+#define SYS_LSEEK           9
+#define SYS_GETTIMEOFDAY    10
+#define SYS_SETTIMEOFDAY    11
+#define SYS_USLEEP          12
 
 /* Syscall macros */
 #define DEFINE_SYSCALL0(name, num) \

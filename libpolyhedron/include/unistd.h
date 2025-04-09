@@ -26,6 +26,7 @@ _Begin_C_Header
 #include <stddef.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <time.h>
 
 /**** FUNCTIONS ****/
 
@@ -38,6 +39,10 @@ int brk(void *addr);
 void *sbrk(intptr_t increment);
 pid_t fork();
 off_t lseek(int fd, off_t offset, int whence);
+
+int gettimeofday(struct timeval *ptr, void *z);
+int settimeofday(struct timeval *ptr, void *z);
+int usleep(useconds_t usec);
 
 /* STUBS */
 int mkdir(const char *pathname, mode_t mode);

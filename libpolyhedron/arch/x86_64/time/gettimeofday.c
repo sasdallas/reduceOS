@@ -13,7 +13,8 @@
 
 #include <time.h>
 #include <sys/times.h>
-
+#include <sys/syscall.h>
+#include <unistd.h>
 
 /* Call into the kernel if we're linked to it. Else use a system call */
 #ifdef __LIBK
@@ -26,8 +27,10 @@ int gettimeofday(struct timeval *p, void *z) {
 
 #else
 
+DEFINE_SYSCALL2(gettimeofday, SYS_GETTIMEOFDAY, struct timeval*, void*);
+
 int gettimeofday(struct timeval *p, void *z) {
-    return 0; // No system call implemented
+    __sets_errno(__syscall_gettimeofday(p, z));
 }
 
 #endif

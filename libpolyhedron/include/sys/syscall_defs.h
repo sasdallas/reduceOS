@@ -23,6 +23,7 @@ _Begin_C_Header
 #include <sys/types.h>
 #include <stddef.h>
 #include <errno.h>
+#include <time.h>
 
 /**** MACROS ****/
 
@@ -45,6 +46,9 @@ DECLARE_SYSCALL1(close, int);
 DECLARE_SYSCALL1(brk, void*);
 DECLARE_SYSCALL0(fork);
 DECLARE_SYSCALL3(lseek, int, off_t, int);
+DECLARE_SYSCALL2(gettimeofday, struct timeval*, void*);
+DECLARE_SYSCALL2(settimeofday, struct timeval*, void*);
+DECLARE_SYSCALL1(usleep, useconds_t);
 
 #endif
 
