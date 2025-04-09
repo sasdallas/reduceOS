@@ -17,11 +17,10 @@ _Begin_C_Header
 #ifndef _STDIO_H
 #define _STDIO_H
 
-
-
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <unistd.h>
 
 /**** TYPES ****/
 
@@ -84,11 +83,20 @@ int vfprintf(FILE *f, const char *fmt, va_list ap);
 int vprintf(const char *fmt, va_list ap);
 int fprintf(FILE *f, const char *fmt, ...);
 
+FILE *fopen(const char *pathname, const char *mode);
+int fclose(FILE *stream);
 
 int fputc(int c, FILE *f);
 int fputs(const char *s, FILE *f);
 int fflush(FILE *f);
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *f);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+long ftell(FILE *stream);
+int fseek(FILE *stream, long offset, int whence);
+
+int scanf(const char *format, ...);
+int fscanf(FILE *stream, const char *format, ...);
+int sscanf(const char *str, const char *format, ...);
 
 #endif
 
