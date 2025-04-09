@@ -60,7 +60,7 @@ FILE *fopen(const char *pathname, const char *mode) {
 
     // Okay we're good now. Ty to open the file
     int fd = open(pathname, flags, mode_arg);
-    if (fd == -1) {
+    if (fd < 0) {
         // Error, don't bother. open() should set an errno
         return NULL;
     }
