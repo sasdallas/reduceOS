@@ -25,6 +25,10 @@ int gettimeofday(struct timeval *p, void *z) {
     return clock_gettimeofday(p, z);
 }
 
+int settimeofday(struct timeval *p, void *z) {
+    return clock_settimeofday(p, z);
+}
+
 #else
 
 DEFINE_SYSCALL2(gettimeofday, SYS_GETTIMEOFDAY, struct timeval*, void*);

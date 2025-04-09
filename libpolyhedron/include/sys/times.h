@@ -24,7 +24,7 @@ _Begin_C_Header
 
 /**** TYPES ****/
 
-typedef struct tms {
+struct tms {
     unsigned long tms_utime;
     unsigned long tms_stime;
     unsigned long tms_cutime;

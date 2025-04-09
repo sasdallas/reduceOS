@@ -40,8 +40,6 @@ void *sbrk(intptr_t increment);
 pid_t fork();
 off_t lseek(int fd, off_t offset, int whence);
 
-int gettimeofday(struct timeval *ptr, void *z);
-int settimeofday(struct timeval *ptr, void *z);
 int usleep(useconds_t usec);
 
 /* STUBS */

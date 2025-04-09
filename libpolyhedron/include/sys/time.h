@@ -21,7 +21,6 @@ _Begin_C_Header
 
 /**** INCLUDES ****/
 #include <sys/types.h>
-#include <unistd.h>
 
 /**** TYPES ****/
 
