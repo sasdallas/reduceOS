@@ -18,6 +18,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <stddef.h>
+#include <time.h>
+#include <sys/time.h>
 
 /**** DEFINITIONS ****/
 
@@ -59,5 +61,8 @@ int sys_close(int fd);
 void *sys_brk(void *addr);
 pid_t sys_fork();
 off_t sys_lseek(int fd, off_t offset, int whence);
+long sys_gettimeofday(struct timeval *tv, void *tz);
+long sys_settimeofday(struct timeval *tv, void *tz);
+long sys_usleep(useconds_t usec);
 
 #endif

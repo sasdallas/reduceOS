@@ -30,7 +30,10 @@ static syscall_func_t syscall_table[] = {
     [SYS_CLOSE]         = (syscall_func_t)(uintptr_t)sys_close,
     [SYS_BRK]           = (syscall_func_t)(uintptr_t)sys_brk,
     [SYS_FORK]          = (syscall_func_t)(uintptr_t)sys_fork,
-    [SYS_LSEEK]         = (syscall_func_t)(uintptr_t)sys_lseek
+    [SYS_LSEEK]         = (syscall_func_t)(uintptr_t)sys_lseek,
+    [SYS_GETTIMEOFDAY]  = (syscall_func_t)(uintptr_t)sys_gettimeofday,
+    [SYS_SETTIMEOFDAY]  = (syscall_func_t)(uintptr_t)sys_settimeofday,
+    [SYS_USLEEP]        = (syscall_func_t)(uintptr_t)sys_usleep
 };
 
 /* Unimplemented system call */
@@ -265,4 +268,58 @@ off_t sys_lseek(int fd, off_t offset, int whence) {
 
     // TODO: What if offset > file size? We don't have proper safeguards...
     return FD(current_cpu->current_process, fd)->offset;
+}
+
+/**
+ * @brief Get time of day system call
+ * @todo Use struct timezone
+ */
+long sys_gettimeofday(struct timeval *tv, void *tz) {
+    if (!SYSCALL_VALIDATE_PTR(tv)) {
+        // TODO: Resolve by returning -EFAULT
+        syscall_pointerValidateFailed((void*)tv);
+    }
+
+    if (tz && !SYSCALL_VALIDATE_PTR(tz)) {
+        // TODO: Resolve by returning -EFAULT
+        syscall_pointerValidateFailed(tz);
+    }
+
+    return gettimeofday(tv, tz);
+}
+
+/**
+ * @brief Set time of day system call
+ * @todo Use struct timezone
+ */
+long sys_settimeofday(struct timeval *tv, void *tz) {
+    if (!SYSCALL_VALIDATE_PTR(tv)) {
+        // TODO: Resolve by returning -EFAULT
+        syscall_pointerValidateFailed((void*)tv);
+    }
+
+    if (tz && !SYSCALL_VALIDATE_PTR(tz)) {
+        // TODO: Resolve by returning -EFAULT
+        syscall_pointerValidateFailed(tz);
+    }
+
+    return settimeofday(tv, tz);
+}
+
+/**
+ * @brief usleep system call
+ */
+long sys_usleep(useconds_t usec) {
+    if (usec < 10000) {
+        // !!!: knock it off, this will crash.
+        return 0;
+    }
+
+    LOG(DEBUG, "sys_usleep %d\n", usec);
+    sleep_untilTime(current_cpu->current_thread, (usec / 10000) / 1000, (usec / 10000) % 1000);
+    process_yield(0);
+
+    LOG(DEBUG, "resuming process\n");
+
+    return 0;
 }
