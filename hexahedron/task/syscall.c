@@ -46,8 +46,17 @@ static syscall_func_t syscall_table[] = {
 /**
  * @brief Pointer validation failed
  * @param ptr The pointer that failed to validate
+ * @returns Only if resolved.
  */
 void syscall_pointerValidateFailed(void *ptr) {
+
+    // Check to see if this pointer is within process heap boundary
+    if ((uintptr_t)ptr >= current_cpu->current_process->heap_base && (uintptr_t)ptr < current_cpu->current_process->heap) {
+        // Yep, it's valid. Map a page
+        mem_allocatePage(mem_getPage(NULL, (uintptr_t)ptr, MEM_CREATE), MEM_DEFAULT);
+        return;
+    }
+
     kernel_panic_prepare(KERNEL_BAD_ARGUMENT_ERROR);
 
     printf("*** Process \"%s\" tried to access an invalid pointer (%p)\n", current_cpu->current_process->name, ptr);
@@ -138,7 +147,7 @@ int sys_open(const char *pathname, int flags, mode_t mode) {
 }
 
 /**
- * @brief Read system calll
+ * @brief Read system call
  */
 ssize_t sys_read(int fd, void *buffer, size_t count) {
     if (SYSCALL_VALIDATE_PTR(buffer) == 0) {
@@ -153,7 +162,7 @@ ssize_t sys_read(int fd, void *buffer, size_t count) {
     ssize_t i = fs_read(proc_fd->node, proc_fd->offset, count, (uint8_t*)buffer);
     proc_fd->offset += i;
 
-    LOG(DEBUG, "sys_read fd %d buffer %p count %d\n", fd, buffer, count);
+    // LOG(DEBUG, "sys_read fd %d buffer %p count %d\n", fd, buffer, count);
     return i;
 }
 
