@@ -87,6 +87,7 @@ typedef struct USBTransfer {
     void *data;                     // Data
     uint32_t length;                // Length of the data
     int status;                     // Transfer status (USB_TRANSFER_...)
+    USBEndpoint_t *endp;            // Endpoint structure
 } USBTransfer_t;
 
 

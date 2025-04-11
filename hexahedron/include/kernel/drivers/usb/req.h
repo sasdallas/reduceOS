@@ -16,6 +16,7 @@
 
 /**** INCLUDES ****/
 #include <stdint.h>
+#include <kernel/drivers/usb/hid.h>
 
 /**** DEFINITIONS ****/
 

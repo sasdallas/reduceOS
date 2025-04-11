@@ -36,17 +36,28 @@
 // Hub types
 #define USB_DESC_HUB            0x29
 
+// TODO: Find a better way to define 0 bits
+
 // Endpoint bitmasks
 #define USB_ENDP_NUMBER         0x0F
 #define USB_ENDP_USAGE          0x30
 
-
 // Endpoint usage types
-#define USB_ENDP_DATA           0x00
-#define USB_ENDP_FEEDBACK       0x10
-#define USB_ENDP_FEEDBACK_IMPL  0x30
+#define USB_ENDP_DATA               0x00        // Data endpoint
+#define USB_ENDP_FEEDBACK           0x10        // Feedback endpoint
+#define USB_ENDP_FEEDBACK_IMPL      0x30        // Feedback implicit endpoint
 
-// TODO: Endpoint transfer types and syncronization types
+// Endpoint transfer types
+#define USB_ENDP_TRANSFER_CONTROL   0x00        // Control endpoint
+#define USB_ENDP_TRANSFER_ISOCH     0x01        // Isochronous endpoint
+#define USB_ENDP_TRANSFER_BULK      0x02        // Bulk endpoint
+#define USB_ENDP_TRANSFER_INT       0x03        // Interrupt endpoint
+
+// Endpoint directions
+#define USB_ENDP_DIRECTION_OUT      0x00        // OUT endpoint
+#define USB_ENDP_DIRECTION_IN       0x80        // IN endpoint
+
+// TODO: Endpoint syncronization types
 
 // USB configuration attributes
 #define USB_CONF_REMOTE_WAKEUP  0x20
