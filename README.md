@@ -43,6 +43,3 @@ Certain external components are available in `external`. Here is a list of them 
 
 Hexahedron, libpolyhedron, and all other components of reduceOS fall under the terms of the BSD 3-clause license (available in LICENSE).\
 All files, unless specified, fall under this license.
-
-If at any point a licensing change should occur, any files created after the commit changing the license will fall under the new license.\
-Note, however, that any files created before the commit must remain under the terms of the previous license.
