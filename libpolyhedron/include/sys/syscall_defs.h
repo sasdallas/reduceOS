@@ -50,6 +50,7 @@ DECLARE_SYSCALL3(lseek, int, off_t, int);
 DECLARE_SYSCALL2(gettimeofday, struct timeval *, void*);
 DECLARE_SYSCALL2(settimeofday, struct timeval *, void*);
 DECLARE_SYSCALL1(usleep, useconds_t);
+DECLARE_SYSCALL3(execve, const char*, const char **, char **);
 
 #endif
 
