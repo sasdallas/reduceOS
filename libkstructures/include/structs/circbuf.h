@@ -29,8 +29,8 @@ typedef struct circbuf {
     spinlock_t *lock;       // Lock
     uint8_t *buffer;        // Allocated buffer
     size_t buffer_size;     // Size of the buffer
-    int head;               // Head of the buffer
-    int tail;               // Tail of the buffer
+    volatile int head;      // Head of the buffer
+    volatile int tail;      // Tail of the buffer
 } circbuf_t;
 
 /**** FUNCTIONS ****/
@@ -48,7 +48,7 @@ circbuf_t *circbuf_create(char *name, size_t size);
  * @param circbuf The buffer to get from
  * @param size The amount of data to get
  * @param buffer The output buffer
- * @returns 0 on success, anything else probably means the buffer is full
+ * @returns 0 on success, anything else probably means the buffer is empty
  */
 int circbuf_read(circbuf_t *circbuf, size_t size, uint8_t *buffer);
 
