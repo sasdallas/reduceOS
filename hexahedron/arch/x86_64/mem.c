@@ -670,6 +670,8 @@ int mem_pageFault(uintptr_t exception_index, registers_t *regs, extended_registe
 
 
     // Page fault, get the address
+    kernel_panic_prepare(CPU_EXCEPTION_UNHANDLED);
+    
     uintptr_t page_fault_addr = 0x0;
     asm volatile ("movq %%cr2, %0" : "=a"(page_fault_addr));
 
