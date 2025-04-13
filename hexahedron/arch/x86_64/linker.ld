@@ -1,3 +1,4 @@
+OUTPUT_FORMAT(elf64-x86-64)
 ENTRY(_start)
 
 SECTIONS
@@ -11,7 +12,7 @@ SECTIONS
     .text BLOCK(4K) : ALIGN (4k)
     {
         __multiboot_start = .;
-        *(.multiboot)
+        KEEP(*(.multiboot))
         __multiboot_end = .;
 
         __bootstrap_start = .;
@@ -53,4 +54,11 @@ SECTIONS
 	}
 
     __kernel_end = .;
+
+    /DISCARD/ :
+	{
+		*(.comment)
+		*(.eh_frame)
+		*(.note.gnu.build-id)
+	}
 }
