@@ -113,7 +113,7 @@ int ps2_keyboardIRQ(void *context) {
 
     printf("%c", ascii);
 
-	periphfs_sendKeyboardEvent(EVENT_KEY_PRESS, (uint8_t)ch);
+	periphfs_sendKeyboardEvent(EVENT_KEY_PRESS, ascii);
 
     video_updateScreen();
 
