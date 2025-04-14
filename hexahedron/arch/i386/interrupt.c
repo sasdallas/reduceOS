@@ -521,6 +521,7 @@ void hal_initializeInterrupts() {
     hal_registerInterruptVector(47, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halIRQ15);
 
     hal_registerInterruptVector(123, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halLocalAPICTimerInterrupt);
+    hal_registerInterruptVector(124, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32, 0x08, (uint32_t)&halTLBShootdownInterrupt);
     hal_registerInterruptVector(128, I86_IDT_DESC_PRESENT | I86_IDT_DESC_BIT32 | I86_IDT_DESC_RING3, 0x08, (uint32_t)&halSystemCallInterrupt);
 
     // Setup the PIC

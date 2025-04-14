@@ -208,14 +208,14 @@ int smp_init(smp_info_t *info) {
         }
     }
 
-    // Collect AP info for CPU0
-    smp_collectAPInfo(0);
-    
     // Finished! Unmap bootstrap code
     memcpy((void*)bootstrap_page_remap, (void*)temp_frame_remap, PAGE_SIZE);
     mem_unmapPhys(temp_frame_remap, PAGE_SIZE);
     mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
     pmm_freeBlock(temp_frame);
+
+    // Collect AP info for CPU0
+    smp_collectAPInfo(0);
 
     hal_registerInterruptHandler(124 - 32, smp_handleTLBShootdown);
 
@@ -285,10 +285,8 @@ void smp_tlbShootdown(uintptr_t address) {
 
     // Send an IPI for the TLB shootdown vector
     // TODO: Make this vector changeable
-    for (int i = 0; i < smp_data->processor_count; i++) {
-        tlb_shootdown_address    = address;
-        lapic_sendIPI(0, 124, LAPIC_ICR_DESTINATION_PHYSICAL | LAPIC_ICR_INITDEASSERT | LAPIC_ICR_EDGE | LAPIC_ICR_DESTINATION_EXCLUDE_SELF);
-    }
+    tlb_shootdown_address    = address;
+    lapic_sendIPI(0, 124, LAPIC_ICR_DESTINATION_PHYSICAL | LAPIC_ICR_INITDEASSERT | LAPIC_ICR_EDGE | LAPIC_ICR_DESTINATION_EXCLUDE_SELF);
 
     spinlock_release(&tlb_shootdown_lock);
 }

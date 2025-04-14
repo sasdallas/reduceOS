@@ -34,6 +34,7 @@
 #include <kernel/arch/arch.h>
 #include <kernel/misc/pool.h>
 #include <kernel/misc/spinlock.h>
+#include <kernel/arch/i386/smp.h>
 
 
 // Current & kernel directories
@@ -75,8 +76,7 @@ uintptr_t mem_getKernelHeap() {
  */
 static inline void mem_invalidatePage(uintptr_t addr) {
     asm volatile ("invlpg (%0)" :: "r"(addr) : "memory");
-    // TODO: When SMP is done, a TLB shootdown will happen here (slow)
-    // TODO: SMP is done, implement TLB shootdown
+    smp_tlbShootdown(addr);
 } 
 
 /**

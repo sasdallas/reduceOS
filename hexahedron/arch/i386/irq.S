@@ -216,6 +216,21 @@ halLocalAPICTimerInterrupt:
     pushl $123
     jmp halCommonIRQHandler
 
+     
+/* ISR 124 */
+.global halTLBShootdownInterrupt
+halTLBShootdownInterrupt:
+    // Acknowledge the IPI
+    pushl %ecx
+    movl (lapic_base), %ecx
+    addl $0xB0, %ecx
+    movl $0, (%ecx)
+    popl %ecx
+
+    pushl $0x00
+    pushl $124
+    jmp halCommonIRQHandler
+
 /* ISR 128 */
 .global halSystemCallInterrupt
 halSystemCallInterrupt:

@@ -59,9 +59,25 @@ static int ap_startup_finished = 0;
 /* AP shutdown flag. This will change when the AP finishes shutting down. */
 static int ap_shutdown_finished = 0;
 
+/* TLB shootdown */
+static uintptr_t tlb_shootdown_address = 0x0;
+static spinlock_t tlb_shootdown_lock = { 0 };
+
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "SMP", __VA_ARGS__)
 
+/**
+ * @brief Handle a TLB shootdown
+ */
+int smp_handleTLBShootdown(uintptr_t exception_index, uintptr_t interrupt_number, registers_t *regs, extended_registers_t *extended) {
+    if (tlb_shootdown_address) {
+        asm ("invlpg (%0)" :: "r"(tlb_shootdown_address));
+    }
+
+
+    // LOG(DEBUG, "TLB shootdown acknowledged for %p\n", tlb_shootdown_address);
+    return 0;
+}
 
 /**
  * @brief Sleep for a short period of time
@@ -187,6 +203,11 @@ int smp_init(smp_info_t *info) {
         return -EIO;
     }
 
+    // Do we need to waste cycles?
+    if (info->processor_count == 1) {
+        goto _no_care;
+    }
+
     // The AP expects its code to be bootstrapped to a page-aligned address (SIPI expects a starting page number)
     // The remapped page for SMP is stored in the variable SMP_AP_BOOTSTRAP_PAGE
     // Assuming that page has some content in it, copy and store it.
@@ -210,6 +231,9 @@ int smp_init(smp_info_t *info) {
     mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
     pmm_freeBlock(temp_frame);
 
+_no_care:
+    hal_registerInterruptHandler(124 - 32, smp_handleTLBShootdown);
+    smp_collectAPInfo(0);
     processor_count = smp_data->processor_count;
     LOG(INFO, "SMP initialization completed successfully - %i CPUs available to system\n", processor_count);
 
@@ -268,4 +292,22 @@ void smp_disableCores() {
             ap_shutdown_finished = 0;
         }
     }
+}
+
+/**
+ * @brief Perform a TLB shootdown on a specific page
+ * @param address The address to perform the TLB shootdown on
+ */
+void smp_tlbShootdown(uintptr_t address) {
+    if (!address || !smp_data) return; // no.
+    if (processor_count < 2) return; // No CPUs
+
+    spinlock_acquire(&tlb_shootdown_lock);
+
+    // Send an IPI for the TLB shootdown vector
+    // TODO: Make this vector changeable
+    tlb_shootdown_address    = address;
+    lapic_sendIPI(0, 124, LAPIC_ICR_DESTINATION_PHYSICAL | LAPIC_ICR_INITDEASSERT | LAPIC_ICR_EDGE | LAPIC_ICR_DESTINATION_EXCLUDE_SELF);
+
+    spinlock_release(&tlb_shootdown_lock);
 }
