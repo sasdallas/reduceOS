@@ -40,6 +40,7 @@ uintptr_t mem_mmioRegion                = MEM_MMIO_REGION;      // MMIO region
 uint8_t  *mem_pageReferences            = NULL;
 
 // Spinlocks
+static spinlock_t ref_lock = { 0 };
 static spinlock_t heap_lock = { 0 };
 static spinlock_t driver_lock = { 0 };
 static spinlock_t dma_lock = { 0 };
@@ -72,6 +73,8 @@ page_t mem_heapBasePDPT[512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_heapBasePD[512] __attribute__((aligned(PAGE_SIZE))) = {0};
 page_t mem_heapBasePT[512*3] __attribute__((aligned(PAGE_SIZE))) = {0};
 
+// Log method
+#define LOG(status, ...) dprintf_module(status, "ARCH:MEM", __VA_ARGS__);
 
 /**
  * @brief Get the current directory (just current CPU)
@@ -115,19 +118,27 @@ static inline void mem_invalidatePage(uintptr_t addr) {
 int mem_incrementPageReference(page_t *page) {
     if (!page) return 0; // ???
     if (!page->bits.present) {
-        dprintf(ERR, "Tried incrementing reference count on non-present page\n");
+        LOG(ERR, "Tried incrementing reference count on non-present page\n");
         return 0;
     }
+
+    spinlock_acquire(&ref_lock);
 
     // First get the index in refcounts of the frame
     uintptr_t idx = page->bits.address;
     if (mem_pageReferences[idx] == UINT8_MAX) {
         // We're too high, return 0 and hope they make a copy of the page
+        spinlock_release(&ref_lock);
         return 0; 
     }
 
     mem_pageReferences[idx]++;
-    return mem_pageReferences[idx];
+    int new_refs = mem_pageReferences[idx];
+
+    spinlock_release(&ref_lock);
+
+    LOG(DEBUG, "[REFCOUNT] INCREASE: %p %d\n", MEM_GET_FRAME(page), new_refs);
+    return new_refs;
 }
 
 /**
@@ -138,9 +149,11 @@ int mem_incrementPageReference(page_t *page) {
 int mem_decrementPageReference(page_t *page) {
     if (!page) return 0; // ???
     if (!page->bits.present) {
-        dprintf(ERR, "Tried decrementing reference count on non-present page\n");
+        LOG(ERR, "Tried decrementing reference count on non-present page\n");
         return 0;
     }
+
+    spinlock_acquire(&ref_lock);
 
     // First get the index in refcounts of the frame
     uintptr_t idx = page->bits.address;
@@ -151,7 +164,12 @@ int mem_decrementPageReference(page_t *page) {
     }
 
     mem_pageReferences[idx]--;
-    return mem_pageReferences[idx];
+    int new_refs = mem_pageReferences[idx];
+
+    spinlock_release(&ref_lock);
+
+    LOG(DEBUG, "[REFCOUNT] DECREASE: %p %02x\n", MEM_GET_FRAME(page), mem_pageReferences[idx]);
+    return new_refs;
 }
 
 /**
@@ -208,7 +226,7 @@ page_t *mem_createVAS() {
  */
 static void mem_copyOnWrite(page_t *page, uintptr_t address) {
     if (!page || !page->bits.cow) {
-        dprintf(ERR, "Cannot do copy-on-write for a page not pending copy-on-write\n");
+        LOG(ERR, "Cannot do copy-on-write for a page not pending copy-on-write\n");
         return;
     }
 
@@ -221,7 +239,6 @@ static void mem_copyOnWrite(page_t *page, uintptr_t address) {
         return;
     }
 
-    dprintf(DEBUG, "Performing CoW\n");
     uintptr_t src_frame = mem_remapPhys(MEM_GET_FRAME(page), PAGE_SIZE);
     uintptr_t dest_frame_block = pmm_allocateBlock();
     uintptr_t dest_frame = mem_remapPhys(dest_frame_block, PAGE_SIZE);
@@ -234,6 +251,10 @@ static void mem_copyOnWrite(page_t *page, uintptr_t address) {
 
     mem_unmapPhys(dest_frame, PAGE_SIZE);
     mem_unmapPhys(src_frame, PAGE_SIZE);
+
+    mem_invalidatePage(address);
+
+    LOG(DEBUG, "Finished performing CoW for page %p. New frame: %p\n", address, dest_frame_block);
     return;
 
 }
@@ -259,7 +280,7 @@ static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t addr
         // Just make sure though
         if (mem_pageReferences[src_page->bits.address]) {
             // What? If a page has references it should be using CoW.
-            kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "CoW", "*** Source page frame %p already has references. Corrupted references bitmap?\n", MEM_GET_FRAME(src_page));
+            kernel_panic_extended(MEMORY_MANAGEMENT_ERROR, "CoW", "*** Source page %p (frame %p) already has references. Corrupted references bitmap?\n", address, MEM_GET_FRAME(src_page));
             __builtin_unreachable();
         }
 
@@ -276,7 +297,6 @@ static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t addr
         dest_page->bits.cow = 1;
 
         // All done
-        // TODO: Shootdown the page
         mem_invalidatePage(address);
         return;
     }
@@ -321,6 +341,8 @@ page_t *mem_clone(page_t *dir) {
 
     // Create a new VAS
     page_t *dest = mem_createVAS();
+
+    LOG(DEBUG, "[CLONE   ] Clone page directory %016llX -> %016llX\n", dir, dest);
 
     // Copy top half. This contains the kernel's important regions, including the heap
     // !!!: THIS IS A PROBLEM ZONE. The heap contains PDPTs/PDs/PTs that are premapped but not enough! With an infinitely
@@ -395,7 +417,7 @@ page_t *mem_clone(page_t *dir) {
 
                     if (page_src->bits.usermode) {
                         uintptr_t address = ((pdpt << (9 * 3 + 12)) | (pd << (9*2 + 12)) | (pt << (9 + 12)) | (page << MEM_PAGE_SHIFT));
-                        dprintf(DEBUG, "Usermode page at address %016llX - CoW\n", address);
+                        LOG(DEBUG, "Usermode page at address %016llX (frame: %p) - CoW\n", address, MEM_GET_FRAME(page_src));
                         mem_copyUserPage(page_src, page_dest, address);
                     } else {
                         // Raw copy
@@ -487,7 +509,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     }
 
     if (pdpt_entry->bits.size) {
-        // dprintf(WARN, "Tried to get page from a PDPT that is 1GiB\n");
+        // LOG(WARN, "Tried to get page from a PDPT that is 1GiB\n");
         return NULL;
     }
 
@@ -514,7 +536,7 @@ page_t *mem_getPage(page_t *dir, uintptr_t address, uintptr_t flags) {
     }
 
     if (pde->bits.size) {
-        // dprintf(WARN, "Tried to get page from a PD that is 2MiB\n");
+        // LOG(WARN, "Tried to get page from a PD that is 2MiB\n");
         return NULL;
     }
 
@@ -663,7 +685,7 @@ int mem_pageFault(uintptr_t exception_index, registers_t *regs, extended_registe
 
         // TODO: This code can probably bug out - to be extensively tested
         printf(COLOR_CODE_RED "Process \"%s\" encountered a page fault at address %p and will be shutdown\n" COLOR_CODE_RESET, current_cpu->current_process->name, regs_extended->cr2);
-        dprintf(ERR, "Process \"%s\" encountered page fault at %p with no valid resolution. Shutdown\n", current_cpu->current_process->name, regs_extended->cr2);
+        LOG(ERR, "Process \"%s\" encountered page fault at %p with no valid resolution. Shutdown\n", current_cpu->current_process->name, regs_extended->cr2);
         process_exit(current_cpu->current_process, 1);
         return 0;
     }
@@ -676,21 +698,21 @@ int mem_pageFault(uintptr_t exception_index, registers_t *regs, extended_registe
     asm volatile ("movq %%cr2, %0" : "=a"(page_fault_addr));
 
     // Print it out
-    dprintf(NOHEADER, "*** ISR detected exception: Page fault at address 0x%016llX\n\n", page_fault_addr);
+    LOG(NOHEADER, "*** ISR detected exception: Page fault at address 0x%016llX\n\n", page_fault_addr);
     printf("*** Page fault at address 0x%016llX detected in kernel.\n", page_fault_addr);
 
-    dprintf(NOHEADER, "\033[1;31mFAULT REGISTERS:\n\033[0;31m");
+    LOG(NOHEADER, "\033[1;31mFAULT REGISTERS:\n\033[0;31m");
 
-    dprintf(NOHEADER, "RAX %016X RBX %016X RCX %016X RDX %016X\n", regs->rax, regs->rbx, regs->rcx, regs->rdx);
-    dprintf(NOHEADER, "RDI %016X RSI %016X RBP %016X RSP %016X\n", regs->rdi, regs->rsi, regs->rbp, regs->rsp);
-    dprintf(NOHEADER, "R8  %016X R9  %016X R10 %016X R11 %016X\n", regs->r8, regs->r9, regs->r10, regs->r11);
-    dprintf(NOHEADER, "R12 %016X R13 %016X R14 %016X R15 %016X\n", regs->r12, regs->r13, regs->r14, regs->r15);
-    dprintf(NOHEADER, "ERR %016X RIP %016X RFL %016X\n\n", regs->err_code, regs->rip, regs->rflags);
+    LOG(NOHEADER, "RAX %016X RBX %016X RCX %016X RDX %016X\n", regs->rax, regs->rbx, regs->rcx, regs->rdx);
+    LOG(NOHEADER, "RDI %016X RSI %016X RBP %016X RSP %016X\n", regs->rdi, regs->rsi, regs->rbp, regs->rsp);
+    LOG(NOHEADER, "R8  %016X R9  %016X R10 %016X R11 %016X\n", regs->r8, regs->r9, regs->r10, regs->r11);
+    LOG(NOHEADER, "R12 %016X R13 %016X R14 %016X R15 %016X\n", regs->r12, regs->r13, regs->r14, regs->r15);
+    LOG(NOHEADER, "ERR %016X RIP %016X RFL %016X\n\n", regs->err_code, regs->rip, regs->rflags);
 
-    dprintf(NOHEADER, "CS %04X DS %04X SS %04X\n\n", regs->cs, regs->ds, regs->ss);
-    dprintf(NOHEADER, "CR0 %08X CR2 %016X CR3 %016X CR4 %08X\n", regs_extended->cr0, regs_extended->cr2, regs_extended->cr3, regs_extended->cr4);
-    dprintf(NOHEADER, "GDTR %016X %04X\n", regs_extended->gdtr.base, regs_extended->gdtr.limit);
-    dprintf(NOHEADER, "IDTR %016X %04X\n", regs_extended->idtr.base, regs_extended->idtr.limit);
+    LOG(NOHEADER, "CS %04X DS %04X SS %04X\n\n", regs->cs, regs->ds, regs->ss);
+    LOG(NOHEADER, "CR0 %08X CR2 %016X CR3 %016X CR4 %08X\n", regs_extended->cr0, regs_extended->cr2, regs_extended->cr3, regs_extended->cr4);
+    LOG(NOHEADER, "GDTR %016X %04X\n", regs_extended->gdtr.base, regs_extended->gdtr.limit);
+    LOG(NOHEADER, "IDTR %016X %04X\n", regs_extended->idtr.base, regs_extended->idtr.limit);
 
     // !!!: not conforming (should call kernel_panic_finalize) but whatever
     // We want to do our own traceback.
@@ -698,21 +720,21 @@ extern void arch_panic_traceback(int depth, registers_t *regs);
     arch_panic_traceback(10, regs);
 
     // Show core processes
-    dprintf(NOHEADER, COLOR_CODE_RED_BOLD "\nCPU DATA:\n" COLOR_CODE_RED);
+    LOG(NOHEADER, COLOR_CODE_RED_BOLD "\nCPU DATA:\n" COLOR_CODE_RED);
 
     for (int i = 0; i < MAX_CPUS; i++) {
         if (processor_data[i].cpu_id || !i) {
             // We have valid data here
             if (processor_data[i].current_thread != NULL) {
-                dprintf(NOHEADER, COLOR_CODE_RED "CPU%d: Current thread %p (process '%s') - page directory %p\n", i, processor_data[i].current_thread, processor_data[i].current_process->name, processor_data[i].current_dir);
+                LOG(NOHEADER, COLOR_CODE_RED "CPU%d: Current thread %p (process '%s') - page directory %p\n", i, processor_data[i].current_thread, processor_data[i].current_process->name, processor_data[i].current_dir);
             } else {
-                dprintf(NOHEADER, COLOR_CODE_RED "CPU%d: No thread available. Page directory %p\n", processor_data[i].current_dir);
+                LOG(NOHEADER, COLOR_CODE_RED "CPU%d: No thread available. Page directory %p\n", processor_data[i].current_dir);
             }
         }
     }
 
     // Display message
-    dprintf(NOHEADER, COLOR_CODE_RED "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
+    LOG(NOHEADER, COLOR_CODE_RED "\nThe kernel will now permanently halt. Connect a debugger for more information.\n");
 
     // Disable interrupts & halt
     asm volatile ("cli\nhlt");
@@ -738,9 +760,9 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     // 5 level paging? We don't care right now
     mem_use5LevelPaging = cpu_pml5supported();
     if (mem_use5LevelPaging) {
-        dprintf(INFO, "5-level paging is supported by this CPU\n");
+        LOG(INFO, "5-level paging is supported by this CPU\n");
     } else {
-        dprintf(INFO, "5-level paging is not supported by this CPU\n");
+        LOG(INFO, "5-level paging is not supported by this CPU\n");
     }
 
     // First, create an identity map. This is important
@@ -771,7 +793,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     // Do note: the kernel isn't actually this big, rather the lazy Multiboot system simply puts the end address right after all data structures. Probably need to imlement reclaiming.
     uintptr_t kernel_end_aligned = MEM_ALIGN_PAGE(kernel_addr);
     size_t kernel_pages = (kernel_end_aligned >> MEM_PAGE_SHIFT);
-    dprintf(DEBUG, "Hexahedron is using %dKB of RAM in memory\n", kernel_pages * 4);
+    LOG(DEBUG, "Hexahedron is using %dKB of RAM in memory\n", kernel_pages * 4);
 
     // How many of those pages can fit into PTs?
     // !!!: Weird math
@@ -819,7 +841,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     // Now we can map the PML4 and switch out the loader's (stupid 2MiB paging) initial page region with one that's suited for the kernel
     mem_kernelPML[0][0].data = (uintptr_t)&mem_lowBasePDPT[0] | 0x07;
 
-    dprintf(INFO, "Finished identity mapping kernel, mapping heap...\n");
+    LOG(INFO, "Finished identity mapping kernel, mapping heap...\n");
 
     // Map the heap into the PML
     mem_kernelPML[0][510].bits.address = ((uintptr_t)&mem_heapBasePDPT >> MEM_PAGE_SHIFT);
@@ -834,7 +856,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
 
     if (frame_pages > 512 * 3) {
         // 512 * 3 = size of the heap base provided, so that's not great.
-        dprintf(WARN, "Too much memory available - %i pages required for allocation bitmap (max 1536)\n", frame_pages);
+        LOG(WARN, "Too much memory available - %i pages required for allocation bitmap (max 1536)\n", frame_pages);
         // TODO: We can probably resolve this by just rewriting some parts of mem_mapAddress
     }
 
@@ -900,7 +922,8 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     // Make space for reference counts in kernel heap
     // Reference counts will be initialized when a user PTE is copied.
     size_t refcount_bytes = frame_bytes;  // One byte per page
-    mem_pageReferences = (uint8_t*)mem_sbrk((refcount_bytes & 0xFFF) ? MEM_ALIGN_PAGE(refcount_bytes) : refcount_bytes);
+    refcount_bytes = (refcount_bytes & 0xFFF) ? MEM_ALIGN_PAGE(refcount_bytes) : refcount_bytes;
+    mem_pageReferences = (uint8_t*)mem_sbrk(refcount_bytes);
     memset(mem_pageReferences, 0, refcount_bytes);
 
     // Setup the PAT
@@ -921,7 +944,7 @@ void mem_init(uintptr_t mem_size, uintptr_t kernel_addr) {
     // Register page fault
     hal_registerExceptionHandler(14, mem_pageFault);
 
-    dprintf(INFO, "Memory management initialized\n");
+    LOG(INFO, "Memory management initialized\n");
 }
 
 /**
@@ -981,7 +1004,7 @@ uintptr_t mem_allocate(uintptr_t start, size_t size, uintptr_t flags, uintptr_t 
 
     // Sanity checks
     if (start == 0x0 && !(flags & MEM_ALLOC_HEAP)) {
-        dprintf(WARN, "Cannot allocate to 0x0 (MEM_ALLOC_HEAP not specified)\n");
+        LOG(WARN, "Cannot allocate to 0x0 (MEM_ALLOC_HEAP not specified)\n");
         goto _error;
     }
 
@@ -1009,7 +1032,7 @@ uintptr_t mem_allocate(uintptr_t start, size_t size, uintptr_t flags, uintptr_t 
         for (uintptr_t i = start; i < start + size_actual; i += PAGE_SIZE) {
             page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
             if (pg) {
-                dprintf(ERR, "Fragile allocation failed - found present page at %p\n", i);
+                LOG(ERR, "Fragile allocation failed - found present page at %p\n", i);
                 goto _error;
             }
         }
@@ -1027,7 +1050,7 @@ uintptr_t mem_allocate(uintptr_t start, size_t size, uintptr_t flags, uintptr_t 
     for (uintptr_t i = start; i < start + size_actual; i += PAGE_SIZE) {
         page_t *pg = mem_getPage(NULL, i, MEM_CREATE); 
         if (!pg) {
-            dprintf(ERR, "Could not get page at %p\n", i);
+            LOG(ERR, "Could not get page at %p\n", i);
             goto _error;
         }
 
@@ -1082,7 +1105,7 @@ void mem_free(uintptr_t start, size_t size, uintptr_t flags) {
     for (uintptr_t i = start; i < start + size; i += PAGE_SIZE) {
         page_t *pg = mem_getPage(NULL, i, MEM_DEFAULT);
         if (!pg) {
-            dprintf(WARN, "Tried to free page %p but it is not present (?)\n", i);
+            LOG(WARN, "Tried to free page %p but it is not present (?)\n", i);
         }
         
         mem_allocatePage(pg, MEM_PAGE_FREE);
