@@ -69,7 +69,7 @@ static ssize_t stdin_read(fs_node_t *node, off_t offset, size_t size, uint8_t *b
     // Start reading key events
     key_event_t event;
     
-    for (int i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
         while (1) {
             // TODO: This is really really bad.. like actually horrendous. We should also be putting the thread to sleep
             while (circbuf_read(buf, sizeof(key_event_t), (uint8_t*)&event)) {
@@ -80,6 +80,7 @@ static ssize_t stdin_read(fs_node_t *node, off_t offset, size_t size, uint8_t *b
             if (event.event_type != EVENT_KEY_PRESS) continue;
             *buffer = event.scancode; // !!!: What if scancode is for a special key?
             buffer++;
+            break;
         }
     }
 
@@ -106,11 +107,11 @@ void periphfs_init() {
     // Create and mount keyboard node
     stdin_node = kmalloc(sizeof(fs_node_t));
     memset(stdin_node, 0, sizeof(fs_node_t));
-    strcpy(stdin_node->name, "keyboard");
+    strcpy(stdin_node->name, "stdin");
     stdin_node->flags = VFS_CHARDEVICE;
     stdin_node->dev = (void*)kbd_buffer;
-    stdin_node->read = keyboard_read;
-    vfs_mount(kbd_node, "/device/keyboard");
+    stdin_node->read = stdin_read;
+    vfs_mount(stdin_node, "/device/stdin");
 }
 
 /**
