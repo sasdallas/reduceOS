@@ -33,6 +33,7 @@
 #define THREAD_FLAG_DEFAULT         0x00
 #define THREAD_FLAG_KERNEL          0x01
 #define THREAD_FLAG_NO_PREEMPT      0x02    // This only works on threads with THREAD_FLAG_KERNEL
+#define THREAD_FLAG_CHILD           0x04    // Thread is a child. NOT PRESERVED. Tells thread_create() not to allocate a stack and mess up potential CoW
 
 // Stack size of thread
 #define THREAD_STACK_SIZE           4096

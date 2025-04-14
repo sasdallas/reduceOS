@@ -476,10 +476,10 @@ void process_exit(process_t *process, int status_code) {
 pid_t process_fork() {
     // First we create our child process
     process_t *parent = current_cpu->current_process;   
-    process_t *child = process_create(parent, "child", parent->flags, parent->priority);
+    process_t *child = process_create(parent, parent->name, parent->flags, parent->priority);
 
     // Create a new child process thread
-    child->main_thread = thread_create(child, child->dir, (uintptr_t)NULL, THREAD_FLAG_DEFAULT);
+    child->main_thread = thread_create(child, child->dir, (uintptr_t)NULL, THREAD_FLAG_CHILD);
 
     // HACK:    This is one of the grossest hacks in my opinion. This trick is yet another one stolen from ToaruOS.
     //          I would love to call arch_save_context() for the child thread and just return but unfortunately since we're still in

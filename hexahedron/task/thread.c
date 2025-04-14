@@ -58,12 +58,15 @@ thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoin
     page_t *prev_dir = current_cpu->current_dir;
     mem_switchDirectory(dir);
 
-    if (!(flags & THREAD_FLAG_KERNEL)) {
+    if (!(flags & THREAD_FLAG_KERNEL) ) {
         // Allocate usermode stack 
         // !!!: This will need a lot of work done for when supporting multiple threads is ready
         // !!!: We need to have a system where multiple threads can share this memory region
         thr->stack = MEM_USERMODE_STACK_REGION + THREAD_STACK_SIZE;
-        mem_allocate(thr->stack - THREAD_STACK_SIZE, THREAD_STACK_SIZE, MEM_DEFAULT, MEM_DEFAULT);
+        if (!(flags & THREAD_FLAG_CHILD)) {
+            // !!!: Wow, this is bad.
+            mem_allocate(thr->stack - THREAD_STACK_SIZE, THREAD_STACK_SIZE, MEM_DEFAULT, MEM_DEFAULT);
+        }
     } else {
         // Don't bother, use the parent's kernel stack
         thr->stack = parent->kstack; 
