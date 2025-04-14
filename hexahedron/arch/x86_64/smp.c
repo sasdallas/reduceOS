@@ -59,6 +59,7 @@ static int ap_shutdown_finished = 0;
 
 /* TLB shootdown */
 static uintptr_t tlb_shootdown_address = 0x0;
+static spinlock_t tlb_shootdown_lock = { 0 };
 
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "SMP", __VA_ARGS__)
@@ -71,8 +72,8 @@ int smp_handleTLBShootdown(uintptr_t exception_index, uintptr_t interrupt_number
         asm ("invlpg (%0)" :: "r"(tlb_shootdown_address));
     }
 
-    tlb_shootdown_address = 0;
 
+    // LOG(DEBUG, "TLB shootdown acknowledged for %p\n", tlb_shootdown_address);
     return 0;
 }
 
@@ -280,14 +281,15 @@ void smp_tlbShootdown(uintptr_t address) {
     if (!address || !smp_data) return; // no.
     if (processor_count < 2) return; // No CPUs
 
+    spinlock_acquire(&tlb_shootdown_lock);
+
     // Send an IPI for the TLB shootdown vector
     // TODO: Make this vector changeable
     for (int i = 0; i < smp_data->processor_count; i++) {
-        if (smp_data->lapic_ids[i] != smp_getCurrentCPU()) {
-            tlb_shootdown_address = address;
-            lapic_sendIPI(smp_data->lapic_ids[i], 124, LAPIC_ICR_DESTINATION_PHYSICAL | LAPIC_ICR_INITDEASSERT | LAPIC_ICR_EDGE | LAPIC_ICR_DESTINATION_DEFAULT);
-            do { asm volatile ("pause"); } while (tlb_shootdown_address);
-        }
+        tlb_shootdown_address    = address;
+        lapic_sendIPI(0, 124, LAPIC_ICR_DESTINATION_PHYSICAL | LAPIC_ICR_INITDEASSERT | LAPIC_ICR_EDGE | LAPIC_ICR_DESTINATION_EXCLUDE_SELF);
     }
+
+    spinlock_release(&tlb_shootdown_lock);
 }
 
