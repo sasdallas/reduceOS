@@ -9,7 +9,7 @@
  * - /device/keyboard for receiving @c key_event_t structures
  * - /device/mouse for receiving @c mouse_event_t structures
  * - /device/input for receiving raw characters processed by peripheral filesystem. 
- * Note that reading from /device/stdio will also discard the corresponding key event.
+ * Note that reading from /device/stdin will also discard the corresponding key event.
  * 
  * @copyright
  * This file is part of the Hexahedron kernel, which is part of reduceOS.
@@ -29,7 +29,7 @@
 /* Filesystem nodes */
 fs_node_t *kbd_node = NULL;
 fs_node_t *mouse_node = NULL;
-fs_node_t *stdio_node = NULL;
+fs_node_t *stdin_node = NULL;
 
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "FS:PERIPHFS", __VA_ARGS__)
@@ -59,6 +59,35 @@ static ssize_t keyboard_read(fs_node_t *node, off_t offset, size_t size, uint8_t
 }
 
 /**
+ * @brief Generic stdin device read
+ */
+static ssize_t stdin_read(fs_node_t *node, off_t offset, size_t size, uint8_t *buffer) {
+    if (!size || !buffer) return 0;
+
+    circbuf_t *buf = (circbuf_t*)node->dev;
+
+    // Start reading key events
+    key_event_t event;
+    
+    for (int i = 0; i < size; i++) {
+        while (1) {
+            // TODO: This is really really bad.. like actually horrendous. We should also be putting the thread to sleep
+            while (circbuf_read(buf, sizeof(key_event_t), (uint8_t*)&event)) {
+                while (buf->head == buf->tail);
+            }
+
+            // Did we get a key press event?
+            if (event.event_type != EVENT_KEY_PRESS) continue;
+            *buffer = event.scancode; // !!!: What if scancode is for a special key?
+            buffer++;
+        }
+    }
+
+    return size;
+
+}
+
+/**
  * @brief Initialize the peripheral filesystem interface
  */
 void periphfs_init() {
@@ -72,6 +101,15 @@ void periphfs_init() {
     kbd_node->flags = VFS_CHARDEVICE;
     kbd_node->dev = (void*)kbd_buffer;
     kbd_node->read = keyboard_read;
+    vfs_mount(kbd_node, "/device/keyboard");
+
+    // Create and mount keyboard node
+    stdin_node = kmalloc(sizeof(fs_node_t));
+    memset(stdin_node, 0, sizeof(fs_node_t));
+    strcpy(stdin_node->name, "keyboard");
+    stdin_node->flags = VFS_CHARDEVICE;
+    stdin_node->dev = (void*)kbd_buffer;
+    stdin_node->read = keyboard_read;
     vfs_mount(kbd_node, "/device/keyboard");
 }
 
