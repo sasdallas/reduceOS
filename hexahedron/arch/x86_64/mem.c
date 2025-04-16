@@ -216,7 +216,65 @@ page_t *mem_createVAS() {
     return vas;
 }
 
-// TODO: Destroy VAS function?
+
+/**
+ * @brief Destroys and frees the memory of a VAS
+ * @param vas The VAS to destroy
+ * 
+ * @warning Make sure the VAS being freed isn't the current one selected
+ */
+void mem_destroyVAS(page_t *vas) {
+    // !!!: <256 - requires problem zone to be fixed in mem_clone()
+    for (size_t pml4e = 0; pml4e < 256; pml4e++) {
+        if (vas[pml4e].bits.present) {
+            // Get the PDPT
+            page_t *pdpt = (page_t*)mem_remapPhys((vas[pml4e].bits.address << MEM_PAGE_SHIFT), 0);
+            for (size_t pdpte = 0; pdpte < 512; pdpte++) {
+                if (pdpt[pdpte].bits.present) {
+                    // Get the PD
+                    page_t *pd = (page_t*)mem_remapPhys((pdpt[pdpte].bits.address << MEM_PAGE_SHIFT), 0);
+                    for (size_t pde = 0; pde < 512; pde++) {
+                        if (pd[pde].bits.present) {
+                            // Get the PT
+                            page_t *pt = (page_t*)mem_remapPhys((pd[pde].bits.address << MEM_PAGE_SHIFT), 0);
+                            for (size_t pte = 0; pte < 512; pte++) {
+                                page_t *pg = &pt[pte];
+                                if (pg->bits.usermode && pg->bits.present) {
+                                    // Free this page (only if refcounts == 0)
+                                    uintptr_t address = ((pml4e << (9 * 3 + 12)) | (pdpte << (9*2 + 12)) | (pde << (9 + 12)) | (pte << MEM_PAGE_SHIFT));
+                                    LOG(DEBUG, "Usermode page at address %016llX (frame: %p) - FREE\n", address, MEM_GET_FRAME(pg));
+
+                                    if (pg->bits.rw) {
+                                        // pmm_freeBlock(MEM_GET_FRAME(pg));
+                                    } else {
+                                        if (!mem_decrementPageReference(pg)) {
+                                            pmm_freeBlock(MEM_GET_FRAME(pg));
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Free the PT
+                            pd[pde].bits.present = 0;
+                            pmm_freeBlock((pd[pde].bits.address << MEM_PAGE_SHIFT));
+                        }
+                    }
+
+                    // Free the PD
+                    pdpt[pdpte].bits.present = 0;
+                    pmm_freeBlock((pdpt[pdpte].bits.address << MEM_PAGE_SHIFT));
+                }
+            }
+
+            // Free the PDPT
+            vas[pml4e].bits.present = 0;
+            pmm_freeBlock((vas[pml4e].bits.address << MEM_PAGE_SHIFT));
+        }
+    }
+
+    // Free the VAS
+    // pmm_freeBlock(vas);
+}
 
 
 /**
@@ -599,6 +657,11 @@ void mem_allocatePage(page_t *page, uintptr_t flags) {
 void mem_freePage(page_t *page) {
     if (!page) return;
 
+    // Check reference counts
+    if (mem_pageReferences[page->bits.address]) {
+        if (mem_decrementPageReference(page)) return; // Still references on this page
+    }
+
     // Mark the page as not present
     page->bits.present = 0;
     page->bits.rw = 0;
@@ -684,8 +747,8 @@ int mem_pageFault(uintptr_t exception_index, registers_t *regs, extended_registe
         }
 
         // TODO: This code can probably bug out - to be extensively tested
-        printf(COLOR_CODE_RED "Process \"%s\" encountered a page fault at address %p and will be shutdown\n" COLOR_CODE_RESET, current_cpu->current_process->name, regs_extended->cr2);
-        LOG(ERR, "Process \"%s\" encountered page fault at %p with no valid resolution. Shutdown\n", current_cpu->current_process->name, regs_extended->cr2);
+        printf(COLOR_CODE_RED "Process \"%s\" (PID: %d) encountered a page fault at address %p and will be shutdown\n" COLOR_CODE_RESET, current_cpu->current_process->name, current_cpu->current_process->pid, regs_extended->cr2);
+        LOG(ERR, "Process \"%s\" (PID: %d) encountered page fault at %p with no valid resolution (error code: 0x%x). Shutdown\n", current_cpu->current_process->name, current_cpu->current_process->pid, regs_extended->cr2, regs->err_code);
         process_exit(current_cpu->current_process, 1);
         return 0;
     }

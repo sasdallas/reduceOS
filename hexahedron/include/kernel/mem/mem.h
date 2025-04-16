@@ -162,6 +162,14 @@ int mem_decrementPageReference(page_t *page);
 page_t *mem_createVAS();
 
 /**
+ * @brief Destroys and frees the memory of a VAS
+ * @param vas The VAS to destroy
+ * 
+ * @warning Make sure the VAS being freed isn't the current one selected
+ */
+void mem_destroyVAS(page_t *vas);
+
+/**
  * @brief Clone a page directory.
  * 
  * This is a full PROPER page directory clone.
