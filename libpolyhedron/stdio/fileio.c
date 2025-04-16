@@ -41,3 +41,17 @@ size_t __fileio_write_bytes(FILE *f, char *buf, size_t size) {
 
     return size;
 }
+
+/**
+ * @brief Read file bytes
+ * @param f The file object to read from
+ * @param buf The buffer to use
+ * @param size The size of the buffer to use
+ */
+size_t __fileio_read_bytes(FILE *f, char *buf, size_t size) {
+    if (!f) return 0;
+    
+    // screw it, just read directly from the buffer
+    // TODO: This is not good. We should probably be using f->readbuf (needed as well for ungetc)
+    return read(f->fd, buf, size);
+}
