@@ -54,7 +54,8 @@ video_driver_t *grubvid_initialize(generic_parameters_t *parameters) {
     if (!parameters->framebuffer->framebuffer_addr) return NULL;
 
     video_driver_t *driver = kmalloc(sizeof(video_driver_t));
-    
+    memset(driver, 0, sizeof(video_driver_t));
+
     strcpy((char*)driver->name, "GRUB Video Driver");
 
     driver->screenWidth = parameters->framebuffer->framebuffer_width;
