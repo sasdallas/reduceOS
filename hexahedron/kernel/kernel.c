@@ -35,6 +35,7 @@
 #include <kernel/fs/tarfs.h>
 #include <kernel/fs/ramdev.h>
 #include <kernel/fs/null.h>
+#include <kernel/fs/periphfs.h>
 
 // Drivers
 #include <kernel/drivers/font.h>
@@ -149,7 +150,6 @@ void kthread() {
         // }
         iterations++;
         dprintf(DEBUG, "Hi from %s! This is iteration %d\n", current_cpu->current_process->name, iterations);
-        printf("%s\n", current_cpu->current_process->name);
 
         sleep_untilTime(current_cpu->current_thread, 3, 0);
         process_yield(0);
@@ -179,6 +179,7 @@ void kmain() {
     nulldev_init();
     zerodev_init();
     debug_mountNode();
+    periphfs_init();
     vfs_dump();
 
     // Networking
