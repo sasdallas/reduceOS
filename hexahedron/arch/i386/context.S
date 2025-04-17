@@ -16,6 +16,9 @@
 
 .global arch_start_execution
 arch_start_execution:
+    /* Prevent leaking EBP and set it to a debug marker */
+    mov $0xDEADDEAD, %ebp 
+
     /* The first passed parameter is entrypoint, the second is stack */
     /* EAX -> entrypoint, ECX -> stack */
     movl 4(%esp), %eax

@@ -16,6 +16,9 @@
 
 .global arch_start_execution
 arch_start_execution:
+    /* Clear RBP to a known value for debug */
+    movq $0xDEADDEAD, %rbp  // Thread stack marker (debug)
+
     /* Now we need to push the frame that IRET wants */
     /* It expects SS, the stack, EFLAGS, CS, and EIP */
     pushq $0x23
