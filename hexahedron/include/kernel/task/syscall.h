@@ -62,6 +62,7 @@ int sys_close(int fd);
 long sys_stat(const char *pathname, struct stat *statbuf);
 long sys_fstat(int fd, struct stat *statbuf);
 long sys_lstat(const char *pathname, struct stat *statbuf);
+long sys_ioctl(int fd, unsigned long request, void *argp);
 void *sys_brk(void *addr);
 pid_t sys_fork();
 off_t sys_lseek(int fd, off_t offset, int whence);

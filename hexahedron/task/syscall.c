@@ -35,6 +35,7 @@ static syscall_func_t syscall_table[] = {
     [SYS_STAT]          = (syscall_func_t)(uintptr_t)sys_stat,
     [SYS_FSTAT]         = (syscall_func_t)(uintptr_t)sys_fstat,
     [SYS_LSTAT]         = (syscall_func_t)(uintptr_t)sys_lstat,
+    [SYS_IOCTL]         = (syscall_func_t)(uintptr_t)sys_ioctl,
     [SYS_BRK]           = (syscall_func_t)(uintptr_t)sys_brk,
     [SYS_FORK]          = (syscall_func_t)(uintptr_t)sys_fork,
     [SYS_LSEEK]         = (syscall_func_t)(uintptr_t)sys_lseek,
@@ -309,6 +310,16 @@ long sys_lstat(const char *pathname, struct stat *statbuf) {
 }
 
 /**
+ * @brief ioctl
+ */
+long sys_ioctl(int fd, unsigned long request, void *argp) {
+    if (!FD_VALIDATE(current_cpu->current_process, fd)) return -EBADF;
+    if (!SYSCALL_VALIDATE_PTR(argp)) syscall_pointerValidateFailed(argp);
+
+    return fs_ioctl(FD(current_cpu->current_process, fd)->node, request, argp);
+}
+
+/**
  * @brief Change data segment size
  */
 void *sys_brk(void *addr) {
@@ -350,8 +361,6 @@ pid_t sys_fork() {
  * @brief lseek system call
  */
 off_t sys_lseek(int fd, off_t offset, int whence) {
-    LOG(DEBUG, "sys_lseek %d %d %d\n", fd, offset, whence);
-
     if (!FD_VALIDATE(current_cpu->current_process, fd)) {
         return -EBADF;
     }
