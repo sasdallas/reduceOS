@@ -35,6 +35,11 @@ typedef int (*xvas_callback)(void *, char);
 #define STDOUT_FILE_DESCRIPTOR      1
 #define STDERR_FILE_DESCRIPTOR      2
 
+/* POSIX */
+#define STDIN_FILENO                STDIN_FILE_DESCRIPTOR
+#define STDOUT_FILENO               STDOUT_FILE_DESCRIPTOR
+#define STDERR_FILENO               STDERR_FILE_DESCRIPTOR
+
 /* libc configuration option */
 #define READ_BUFFER_SIZE        8192
 #define WRITE_BUFFER_SIZE       8192
@@ -83,6 +88,9 @@ int vfprintf(FILE *f, const char *fmt, va_list ap);
 int vprintf(const char *fmt, va_list ap);
 int fprintf(FILE *f, const char *fmt, ...);
 
+int getc(FILE *stream);
+int getchar();
+
 FILE *fopen(const char *pathname, const char *mode);
 int fclose(FILE *stream);
 
@@ -93,6 +101,8 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *f);
 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 long ftell(FILE *stream);
 int fseek(FILE *stream, long offset, int whence);
+int fgetc(FILE *stream);
+char *fgets(char *s, int size, FILE *stream);
 
 int scanf(const char *format, ...);
 int fscanf(FILE *stream, const char *format, ...);
