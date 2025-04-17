@@ -381,16 +381,29 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
     if (current_cpu->current_process->thread_list) {
         foreach(thread_node, current_cpu->current_process->thread_list) {
             thread_t *thr = (thread_t*)thread_node->value;
-            if (thr) __sync_or_and_fetch(&thr->status, THREAD_STATUS_STOPPING);
+            if (thr && thr != current_cpu->current_thread) __sync_or_and_fetch(&thr->status, THREAD_STATUS_STOPPING);
         }
     }
 
-    // Create a new main thread with a blank entrypoint
+    // Destroy the current thread
+    if (current_cpu->current_thread) {
+        __sync_or_and_fetch(&current_cpu->current_thread->status, THREAD_STATUS_STOPPING);
+        thread_destroy(current_cpu->current_thread);
+    }
+
+    // Switch away from the old directory
     mem_switchDirectory(NULL);
-    current_cpu->current_process->main_thread = thread_create(current_cpu->current_process, current_cpu->current_process->dir, 0x0, THREAD_FLAG_DEFAULT);
+
+    LOG(DEBUG, "Process \"%s\" (PID: %d) - destroy VAS %p\n", current_cpu->current_process->name, current_cpu->current_process->pid, current_cpu->current_process->dir);
+    page_t *last_dir = current_cpu->current_process->dir;
+    current_cpu->current_process->dir = mem_clone(NULL);
+    mem_destroyVAS(last_dir);
 
     // Switch to directory
     mem_switchDirectory(current_cpu->current_process->dir);
+
+    // Create a new main thread with a blank entrypoint
+    current_cpu->current_process->main_thread = thread_create(current_cpu->current_process, current_cpu->current_process->dir, 0x0, THREAD_FLAG_DEFAULT);
 
     // Load file into memory
     // TODO: This runs check twice (redundant)
@@ -464,8 +477,9 @@ void process_exit(process_t *process, int status_code) {
     kfree(process->name);
     // mem_free(process->kstack - PROCESS_KSTACK_SIZE, PROCESS_KSTACK_SIZE, MEM_DEFAULT); // !!!: This needs to be replaced
     kfree(process);
+    
     // To the next process we go
-    if (is_current_process) process_yield(1);   // Yield will reschedule us, scheduler will catch and destroy us.
+    if (is_current_process) thread_destroy(current_cpu->current_thread);
     process_switchNextThread();
 }
 
