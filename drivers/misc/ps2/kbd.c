@@ -89,6 +89,7 @@ uint8_t ps2_writeKeyboard(uint8_t data) {
 int ps2_keyboardIRQ(void *context) {
 	// Get character from PS/2
 	uint8_t ch = inportb(PS2_DATA); 
+	hal_endInterrupt(PS2_KEYBOARD_IRQ); // End IRQ so more can come in
 
 	// TODO: TEMPORARY
     if (ch == 0x2A || ch == 0x36) {
@@ -110,13 +111,7 @@ int ps2_keyboardIRQ(void *context) {
         ascii = ps2_keyboard_scancodes_lower[ch];
     }
 
-
-    printf("%c", ascii);
-
 	periphfs_sendKeyboardEvent(EVENT_KEY_PRESS, ascii);
-
-    video_updateScreen();
-
     return 0;
 }
 

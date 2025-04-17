@@ -92,5 +92,25 @@ int ps2_waitForInputClear();
  */
 int ps2_waitForOutput();
 
+/**
+ * @brief Send PS/2 command (single-byte)
+ * @param command The command byte to send
+ */
+void ps2_sendCommand(uint8_t command);
+
+/**
+ * @brief Send PS/2 command (return value)
+ * @param command The command byte to send
+ * @returns PS2_DATA value
+ */
+uint8_t ps2_sendCommandResponse(uint8_t command);
+
+/**
+ * @brief Send a multi-byte command
+ * @param command The command byte to send
+ * @param data The data byte to send
+ */
+void ps2_sendCommandParameter(uint8_t command, uint8_t data);
+
 
 #endif
