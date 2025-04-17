@@ -1,6 +1,6 @@
 /**
- * @file libpolyhedron/arch/i386/crt/crt0.S
- * @brief crt0
+ * @file libpolyhedron/libc/main.c
+ * @brief libc startup code
  * 
  * 
  * @copyright
@@ -11,9 +11,10 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
-.global _start
-.extern __libc_main
+#include <unistd.h>
 
-_start:
-    pushl $main
-    call __libc_main
+// TODO: Init array support, mark as constructor - got a lot to do
+
+void __libc_main(int argc, char **argv, char **envp, int (*main)(int, char**)) {
+    exit(main(argc, argv));
+}

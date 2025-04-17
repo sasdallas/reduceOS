@@ -13,5 +13,12 @@
 
 .global _start
 
+.extern __libc_main
+
 _start:
-    callq main
+    popq %rdi // argc
+    popq %rsi // argv
+    popq %rdx // envp
+
+    mov $main, %rcx 
+    callq __libc_main
