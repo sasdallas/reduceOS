@@ -195,7 +195,7 @@ _no_smp: ;
 
     /* VIDEO INITIALIZATION */
 
-    if (!kargs_has("--no_video")) {
+    if (!kargs_has("--no-video")) {
         // Next, initialize video subsystem.
         video_init();
 
