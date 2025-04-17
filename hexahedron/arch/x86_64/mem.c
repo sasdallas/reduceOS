@@ -44,6 +44,7 @@ uint8_t  *mem_pageReferences            = NULL;
 
 // Spinlocks
 static spinlock_t ref_lock = { 0 };
+static spinlock_t cow_lock = { 0 };
 static spinlock_t heap_lock = { 0 };
 static spinlock_t driver_lock = { 0 };
 static spinlock_t dma_lock = { 0 };
@@ -291,12 +292,15 @@ static void mem_copyOnWrite(page_t *page, uintptr_t address) {
         return;
     }
 
+    spinlock_acquire(&cow_lock);
+
     // Is this the last reference to the page?
     if (mem_decrementPageReference(page) == 0) {
         // Yes. We can just mark the page as writable
         page->bits.rw = 1;
         page->bits.cow = 0;
         mem_invalidatePage(address);
+        spinlock_release(&cow_lock);
         return;
     }
 
@@ -315,6 +319,7 @@ static void mem_copyOnWrite(page_t *page, uintptr_t address) {
 
     mem_invalidatePage(address);
 
+    spinlock_release(&cow_lock);
     LOG(DEBUG, "Finished performing CoW for page %p. Switched frames from %p -> %p\n", address, src_frame, dest_frame);
     return;
 
@@ -329,11 +334,30 @@ static void mem_copyOnWrite(page_t *page, uintptr_t address) {
  * @param dest_page The destination page
  * @param address Address for TLB shootdown
  */
-static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t address) {
+static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t address, int force_no_cow) {
 #ifndef DISABLE_COW
     // When a page needs to be shared during a clone, it is automatically CoW'd and has
     // its reference counts initialized. Reference counts for a page are ONLY created when
     // the page is being marked as CoW and R/O
+
+    if (force_no_cow) {
+        uintptr_t src_frame = mem_remapPhys(MEM_GET_FRAME(src_page), PAGE_SIZE);
+        uintptr_t dest_frame_block = pmm_allocateBlock();
+        uintptr_t dest_frame = mem_remapPhys(dest_frame_block, PAGE_SIZE);
+        memcpy((void*)dest_frame, (void*)src_frame, PAGE_SIZE);
+
+        // Setup bits
+        dest_page->data = src_page->data;
+        MEM_SET_FRAME(dest_page, dest_frame_block);
+        dest_page->bits.cow = 0; // Not CoW
+        dest_page->bits.rw = 1;
+
+        mem_unmapPhys(dest_frame, PAGE_SIZE);
+        mem_unmapPhys(src_frame, PAGE_SIZE);
+        return;
+    }
+
+    spinlock_acquire(&cow_lock);
 
     // Is the source page writable or read only?
     if (src_page->bits.rw) {
@@ -359,6 +383,7 @@ static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t addr
 
         // All done
         mem_invalidatePage(address);
+        spinlock_release(&cow_lock);
         return;
     }
 
@@ -380,11 +405,13 @@ static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t addr
 
         mem_unmapPhys(dest_frame, PAGE_SIZE);
         mem_unmapPhys(src_frame, PAGE_SIZE);
+        spinlock_release(&cow_lock);
         return;
     }
 
     // Yes, we can. Raw copy and return
     dest_page->data = src_page->data;
+    spinlock_release(&cow_lock);
 
 #else
     // Just copy the page
@@ -404,6 +431,8 @@ static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t addr
 #endif
 }
 
+spinlock_t clone_lock = { 0 };
+
 /**
  * @brief Clone a page directory.
  * 
@@ -420,7 +449,7 @@ page_t *mem_clone(page_t *dir) {
     // Create a new VAS
     page_t *dest = mem_createVAS();
 
-    // LOG(DEBUG, "[CLONE   ] Clone page directory %016llX -> %016llX\n", dir, dest);
+    LOG(DEBUG, "[CLONE   ] Clone page directory %016llX -> %016llX\n", dir, dest);
 
     // Copy top half. This contains the kernel's important regions, including the heap
     // !!!: THIS IS A PROBLEM ZONE. The heap contains PDPTs/PDs/PTs that are premapped but not enough! With an infinitely
@@ -495,8 +524,8 @@ page_t *mem_clone(page_t *dir) {
 
                     if (page_src->bits.usermode) {
                         uintptr_t address = ((pdpt << (9 * 3 + 12)) | (pd << (9*2 + 12)) | (pt << (9 + 12)) | (page << MEM_PAGE_SHIFT));
-                        LOG(DEBUG, "Usermode page at address %016llX (frame: %p) - CoW\n", address, MEM_GET_FRAME(page_src));
-                        mem_copyUserPage(page_src, page_dest, address);
+                        mem_copyUserPage(page_src, page_dest, address, (address >= MEM_USERMODE_STACK_REGION) ? 1 : 0);
+                        LOG(DEBUG, "Usermode page at address %016llX (frame: %p, refs: %d) - CoW\n", address, MEM_GET_FRAME(page_src), mem_pageReferences[page_src->bits.address]);
                     } else {
                         // Raw copy
                         page_dest->data = page_src->data;
