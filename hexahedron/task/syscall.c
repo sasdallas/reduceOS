@@ -31,6 +31,9 @@ static syscall_func_t syscall_table[] = {
     [SYS_READ]          = (syscall_func_t)(uintptr_t)sys_read,
     [SYS_WRITE]         = (syscall_func_t)(uintptr_t)sys_write,
     [SYS_CLOSE]         = (syscall_func_t)(uintptr_t)sys_close,
+    [SYS_STAT]          = (syscall_func_t)(uintptr_t)sys_stat,
+    [SYS_FSTAT]         = (syscall_func_t)(uintptr_t)sys_fstat,
+    [SYS_LSTAT]         = (syscall_func_t)(uintptr_t)sys_lstat,
     [SYS_BRK]           = (syscall_func_t)(uintptr_t)sys_brk,
     [SYS_FORK]          = (syscall_func_t)(uintptr_t)sys_fork,
     [SYS_LSEEK]         = (syscall_func_t)(uintptr_t)sys_lseek,
@@ -206,7 +209,102 @@ ssize_t sys_write(int fd, const void *buffer, size_t count) {
  * @brief Close system call
  */
 int sys_close(int fd) {
+    if (!FD_VALIDATE(current_cpu->current_process, fd)) {
+        return -EBADF;
+    }
+
     LOG(DEBUG, "sys_close fd %d\n", fd);
+    fd_remove(current_cpu->current_process, fd);
+    return 0;
+}
+
+/**
+ * @brief Common stat for stat/fstat/lstat
+ * @param f The file to check
+ * @param statbuf The stat buffer to use
+ */
+static void sys_stat_common(fs_node_t *f, struct stat *statbuf) {
+    // Convert VFS flags to st_dev
+    if (f->flags == VFS_DIRECTORY)      statbuf->st_dev |= S_IFDIR; // Directory
+    if (f->flags == VFS_BLOCKDEVICE)    statbuf->st_dev |= S_IFBLK; // Block device
+    if (f->flags == VFS_CHARDEVICE)     statbuf->st_dev |= S_IFCHR; // Character device
+    if (f->flags == VFS_FILE)           statbuf->st_dev |= S_IFREG; // Regular file
+    if (f->flags == VFS_SYMLINK)        statbuf->st_dev |= S_IFLNK; // Symlink
+    if (f->flags == VFS_PIPE)           statbuf->st_dev |= S_IFIFO; // FIFO or not, it's a pipe
+    if (f->flags == VFS_SOCKET)         statbuf->st_dev |= S_IFSOCK; // Socket
+    if (f->flags == VFS_MOUNTPOINT)     statbuf->st_dev |= S_IFDIR; // ???
+
+    // st_mode is just st_dev with extra steps
+    statbuf->st_mode = statbuf->st_dev;
+
+    // Setup other fields
+    statbuf->st_ino = f->inode; // Inode number
+    statbuf->st_mode |= f->mask; // File mode - TODO: Make sure that file mode is properly set with vaild mask bits
+    statbuf->st_nlink = 0; // TODO
+    statbuf->st_uid = f->uid;
+    statbuf->st_gid = f->gid;
+    statbuf->st_rdev = 0; // TODO
+    statbuf->st_size = f->length;
+    statbuf->st_blksize = STAT_DEFAULT_BLOCK_SIZE; // TODO: This would prove useful for file I/O
+    statbuf->st_blocks = 0; // TODO
+    statbuf->st_atime = f->atime;
+    statbuf->st_mtime = f->mtime;
+    statbuf->st_ctime = f->ctime;
+}
+
+/**
+ * @brief Stat system call
+ */
+long sys_stat(const char *pathname, struct stat *statbuf) {
+    if (!SYSCALL_VALIDATE_PTR(pathname)) syscall_pointerValidateFailed((void*)pathname); // TODO: EFAULT
+    if (!SYSCALL_VALIDATE_PTR(statbuf)) syscall_pointerValidateFailed((void*)statbuf);
+
+    // Try to open the file
+    fs_node_t *f = kopen(pathname, O_RDONLY); // TODO: return ELOOP, O_NOFOLLOW is supposed to work but need to refine this
+    if (!f) return -ENOENT;
+
+    // Common stat
+    sys_stat_common(f, statbuf);
+
+    // Close the file
+    fs_close(f);
+
+    // Done
+    return 0;
+}
+
+/**
+ * @brief fstat system call
+ */
+long sys_fstat(int fd, struct stat *statbuf) {
+    if (!FD_VALIDATE(current_cpu->current_process, fd)) return -EBADF;
+    if (!SYSCALL_VALIDATE_PTR(statbuf)) syscall_pointerValidateFailed((void*)statbuf);
+
+    // Try to do stat
+    sys_stat_common(FD(current_cpu->current_process, fd)->node, statbuf);
+    return 0;
+}
+
+/**
+ * @brief lstat system call
+ */
+long sys_lstat(const char *pathname, struct stat *statbuf) {
+    if (!SYSCALL_VALIDATE_PTR(pathname)) syscall_pointerValidateFailed((void*)pathname); // TODO: EFAULT
+    if (!SYSCALL_VALIDATE_PTR(statbuf)) syscall_pointerValidateFailed((void*)statbuf);
+
+    // Try to open the file
+    fs_node_t *f = kopen(pathname, O_NOFOLLOW | O_PATH);    // Get actual link file
+                                                            // TODO: Handle open errors?
+    
+    if (!f) return -ENOENT;
+
+    // Common stat
+    sys_stat_common(f, statbuf);
+
+    // Close the file
+    fs_close(f);
+
+    // Done
     return 0;
 }
 

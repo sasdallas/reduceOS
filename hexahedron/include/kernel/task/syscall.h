@@ -20,6 +20,7 @@
 #include <stddef.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 
 /**** DEFINITIONS ****/
 
@@ -58,6 +59,9 @@ int sys_open(const char *pathname, int flags, mode_t mode);
 ssize_t sys_read(int fd, void *buffer, size_t count);
 ssize_t sys_write(int fd, const void *buffer, size_t count);
 int sys_close(int fd);
+long sys_stat(const char *pathname, struct stat *statbuf);
+long sys_fstat(int fd, struct stat *statbuf);
+long sys_lstat(const char *pathname, struct stat *statbuf);
 void *sys_brk(void *addr);
 pid_t sys_fork();
 off_t sys_lseek(int fd, off_t offset, int whence);
