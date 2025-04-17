@@ -19,6 +19,7 @@
  * Copyright (C) 2024 Samuel Stuart
  */
 
+#include <kernel/arch/arch.h>
 #include <kernel/fs/periphfs.h>
 #include <kernel/mem/alloc.h>
 #include <kernel/fs/vfs.h>
@@ -51,7 +52,7 @@ static ssize_t keyboard_read(fs_node_t *node, off_t offset, size_t size, uint8_t
 
     // TODO: This is really really bad.. like actually horrendous. We should also be putting the thread to sleep
     while (circbuf_read(buf, size, buffer)) {
-        while (buf->head == buf->tail);
+        while (buf->head == buf->tail) arch_pause();
     }
 
     
@@ -73,7 +74,8 @@ static ssize_t stdin_read(fs_node_t *node, off_t offset, size_t size, uint8_t *b
         while (1) {
             // TODO: This is really really bad.. like actually horrendous. We should also be putting the thread to sleep
             while (circbuf_read(buf, sizeof(key_event_t), (uint8_t*)&event)) {
-                while (buf->head == buf->tail);
+                // LOG(DEBUG, "CWAIT\n");
+                while (buf->head == buf->tail) arch_pause();
             }
 
             // Did we get a key press event?
