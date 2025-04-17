@@ -40,6 +40,7 @@ _Begin_C_Header
 #define O_NOFOLLOW      0x00400000
 #define O_NOATIME       0x01000000
 #define O_CLOEXEC       0x02000000
+#define O_PATH          0x04000000
 
 /* File bitflags are todo */
 

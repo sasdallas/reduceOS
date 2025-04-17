@@ -52,6 +52,9 @@ _Begin_C_Header
 #define S_IRWXG         (S_IRGRP | S_IWGRP | S_IXGRP)
 #define S_IRWXO         (S_IROTH | S_IWOTH | S_IXOTH)
 
+/* Kernel default block size */
+#define STAT_DEFAULT_BLOCK_SIZE     512
+
 /**** MACROS ****/
 
 #define S_ISBLK(m) ((m & S_IFBLK) == S_IFBLK)

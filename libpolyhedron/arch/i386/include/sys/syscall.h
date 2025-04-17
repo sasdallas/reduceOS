@@ -28,13 +28,16 @@ _Begin_C_Header
 #define SYS_WRITE           4
 #define SYS_CLOSE           5
 #define SYS_STAT            6
-#define SYS_BRK             7
-#define SYS_FORK            8
-#define SYS_LSEEK           9
-#define SYS_GETTIMEOFDAY    10
-#define SYS_SETTIMEOFDAY    11
-#define SYS_USLEEP          12
-#define SYS_EXECVE          13
+#define SYS_FSTAT           7
+#define SYS_LSTAT           8
+#define SYS_BRK             9
+#define SYS_FORK            10
+#define SYS_LSEEK           11
+#define SYS_GETTIMEOFDAY    12
+#define SYS_SETTIMEOFDAY    13
+#define SYS_USLEEP          14
+#define SYS_EXECVE          15
+#define SYS_WAITPID         16
 
 /* Syscall macros */
 #define DEFINE_SYSCALL0(name, num) \
