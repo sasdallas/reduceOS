@@ -385,15 +385,16 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
         }
     }
 
+    // Switch away from old directory
+    mem_switchDirectory(NULL);
+
     // Destroy the current thread
     if (current_cpu->current_thread) {
         __sync_or_and_fetch(&current_cpu->current_thread->status, THREAD_STATUS_STOPPING);
         thread_destroy(current_cpu->current_thread);
     }
 
-    // Switch away from the old directory
-    mem_switchDirectory(NULL);
-
+    // Clone new directory and destroy the old one
     LOG(DEBUG, "Process \"%s\" (PID: %d) - destroy VAS %p\n", current_cpu->current_process->name, current_cpu->current_process->pid, current_cpu->current_process->dir);
     page_t *last_dir = current_cpu->current_process->dir;
     current_cpu->current_process->dir = mem_clone(NULL);

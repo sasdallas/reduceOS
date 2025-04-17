@@ -64,7 +64,8 @@ thread_t *thread_create(struct process *parent, page_t *dir, uintptr_t entrypoin
         // !!!: We need to have a system where multiple threads can share this memory region
         thr->stack = MEM_USERMODE_STACK_REGION + THREAD_STACK_SIZE;
         if (!(flags & THREAD_FLAG_CHILD)) {
-            // !!!: Wow, this is bad.
+            // !!!: Wow, this is bad. This is a hack for fork() support that prevents reallocating the child's stack as CoW is done on it
+            // TODO: Probably just check if the region needs CoW?
             mem_allocate(thr->stack - THREAD_STACK_SIZE, THREAD_STACK_SIZE, MEM_DEFAULT, MEM_DEFAULT);
         }
     } else {
@@ -89,6 +90,17 @@ int thread_destroy(thread_t *thr) {
     if (!thr) return 1;
 
     // TODO: Free memory
+
+    // // Free the thread's stack
+    // for (uintptr_t i = thr->stack - THREAD_STACK_SIZE; i < thr->stack; i += PAGE_SIZE) {
+    //     page_t *pg = mem_getPage(thr->dir, i, MEM_DEFAULT);
+    //     if (pg) {
+    //         // Bomb it
+    //         memset((void*)mem_remapPhys(MEM_GET_FRAME(pg), 0), 0x61616161, PAGE_SIZE);
+    //         mem_freePage(pg);
+    //     }
+    // }
+
     LOG(INFO, "Thread %p has exited successfully\n", thr);
 
     return 0;

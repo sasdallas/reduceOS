@@ -14,11 +14,14 @@
 #include <kernel/task/syscall.h>
 #include <kernel/task/process.h>
 #include <kernel/fs/vfs.h>
+#include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <kernel/gfx/gfx.h>
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <string.h>
 #include <errno.h>
 
 /* System call table */
@@ -33,7 +36,8 @@ static syscall_func_t syscall_table[] = {
     [SYS_LSEEK]         = (syscall_func_t)(uintptr_t)sys_lseek,
     [SYS_GETTIMEOFDAY]  = (syscall_func_t)(uintptr_t)sys_gettimeofday,
     [SYS_SETTIMEOFDAY]  = (syscall_func_t)(uintptr_t)sys_settimeofday,
-    [SYS_USLEEP]        = (syscall_func_t)(uintptr_t)sys_usleep
+    [SYS_USLEEP]        = (syscall_func_t)(uintptr_t)sys_usleep,
+    [SYS_EXECVE]        = (syscall_func_t)(uintptr_t)sys_execve,
 };
 
 /* Unimplemented system call */
@@ -182,6 +186,7 @@ ssize_t sys_write(int fd, const void *buffer, size_t count) {
         char *buf = (char*)buffer;
         buf[count] = 0;
         printf("%s", buffer);
+        video_updateScreen();
         return count;
     }
 
@@ -321,5 +326,42 @@ long sys_usleep(useconds_t usec) {
 
     LOG(DEBUG, "resuming process\n");
 
+    return 0;
+}
+
+
+/**
+ * @brief execve system call
+ */
+long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
+    // Validate pointers
+    if (!SYSCALL_VALIDATE_PTR(pathname)) syscall_pointerValidateFailed((void*)pathname);
+    if (!SYSCALL_VALIDATE_PTR(argv)) syscall_pointerValidateFailed((void*)argv);
+    if (!SYSCALL_VALIDATE_PTR(envp)) syscall_pointerValidateFailed((void*)envp);
+
+    // Try to get the file
+    fs_node_t *f = kopen(pathname, O_RDONLY);
+    if (!f) return -ENOENT;
+    if (f->flags != VFS_FILE) return -EISDIR;
+
+    // Collect any arguments that we need
+    int argc = 0;
+    int envc = 0;
+
+    while (argv[argc]) {
+        // TODO: Problem?
+        if (!SYSCALL_VALIDATE_PTR(argv[argc])) syscall_pointerValidateFailed((void*)argv[argc]);
+        argc++;
+    }
+
+    // TODO: bad
+    char **new_argv = kmalloc(sizeof(char*) * argc);
+    for (int a = 0; a < argc; a++) {
+        new_argv[a] = strdup(argv[a]); // Unsafe?
+    }
+
+    // TODO: envp, but that will require process_execute() side code
+
+    process_execute(f, argc, new_argv);
     return 0;
 }
