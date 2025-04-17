@@ -30,6 +30,9 @@
 #include <stdint.h>
 #include <string.h>
 
+/* Uncomment to disable CoW */
+// #define DISABLE_COW
+
 // Heap/MMIO/driver space
 uintptr_t mem_kernelHeap                = 0xAAAAAAAAAAAAAAAA;   // Kernel heap
 uintptr_t mem_driverRegion              = MEM_DRIVER_REGION;    // Driver space
@@ -137,7 +140,7 @@ int mem_incrementPageReference(page_t *page) {
 
     spinlock_release(&ref_lock);
 
-    LOG(DEBUG, "[REFCOUNT] INCREASE: %p %d\n", MEM_GET_FRAME(page), new_refs);
+    // LOG(DEBUG, "[REFCOUNT] INCREASE: %p %d\n", MEM_GET_FRAME(page), new_refs);
     return new_refs;
 }
 
@@ -168,7 +171,7 @@ int mem_decrementPageReference(page_t *page) {
 
     spinlock_release(&ref_lock);
 
-    LOG(DEBUG, "[REFCOUNT] DECREASE: %p %02x\n", MEM_GET_FRAME(page), mem_pageReferences[idx]);
+    // LOG(DEBUG, "[REFCOUNT] DECREASE: %p %02x\n", MEM_GET_FRAME(page), mem_pageReferences[idx]);
     return new_refs;
 }
 
@@ -242,10 +245,10 @@ void mem_destroyVAS(page_t *vas) {
                                 if (pg->bits.usermode && pg->bits.present) {
                                     // Free this page (only if refcounts == 0)
                                     uintptr_t address = ((pml4e << (9 * 3 + 12)) | (pdpte << (9*2 + 12)) | (pde << (9 + 12)) | (pte << MEM_PAGE_SHIFT));
-                                    LOG(DEBUG, "Usermode page at address %016llX (frame: %p) - FREE\n", address, MEM_GET_FRAME(pg));
+                                    LOG(DEBUG, "Usermode page at address %016llX (frame: %p, cow waiting: %d, rw: %d) - FREE\n", address, MEM_GET_FRAME(pg), pg->bits.cow, pg->bits.rw);
 
                                     if (pg->bits.rw) {
-                                        // pmm_freeBlock(MEM_GET_FRAME(pg));
+                                        mem_freePage(pg);
                                     } else {
                                         if (!mem_decrementPageReference(pg)) {
                                             pmm_freeBlock(MEM_GET_FRAME(pg));
@@ -273,7 +276,7 @@ void mem_destroyVAS(page_t *vas) {
     }
 
     // Free the VAS
-    // pmm_freeBlock(vas);
+    pmm_freeBlock((uintptr_t)vas & ~MEM_PHYSMEM_MAP_REGION);
 }
 
 
@@ -312,7 +315,7 @@ static void mem_copyOnWrite(page_t *page, uintptr_t address) {
 
     mem_invalidatePage(address);
 
-    LOG(DEBUG, "Finished performing CoW for page %p. New frame: %p\n", address, dest_frame_block);
+    LOG(DEBUG, "Finished performing CoW for page %p. Switched frames from %p -> %p\n", address, src_frame, dest_frame);
     return;
 
 }
@@ -327,7 +330,7 @@ static void mem_copyOnWrite(page_t *page, uintptr_t address) {
  * @param address Address for TLB shootdown
  */
 static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t address) {
-
+#ifndef DISABLE_COW
     // When a page needs to be shared during a clone, it is automatically CoW'd and has
     // its reference counts initialized. Reference counts for a page are ONLY created when
     // the page is being marked as CoW and R/O
@@ -382,6 +385,23 @@ static void mem_copyUserPage(page_t *src_page, page_t *dest_page, uintptr_t addr
 
     // Yes, we can. Raw copy and return
     dest_page->data = src_page->data;
+
+#else
+    // Just copy the page
+    uintptr_t src_frame = mem_remapPhys(MEM_GET_FRAME(src_page), PAGE_SIZE);
+    uintptr_t dest_frame_block = pmm_allocateBlock();
+    uintptr_t dest_frame = mem_remapPhys(dest_frame_block, PAGE_SIZE);
+    memcpy((void*)dest_frame, (void*)src_frame, PAGE_SIZE);
+
+    // Setup bits
+    dest_page->data = src_page->data;
+    MEM_SET_FRAME(dest_page, dest_frame_block);
+    dest_page->bits.cow = 0; // Not CoW
+    dest_page->bits.rw = 1;
+
+    mem_unmapPhys(dest_frame, PAGE_SIZE);
+    mem_unmapPhys(src_frame, PAGE_SIZE);
+#endif
 }
 
 /**
@@ -400,7 +420,7 @@ page_t *mem_clone(page_t *dir) {
     // Create a new VAS
     page_t *dest = mem_createVAS();
 
-    LOG(DEBUG, "[CLONE   ] Clone page directory %016llX -> %016llX\n", dir, dest);
+    // LOG(DEBUG, "[CLONE   ] Clone page directory %016llX -> %016llX\n", dir, dest);
 
     // Copy top half. This contains the kernel's important regions, including the heap
     // !!!: THIS IS A PROBLEM ZONE. The heap contains PDPTs/PDs/PTs that are premapped but not enough! With an infinitely
@@ -617,7 +637,7 @@ bad_page:
  * @param flags The flags to follow when setting up the page
  * 
  * @note You can also use this function to set bits of a specific page - just specify @c MEM_NOALLOC in @p flags.
- * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified and there isn't a frame already set.
+ * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified
  */
 void mem_allocatePage(page_t *page, uintptr_t flags) {
     if (!page) return;
@@ -628,7 +648,7 @@ void mem_allocatePage(page_t *page, uintptr_t flags) {
         return;
     }
 
-    if (!page->bits.address && !(flags & MEM_PAGE_NOALLOC)) {
+    if (!(flags & MEM_PAGE_NOALLOC)) {
         // There isn't a frame configured, and the user wants to allocate one.
         uintptr_t block = pmm_allocateBlock();
         MEM_SET_FRAME(page, block);

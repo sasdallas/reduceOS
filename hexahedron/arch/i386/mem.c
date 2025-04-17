@@ -553,7 +553,7 @@ bad_page:
  * @param flags The flags to follow when setting up the page
  * 
  * @note You can also use this function to set bits of a specific page - just specify @c MEM_NOALLOC in @p flags.
- * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified and there isn't a frame already set.
+ * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified
  */
 void mem_allocatePage(page_t *page, uintptr_t flags) {
     if (flags & MEM_PAGE_FREE) {
@@ -562,7 +562,7 @@ void mem_allocatePage(page_t *page, uintptr_t flags) {
         return;
     }
 
-    if (!page->bits.address && !(flags & MEM_PAGE_NOALLOC)) {
+    if (!(flags & MEM_PAGE_NOALLOC)) {
         // There isn't a frame configured, and the user wants to allocate one.
         uintptr_t block = pmm_allocateBlock();
         MEM_SET_FRAME(page, block);

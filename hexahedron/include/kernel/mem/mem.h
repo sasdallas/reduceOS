@@ -116,7 +116,7 @@ void mem_mapAddress(page_t *dir, uintptr_t phys, uintptr_t virt, int flags);
  * @param flags The flags to follow when setting up the page
  * 
  * @note You can also use this function to set bits of a specific page - just specify @c MEM_NOALLOC in @p flags.
- * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified and there isn't a frame already set.
+ * @warning The function will automatically allocate a PMM block if NOALLOC isn't specified
  */
 void mem_allocatePage(page_t *page, uintptr_t flags);
 
