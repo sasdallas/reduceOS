@@ -23,6 +23,7 @@
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
 #include <kernel/gfx/term.h>
+#include <kernel/misc/args.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -121,13 +122,14 @@ int driver_init(int argc, char **argv) {
 
     // Test the PS/2 controller
     uint8_t ccb = ps2_sendCommandResponse(PS2_COMMAND_READ_CCB);
-    LOG(DEBUG, "CCB: %02x\n", ccb);
 
     
     uint8_t test_success = ps2_sendCommandResponse(PS2_COMMAND_TEST_CONTROLLER);
-    if (test_success != PS2_CONTROLLER_TEST_PASS) {
-        LOG(ERR, "Controller did not pass test. Error: %02x\n", test_success);
+    if (test_success != PS2_CONTROLLER_TEST_PASS && !kargs_has("--ps2-disable-tests")) {
+        LOG(ERR, "Controller did not pass test. Error: 0x%02x\n", test_success);
         return 1;
+    } else if (test_success != PS2_CONTROLLER_TEST_PASS) {
+        LOG(WARN, "Ignoring PS/2 controller self test fail: 0x%02x\n", test_success);
     }
 
     LOG(DEBUG, "Successfully passed PS/2 controller test\n");
@@ -151,19 +153,23 @@ int driver_init(int argc, char **argv) {
     
     // Now we should test the interfaces 
     uint8_t port1_test = ps2_sendCommandResponse(PS2_COMMAND_TEST_PORT1);
-    if (port1_test != PS2_PORT_TEST_PASS) {
+    if (port1_test != PS2_PORT_TEST_PASS && !kargs_has("--ps2-disable-tests")) {
         LOG(ERR, "PS/2 controller reports a failure on Port #1: 0x%02x\n", port1_test);
         printf(COLOR_CODE_YELLOW "PS/2 controller detected failures on port #1\n");
         return 1;
+    } else if (port1_test != PS2_PORT_TEST_PASS) {
+        LOG(WARN, "Ignoring PS/2 Port #1 failure: 0x%02x\n", port1_test);
     }
 
     if (dual_channel) {
         uint8_t port2_test = ps2_sendCommandResponse(PS2_COMMAND_TEST_PORT2);
-        if (port2_test != PS2_PORT_TEST_PASS) { 
-            LOG(ERR, "PS/2 controller reports a failure on Port #2: 0x%02x\n", port2_test);
+        if (port2_test != PS2_PORT_TEST_PASS && !kargs_has("--ps2-disable-tests")) {
+            LOG(ERR, "PS/2 controller reports a failure on Port #2: 0x%02x\n", port1_test);
             printf(COLOR_CODE_YELLOW "PS/2 controller detected failures on port #2\n");
             return 1;
-        }       
+        } else if (port2_test != PS2_PORT_TEST_PASS) {
+            LOG(WARN, "Ignoring PS/2 Port #2 failure: 0x%02x\n", port2_test);
+        }     
     }
 
 
