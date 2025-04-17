@@ -194,21 +194,23 @@ void kmain() {
     kernel_mountRamdisk(parameters);
 
     // Try to load new font file
-    fs_node_t *new_font = kopen("/device/initrd/ter-112n.psf", O_RDONLY);
-    if (new_font) {
-        // Load PSF
-        if (!font_loadPSF(new_font)) {
-            // Say hello
-            gfx_drawLogo(TERMINAL_DEFAULT_FG);
-            arch_say_hello(0);
+    if (!kargs_has("--no-psf-font")) {
+        fs_node_t *new_font = kopen("/device/initrd/ter-112n.psf", O_RDONLY);
+        if (new_font) {
+            // Load PSF
+            if (!font_loadPSF(new_font)) {
+                // Say hello
+                gfx_drawLogo(TERMINAL_DEFAULT_FG);
+                arch_say_hello(0);
+            } else {
+                fs_close(new_font);
+                LOG(ERR, "Failed to load font file \"/device/initrd/ter-112n.psf\".\n");
+            }
         } else {
-            fs_close(new_font);
-            LOG(ERR, "Failed to load font file \"/device/initrd/ter-112n.psf\".\n");
+            LOG(ERR, "Could not find new font file \"/device/initrd/ter-112n.psf\", using old font\n");
         }
-    } else {
-        LOG(ERR, "Could not find new font file \"/device/initrd/ter-112n.psf\", using old font\n");
+        printf("Loaded font from initial ramdisk successfully\n");
     }
-    printf("Loaded font from initial ramdisk successfully\n");
 
     // At this point in time if the user wants to view debugging output not on the serial console, they
     // can. Look for kernel boot argument "--debug=console"
