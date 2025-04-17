@@ -45,6 +45,7 @@ pid_t fork();
 off_t lseek(int fd, off_t offset, int whence);
 int usleep(useconds_t usec);
 int execve(const char *pathname, const char *argv[], char *envp[]);
+int ioctl(int fd, unsigned long request, ...);
 
 
 /* STUBS */

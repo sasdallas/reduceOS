@@ -48,6 +48,7 @@ DECLARE_SYSCALL1(close, int);
 DECLARE_SYSCALL2(stat, const char*, struct stat*);
 DECLARE_SYSCALL2(fstat, int, struct stat*);
 DECLARE_SYSCALL2(lstat, const char*, struct stat*);
+DECLARE_SYSCALL3(ioctl, int, unsigned long, void*);
 DECLARE_SYSCALL1(brk, void*);
 DECLARE_SYSCALL0(fork);
 DECLARE_SYSCALL3(lseek, int, off_t, int);

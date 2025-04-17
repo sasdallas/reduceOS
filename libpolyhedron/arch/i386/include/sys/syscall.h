@@ -30,14 +30,16 @@ _Begin_C_Header
 #define SYS_STAT            6
 #define SYS_FSTAT           7
 #define SYS_LSTAT           8
-#define SYS_BRK             9
-#define SYS_FORK            10
-#define SYS_LSEEK           11
-#define SYS_GETTIMEOFDAY    12
-#define SYS_SETTIMEOFDAY    13
-#define SYS_USLEEP          14
-#define SYS_EXECVE          15
-#define SYS_WAITPID         16
+#define SYS_IOCTL           9
+/* reserved */
+#define SYS_BRK             20
+#define SYS_FORK            21
+#define SYS_LSEEK           22
+#define SYS_GETTIMEOFDAY    23
+#define SYS_SETTIMEOFDAY    24
+#define SYS_USLEEP          25
+#define SYS_EXECVE          26
+#define SYS_WAITPID         27
 
 /* Syscall macros */
 #define DEFINE_SYSCALL0(name, num) \
