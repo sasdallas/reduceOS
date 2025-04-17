@@ -19,6 +19,7 @@
 #include <kernel/processor_data.h>
 #include <kernel/drivers/x86/local_apic.h>
 #include <kernel/drivers/x86/clock.h>
+#include <kernel/misc/args.h>
 
 #include <kernel/mem/pmm.h>
 #include <kernel/mem/mem.h>
@@ -204,8 +205,8 @@ int smp_init(smp_info_t *info) {
     }
 
     // Do we need to waste cycles?
-    if (info->processor_count == 1) {
-        goto _no_care;
+    if (info->processor_count == 1 || kargs_has("--disable-smp")) {
+        goto _finish_collection;
     }
 
     // The AP expects its code to be bootstrapped to a page-aligned address (SIPI expects a starting page number)
@@ -231,7 +232,7 @@ int smp_init(smp_info_t *info) {
     mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
     pmm_freeBlock(temp_frame);
 
-_no_care:
+_finish_collection:
     hal_registerInterruptHandler(124 - 32, smp_handleTLBShootdown);
     smp_collectAPInfo(0);
     processor_count = smp_data->processor_count;

@@ -20,6 +20,7 @@
 #include <kernel/drivers/x86/local_apic.h>
 #include <kernel/drivers/x86/clock.h>
 #include <kernel/misc/spinlock.h>
+#include <kernel/misc/args.h>
 
 #include <kernel/mem/pmm.h>
 #include <kernel/mem/mem.h>
@@ -191,6 +192,8 @@ int smp_init(smp_info_t *info) {
         return -EIO;
     }
 
+    if (info->processor_count == 1 || kargs_has("--disable-smp")) goto _finish_collection;
+
     // The AP expects its code to be bootstrapped to a page-aligned address (SIPI expects a starting page number)
     // The remapped page for SMP is stored in the variable SMP_AP_BOOTSTRAP_PAGE
     // Assuming that page has some content in it, copy and store it.
@@ -214,9 +217,11 @@ int smp_init(smp_info_t *info) {
     mem_unmapPhys(bootstrap_page_remap, PAGE_SIZE);
     pmm_freeBlock(temp_frame);
 
+_finish_collection:
     // Collect AP info for CPU0
     smp_collectAPInfo(0);
 
+    // Register TLB shootdown IRQ
     hal_registerInterruptHandler(124 - 32, smp_handleTLBShootdown);
 
     processor_count = smp_data->processor_count;
