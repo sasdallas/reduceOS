@@ -21,6 +21,7 @@ _Begin_C_Header
 #include <sys/syscall.h>
 #include <sys/syscall_defs.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <stdint.h>
 #include <fcntl.h>
 #include <stddef.h>
@@ -35,13 +36,16 @@ int open(const char *pathname, int flags, ...);
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
 int close(int fd);
+int stat(const char *pathname, struct stat *statbuf);
+int fstat(int fd, struct stat *statbuf);
+int lstat(const char *pathname, struct stat *statbuf);
 int brk(void *addr);
 void *sbrk(intptr_t increment);
 pid_t fork();
 off_t lseek(int fd, off_t offset, int whence);
-
 int usleep(useconds_t usec);
 int execve(const char *pathname, const char *argv[], char *envp[]);
+
 
 /* STUBS */
 int mkdir(const char *pathname, mode_t mode);

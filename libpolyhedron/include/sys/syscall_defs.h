@@ -20,6 +20,7 @@ _Begin_C_Header
 
 /**** INCLUDES ****/
 #include <sys/syscall.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <stddef.h>
 #include <errno.h>
@@ -44,6 +45,9 @@ DECLARE_SYSCALL3(open, const char*, int, int);
 DECLARE_SYSCALL3(read, int, void*, size_t);
 DECLARE_SYSCALL3(write, int, const void*, size_t);
 DECLARE_SYSCALL1(close, int);
+DECLARE_SYSCALL2(stat, const char*, struct stat*);
+DECLARE_SYSCALL2(fstat, int, struct stat*);
+DECLARE_SYSCALL2(lstat, const char*, struct stat*);
 DECLARE_SYSCALL1(brk, void*);
 DECLARE_SYSCALL0(fork);
 DECLARE_SYSCALL3(lseek, int, off_t, int);
