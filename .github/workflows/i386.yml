@@ -2,7 +2,7 @@ on: [push, workflow_dispatch]
 name: i386 ISO image
 jobs:
   build-iso:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Clone reduceOS repository
         uses: actions/checkout@v2
