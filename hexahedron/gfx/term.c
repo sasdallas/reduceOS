@@ -110,6 +110,7 @@ void terminal_scroll() {
  * @brief Handle a backspace in the terminal
  */
 static void terminal_backspace() {
+    if (terminal_x <= 0) return; 
     terminal_x--;
     terminal_putchar(' ');
     terminal_x--;

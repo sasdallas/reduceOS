@@ -18,6 +18,7 @@
 #include <kernel/debug.h>
 #include <kernel/panic.h>
 #include <kernel/gfx/gfx.h>
+#include <kernel/gfx/term.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -187,8 +188,7 @@ ssize_t sys_write(int fd, const void *buffer, size_t count) {
     // stdout?
     if (fd == STDOUT_FILE_DESCRIPTOR) {
         char *buf = (char*)buffer;
-        buf[count] = 0;
-        printf("%s", buffer);
+        for (size_t i = 0; i < count; i++) terminal_putchar(buf[i]);
         video_updateScreen();
         return count;
     }
