@@ -268,11 +268,13 @@ void kmain() {
     #ifdef __ARCH_I386__
     fs_node_t *file = kopen("/device/initrd/test_app", O_RDONLY);
     #else
-    fs_node_t *file = kopen("/device/initrd/test_app64", O_RDONLY);
+    fs_node_t *file = kopen("/device/initrd/init64", O_RDONLY);
     #endif
 
     if (file) {
-        process_execute(file, 1, NULL);
+        char *argv[] = { "test_argv1", "test_argv2", NULL };
+        char *envp[] = { "TEST_ENV=test1", "FOO=bar", NULL };
+        process_execute(file, 2, argv, envp);
     } else {
         LOG(WARN, "test_app not found, destroying init and switching\n");
         current_cpu->current_process = NULL;

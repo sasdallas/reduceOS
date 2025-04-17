@@ -73,7 +73,13 @@ typedef struct thread {
 
 /* Push something onto a thread's stack */
 #define THREAD_PUSH_STACK(stack, type, value) stack -= sizeof(type); \
-                                                *((volatile type*)stack) = value
+                                                *((volatile type*)stack) = (type)value
+
+/* Push something onto a thread's stack (size) */
+#define THREAD_PUSH_STACK_SIZE(stack, size, value) { for (size_t i = 0; i < size; i++) { THREAD_PUSH_STACK(stack, uint8_t, value[i]); }; }
+
+/* Push a string (added because strings must be pushed in reverse) */
+#define THREAD_PUSH_STACK_STRING(stack, length, string) { for (ssize_t i = length; i >= 0; i--) { THREAD_PUSH_STACK(stack, uint8_t, string[i]); }}
 
 /**** FUNCTIONS ****/
 

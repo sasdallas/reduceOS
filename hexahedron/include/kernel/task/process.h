@@ -157,9 +157,10 @@ process_t *process_createKernel(char *name, unsigned int flags, unsigned int pri
  * @param file The file to execute
  * @param argc The argument count
  * @param argv The argument list
+ * @param envp The environment variables pointer
  * @returns Error code
  */
-int process_execute(fs_node_t *file, int argc, char **argv);
+int process_execute(fs_node_t *file, int argc, char **argv, char **envp);
 
 /**
  * @brief Exiting from a process

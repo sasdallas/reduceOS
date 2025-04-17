@@ -64,5 +64,6 @@ off_t sys_lseek(int fd, off_t offset, int whence);
 long sys_gettimeofday(struct timeval *tv, void *tz);
 long sys_settimeofday(struct timeval *tv, void *tz);
 long sys_usleep(useconds_t usec);
+long sys_execve(const char *pathname, const char *argv[], const char *envp[]);
 
 #endif

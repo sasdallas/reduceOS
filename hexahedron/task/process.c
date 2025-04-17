@@ -363,9 +363,12 @@ process_t *process_create(process_t *parent, char *name, int flags, int priority
  * @param file The file to execute
  * @param argc The argument count
  * @param argv The argument list
+ * @param envp The environment variables pointer
  * @returns Error code
+ * 
+ * @todo There's a lot of pointless directory switching for some reason - need to fix
  */
-int process_execute(fs_node_t *file, int argc, char **argv) {
+int process_execute(fs_node_t *file, int argc, char **argv, char **envp) {
     if (!file) return -EINVAL;
     if (!current_cpu->current_process) return -EINVAL; // TODO: Handle this better
 
@@ -425,8 +428,58 @@ int process_execute(fs_node_t *file, int argc, char **argv) {
     uintptr_t process_entrypoint = elf_getEntrypoint(elf_binary);
     arch_initialize_context(current_cpu->current_process->main_thread, process_entrypoint, current_cpu->current_process->main_thread->stack);
 
-    // Ready, we own this process.
+    // We own this process
     current_cpu->current_thread = current_cpu->current_process->main_thread;
+
+    // Now we need to start pushing argc, argv, and envp onto the thread stack
+
+    // Calculate envc
+    // TODO: Maybe accept envc/force accept envc so this dangerous/slow code can be calculated elsewhere
+    int envc = 0;
+    char **p = envp;
+    while (*p++) envc++;
+
+    // test
+
+    // Push contents of envc onto the stack
+    char *envp_pointers[envc]; // The array we pass to libc is a list of pointers, so we push the strings and then the pointers
+    for (int e = 0; e < envc; e++) {
+        THREAD_PUSH_STACK_STRING(current_cpu->current_thread->stack, strlen(envp[e]), envp[e]);
+        envp_pointers[e] = (char*)current_cpu->current_thread->stack;
+    }
+
+    // Push contents of argv onto the stack
+    char *argv_pointers[argc];
+    for (int a = 0; a < argc; a++) {
+        THREAD_PUSH_STACK_STRING(current_cpu->current_thread->stack, strlen(argv[a]), argv[a]);
+        argv_pointers[a] = (char*)current_cpu->current_thread->stack;
+    }
+
+    // Now let's push the envp array
+    // We have to do this backwards to make sure the array is constructured properly
+    // Push NULL first
+    char **user_envp = NULL;
+    THREAD_PUSH_STACK(current_cpu->current_thread->stack, char*, NULL);
+    for (int e = envc; e > 0; e--) {
+        THREAD_PUSH_STACK(current_cpu->current_thread->stack, char*, envp_pointers[e-1]);
+    }
+
+    user_envp = (char**)current_cpu->current_thread->stack;
+
+    // Push the argv array
+    // Push NULL first
+    char **user_argv = NULL;
+    THREAD_PUSH_STACK(current_cpu->current_thread->stack, char*, NULL);
+    for (int a = argc; a > 0; a--) {
+        THREAD_PUSH_STACK(current_cpu->current_thread->stack, char*, argv_pointers[a-1]);
+    }
+
+    user_argv = (char**)current_cpu->current_thread->stack;
+
+    // Now we can the pointers they need
+    THREAD_PUSH_STACK(current_cpu->current_thread->stack, uintptr_t, user_envp);
+    THREAD_PUSH_STACK(current_cpu->current_thread->stack, uintptr_t, user_argv);
+    THREAD_PUSH_STACK(current_cpu->current_thread->stack, uintptr_t, argc);
 
     // Enter
     LOG(DEBUG, "Launching new ELF process\n");

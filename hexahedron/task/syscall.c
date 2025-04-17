@@ -337,7 +337,7 @@ long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
     // Validate pointers
     if (!SYSCALL_VALIDATE_PTR(pathname)) syscall_pointerValidateFailed((void*)pathname);
     if (!SYSCALL_VALIDATE_PTR(argv)) syscall_pointerValidateFailed((void*)argv);
-    if (!SYSCALL_VALIDATE_PTR(envp)) syscall_pointerValidateFailed((void*)envp);
+    if (envp && !SYSCALL_VALIDATE_PTR(envp)) syscall_pointerValidateFailed((void*)envp);
 
     // Try to get the file
     fs_node_t *f = kopen(pathname, O_RDONLY);
@@ -348,20 +348,39 @@ long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
     int argc = 0;
     int envc = 0;
 
+    // Collect argc
     while (argv[argc]) {
         // TODO: Problem?
         if (!SYSCALL_VALIDATE_PTR(argv[argc])) syscall_pointerValidateFailed((void*)argv[argc]);
         argc++;
     }
 
-    // TODO: bad
-    char **new_argv = kmalloc(sizeof(char*) * argc);
-    for (int a = 0; a < argc; a++) {
-        new_argv[a] = strdup(argv[a]); // Unsafe?
+    // Collect envc
+    if (envp) {
+        while (envp[envc]) {
+            if (!SYSCALL_VALIDATE_PTR(envp[envc])) syscall_pointerValidateFailed((void*)envp[envc]);
+            envc++;
+        }
     }
 
-    // TODO: envp, but that will require process_execute() side code
+    // Move their arguments into our array
+    char *new_argv[argc+1];
+    for (int a = 0; a < argc; a++) {
+        new_argv[a] = strdup(argv[a]); // TODO: Leaking memory!!!
+    }
 
-    process_execute(f, argc, new_argv);
+    // Reallocate envp if specified
+    char *new_envp[envc+1];
+    if (envp) {
+        for (int e = 0; e < envc; e++) {
+            new_envp[e] = strdup(envp[e]); // TODO: Leaking memory!!!
+        }
+    } 
+
+    // Set null terminators
+    new_argv[argc] = NULL;
+    new_envp[envc] = NULL;
+
+    process_execute(f, argc, new_argv, new_envp);
     return 0;
 }
