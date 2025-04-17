@@ -33,6 +33,7 @@ _Begin_C_Header
 #define S_IFREG         4       // Regular
 #define S_IFDIR         5       // Directory
 #define S_IFLNK         6       // Symbolic link
+#define S_IFSOCK        7       // Socket
 
 #define S_IRUSR         0x001   // Read permission, owner
 #define S_IWUSR         0x002   // Write permission, owner
@@ -59,6 +60,7 @@ _Begin_C_Header
 #define S_ISFIFO(m) ((m & S_IFIFO) == S_IFIFO)
 #define S_ISREG(m) ((m & S_IFREG) == S_IFREG)
 #define S_ISLNK(m) ((m & S_IFLNK) == S_IFLNK)
+#define S_ISSOCK(m) ((m & S_ISSOCK) == S_ISSOCK)
 
 /**** TYPES ****/
 
