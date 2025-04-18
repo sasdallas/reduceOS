@@ -31,12 +31,15 @@
 
 /**** TYPES ****/
 
+struct thread;
+
 /**
  * @brief Sleep condition function
+ * @param thread Thread to use for sleep condition
  * @param context Context provided by @c thread_blockXXX
  * @returns 0 on not ready to resume, 1 on ready to resume
  */
-typedef int (*sleep_condition_t)(void *context);
+typedef int (*sleep_condition_t)(struct thread *thread, void *context);
 
 /**
  * @brief Sleeper structure
