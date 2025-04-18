@@ -36,6 +36,16 @@ uint32_t *pid_bitmap = NULL;
 /* Task switches */
 volatile int task_switches = 0;
 
+/* Reap queue */
+list_t *reap_queue = NULL;
+spinlock_t reap_queue_lock = { 0 };
+
+/* Reaper thread */
+process_t *reaper_proc = NULL;
+
+/* Reaper function */
+void process_reaper(void *ctx);
+
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "TASK:PROCESS", __VA_ARGS__)
 
@@ -52,6 +62,11 @@ void process_init() {
     
     // Initialize scheduler
     scheduler_init();
+
+    // Initialize reap queue and reaper process
+    reap_queue = list_create("process reap queue");
+    reaper_proc = process_createKernel("reaper", 0, PRIORITY_MED, process_reaper, NULL);
+    scheduler_insertThread(reaper_proc->main_thread);
 
     LOG(INFO, "Process system initialized\n");
 }
@@ -330,6 +345,83 @@ process_t *process_spawnIdleTask() {
 }
 
 /**
+ * @brief Totally destroy a process
+ * @param proc The process to destroy
+ * @warning ONLY USE THIS IF THE PROCESS IS NOT IN USE. OTHERWISE THIS WILL CAUSE CHAOS
+ */
+void process_destroy(process_t *proc) {
+    if (!proc || !(proc->flags & PROCESS_STOPPED)) return;
+
+    LOG(DEBUG, "Destroying process \"%s\"...\n", proc->name);
+
+    // Destroy everything we can
+    if (proc->waitpid_queue) list_destroy(proc->waitpid_queue, false);
+    fd_destroyTable(proc);
+    mem_destroyVAS(proc->dir);
+    mem_free(proc->kstack - PROCESS_KSTACK_SIZE, PROCESS_KSTACK_SIZE, MEM_DEFAULT);
+    
+    if (proc->thread_list) list_destroy(proc->thread_list, false);
+    if (proc->node) {
+        tree_remove(process_tree, proc->node);
+        kfree(proc->node);
+    }
+
+    kfree(proc->name);
+    kfree(proc);
+}
+
+/**
+ * @brief The grim reaper
+ * 
+ * This is the kernel thread which runs in the background when processes exit. It frees their resources
+ * immediately and then blocks until new processes are available.
+ */
+void process_reaper(void *ctx) {
+    for (;;) {
+        sleep_untilNever(current_cpu->current_thread);
+        process_yield(0);
+
+        // Anything available?
+        if (!reap_queue->length) continue;
+
+        // Content is available, let's free it
+        spinlock_acquire(&reap_queue_lock);
+
+        for (size_t i = 0; i < reap_queue->length; i++) {
+            node_t *procnode = list_popleft(reap_queue);
+            if (!procnode) break;
+
+            process_t *proc = (process_t*)procnode->value;
+
+            if (proc && (proc->flags & PROCESS_STOPPED)) {
+                // Stopped process, ready for the taking.
+                
+                // Although, we first need to make sure that no CPUs currently own this process
+                int in_use = 0;
+                for (int i = 0; i < processor_count; i++) {
+                    // !!!: THIS IS STILL FAILABLE. Perhaps we should keep a previous process and then NULL it at the last second?
+                    if (processor_data[i].current_process == proc) {
+                        // dang.
+                        list_append_node(reap_queue, procnode); // We're only executing reap_queue->length times, so this won't matter
+                        in_use = 1;
+                        break;
+                    }
+                }
+
+                // If in use, try again later
+                if (in_use) continue;
+
+                // Yoink!
+                kfree(procnode);
+                process_destroy(proc);
+            }
+        }
+
+        spinlock_release(&reap_queue_lock);
+    }
+}
+
+/**
  * @brief Spawn a new init process
  * 
  * Creates and returns an init process. This process has no context, and is basically
@@ -518,23 +610,31 @@ void process_exit(process_t *process, int status_code) {
     }
 
 
-    // Destroy thread list
-    if (process->thread_list) list_destroy(process->thread_list, false);
-
-    LOG(INFO, "Freeing memory for process \"%s\"...\n", process->name);
-
-    // Free whatever memory remains
-    if (process->node) {
-        tree_remove(process_tree, process->node);
-        kfree(process->node);
-    }
-
-    kfree(process->name);
-    // mem_free(process->kstack - PROCESS_KSTACK_SIZE, PROCESS_KSTACK_SIZE, MEM_DEFAULT); // !!!: This needs to be replaced
-    kfree(process);
+    // Instead of freeing all the memory now, we add ourselves to the reap queue
+    // The reap queue is either destroyed by:
+    //      1. The reaper kernel thread
+    //      2. The parent process waiting for this process to exit (POSIX - should only happen during waitpid)
     
+    // If our parent is waiting, wake them up
+    if (process->parent && process->parent->waitpid_queue && process->parent->waitpid_queue->length) {
+        // TODO: Locking?
+        foreach(thr_node, process->parent->waitpid_queue) {
+            thread_t *thr = (thread_t*)thr_node->value;
+            sleep_wakeup(thr);
+        }
+
+        process_switchNextThread(); // !!!: Hopefully that works and they free us..
+    } 
+
+    // Put ourselves in the wait queue
+    spinlock_acquire(&reap_queue_lock);
+    list_append(reap_queue, (void*)process);  
+    spinlock_release(&reap_queue_lock);
+
+    // Wakeup the reaper thread
+    sleep_wakeup(reaper_proc->main_thread);
+
     // To the next process we go
-    if (is_current_process) thread_destroy(current_cpu->current_thread);
     process_switchNextThread();
 }
 
@@ -582,3 +682,10 @@ pid_t process_fork() {
     return child->pid;
 }
 
+/**
+ * @brief waitpid equivalent
+ */
+void process_waitpid(pid_t pid, int *wstatus, int options) {
+    // TODO
+    for (;;);
+}

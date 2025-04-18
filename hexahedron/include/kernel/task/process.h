@@ -64,7 +64,7 @@ typedef struct process {
     
     // QUEUE INFORMATION
     tree_node_t *node;          // Node in the process tree
-    list_t *wait_queue;         // Wait queue for the process
+    list_t *waitpid_queue;      // Wait queue for the process
 
     // THREADS
     thread_t *main_thread;      // Main thread in the process  - whatever the ELF entrypoint was
@@ -176,5 +176,10 @@ void process_exit(process_t *process, int status_code);
  * @returns Depends on what you are. Only call this from system call context.
  */
 pid_t process_fork();
+
+/**
+ * @brief waitpid equivalent
+ */
+void process_waitpid(pid_t pid, int *wstatus, int options);
 
 #endif
