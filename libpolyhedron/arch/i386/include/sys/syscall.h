@@ -39,7 +39,7 @@ _Begin_C_Header
 #define SYS_SETTIMEOFDAY    24
 #define SYS_USLEEP          25
 #define SYS_EXECVE          26
-#define SYS_WAITPID         27
+#define SYS_WAIT            27
 
 /* Syscall macros */
 #define DEFINE_SYSCALL0(name, num) \
