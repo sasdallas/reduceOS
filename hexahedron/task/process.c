@@ -220,6 +220,7 @@ static process_t *process_createStructure(process_t *parent, char *name, unsigne
     memset(process, 0, sizeof(process_t));
 
     // Setup some variables
+    process->parent = parent;
     process->name = strdup(name);
     process->flags = flags;
     process->priority = priority;

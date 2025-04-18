@@ -52,6 +52,7 @@ typedef void (*kthread_t)(void *data);
  */
 typedef struct process {
     // GENERAL INFORMATION
+    struct process *parent;     // Parent process
     pid_t pid;                  // Process ID
     char *name;                 // Name of the process
     uid_t uid;                  // User ID of the process
@@ -63,6 +64,7 @@ typedef struct process {
     
     // QUEUE INFORMATION
     tree_node_t *node;          // Node in the process tree
+    list_t *wait_queue;         // Wait queue for the process
 
     // THREADS
     thread_t *main_thread;      // Main thread in the process  - whatever the ELF entrypoint was
