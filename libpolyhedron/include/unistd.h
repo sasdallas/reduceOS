@@ -29,6 +29,10 @@ _Begin_C_Header
 #include <errno.h>
 #include <time.h>
 
+/**** VARIABLES ****/
+
+extern char **environ;
+
 /**** FUNCTIONS ****/
 
 void exit(int status);
@@ -39,14 +43,16 @@ int close(int fd);
 int stat(const char *pathname, struct stat *statbuf);
 int fstat(int fd, struct stat *statbuf);
 int lstat(const char *pathname, struct stat *statbuf);
+int ioctl(int fd, unsigned long request, ...);
 int brk(void *addr);
 void *sbrk(intptr_t increment);
 pid_t fork();
 off_t lseek(int fd, off_t offset, int whence);
 int usleep(useconds_t usec);
 int execve(const char *pathname, const char *argv[], char *envp[]);
-int ioctl(int fd, unsigned long request, ...);
 
+pid_t wait(int *wstatus);
+pid_t waitpid(pid_t pid, int *wstatus, int options);
 
 /* STUBS */
 int mkdir(const char *pathname, mode_t mode);
