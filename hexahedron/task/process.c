@@ -611,6 +611,9 @@ void process_exit(process_t *process, int status_code) {
         }
     }
 
+    // TODO: Ugly
+    current_cpu->current_process->exit_status = status_code;
+
 
     // Instead of freeing all the memory now, we add ourselves to the reap queue
     // The reap queue is either destroyed by:
@@ -687,7 +690,7 @@ pid_t process_fork() {
  * @brief waitpid equivalent
  */
 long process_waitpid(pid_t pid, int *wstatus, int options) {
-    // Let's go.
+    // Let's go. wstatus pointer was validated by syscall, so that's not a need to check.
     for (;;) {
         if (!current_cpu->current_process->node) {
             // lol
@@ -733,6 +736,10 @@ long process_waitpid(pid_t pid, int *wstatus, int options) {
                 // Dead process, nice. This will work.
                 // Make sure child process isn't in use
                 pid_t ret_pid = child->pid;
+
+                // Update wstatus
+                if (wstatus) *wstatus = WSTATUS_EXITED | (child->exit_status << WSTATUS_EXITCODE);
+
                 if (!PROCESS_IN_USE(child)) {
                     process_destroy(child);
                 }

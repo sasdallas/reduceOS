@@ -58,6 +58,8 @@ typedef struct process {
     uid_t uid;                  // User ID of the process
     gid_t gid;                  // Group ID of the process
 
+    int exit_status;            // Exit statuscode
+
     // SCHEDULER INFORMATION
     unsigned int flags;         // Scheduler flags (running/stopped/started) - these can also be used by other parts of code
     unsigned int priority;      // Scheduler priority, see scheduler.h
