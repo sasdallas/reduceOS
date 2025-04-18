@@ -314,8 +314,8 @@ long sys_lstat(const char *pathname, struct stat *statbuf) {
  */
 long sys_ioctl(int fd, unsigned long request, void *argp) {
     if (!FD_VALIDATE(current_cpu->current_process, fd)) return -EBADF;
-    if (!SYSCALL_VALIDATE_PTR(argp)) syscall_pointerValidateFailed(argp);
-
+    
+    // Do not validate argp
     return fs_ioctl(FD(current_cpu->current_process, fd)->node, request, argp);
 }
 
