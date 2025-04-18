@@ -36,6 +36,8 @@
 #include <kernel/misc/spinlock.h>
 #include <kernel/arch/i386/smp.h>
 
+/* coming never */
+// #define EXPERIMENTAL_COW
 
 // Current & kernel directories
 static page_t       *mem_kernelDirectory;       // Kernel page directory
@@ -221,7 +223,15 @@ page_t *mem_createVAS() {
     return vas;
 }
 
-// TODO: Destroy VAS function?
+/**
+ * @brief Destroys and frees the memory of a VAS
+ * @param vas The VAS to destroy
+ * 
+ * @warning Make sure the VAS being freed isn't the current one selected
+ */
+void mem_destroyVAS(page_t *vas) {
+    dprintf(DEBUG, "UNIMPL: Destroy VAS @ %p\n", vas);
+}
 
 
 /**
@@ -234,6 +244,8 @@ page_t *mem_createVAS() {
  * @returns The block address of the table
  */
 static void mem_copyUserPage(page_t *src, page_t *dest) {
+
+#ifdef EXPERIMENTAL_COW
 
     // Check if the source page is writable
     if (src->bits.rw) {
@@ -282,6 +294,24 @@ static void mem_copyUserPage(page_t *src, page_t *dest) {
 
     // Yes, we can. Raw copy and return
     dest->data = src->data;
+
+#else
+
+    // Copy the page
+    uintptr_t src_frame = mem_remapPhys(MEM_GET_FRAME(src), PAGE_SIZE);
+    uintptr_t dest_frame_block = pmm_allocateBlock();
+    uintptr_t dest_frame = mem_remapPhys(dest_frame_block, PAGE_SIZE);
+    memcpy((void*)dest_frame, (void*)src_frame, PAGE_SIZE);
+
+    // Setup bits
+    dest->data = src->data;
+    MEM_SET_FRAME(dest, dest_frame_block);
+    dest->bits.cow = 0; // Not CoW
+
+    mem_unmapPhys(dest_frame, PAGE_SIZE);
+    mem_unmapPhys(src_frame, PAGE_SIZE);
+    return;
+#endif
 }
 
 
