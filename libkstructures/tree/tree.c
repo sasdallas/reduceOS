@@ -147,9 +147,26 @@ void tree_delete(tree_t *tree, tree_node_t *node) {
  * @param node The node to remove
  */
 void tree_remove_reparent(tree_t *tree, tree_node_t *parent, tree_node_t *node) {
-    // Slight amount of trolling
-    kernel_panic(UNSUPPORTED_FUNCTION_ERROR, "tree");
-    __builtin_unreachable();
+    // We have to merge the old node's children into our children
+    if (!tree) return;
+    
+    // Drop the old node from the parent's list
+    node_t *n = list_find(parent->children, (void*)node);
+    if (n) list_delete(parent->children, n);
+
+    // If the node has a list of children..
+    if (node->children->length) {
+        foreach(child_node, node->children) {
+            // Reparent
+            child_node->owner = (void*)parent->children;
+            ((tree_node_t*)child_node->value)->parent = parent;
+            list_append_node(parent->children, child_node);
+        }
+    }
+    
+    // We can't call list_destroy as it would free the nodes
+    kfree(node->children);
+    kfree(node);
 }
 
 /**
@@ -167,6 +184,7 @@ void tree_remove(tree_t *tree, tree_node_t *node) {
     }
 
     // All we do is call tree_remove_reparent
+    tree->nodes--;
     tree_remove_reparent(tree, parent, node);
 }
 
