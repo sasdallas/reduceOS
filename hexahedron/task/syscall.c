@@ -202,7 +202,7 @@ ssize_t sys_write(int fd, const void *buffer, size_t count) {
     ssize_t i = fs_write(proc_fd->node, proc_fd->offset, count, (uint8_t*)buffer);
     proc_fd->offset += i;
 
-    LOG(DEBUG, "sys_write fd %d buffer %p count %d\n", fd, buffer, count);
+    // LOG(DEBUG, "sys_write fd %d buffer %p count %d\n", fd, buffer, count);
     return i;
 }
 

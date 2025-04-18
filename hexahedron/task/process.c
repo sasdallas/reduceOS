@@ -150,11 +150,11 @@ void process_yield(uint8_t reschedule) {
     __sync_or_and_fetch(&current_cpu->current_thread->status, THREAD_STATUS_RUNNING);
     
     // Go!
-    #ifdef __ARCH_I386__
-    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, next_thread->parent->name, current_cpu->current_thread->context.eip, current_cpu->current_thread->context.esp, current_cpu->current_thread->context.ebp);
-    #else
-    dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, current_cpu->current_thread->parent->name, current_cpu->current_thread->context.rip, current_cpu->current_thread->context.rsp, current_cpu->current_thread->context.rbp);
-    #endif
+    // #ifdef __ARCH_I386__
+    // dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, next_thread->parent->name, current_cpu->current_thread->context.eip, current_cpu->current_thread->context.esp, current_cpu->current_thread->context.ebp);
+    // #else
+    // dprintf(DEBUG, "Thread %p (%s), dump context: IP %p SP %p BP %p\n", current_cpu->current_thread, current_cpu->current_thread->parent->name, current_cpu->current_thread->context.rip, current_cpu->current_thread->context.rsp, current_cpu->current_thread->context.rbp);
+    // #endif
 
     // Reschedule thread now. This should leave a VERY slim time window for another CPU to pick up the thread
     // NOTE: You're supposed to not reschedule after putting a thread to sleep but just in case they're trying to disallow it.
