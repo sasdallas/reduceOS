@@ -19,6 +19,7 @@
 #include <kernel/fs/vfs.h>
 #include <kernel/debug.h>
 #include <kernel/panic.h>
+#include <sys/wait.h>
 
 #include <structs/tree.h>
 #include <structs/list.h>
@@ -45,6 +46,10 @@ process_t *reaper_proc = NULL;
 
 /* Reaper function */
 void process_reaper(void *ctx);
+
+/* Helper macro to check if a process is in use */
+/* !!!: Can fail */
+#define PROCESS_IN_USE(proc)    ({ int in_use = 0; for (int i = 0; i < processor_count; i++) { if (processor_data[i].current_process == proc) { in_use = 1; break; } }; in_use; })
 
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "TASK:PROCESS", __VA_ARGS__)
@@ -242,6 +247,11 @@ static process_t *process_createStructure(process_t *parent, char *name, unsigne
     process->gid = process->uid = 0;
     process->pid = process_allocatePID();
 
+    // Create tree node
+    if (parent && parent->node) {
+        process->node = tree_insert_child(process_tree, parent->node, (void*)process);
+    }
+
     // Create process' kernel stack
     process->kstack = mem_allocate(0, PROCESS_KSTACK_SIZE, MEM_ALLOC_HEAP, MEM_PAGE_KERNEL) + PROCESS_KSTACK_SIZE;
     dprintf(DEBUG, "Process '%s' has had its kstack %p allocated in page directory %p\n", name, process->kstack, current_cpu->current_dir);
@@ -397,19 +407,11 @@ void process_reaper(void *ctx) {
                 // Stopped process, ready for the taking.
                 
                 // Although, we first need to make sure that no CPUs currently own this process
-                int in_use = 0;
-                for (int i = 0; i < processor_count; i++) {
-                    // !!!: THIS IS STILL FAILABLE. Perhaps we should keep a previous process and then NULL it at the last second?
-                    if (processor_data[i].current_process == proc) {
-                        // dang.
-                        list_append_node(reap_queue, procnode); // We're only executing reap_queue->length times, so this won't matter
-                        in_use = 1;
-                        break;
-                    }
+                if (PROCESS_IN_USE(proc)) {
+                    // dang.
+                    list_append_node(reap_queue, procnode); // We're only executing reap_queue->length times, so this won't matter
+                    continue;                    
                 }
-
-                // If in use, try again later
-                if (in_use) continue;
 
                 // Yoink!
                 kfree(procnode);
@@ -675,7 +677,6 @@ pid_t process_fork() {
 
     THREAD_PUSH_STACK(SP(child->main_thread->context), struct _registers, r);
 
-
     // Insert new thread
     scheduler_insertThread(child->main_thread);
 
@@ -685,7 +686,78 @@ pid_t process_fork() {
 /**
  * @brief waitpid equivalent
  */
-void process_waitpid(pid_t pid, int *wstatus, int options) {
-    // TODO
-    for (;;);
+long process_waitpid(pid_t pid, int *wstatus, int options) {
+    // Let's go.
+    for (;;) {
+        if (!current_cpu->current_process->node) {
+            // lol
+            return -ECHILD;
+        }
+
+        // Put ourselves in our wait queue
+        if (!current_cpu->current_process->waitpid_queue) current_cpu->current_process->waitpid_queue = list_create("waitpid queue");
+        list_append(current_cpu->current_process->waitpid_queue, (void*)current_cpu->current_thread);
+
+        // We need this to stop interferance from other threads also trying to waitpid
+        spinlock_acquire(&reap_queue_lock);
+
+        // Let's look through the list of children to see if we find anything
+        if (!current_cpu->current_process->node->children || !current_cpu->current_process->node->children->length) {
+            // There are no children available
+            spinlock_release(&reap_queue_lock);
+            list_delete(current_cpu->current_process->waitpid_queue, list_find(current_cpu->current_process->waitpid_queue, (void*)current_cpu->current_thread));
+            return -ECHILD;
+        }
+   
+        foreach(child_node, current_cpu->current_process->node->children) {
+            process_t *child = (process_t*)((tree_node_t*)(child_node->value))->value;
+            if (!child) continue;
+
+            // Validate PID matches
+            if (pid < -1) {
+                // Wait for any child process whose group ID is the absolute value of PID
+                if (child->gid != (pid * -1)) continue;
+            } else if (pid == 0) {
+                // Wait for any child process whose group ID is equal to the calling process
+                if (current_cpu->current_process->gid != child->gid) {
+                    continue;
+                }
+            } else if (pid > 0) {
+                // Wait for any child process whose PID is the same as PID
+                if (child->pid != pid) continue;
+            }
+
+            // Look for processes that have exited.
+            // TODO: waitid? we can modify this syscall for that
+            if (child->flags & PROCESS_STOPPED) {
+                // Dead process, nice. This will work.
+                // Make sure child process isn't in use
+                pid_t ret_pid = child->pid;
+                if (!PROCESS_IN_USE(child)) {
+                    process_destroy(child);
+                }
+
+                spinlock_release(&reap_queue_lock);
+
+                // Take us out and return
+                list_delete(current_cpu->current_process->waitpid_queue, list_find(current_cpu->current_process->waitpid_queue, (void*)current_cpu->current_thread));
+                return child->pid;
+            }
+
+            // TODO: Look for continued, interrupted, etc
+        }
+
+        spinlock_release(&reap_queue_lock);
+
+        // There were children available but they didn't seem important
+        if (options & WNOHANG) {
+            // Return immediately, we didn't get anything.
+            list_delete(current_cpu->current_process->waitpid_queue, list_find(current_cpu->current_process->waitpid_queue, (void*)current_cpu->current_thread));
+            return 0;
+        } else {
+            // Sleep until we get woken up
+            sleep_untilNever(current_cpu->current_thread);
+            process_yield(0);
+        }
+    }
 }

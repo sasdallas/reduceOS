@@ -21,6 +21,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 /**** DEFINITIONS ****/
 
@@ -43,6 +44,16 @@ typedef struct syscall {
  * @warning We're treading in unknown waters here - overloading functions
  */
 typedef long (*syscall_func_t)(long, long, long, long, long);
+
+/**
+ * @brief waitpid context
+ */
+typedef struct waitpid_context {
+    struct process *process;    // Process we are waiting for
+    int options;                // Options
+    int *wstatus;               // Wait status
+    
+} waitpid_context_t;
 
 /**** FUNCTIONS ****/
 
@@ -70,5 +81,6 @@ long sys_gettimeofday(struct timeval *tv, void *tz);
 long sys_settimeofday(struct timeval *tv, void *tz);
 long sys_usleep(useconds_t usec);
 long sys_execve(const char *pathname, const char *argv[], const char *envp[]);
+long sys_wait(pid_t pid, int *wstatus, int options);
 
 #endif

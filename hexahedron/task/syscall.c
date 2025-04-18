@@ -43,6 +43,7 @@ static syscall_func_t syscall_table[] = {
     [SYS_SETTIMEOFDAY]  = (syscall_func_t)(uintptr_t)sys_settimeofday,
     [SYS_USLEEP]        = (syscall_func_t)(uintptr_t)sys_usleep,
     [SYS_EXECVE]        = (syscall_func_t)(uintptr_t)sys_execve,
+    [SYS_WAIT]          = (syscall_func_t)(uintptr_t)sys_wait
 };
 
 /* Unimplemented system call */
@@ -61,7 +62,6 @@ static syscall_func_t syscall_table[] = {
  * @returns Only if resolved.
  */
 void syscall_pointerValidateFailed(void *ptr) {
-
     // Check to see if this pointer is within process heap boundary
     if ((uintptr_t)ptr >= current_cpu->current_process->heap_base && (uintptr_t)ptr < current_cpu->current_process->heap) {
         // Yep, it's valid. Map a page
@@ -490,4 +490,12 @@ long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
 
     process_execute(f, argc, new_argv, new_envp);
     return 0;
+}
+
+/**
+ * @brief wait system call
+ */
+long sys_wait(pid_t pid, int *wstatus, int options) {
+    if (wstatus && !SYSCALL_VALIDATE_PTR(wstatus)) syscall_pointerValidateFailed((void*)wstatus);
+    return process_waitpid(pid, wstatus, options);
 }

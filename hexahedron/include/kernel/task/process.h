@@ -180,6 +180,6 @@ pid_t process_fork();
 /**
  * @brief waitpid equivalent
  */
-void process_waitpid(pid_t pid, int *wstatus, int options);
+long process_waitpid(pid_t pid, int *wstatus, int options);
 
 #endif
