@@ -45,15 +45,14 @@ typedef struct syscall {
  */
 typedef long (*syscall_func_t)(long, long, long, long, long);
 
-/**
- * @brief waitpid context
- */
-typedef struct waitpid_context {
-    struct process *process;    // Process we are waiting for
-    int options;                // Options
-    int *wstatus;               // Wait status
-    
-} waitpid_context_t;
+/**** MACROS ****/
+
+/* Pointer validation */
+#define SYSCALL_VALIDATE_PTR(ptr) (mem_validate((void*)ptr, PTR_USER | PTR_STRICT))
+
+/* Pointer validation (range) */
+#define SYSCALL_VALIDATE_PTR_SIZE(ptr, size) for (uintptr_t i = (uintptr_t)ptr; i < (uintptr_t)ptr + (uintptr_t)size; i += PAGE_SIZE) { if (!SYSCALL_VALIDATE_PTR(i)) syscall_pointerValidateFailed((void*)i); }
+
 
 /**** FUNCTIONS ****/
 
@@ -82,5 +81,8 @@ long sys_settimeofday(struct timeval *tv, void *tz);
 long sys_usleep(useconds_t usec);
 long sys_execve(const char *pathname, const char *argv[], const char *envp[]);
 long sys_wait(pid_t pid, int *wstatus, int options);
+long sys_getcwd(char *buf, size_t size);
+long sys_chdir(const char *path);
+long sys_fchdir(int fd);
 
 #endif

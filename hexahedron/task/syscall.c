@@ -43,14 +43,14 @@ static syscall_func_t syscall_table[] = {
     [SYS_SETTIMEOFDAY]  = (syscall_func_t)(uintptr_t)sys_settimeofday,
     [SYS_USLEEP]        = (syscall_func_t)(uintptr_t)sys_usleep,
     [SYS_EXECVE]        = (syscall_func_t)(uintptr_t)sys_execve,
-    [SYS_WAIT]          = (syscall_func_t)(uintptr_t)sys_wait
+    [SYS_WAIT]          = (syscall_func_t)(uintptr_t)sys_wait,
+    [SYS_GETCWD]        = (syscall_func_t)(uintptr_t)sys_getcwd,
+    [SYS_CHDIR]         = (syscall_func_t)(uintptr_t)sys_chdir,
+    [SYS_FCHDIR]        = (syscall_func_t)(uintptr_t)sys_fchdir
 };
 
 /* Unimplemented system call */
 #define SYSCALL_UNIMPLEMENTED(syscall) kernel_panic_extended(UNSUPPORTED_FUNCTION_ERROR, "syscall", "*** The system call \"%s\" is unimplemented\n", syscall)
-
-/* Pointer validation */
-#define SYSCALL_VALIDATE_PTR(ptr) (mem_validate((void*)ptr, PTR_USER | PTR_STRICT))
 
 /* Log method */
 #define LOG(status, ...) dprintf_module(status, "TASK:SYSCALL", __VA_ARGS__)
@@ -119,7 +119,7 @@ int sys_open(const char *pathname, int flags, mode_t mode) {
     }
 
     // Try and get it open
-    fs_node_t *node = kopen(pathname, flags);
+    fs_node_t *node = kopen_user(pathname, flags);
 
     // Did we find the node and they DIDN'T want us to create it?
     if (node && (flags & O_CREAT) && (flags & O_EXCL)) {
@@ -162,9 +162,7 @@ int sys_open(const char *pathname, int flags, mode_t mode) {
  * @brief Read system call
  */
 ssize_t sys_read(int fd, void *buffer, size_t count) {
-    if (SYSCALL_VALIDATE_PTR(buffer) == 0) {
-        syscall_pointerValidateFailed((void*)buffer);
-    }
+    SYSCALL_VALIDATE_PTR_SIZE(buffer, count);
 
     if (!FD_VALIDATE(current_cpu->current_process, fd)) {
         return -EBADF;
@@ -182,9 +180,7 @@ ssize_t sys_read(int fd, void *buffer, size_t count) {
  * @brief Write system calll
  */
 ssize_t sys_write(int fd, const void *buffer, size_t count) {
-    if (SYSCALL_VALIDATE_PTR(buffer) == 0) {
-        syscall_pointerValidateFailed((void*)buffer);
-    }
+    SYSCALL_VALIDATE_PTR_SIZE(buffer, count);
 
     // stdout?
     if (fd == STDOUT_FILE_DESCRIPTOR) {
@@ -261,7 +257,7 @@ long sys_stat(const char *pathname, struct stat *statbuf) {
     if (!SYSCALL_VALIDATE_PTR(statbuf)) syscall_pointerValidateFailed((void*)statbuf);
 
     // Try to open the file
-    fs_node_t *f = kopen(pathname, O_RDONLY); // TODO: return ELOOP, O_NOFOLLOW is supposed to work but need to refine this
+    fs_node_t *f = kopen_user(pathname, O_RDONLY); // TODO: return ELOOP, O_NOFOLLOW is supposed to work but need to refine this
     if (!f) return -ENOENT;
 
     // Common stat
@@ -294,8 +290,8 @@ long sys_lstat(const char *pathname, struct stat *statbuf) {
     if (!SYSCALL_VALIDATE_PTR(statbuf)) syscall_pointerValidateFailed((void*)statbuf);
 
     // Try to open the file
-    fs_node_t *f = kopen(pathname, O_NOFOLLOW | O_PATH);    // Get actual link file
-                                                            // TODO: Handle open errors?
+    fs_node_t *f = kopen_user(pathname, O_NOFOLLOW | O_PATH);   // Get actual link file
+                                                                // TODO: Handle open errors?
     
     if (!f) return -ENOENT;
 
@@ -378,7 +374,7 @@ off_t sys_lseek(int fd, off_t offset, int whence) {
     }
 
 
-    // TODO: What if offset > file size? We don't have proper safeguards...
+    // TODO: What if offset > file size? We don't have proper safeguards, Linux does something but I didn't care enough to check...
     return FD(current_cpu->current_process, fd)->offset;
 }
 
@@ -447,7 +443,7 @@ long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
     if (envp && !SYSCALL_VALIDATE_PTR(envp)) syscall_pointerValidateFailed((void*)envp);
 
     // Try to get the file
-    fs_node_t *f = kopen(pathname, O_RDONLY);
+    fs_node_t *f = kopen_user(pathname, O_RDONLY);
     if (!f) return -ENOENT;
     if (f->flags != VFS_FILE) return -EISDIR;
 
@@ -498,4 +494,32 @@ long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
 long sys_wait(pid_t pid, int *wstatus, int options) {
     if (wstatus && !SYSCALL_VALIDATE_PTR(wstatus)) syscall_pointerValidateFailed((void*)wstatus);
     return process_waitpid(pid, wstatus, options);
+}
+
+/**
+ * @brief getcwd system call
+ */
+long sys_getcwd(char *buffer, size_t size) {
+    if (!size || !buffer) return 0;
+    if (!SYSCALL_VALIDATE_PTR(buffer)) syscall_pointerValidateFailed((void*)buffer);
+
+    // Copy the current working directory to buffer
+    size_t wd_len = strlen(current_cpu->current_process->wd_path);
+    strncpy(buffer, current_cpu->current_process->wd_path, (wd_len > size) ? size : wd_len);
+    return size;
+}
+
+/**
+ * @brief chdir system call
+ */
+long sys_chdir(const char *path) {
+    return -EINVAL;
+}
+
+/**
+ * @brief fchdir system call
+ */
+long sys_fchdir(int fd) {
+    // fuuck
+    return -EINVAL;
 }
