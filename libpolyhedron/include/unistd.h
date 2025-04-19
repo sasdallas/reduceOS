@@ -53,6 +53,8 @@ int execve(const char *pathname, const char *argv[], char *envp[]);
 pid_t wait(int *wstatus);
 pid_t waitpid(pid_t pid, int *wstatus, int options);
 char *getcwd(char *buf, size_t size);
+int chdir(const char *path);
+int fchdir(int fd);
 
 /* STUBS */
 int mkdir(const char *pathname, mode_t mode);
