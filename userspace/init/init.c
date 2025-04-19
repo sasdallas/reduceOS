@@ -184,4 +184,5 @@ int main(int argc, char *argv[]) {
     printf("Welcome to Ethereal\n");
     printf("Initializing shell...\n");
     shell();
+    return 0;
 }
