@@ -19,12 +19,15 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     if (!size || !nmemb || !stream) return 0;
 
 
-    // fread reads nmemb objects of size size to f
     char *p = (char*)ptr;
-    for (size_t i = 0; i < nmemb; i++) {
-        size_t r = __fileio_read_bytes(stream, p, size);
-        if (r < size) return i; // Out of objects
-        p += size;
+    ssize_t r = __fileio_read_bytes(stream, p, nmemb*size);
+    if (r == -1) {
+        return -1;
+    }
+
+    // TODO: FIX!!
+    if (r < (ssize_t)nmemb*(ssize_t)size) {
+        return (r/size);
     }
 
     return nmemb; 
