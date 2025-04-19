@@ -40,6 +40,9 @@ _Begin_C_Header
 #define SYS_USLEEP          25
 #define SYS_EXECVE          26
 #define SYS_WAIT            27
+#define SYS_GETCWD          28
+#define SYS_CHDIR           29
+#define SYS_FCHDIR          30
 
 /* Syscall macros */
 #define DEFINE_SYSCALL0(name, num) \

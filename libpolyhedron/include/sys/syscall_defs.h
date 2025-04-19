@@ -57,6 +57,9 @@ DECLARE_SYSCALL2(settimeofday, struct timeval *, void*);
 DECLARE_SYSCALL1(usleep, useconds_t);
 DECLARE_SYSCALL3(execve, const char*, const char **, char **);
 DECLARE_SYSCALL3(wait, pid_t, int*, int);
+DECLARE_SYSCALL2(getcwd, char*, size_t);
+DECLARE_SYSCALL1(chdir, const char*);
+DECLARE_SYSCALL1(fchdir, int);
 
 #endif
 

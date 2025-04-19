@@ -50,9 +50,9 @@ pid_t fork();
 off_t lseek(int fd, off_t offset, int whence);
 int usleep(useconds_t usec);
 int execve(const char *pathname, const char *argv[], char *envp[]);
-
 pid_t wait(int *wstatus);
 pid_t waitpid(pid_t pid, int *wstatus, int options);
+char *getcwd(char *buf, size_t size);
 
 /* STUBS */
 int mkdir(const char *pathname, mode_t mode);
