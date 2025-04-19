@@ -114,9 +114,7 @@ void sys_exit(int status) {
  */
 int sys_open(const char *pathname, int flags, mode_t mode) {
     // Validate pointer
-    if (SYSCALL_VALIDATE_PTR(pathname) == 0) {
-        syscall_pointerValidateFailed((void*)pathname);
-    }
+    SYSCALL_VALIDATE_PTR(pathname);
 
     // Try and get it open
     fs_node_t *node = kopen_user(pathname, flags);
@@ -253,8 +251,8 @@ static void sys_stat_common(fs_node_t *f, struct stat *statbuf) {
  * @brief Stat system call
  */
 long sys_stat(const char *pathname, struct stat *statbuf) {
-    if (!SYSCALL_VALIDATE_PTR(pathname)) syscall_pointerValidateFailed((void*)pathname); // TODO: EFAULT
-    if (!SYSCALL_VALIDATE_PTR(statbuf)) syscall_pointerValidateFailed((void*)statbuf);
+    SYSCALL_VALIDATE_PTR(pathname);
+    SYSCALL_VALIDATE_PTR(statbuf);
 
     // Try to open the file
     fs_node_t *f = kopen_user(pathname, O_RDONLY); // TODO: return ELOOP, O_NOFOLLOW is supposed to work but need to refine this
@@ -275,7 +273,7 @@ long sys_stat(const char *pathname, struct stat *statbuf) {
  */
 long sys_fstat(int fd, struct stat *statbuf) {
     if (!FD_VALIDATE(current_cpu->current_process, fd)) return -EBADF;
-    if (!SYSCALL_VALIDATE_PTR(statbuf)) syscall_pointerValidateFailed((void*)statbuf);
+    SYSCALL_VALIDATE_PTR(statbuf);
 
     // Try to do stat
     sys_stat_common(FD(current_cpu->current_process, fd)->node, statbuf);
@@ -286,8 +284,8 @@ long sys_fstat(int fd, struct stat *statbuf) {
  * @brief lstat system call
  */
 long sys_lstat(const char *pathname, struct stat *statbuf) {
-    if (!SYSCALL_VALIDATE_PTR(pathname)) syscall_pointerValidateFailed((void*)pathname); // TODO: EFAULT
-    if (!SYSCALL_VALIDATE_PTR(statbuf)) syscall_pointerValidateFailed((void*)statbuf);
+    SYSCALL_VALIDATE_PTR(pathname);
+    SYSCALL_VALIDATE_PTR(statbuf);
 
     // Try to open the file
     fs_node_t *f = kopen_user(pathname, O_NOFOLLOW | O_PATH);   // Get actual link file
@@ -383,16 +381,8 @@ off_t sys_lseek(int fd, off_t offset, int whence) {
  * @todo Use struct timezone
  */
 long sys_gettimeofday(struct timeval *tv, void *tz) {
-    if (!SYSCALL_VALIDATE_PTR(tv)) {
-        // TODO: Resolve by returning -EFAULT
-        syscall_pointerValidateFailed((void*)tv);
-    }
-
-    if (tz && !SYSCALL_VALIDATE_PTR(tz)) {
-        // TODO: Resolve by returning -EFAULT
-        syscall_pointerValidateFailed(tz);
-    }
-
+    SYSCALL_VALIDATE_PTR(tv);
+    SYSCALL_VALIDATE_PTR(tz);
     return gettimeofday(tv, tz);
 }
 
@@ -401,16 +391,8 @@ long sys_gettimeofday(struct timeval *tv, void *tz) {
  * @todo Use struct timezone
  */
 long sys_settimeofday(struct timeval *tv, void *tz) {
-    if (!SYSCALL_VALIDATE_PTR(tv)) {
-        // TODO: Resolve by returning -EFAULT
-        syscall_pointerValidateFailed((void*)tv);
-    }
-
-    if (tz && !SYSCALL_VALIDATE_PTR(tz)) {
-        // TODO: Resolve by returning -EFAULT
-        syscall_pointerValidateFailed(tz);
-    }
-
+    SYSCALL_VALIDATE_PTR(tv);
+    SYSCALL_VALIDATE_PTR(tz);
     return settimeofday(tv, tz);
 }
 
@@ -438,9 +420,9 @@ long sys_usleep(useconds_t usec) {
  */
 long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
     // Validate pointers
-    if (!SYSCALL_VALIDATE_PTR(pathname)) syscall_pointerValidateFailed((void*)pathname);
-    if (!SYSCALL_VALIDATE_PTR(argv)) syscall_pointerValidateFailed((void*)argv);
-    if (envp && !SYSCALL_VALIDATE_PTR(envp)) syscall_pointerValidateFailed((void*)envp);
+    SYSCALL_VALIDATE_PTR(pathname);
+    SYSCALL_VALIDATE_PTR(argv);
+    if (envp) SYSCALL_VALIDATE_PTR(envp);
 
     // Try to get the file
     fs_node_t *f = kopen_user(pathname, O_RDONLY);
@@ -454,14 +436,14 @@ long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
     // Collect argc
     while (argv[argc]) {
         // TODO: Problem?
-        if (!SYSCALL_VALIDATE_PTR(argv[argc])) syscall_pointerValidateFailed((void*)argv[argc]);
+        SYSCALL_VALIDATE_PTR(argv[argc]);
         argc++;
     }
 
     // Collect envc
     if (envp) {
         while (envp[envc]) {
-            if (!SYSCALL_VALIDATE_PTR(envp[envc])) syscall_pointerValidateFailed((void*)envp[envc]);
+            SYSCALL_VALIDATE_PTR(envp[envc]);
             envc++;
         }
     }
@@ -492,7 +474,10 @@ long sys_execve(const char *pathname, const char *argv[], const char *envp[]) {
  * @brief wait system call
  */
 long sys_wait(pid_t pid, int *wstatus, int options) {
-    if (wstatus && !SYSCALL_VALIDATE_PTR(wstatus)) syscall_pointerValidateFailed((void*)wstatus);
+    if (wstatus) {
+        SYSCALL_VALIDATE_PTR(wstatus);
+    }
+
     return process_waitpid(pid, wstatus, options);
 }
 
@@ -501,7 +486,7 @@ long sys_wait(pid_t pid, int *wstatus, int options) {
  */
 long sys_getcwd(char *buffer, size_t size) {
     if (!size || !buffer) return 0;
-    if (!SYSCALL_VALIDATE_PTR(buffer)) syscall_pointerValidateFailed((void*)buffer);
+    SYSCALL_VALIDATE_PTR(buffer)
 
     // Copy the current working directory to buffer
     size_t wd_len = strlen(current_cpu->current_process->wd_path);
@@ -513,13 +498,34 @@ long sys_getcwd(char *buffer, size_t size) {
  * @brief chdir system call
  */
 long sys_chdir(const char *path) {
-    return -EINVAL;
+    SYSCALL_VALIDATE_PTR(path);
+
+    // Check that the path is accessible
+    LOG(DEBUG, "path: %s\n", path);
+    char *new_path = vfs_canonicalizePath(current_cpu->current_process->wd_path, (char*)path);
+    LOG(DEBUG, "new_path: %s\n", new_path);
+
+    fs_node_t *tmpnode = kopen(new_path, O_RDONLY);
+    if (tmpnode) { 
+        // Path exists
+        // TODO: Validate permissions?
+
+        kfree(current_cpu->current_process->wd_path);
+        current_cpu->current_process->wd_path = new_path;
+
+        // Close node
+        fs_close(tmpnode);
+        LOG(DEBUG, "all done\n");
+        return 0;
+    }
+
+    return -ENOENT;
 }
 
 /**
  * @brief fchdir system call
  */
 long sys_fchdir(int fd) {
-    // fuuck
+    // TODO
     return -EINVAL;
 }

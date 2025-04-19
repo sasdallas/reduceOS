@@ -48,10 +48,10 @@ typedef long (*syscall_func_t)(long, long, long, long, long);
 /**** MACROS ****/
 
 /* Pointer validation */
-#define SYSCALL_VALIDATE_PTR(ptr) (mem_validate((void*)ptr, PTR_USER | PTR_STRICT))
+#define SYSCALL_VALIDATE_PTR(ptr) if (!mem_validate((void*)ptr, PTR_USER | PTR_STRICT)) syscall_pointerValidateFailed((void*)ptr);
 
 /* Pointer validation (range) */
-#define SYSCALL_VALIDATE_PTR_SIZE(ptr, size) for (uintptr_t i = (uintptr_t)ptr; i < (uintptr_t)ptr + (uintptr_t)size; i += PAGE_SIZE) { if (!SYSCALL_VALIDATE_PTR(i)) syscall_pointerValidateFailed((void*)i); }
+#define SYSCALL_VALIDATE_PTR_SIZE(ptr, size) for (uintptr_t i = (uintptr_t)ptr; i < (uintptr_t)ptr + (uintptr_t)size; i += PAGE_SIZE) { SYSCALL_VALIDATE_PTR(i); }
 
 
 /**** FUNCTIONS ****/
