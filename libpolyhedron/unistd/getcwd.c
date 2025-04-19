@@ -13,12 +13,16 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 DEFINE_SYSCALL2(getcwd, SYS_GETCWD, char*, size_t);
 
 char *getcwd(char *buf, size_t size) {
     // Extension to POSIX.1-2001 by glibd
-    if (!buf && size) buf = malloc(size);
+    if (!buf && size) {
+        buf = malloc(size);
+        memset(buf, 0, size);
+    }
 
     int result = __syscall_getcwd(buf, size);
     if (!result) return NULL;
