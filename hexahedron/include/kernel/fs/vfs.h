@@ -231,6 +231,14 @@ fs_node_t *vfs_mountFilesystemType(char *name, char *argp, char *mountpoint);
 fs_node_t *kopen(const char *path, unsigned int flags);
 
 /**
+ * @brief Kernel open method for usermode (uses current process' working directory)
+ * @param path The path of the file to open
+ * @param flags The opening flags - see @c fcntl.h
+ * @returns A pointer to the file node or NULL if it couldn't be found
+ */
+fs_node_t *kopen_user(const char *path, unsigned int flags);
+
+/**
  * @brief Dump VFS tree system
  */
 void vfs_dump();

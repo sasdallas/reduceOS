@@ -23,6 +23,7 @@
 #include <kernel/mem/alloc.h>
 #include <kernel/debug.h>
 #include <kernel/misc/spinlock.h>
+#include <kernel/processor_data.h>
 
 #include <structs/tree.h>
 #include <structs/hashmap.h>
@@ -617,5 +618,20 @@ _finish_node: ;
  * @returns A pointer to the file node or NULL if it couldn't be found
  */
 fs_node_t *kopen_user(const char *path, unsigned int flags) {
-    return NULL; // unimplemented
+    if (!path) return NULL;
+    if (!current_cpu->current_process) {
+        LOG(ERR, "kopen_user with no current process\n");
+        return NULL;
+    }
+
+    // If the path is not relative, then just pass it to kopen
+    char *p = (char*)path;
+    if (*p == '/') {
+        return kopen(path, flags); // Path is absolute
+    }
+
+    // Else, we should combine the two paths.
+    char path_combined[512]; // TODO: Dynamic allocation?
+    snprintf(path_combined, 512, "%s/%s", current_cpu->current_process->wd_path, path);
+    return kopen(path_combined, flags);
 }

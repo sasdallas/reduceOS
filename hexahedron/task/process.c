@@ -247,6 +247,14 @@ static process_t *process_createStructure(process_t *parent, char *name, unsigne
     process->gid = process->uid = 0;
     process->pid = process_allocatePID();
 
+    // Create working directory
+    if (parent && parent->wd_path) {
+        process->wd_path = strdup(parent->wd_path);
+    } else {
+        // No parent, just use "/" I guess
+        process->wd_path = strdup("/");
+    }
+
     // Create tree node
     if (parent && parent->node) {
         process->node = tree_insert_child(process_tree, parent->node, (void*)process);
@@ -376,6 +384,7 @@ void process_destroy(process_t *proc) {
         kfree(proc->node);
     }
 
+    kfree(proc->wd_path);
     kfree(proc->name);
     kfree(proc);
 }

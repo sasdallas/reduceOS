@@ -57,7 +57,6 @@ typedef struct process {
     char *name;                 // Name of the process
     uid_t uid;                  // User ID of the process
     gid_t gid;                  // Group ID of the process
-
     int exit_status;            // Exit statuscode
 
     // SCHEDULER INFORMATION
@@ -73,6 +72,7 @@ typedef struct process {
     list_t  *thread_list;       // List of threads for the process
 
     // FILE INFORMATION
+    char *wd_path;              // Working directory path
     fd_table_t *fd_table;       // File descriptor table
 
     // MEMORY REGIONS
