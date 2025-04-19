@@ -239,6 +239,17 @@ fs_node_t *kopen(const char *path, unsigned int flags);
 fs_node_t *kopen_user(const char *path, unsigned int flags);
 
 /**
+ * @brief Canonicalize a path based off a CWD and an addition.
+ * 
+ * This basically will turn /home/blah (CWD) + ../other_directory/gk (addition) into
+ * /home/other_directory/gk
+ * 
+ * @param cwd The current working directory
+ * @param addition What to add to the current working directory
+ */
+char *vfs_canonicalizePath(char *cwd, char *addition);
+
+/**
  * @brief Dump VFS tree system
  */
 void vfs_dump();
