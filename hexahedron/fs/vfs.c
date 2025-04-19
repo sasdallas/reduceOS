@@ -333,6 +333,77 @@ _canonicalize: ;
 }
 
 /**
+ * @brief False VFS node read method
+ */
+struct dirent *vfs_fakeNodeReaddir(fs_node_t *node, unsigned long index) {
+    // Of course, we gotta have the '.' and '..'
+    if (index < 2) {
+        struct dirent *dent = kmalloc(sizeof(struct dirent));
+        memset(dent, 0, sizeof(struct dirent));
+        strcpy(dent->d_name, (index == 0) ? "." : "..");
+        dent->d_ino = index;
+        return dent;
+    }
+
+    index-=2;
+
+    // TODO: gross
+    unsigned long i = 0;
+    foreach(childnode, ((tree_node_t*)node->dev)->children) {
+        i++;
+        if (i == index) {
+            vfs_tree_node_t *vfs_node = (vfs_tree_node_t*)((tree_node_t*)childnode->value)->value;
+            
+            struct dirent *dent = kmalloc(sizeof(struct dirent));
+            memset(dent, 0, sizeof(struct dirent));
+            strncpy(dent->d_name, vfs_node->name, 256);
+            dent->d_ino = i;
+            return dent;
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief False VFS node finddir method
+ */
+fs_node_t *vfs_fakeNodeFinddir(fs_node_t *node, char *name) {
+    foreach(childnode, ((tree_node_t*)node->dev)->children) {
+        vfs_tree_node_t *vfs_node = (vfs_tree_node_t*)((tree_node_t*)childnode->value)->value;
+        if (!strcmp(name, vfs_node->name)) {
+            return vfs_node->node;
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * @brief Make a false VFS node.
+ * 
+ * This node is fake and allows for a simple readdir to be done which displays its tree contents.
+ * The VFS tree is, well, just a collection of mountpoints - if a user tries to cd into a tree node that's just there (like /device/)
+ * and doesn't actually have a filesystem then we're in trouble
+ * 
+ * @param name The name to use
+ * @param tnode The tree node at which we should display contents
+ */
+fs_node_t *vfs_createFakeNode(char *name, tree_node_t *tnode) {
+    fs_node_t *fakenode = kmalloc(sizeof(fs_node_t));
+    memset(fakenode, 0, sizeof(fs_node_t));
+
+    strcpy(fakenode->name, name);
+    fakenode->dev = (void*)tnode;
+    fakenode->flags = VFS_DIRECTORY;
+    fakenode->readdir = vfs_fakeNodeReaddir;
+    fakenode->finddir = vfs_fakeNodeFinddir;
+
+    // TODO: Permissions?
+    return fakenode;
+}
+
+/**
  * @brief Mount a specific node to a directory
  * @param node The node to mount
  * @param path The path to mount to
@@ -391,8 +462,8 @@ tree_node_t *vfs_mount(fs_node_t *node, char *path) {
             vfs_tree_node_t *newnode = kmalloc(sizeof(vfs_tree_node_t)); 
             newnode->name = strdup(pch);
             newnode->fs_type = NULL;
-            newnode->node = NULL;
             parent_node = tree_insert_child(vfs_tree, parent_node, newnode);
+            newnode->node = vfs_createFakeNode(pch, parent_node);
         }
 
         pch = strtok_r(NULL, "/", &saveptr);
@@ -575,6 +646,8 @@ fs_node_t *kopen(const char *path, unsigned int flags) {
     // First get the mountpoint of path.
     char *path_offset = (char*)path;
     fs_node_t *node = vfs_getMountpoint(path, &path_offset);
+
+    if (!node) return NULL; // No mountpoint
 
     if (!(*path_offset)) {
         // Usually this means the user got what they want, the mountpoint, so I guess just open that and call it a da.
