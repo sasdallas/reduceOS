@@ -107,11 +107,27 @@ char **shell_processCommand(char *command, int *argc) {
 }
 
 /**
+ * @brief Execute builtin command
+ */
+int shell_executeBuiltin(int argc, char *argv[]) {
+    if (!strcmp(argv[0], "cd") && argc >= 2) {
+        // CD command
+        int e = chdir(argv[1]);
+        if (e < 0) printf("Could not switch to directory \"%s\": errno %d\n", argv[1], errno);
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
  * @brief Main shell code
  */
 void shell() {
     while (1) {
-        printf("> ");
+        char *cwd = getcwd(NULL, 512);
+
+        printf("%s> ", cwd);
         fflush(stdout);
 
         char *buffer = shell_readBuffer();
@@ -123,6 +139,9 @@ void shell() {
         int argc = 0;
         char **argv = shell_processCommand(buffer, &argc);
         printf("debug: Executing program \"%s\" with argc %d\n", argv[0], argc);
+
+        // Check if builtin
+        if (shell_executeBuiltin(argc, argv)) goto _next_cmd;
 
         struct stat st;
         if (stat(argv[0], &st) < 0) {
